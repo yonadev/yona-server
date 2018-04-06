@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
@@ -33,6 +33,14 @@ public abstract class BuddyMessage extends Message
 	private Optional<UUID> senderUserPhotoId;
 	private byte[] senderUserPhotoIdCiphertext;
 
+	@Transient
+	private String firstName;
+	private byte[] firstNameCiphertext;
+
+	@Transient
+	private String lastName;
+	private byte[] lastNameCiphertext;
+
 	// Default constructor is required for JPA
 	protected BuddyMessage()
 	{
@@ -48,6 +56,8 @@ public abstract class BuddyMessage extends Message
 	{
 		super(buddyInfoParameters.relatedUserAnonymizedId, isSentItem);
 		this.senderUserId = buddyInfoParameters.userId;
+		this.firstName = buddyInfoParameters.firstName;
+		this.lastName = buddyInfoParameters.lastName;
 		this.senderNickname = buddyInfoParameters.nickname;
 		this.senderUserPhotoId = buddyInfoParameters.userPhotoId;
 		this.message = message;
@@ -94,6 +104,8 @@ public abstract class BuddyMessage extends Message
 	{
 		senderUserIdCiphertext = SecretKeyUtil.encryptUuid(senderUserId);
 		messageCiphertext = SecretKeyUtil.encryptString(message);
+		firstNameCiphertext = SecretKeyUtil.encryptString(firstName);
+		lastNameCiphertext = SecretKeyUtil.encryptString(lastName);
 		senderNicknameCiphertext = SecretKeyUtil.encryptString(senderNickname);
 		senderUserPhotoIdCiphertext = SecretKeyUtil.encryptUuid(senderUserPhotoId.orElse(null));
 	}
@@ -103,8 +115,20 @@ public abstract class BuddyMessage extends Message
 	{
 		senderUserId = SecretKeyUtil.decryptUuid(senderUserIdCiphertext);
 		message = SecretKeyUtil.decryptString(messageCiphertext);
+		firstName = SecretKeyUtil.decryptString(firstNameCiphertext);
+		lastName = SecretKeyUtil.decryptString(lastNameCiphertext);
 		senderNickname = SecretKeyUtil.decryptString(senderNicknameCiphertext);
 		senderUserPhotoId = Optional.ofNullable(SecretKeyUtil.decryptUuid(senderUserPhotoIdCiphertext));
+	}
+
+	public String getFirstName()
+	{
+		return firstName;
+	}
+
+	public String getLastName()
+	{
+		return lastName;
 	}
 
 	/*
@@ -115,33 +139,39 @@ public abstract class BuddyMessage extends Message
 		public final UUID relatedUserAnonymizedId;
 
 		public final UUID userId;
+		public final String firstName;
+		public final String lastName;
 		public final String nickname;
 		public final Optional<UUID> userPhotoId;
 
-		public BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String nickname, Optional<UUID> userPhotoId)
+		public BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String firstName, String lastName, String nickname,
+				Optional<UUID> userPhotoId)
 		{
 			this.relatedUserAnonymizedId = relatedUserAnonymizedId;
 
 			this.userId = userId;
+			this.firstName = firstName;
+			this.lastName = lastName;
 			this.nickname = nickname;
 			this.userPhotoId = userPhotoId;
 		}
 
 		public static BuddyInfoParameters createInstance(User userEntity)
 		{
-			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getNickname(),
-					userEntity.getUserPhotoId());
+			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getFirstName(),
+					userEntity.getLastName(), userEntity.getNickname(), userEntity.getUserPhotoId());
 		}
 
 		public static BuddyInfoParameters createInstance(User userEntity, String nickname)
 		{
-			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), nickname,
-					userEntity.getUserPhotoId());
+			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getFirstName(),
+					userEntity.getLastName(), nickname, userEntity.getUserPhotoId());
 		}
 
 		public static BuddyInfoParameters createInstance(Buddy buddy, UUID buddyUserAnonymizedId)
 		{
-			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.getNickname(), buddy.getUserPhotoId());
+			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.getFirstName(), buddy.getLastName(),
+					buddy.getNickname(), buddy.getUserPhotoId());
 		}
 	}
 }

@@ -76,14 +76,12 @@ public class User extends EntityWithUuid
 		super(null);
 	}
 
-	public User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
-			UserPrivate userPrivate, MessageDestination messageDestination)
+	public User(UUID id, byte[] initializationVector, String mobileNumber, UserPrivate userPrivate,
+			MessageDestination messageDestination)
 	{
 		super(id);
 		this.initializationVector = initializationVector;
 		this.creationTime = TimeUtil.utcNow();
-		this.firstName = firstName;
-		this.lastName = lastName;
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
@@ -133,24 +131,34 @@ public class User extends EntityWithUuid
 		isCreatedOnBuddyRequest = false;
 	}
 
-	public String getFirstName()
+	public String getFirstNameForMigration()
 	{
 		return firstName;
 	}
 
-	public void setFirstName(String firstName)
-	{
-		this.firstName = firstName;
-	}
-
-	public String getLastName()
+	public String getLastNameForMigration()
 	{
 		return lastName;
 	}
 
+	public String getFirstName()
+	{
+		return getUserPrivate().getFirstName();
+	}
+
+	public void setFirstName(String firstName)
+	{
+		getUserPrivate().setFirstName(firstName);
+	}
+
+	public String getLastName()
+	{
+		return getUserPrivate().getLastName();
+	}
+
 	public void setLastName(String lastName)
 	{
-		this.lastName = lastName;
+		getUserPrivate().setLastName(lastName);
 	}
 
 	public String getNickname()

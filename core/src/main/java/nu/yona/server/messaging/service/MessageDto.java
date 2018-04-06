@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -37,6 +37,7 @@ import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.BuddyUserPrivateDataDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
 
@@ -229,10 +230,10 @@ public abstract class MessageDto extends PolymorphicDto
 					buddy.getUser().getPrivateData().getUserPhotoId(), buddy.getId());
 		}
 
-		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname,
-				Optional<UUID> userPhoto)
+		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> senderUser, BuddyUserPrivateDataDto buddyData)
 		{
-			return senderInfoFactory.createInstanceForDetachedBuddy(UserDto.createInstance(userEntity), nickname, userPhoto);
+			return senderInfoFactory.createInstanceForDetachedBuddy(
+					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyData)), buddyData);
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

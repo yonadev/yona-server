@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -40,6 +40,12 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	private String decryptionCheck;
 
 	@Convert(converter = StringFieldEncryptor.class)
+	private String firstName;
+
+	@Convert(converter = StringFieldEncryptor.class)
+	private String lastName;
+
+	@Convert(converter = StringFieldEncryptor.class)
 	private String nickname;
 
 	@Convert(converter = UUIDFieldEncryptor.class)
@@ -74,9 +80,12 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 		super(null);
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedId, UUID anonymousMessageSourceId, UUID namedMessageSourceId)
+	private UserPrivate(UUID id, String firstName, String lastName, String nickname, UUID userAnonymizedId,
+			UUID anonymousMessageSourceId, UUID namedMessageSourceId)
 	{
 		super(id);
+		this.firstName = firstName;
+		this.lastName = lastName;
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
 		this.userAnonymizedId = userAnonymizedId;
@@ -86,10 +95,10 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 		this.devices = new HashSet<>();
 	}
 
-	public static UserPrivate createInstance(String nickname, UUID userAnonymizedId, UUID anonymousMessageSourceId,
-			MessageSource namedMessageSource)
+	public static UserPrivate createInstance(String firstName, String lastName, String nickname, UUID userAnonymizedId,
+			UUID anonymousMessageSourceId, MessageSource namedMessageSource)
 	{
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymizedId, anonymousMessageSourceId,
+		return new UserPrivate(UUID.randomUUID(), firstName, lastName, nickname, userAnonymizedId, anonymousMessageSourceId,
 				namedMessageSource.getId());
 	}
 
@@ -101,6 +110,26 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	public boolean isDecryptedProperly()
 	{
 		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
+	}
+
+	public String getFirstName()
+	{
+		return firstName;
+	}
+
+	public void setFirstName(String firstName)
+	{
+		this.firstName = firstName;
+	}
+
+	public String getLastName()
+	{
+		return lastName;
+	}
+
+	public void setLastName(String lastName)
+	{
+		this.lastName = lastName;
 	}
 
 	public String getNickname()

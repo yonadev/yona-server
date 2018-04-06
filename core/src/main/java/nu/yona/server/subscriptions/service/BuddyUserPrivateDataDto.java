@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -18,14 +18,15 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 {
-	BuddyUserPrivateDataDto(String nickname, Optional<UUID> userPhotoId)
+	BuddyUserPrivateDataDto(String firstName, String lastName, String nickname, Optional<UUID> userPhotoId)
 	{
-		super(nickname, userPhotoId, Optional.empty(), Optional.empty());
+		super(firstName, lastName, nickname, userPhotoId, Optional.empty(), Optional.empty());
 	}
 
-	BuddyUserPrivateDataDto(String nickname, Optional<UUID> userPhotoId, Set<GoalDto> goals, Set<DeviceBaseDto> devices)
+	BuddyUserPrivateDataDto(String firstName, String lastName, String nickname, Optional<UUID> userPhotoId, Set<GoalDto> goals,
+			Set<DeviceBaseDto> devices)
 	{
-		super(nickname, userPhotoId, Optional.of(goals), Optional.of(devices));
+		super(firstName, lastName, nickname, userPhotoId, Optional.of(goals), Optional.of(devices));
 	}
 
 	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity)
@@ -38,8 +39,16 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 					.getGoalsIncludingHistoryItems(buddyEntity.getBuddyAnonymized().getUserAnonymized());
 			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream().map(BuddyDeviceDto::createInstance)
 					.collect(Collectors.toSet());
-			return new BuddyUserPrivateDataDto(buddyEntity.getNickname(), buddyEntity.getUserPhotoId(), goals, devices);
+			return new BuddyUserPrivateDataDto(buddyEntity.getFirstName(), buddyEntity.getLastName(), buddyEntity.getNickname(),
+					buddyEntity.getUserPhotoId(), goals, devices);
 		}
-		return new BuddyUserPrivateDataDto(buddyEntity.getNickname(), buddyEntity.getUserPhotoId());
+		return new BuddyUserPrivateDataDto(buddyEntity.getFirstName(), buddyEntity.getLastName(), buddyEntity.getNickname(),
+				buddyEntity.getUserPhotoId());
+	}
+
+	public static BuddyUserPrivateDataDto createInstance(String firstName, String lastName, String nickname,
+			Optional<UUID> userPhotoId)
+	{
+		return new BuddyUserPrivateDataDto(firstName, lastName, nickname, userPhotoId);
 	}
 }

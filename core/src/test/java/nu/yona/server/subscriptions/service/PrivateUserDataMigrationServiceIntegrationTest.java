@@ -119,12 +119,12 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
 			userService.getPrivateUser(richard.getId());
-		}
 
-		ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-		verify(userRepository, times(1)).save(userCaptor.capture());
-		assertThat(userCaptor.getValue().getFirstName(), equalTo("Richardfoobar"));
-		assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(), equalTo(service.getCurrentVersion()));
+			ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+			verify(userRepository, times(1)).save(userCaptor.capture());
+			assertThat(userCaptor.getValue().getFirstName(), equalTo("Richardfoobar"));
+			assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(), equalTo(service.getCurrentVersion()));
+		}
 	}
 
 	@Test
@@ -135,11 +135,12 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
 			userService.getPrivateValidatedUser(richard.getId());
+
+			ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+			verify(userRepository, times(1)).save(userCaptor.capture());
+			assertThat(userCaptor.getValue().getFirstName(), equalTo("Richardfoobar"));
+			assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(), equalTo(service.getCurrentVersion()));
 		}
 
-		ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-		verify(userRepository, times(1)).save(userCaptor.capture());
-		assertThat(userCaptor.getValue().getFirstName(), equalTo("Richardfoobar"));
-		assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(), equalTo(service.getCurrentVersion()));
 	}
 }

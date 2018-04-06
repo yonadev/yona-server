@@ -18,13 +18,13 @@ class CommonAssertions extends Service
 	static final UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
 	static final VPN_LOGIN_ID_PATTERN = "(?i)^$UUID_PATTERN\\\$[0-9]+\$"
 
-	static final PUBLIC_USER_PROPERTIES_APP_NOT_OPENED = ["firstName", "lastName", "mobileNumber", "creationTime", "_links"] as Set
+	static final PUBLIC_USER_PROPERTIES_APP_NOT_OPENED = ["mobileNumber", "creationTime", "_links"] as Set
 	static final PUBLIC_USER_PROPERTIES_APP_OPENED = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
-	static final PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["nickname", "yonaPassword"] as Set
+	static final PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["firstName", "lastName", "nickname", "yonaPassword"] as Set
 	static final PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED = PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST + ["appLastOpenedDate"] as Set
 	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["vpnProfile", "sslRootCertCN", "_embedded"] as Set
 	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY + ["lastMonitoredActivityDate"] as Set
-	static final BUDDY_USER_PROPERTIES = PUBLIC_USER_PROPERTIES_APP_OPENED + ["nickname"] as Set
+	static final BUDDY_USER_PROPERTIES = PUBLIC_USER_PROPERTIES_APP_OPENED + ["firstName", "lastName", "nickname"] as Set
 	static final BUDDY_USER_PROPERTIES_VARYING = ["_embedded"] as Set
 	static final PRIVATE_USER_COMMON_LINKS = ["self", "curies"] as Set
 	static final PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["yona:confirmMobileNumber", "yona:resendMobileNumberConfirmationCode", "edit"] as Set
@@ -122,14 +122,14 @@ class CommonAssertions extends Service
 		}
 		assert user.creationTime != null
 		assert userCreatedOnBuddyRequest || user.appLastOpenedDate != null
-		assert user.firstName != null
-		assert user.lastName != null
 		assert user.mobileNumber ==~/^\+[0-9]+$/
 	}
 
 	static void assertPrivateUserData(def user, boolean skipPropertySetAssertion, boolean userCreatedOnBuddyRequest, boolean assertDefaultDevice)
 	{
 		assert userCreatedOnBuddyRequest || user.nickname != null
+		assert user.firstName != null
+		assert user.lastName != null
 		boolean mobileNumberToBeConfirmed
 
 		/*

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -196,8 +196,9 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def richardPhotoUrl = uploadUserPhoto(richard)
 
 		then:
-		def bobMessages = appService.getMessages(bob)
-		def bobMessagesFromRichard = bobMessages.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
+		def bobMessagesResponse = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesResponse)
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
 		bobMessagesFromRichard.each
 		{
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
@@ -220,8 +221,9 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 
 		then:
-		def bobMessages = appService.getMessages(bob)
-		def bobMessagesFromRichard = bobMessages.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
+		def bobMessagesResponse = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesResponse)
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
 		bobMessagesFromRichard.each
 		{
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
@@ -247,8 +249,9 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
 
 		then:
-		def bobMessages = appService.getMessages(bob)
-		def bobMessagesFromRichard = bobMessages.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
+		def bobMessagesResponse = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesResponse)
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
 		bobMessagesFromRichard.each
 		{
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
@@ -273,8 +276,9 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 
 		then:
-		def bobMessages = appService.getMessages(bob)
-		def bobMessagesFromRichard = bobMessages.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
+		def bobMessagesResponse = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesResponse)
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
 		bobMessagesFromRichard.each
 		{
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl

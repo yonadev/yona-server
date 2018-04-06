@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component;
 import nu.yona.server.Translator;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.BuddyUserPrivateDataDto;
 import nu.yona.server.subscriptions.service.UserDto;
+import nu.yona.server.subscriptions.service.UserPrivateDataBaseDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -81,9 +83,21 @@ public final class SenderInfo
 					Optional.of(buddyService.getBuddy(buddyId)));
 		}
 
-		public SenderInfo createInstanceForDetachedBuddy(Optional<UserDto> user, String nickname, Optional<UUID> userPhoto)
+		public SenderInfo createInstanceForDetachedBuddy(Optional<UserDto> user, BuddyUserPrivateDataDto buddyData)
 		{
-			return new SenderInfo(user, nickname, userPhoto, true, Optional.empty());
+			return user.map(this::createInstanceForDetachedBuddy).orElseGet(() -> createInstanceForDetachedBuddy(buddyData));
+		}
+
+		private SenderInfo createInstanceForDetachedBuddy(UserDto user)
+		{
+			UserPrivateDataBaseDto buddyPrivateData = user.getBuddyPrivateData();
+			return new SenderInfo(Optional.of(user), buddyPrivateData.getNickname(), buddyPrivateData.getUserPhotoId(), true,
+					Optional.empty());
+		}
+
+		private SenderInfo createInstanceForDetachedBuddy(BuddyUserPrivateDataDto buddyData)
+		{
+			return new SenderInfo(Optional.empty(), buddyData.getNickname(), buddyData.getUserPhotoId(), true, Optional.empty());
 		}
 
 		public SenderInfo createInstanceForSelf(UUID userId, String nickname, Optional<UUID> userPhoto)
