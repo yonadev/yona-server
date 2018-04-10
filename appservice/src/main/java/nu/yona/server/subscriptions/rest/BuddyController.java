@@ -190,7 +190,7 @@ public class BuddyController extends ControllerBase
 
 	public String getInviteUrl(UUID newUserId, String tempPassword)
 	{
-		// getUserSelfLinkWithTempPassword should actually call expand, s we don't need to strip template parameters
+		// getUserSelfLinkWithTempPassword should actually call expand, so we don't need to strip template parameters
 		// This is not being done because of https://github.com/spring-projects/spring-hateoas/issues/703
 		return stripTemplateParameters(UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword));
 	}
