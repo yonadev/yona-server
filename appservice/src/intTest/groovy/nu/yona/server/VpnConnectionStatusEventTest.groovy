@@ -9,6 +9,8 @@ package nu.yona.server
 import static nu.yona.server.test.CommonAssertions.*
 
 import groovy.json.*
+import nu.yona.server.test.CommonAssertions
+import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
 class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
@@ -86,6 +88,99 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def 'Richard has two devices and juggles the VPN on them: buddies get notifications on the right devices'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		Device richardFirstDevice = richard.devices[0]
+		User bob = richardAndBob.bob
+		Device richardSecondDevice = addDevice(richard, "My S9", "ANDROID")
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		bob = appService.reloadUser(bob)
+
+		def bobInitialMessagesResponse = appService.getMessages(bob) // Get will do auto-processing, making Richard's device visible to Bob
+		assertResponseStatusOk(bobInitialMessagesResponse)
+
+		when:
+		def response = richardFirstDevice.postVpnStatus(appService, true)
+
+		then:
+		assertVpnStatus(response, richard, bob, true, false, 0)
+
+		when:
+		response = richardSecondDevice.postVpnStatus(appService, true)
+
+		then:
+		assertVpnStatus(response, richard, bob, true, true, 1)
+
+		when:
+		response = richardSecondDevice.postVpnStatus(appService, false)
+
+		then:
+		assertVpnStatus(response, richard, bob, true, false, 1)
+
+		when:
+		response = richardFirstDevice.postVpnStatus(appService, false)
+
+		then:
+		assertVpnStatus(response, richard, bob, false, false, 0)
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	void assertVpnStatus(def response, User richard, User bob, boolean firstDeviceStatus, boolean secondDeviceStatus, def lastToggledDevice)
+	{
+		assertResponseStatusNoContent(response)
+
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		Device richardFirstDevice = richard.devices.find { it.name == "Richard's iPhone" }
+		Device richardSecondDevice = richard.devices.find { it.name == "My S9" }
+
+		assert richardFirstDevice.vpnConnected == firstDeviceStatus
+		assert richardSecondDevice.vpnConnected == secondDeviceStatus
+
+		bob = appService.reloadUser(bob)
+		Device bobFirstDeviceRichard = bob.buddies[0].user.devices.find { it.name == "Richard's iPhone" }
+		Device bobSecondDeviceRichard = bob.buddies[0].user.devices.find { it.name == "My S9" }
+
+		assert bobFirstDeviceRichard.vpnConnected == firstDeviceStatus
+		assert bobSecondDeviceRichard.vpnConnected == secondDeviceStatus
+
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesAfterUpdate)
+		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyVpnConnectionStatusChangeMessage"}
+
+		def expectedDeviceName = (lastToggledDevice == 0) ? richardFirstDevice.name : richardSecondDevice.name
+		def expectedStatus = (lastToggledDevice == 0) ? firstDeviceStatus : secondDeviceStatus
+		def action = (expectedStatus) ? "connected" : "disconnected"
+		assert vpnConnectionStatusChangeMessages[0].message == "User ${action} VPN on device '${expectedDeviceName}'"
+	}
+
+	Device addDevice(User user, newDeviceName, newDeviceOs)
+	{
+		def newDeviceRequestPassword = "Temp password"
+		def response = appService.setNewDeviceRequest(user.mobileNumber, user.password, newDeviceRequestPassword)
+		assertResponseStatusOk(response)
+
+		def getResponseAfter = appService.getNewDeviceRequest(user.mobileNumber)
+		assertResponseStatusOk(getResponseAfter)
+
+		def registerUrl = getResponseAfter.responseData._links."yona:registerDevice".href
+
+		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION)
+		assertResponseStatusCreated(registerResponse)
+
+		def devices = registerResponse.responseData._embedded."yona:devices"._embedded."yona:devices"
+
+		assert devices.size == 2
+		def newDeviceJson = (devices[0].name == newDeviceName) ? devices[0] : devices[1]
+
+		new Device(user.password, newDeviceJson)
 	}
 
 	def 'Richard posts second VPN disconnected event: no message to buddies'()

@@ -55,6 +55,8 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 
 	public boolean isVpnConnected()
 	{
+		// Call ..IfExisting, as we might be dealing with a buddy device here where the shared DeviceAnonymized has been deleted
+		// by the buddy.
 		return getDeviceAnonymizedIfExisting().flatMap(DeviceAnonymized::getLastVpnStatusChangeEvent)
 				.map(VpnStatusChangeEvent::isVpnConnected).orElse(false);
 	}
