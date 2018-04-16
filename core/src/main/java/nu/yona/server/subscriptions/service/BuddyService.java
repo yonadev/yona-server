@@ -75,10 +75,10 @@ public class BuddyService
 	@Autowired
 	private MessageService messageService;
 
-	@Autowired
+	@Autowired(required = false)
 	private EmailService emailService;
 
-	@Autowired
+	@Autowired(required = false)
 	private SmsService smsService;
 
 	@Autowired
@@ -87,7 +87,7 @@ public class BuddyService
 	@Autowired
 	private YonaProperties properties;
 
-	@Autowired
+	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired(required = false)
@@ -96,7 +96,7 @@ public class BuddyService
 	@Autowired(required = false)
 	private BuddyAnonymizedRepository buddyAnonymizedRepository;
 
-	@Autowired
+	@Autowired(required = false)
 	private BuddyConnectResponseMessageDto.Manager connectResponseMessageHandler;
 
 	@Autowired
@@ -677,7 +677,7 @@ public class BuddyService
 	}
 
 	@Transactional
-	void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDto originalUser)
+	public void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDto originalUser)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(

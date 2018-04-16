@@ -131,16 +131,6 @@ public class User extends EntityWithUuid
 		isCreatedOnBuddyRequest = false;
 	}
 
-	public String getFirstNameForMigration()
-	{
-		return firstName;
-	}
-
-	public String getLastNameForMigration()
-	{
-		return lastName;
-	}
-
 	public String getFirstName()
 	{
 		return getUserPrivate().getFirstName();
@@ -392,5 +382,18 @@ public class User extends EntityWithUuid
 	public void removeDevice(UserDevice device)
 	{
 		getUserPrivate().removeDevice(device);
+	}
+
+	public void moveFirstAndLastNameToPrivate()
+	{
+		if (firstName == null)
+		{
+			// Apparently already moved
+			return;
+		}
+		userPrivate.setFirstName(firstName);
+		userPrivate.setLastName(lastName);
+		firstName = null;
+		lastName = null;
 	}
 }
