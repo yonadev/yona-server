@@ -19,6 +19,7 @@ class AppService extends Service
 	static final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
 	static final USERS_PATH = "/users/"
 	static final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
+	static final LAST_EMAIL_PATH = "/emails/last"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -521,5 +522,10 @@ class AppService extends Service
 
 	def composeActivityCategoryUrl(def activityCategoryId) {
 		"$yonaServer.restClient.uri$ACTIVITY_CATEGORIES_PATH$activityCategoryId"
+	}
+
+	def getLastEmail()
+	{
+		getResource(LAST_EMAIL_PATH)
 	}
 }

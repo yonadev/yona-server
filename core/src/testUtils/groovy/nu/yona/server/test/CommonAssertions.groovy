@@ -138,7 +138,11 @@ class CommonAssertions extends Service
 		 */
 		if (user instanceof User)
 		{
-			mobileNumberToBeConfirmed = ((boolean) user.mobileNumberConfirmationUrl)
+			mobileNumberToBeConfirmed = userCreatedOnBuddyRequest || ((boolean) user.mobileNumberConfirmationUrl)
+			if (userCreatedOnBuddyRequest)
+			{
+				assert user.mobileNumberConfirmationUrl == null
+			}
 			assert user.password.startsWith("AES:128:")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user.buddiesUrl)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user.messagesUrl)
@@ -147,11 +151,15 @@ class CommonAssertions extends Service
 		}
 		else
 		{
-			mobileNumberToBeConfirmed = ((boolean) user._links?."yona:confirmMobileNumber"?.href)
+			mobileNumberToBeConfirmed = userCreatedOnBuddyRequest || ((boolean) user._links?."yona:confirmMobileNumber"?.href)
 			assert user.yonaPassword.startsWith("AES:128:")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:buddies"?._links?.self?.href)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:goals"?._links?.self?.href)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:devices"?._links?.self?.href)
+			if (userCreatedOnBuddyRequest)
+			{
+				assert user._links?."yona:confirmMobileNumber"?.href == null
+			}
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:appActivity")

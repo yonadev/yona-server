@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -32,6 +34,7 @@ public class UserAnonymizedService
 	}
 
 	@Cacheable
+	@Transactional
 	public UserAnonymizedDto getUserAnonymized(UUID userAnonymizedId)
 	{
 		UserAnonymized entity = userAnonymizedRepository.findOne(userAnonymizedId);
