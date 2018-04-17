@@ -78,7 +78,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
 		registerUrl == baseUserUrl + "/devices/"
 
-		def newDeviceName = "My iPhone"
+		def newDeviceName = "My S9"
 		def newDeviceOs = "ANDROID"
 		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION)
 		assertResponseStatusCreated(registerResponse)

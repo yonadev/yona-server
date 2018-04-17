@@ -219,7 +219,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def response = appService.createResourceWithPassword(richard.devices[0].postOpenAppEventUrl, """{"operatingSystem":"IOS", "appVersion":"$Device.SUPPORTED_APP_VERSION"}""", richard.password)
+		def response = richard.devices[0].postOpenAppEvent(appService)
 
 		then:
 		assertResponseStatusOk(response)
@@ -234,7 +234,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def response = appService.createResourceWithPassword(richard.devices[0].postOpenAppEventUrl, """{"operatingSystem":"ANDROID", "appVersion":"$Device.SUPPORTED_APP_VERSION"}""", richard.password)
+		def response = richard.devices[0].postOpenAppEvent(appService, "ANDROID")
 
 		then:
 		assertResponseStatus(response, 400)
@@ -250,7 +250,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def response = appService.createResourceWithPassword(richard.devices[0].postOpenAppEventUrl, """{"operatingSystem":"ANDROID", "appVersion":"0.0.1"}""", richard.password)
+		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, "0.0.1")
 
 		then:
 		assertResponseStatus(response, 400)
@@ -266,7 +266,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def response = appService.createResourceWithPassword(richard.devices[0].postOpenAppEventUrl, """{"operatingSystem":"ANDROID", "appVersion":"1.0"}""", richard.password)
+		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, "1.0")
 
 		then:
 		assertResponseStatus(response, 400)

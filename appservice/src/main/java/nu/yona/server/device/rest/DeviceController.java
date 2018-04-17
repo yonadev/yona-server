@@ -318,6 +318,18 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
+	@RequestMapping(value = "/{deviceId}/vpnStatus/", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> postVpnStatusChangeEvent(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody VpnStatusDto vpnStatus)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			deviceService.registerVpnStatusChangeEvent(userId, deviceId, vpnStatus.vpnConnected);
+			return createNoContentResponse();
+		}
+	}
+
 	public static Link getPostOpenAppEventLink(UUID userId, UUID deviceId)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
@@ -337,6 +349,13 @@ public class DeviceController extends ControllerBase
 		{
 			throw YonaException.unexpected(e);
 		}
+	}
+
+	public static Link getPostVpnStatusEventLink(UUID userId, UUID deviceId)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(DeviceController.class).postVpnStatusChangeEvent(Optional.empty(), userId, deviceId, null));
+		return linkBuilder.withRel("postVpnStatusEvent");
 	}
 
 	private DeviceResourceAssembler createResourceAssembler(UUID userId, Optional<UUID> requestingDeviceId)
@@ -409,6 +428,17 @@ public class DeviceController extends ControllerBase
 		{
 			return operatingSystemStr == null ? Optional.empty()
 					: Optional.of(UserDeviceDto.parseOperatingSystemOfRegistrationRequest(operatingSystemStr));
+		}
+	}
+
+	static class VpnStatusDto
+	{
+		private final boolean vpnConnected;
+
+		@JsonCreator
+		public VpnStatusDto(@JsonProperty("vpnConnected") boolean vpnConnected)
+		{
+			this.vpnConnected = vpnConnected;
 		}
 	}
 
@@ -493,6 +523,7 @@ public class DeviceController extends ControllerBase
 			{
 				addPostOpenAppEventLink(deviceResource);
 				addAppActivityLink(deviceResource);
+				addPostVpnStatusEventLink(deviceResource);
 				addSslRootCertificateLink(deviceResource);
 				addAppleMobileConfigLink(deviceResource);
 			}
@@ -533,6 +564,11 @@ public class DeviceController extends ControllerBase
 		private void addAppActivityLink(DeviceResource deviceResource)
 		{
 			deviceResource.add(DeviceController.getAppActivityLink(userId, deviceResource.getContent().getId()));
+		}
+
+		private void addPostVpnStatusEventLink(DeviceResource deviceResource)
+		{
+			deviceResource.add(DeviceController.getPostVpnStatusEventLink(userId, deviceResource.getContent().getId()));
 		}
 
 		private void addSslRootCertificateLink(DeviceResource deviceResource)

@@ -30,10 +30,12 @@ import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
+import nu.yona.server.device.entities.VpnStatusChangeEvent;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
+import nu.yona.server.subscriptions.entities.BuddyVpnConnectionStatusChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.LDAPUserService;
@@ -411,5 +413,33 @@ public class DeviceService
 		{
 			throw DeviceServiceException.invalidVersionString(versionStr);
 		}
+	}
+
+	public void registerVpnStatusChangeEvent(UUID userId, UUID deviceId, boolean isVpnConnected)
+	{
+		UserDevice deviceEntity = getDeviceEntity(deviceId);
+		if (deviceEntity.isVpnConnected() != isVpnConnected)
+		{
+			userService.updateUser(userId, userEntity -> {
+				VpnStatusChangeEvent event = VpnStatusChangeEvent.createInstance(isVpnConnected);
+				deviceEntity.getDeviceAnonymized().addVpnStatusChangeEvent(event);
+				sendVpnStatusChangeMessageToBuddies(isVpnConnected, userEntity, deviceEntity);
+			});
+		}
+	}
+
+	private void sendVpnStatusChangeMessageToBuddies(boolean isVpnConnected, User userEntity, UserDevice deviceEntity)
+	{
+		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
+				() -> BuddyVpnConnectionStatusChangeMessage.createInstance(
+						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
+						getVpnStatusChangeMessageText(isVpnConnected, deviceEntity.getName()), isVpnConnected,
+						deviceEntity.getDeviceAnonymizedId()));
+	}
+
+	private String getVpnStatusChangeMessageText(boolean isVpnConnected, String deviceName)
+	{
+		return (isVpnConnected) ? translator.getLocalizedMessage("message.buddy.device.vpn.connect", deviceName)
+				: translator.getLocalizedMessage("message.buddy.device.vpn.disconnect", deviceName);
 	}
 }

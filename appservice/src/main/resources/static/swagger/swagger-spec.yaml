@@ -444,7 +444,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'           
+            $ref: '#/definitions/Error'
   '/users/{userID}/devices/{deviceID}/appActivity/':
     post:
       summary: Register a new device
@@ -497,6 +497,37 @@ paths:
       responses:
         '200':
           description: App activity reported correctly
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}/vpnStatus/':
+    post:
+      summary: Post VPN connection status change
+      description: Post a change in the VPN connection status on this device
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - in: body
+          name: body
+          description: The VPN status event
+          required: true
+          schema:
+            type: object
+            properties:
+              vpnConnected:
+                type: string
+                format: boolean
+                description: Whether the VPN is connected or disconnected
+                example: true
+            required:
+              - vpnConnected
+      tags:
+        - Device
+      responses:
+        '204':
+          description: VPN connection status change recorded correctly
         default:
           description: Unexpected error
           schema:
