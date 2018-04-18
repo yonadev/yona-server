@@ -38,6 +38,7 @@ import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.BuddyUserPrivateDataDto;
+import nu.yona.server.subscriptions.service.BuddyVpnConnectionStatusChangeMessageDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
 
@@ -47,6 +48,7 @@ import nu.yona.server.util.TimeUtil;
 		@Type(value = BuddyDisconnectMessageDto.class, name = "BuddyDisconnectMessage"),
 		@Type(value = BuddyInfoChangeMessageDto.class, name = "BuddyInfoChangeMessage"),
 		@Type(value = BuddyDeviceChangeMessageDto.class, name = "BuddyDeviceChangeMessage"),
+		@Type(value = BuddyVpnConnectionStatusChangeMessageDto.class, name = "BuddyVpnConnectionStatusChangeMessage"),
 		@Type(value = DisclosureRequestMessageDto.class, name = "DisclosureRequestMessage"),
 		@Type(value = DisclosureResponseMessageDto.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDto.class, name = "GoalConflictMessage"),

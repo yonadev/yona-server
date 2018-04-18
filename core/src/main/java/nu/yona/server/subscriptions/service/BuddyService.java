@@ -238,16 +238,13 @@ public class BuddyService
 	{
 		List<String> deviceNames = connectMessageEntity.getDeviceNames();
 		List<UUID> deviceAnonymizedIds = connectMessageEntity.getDeviceAnonymizedIds();
-		List<Boolean> deviceVpnConnectionStatuses = connectMessageEntity.getDeviceVpnConnectionStatuses();
 		int numDevices = deviceNames.size();
 		assert deviceAnonymizedIds.size() == numDevices;
-		assert deviceVpnConnectionStatuses.size() == numDevices;
 
 		Set<BuddyDevice> devices = new HashSet<>();
 		for (int i = 0; (i < numDevices); i++)
 		{
-			devices.add(BuddyDevice.createInstance(deviceNames.get(i), deviceAnonymizedIds.get(i),
-					deviceVpnConnectionStatuses.get(i)));
+			devices.add(BuddyDevice.createInstance(deviceNames.get(i), deviceAnonymizedIds.get(i)));
 		}
 		return devices;
 	}
@@ -738,7 +735,7 @@ public class BuddyService
 
 	private void addDeviceToBuddy(Buddy buddy, UUID deviceAnonymizedId, String name)
 	{
-		BuddyDevice device = BuddyDevice.createInstance(name, deviceAnonymizedId, true); // Assume VPN is connected
+		BuddyDevice device = BuddyDevice.createInstance(name, deviceAnonymizedId);
 		buddy.addDevice(device);
 	}
 

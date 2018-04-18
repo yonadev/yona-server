@@ -636,8 +636,11 @@ public class UserController extends ControllerBase
 			if (representation.includeOwnUserNumNotConfirmedContent.apply(user))
 			{
 				addEditLink(userResource);
-				addConfirmMobileNumberLink(userResource);
-				addResendMobileNumberConfirmationLink(userResource);
+				if (!user.isCreatedOnBuddyRequest())
+				{
+					addConfirmMobileNumberLink(userResource);
+					addResendMobileNumberConfirmationLink(userResource);
+				}
 			}
 			if (representation.includeOwnUserNumConfirmedContent.apply(user))
 			{

@@ -364,7 +364,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		assertThat(device.getName(), equalTo(expectedDeviceName));
 		assertThat(device.getAppLastOpenedDate(), equalTo(TimeUtil.utcNow().toLocalDate()));
 		assertThat(device.getRegistrationTime(), is(between(startTime, TimeUtil.utcNow())));
-		assertThat(device.isVpnConnected(), equalTo(true));
+		assertThat(device.isVpnConnected(), equalTo(false));
 
 		DeviceAnonymized deviceAnonymized = device.getDeviceAnonymized();
 		assertThat(deviceAnonymized.getOperatingSystem(), equalTo(expectedOperatingSystem));

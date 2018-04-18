@@ -46,23 +46,24 @@ public class UserDto
 	private final String emailAddress;
 	private final String mobileNumber;
 	private final boolean isMobileNumberConfirmed;
+	private final boolean isCreatedOnBuddyRequest;
 	private final UserPrivateDataBaseDto privateData;
 
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
-			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId,
-			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId,
-			Optional<VPNProfileDto> vpnProfile, Set<UserDeviceDto> devices)
+			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed,
+			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
+			Set<BuddyDto> buddies, UUID userAnonymizedId, Optional<VPNProfileDto> vpnProfile, Set<UserDeviceDto> devices)
 	{
-		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed,
+		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest,
 				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, firstName, lastName, nickname, userPhotoId,
 						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, vpnProfile, devices));
 	}
 
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String mobileNumber,
-			boolean isConfirmed)
+			boolean isConfirmed, boolean isCreatedOnBuddyRequest)
 	{
-		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, null);
+		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest, null);
 	}
 
 	@JsonCreator
@@ -71,11 +72,13 @@ public class UserDto
 			@JsonProperty("nickname") String nickname)
 	{
 		this(null, Optional.empty(), null, emailAddress, mobileNumber, false /* default value, ignored */,
+				false /* default value, ignored */,
 				new OwnUserPrivateDataDto(firstName, lastName, nickname, Collections.emptySet()));
 	}
 
 	private UserDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDate> appLastOpenedDate, String emailAddress,
-			String mobileNumber, boolean isMobileNumberConfirmed, UserPrivateDataBaseDto privateData)
+			String mobileNumber, boolean isMobileNumberConfirmed, boolean isCreatedOnBuddyRequest,
+			UserPrivateDataBaseDto privateData)
 	{
 		this.id = id;
 		this.creationTime = creationTime;
@@ -83,6 +86,7 @@ public class UserDto
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
 		this.isMobileNumberConfirmed = isMobileNumberConfirmed;
+		this.isCreatedOnBuddyRequest = isCreatedOnBuddyRequest;
 		this.privateData = privateData;
 	}
 
@@ -133,6 +137,12 @@ public class UserDto
 	public boolean isMobileNumberConfirmed()
 	{
 		return isMobileNumberConfirmed;
+	}
+
+	@JsonIgnore
+	public boolean isCreatedOnBuddyRequest()
+	{
+		return isCreatedOnBuddyRequest;
 	}
 
 	@JsonUnwrapped
@@ -201,7 +211,7 @@ public class UserDto
 		Objects.requireNonNull(userEntity, "userEntity cannot be null");
 
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
-				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed());
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
 	}
 
 	public static UserDto createInstanceWithPrivateData(User userEntity, Set<BuddyDto> buddies)
@@ -209,8 +219,8 @@ public class UserDto
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
-				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSourceId(),
-				userEntity.getAnonymousMessageSourceId(),
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
+				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(),
 				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
 				userEntity.getUserAnonymizedId(), createVpnProfileDto(userEntity),
 				userEntity.getDevices().stream().map(UserDeviceDto::createInstance).collect(Collectors.toSet()));
@@ -230,7 +240,8 @@ public class UserDto
 	public static UserDto createInstanceWithBuddyData(User userEntity, BuddyUserPrivateDataDto buddyData)
 	{
 		return new UserDto(userEntity.getId(), Optional.of(userEntity.getCreationTime()), userEntity.getAppLastOpenedDate(), null,
-				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), buddyData);
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
+				buddyData);
 	}
 
 	public static UserDto createInstance(String firstName, String lastName, String mobileNumber, String nickname,
@@ -238,7 +249,7 @@ public class UserDto
 	{
 		UserPrivateDataBaseDto privateData = new OwnUserPrivateDataDto(firstName, lastName, nickname,
 				device.map(Collections::singleton).orElse(Collections.emptySet()));
-		return new UserDto(null, Optional.empty(), Optional.empty(), null, mobileNumber, false, privateData);
+		return new UserDto(null, Optional.empty(), Optional.empty(), null, mobileNumber, false, false, privateData);
 	}
 
 	public void assertMobileNumberConfirmed()

@@ -59,6 +59,9 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 	@MockBean
 	private DeviceService mockDeviceService;
 
+	@MockBean
+	private BuddyService mockBuddyService;
+
 	@Autowired
 	private EncryptBuddyLastStatusChangeTime step1;
 

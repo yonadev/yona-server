@@ -440,7 +440,7 @@ public class UserService
 	}
 
 	@Transactional
-	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
+	UserDto addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
 		assertUserIsAllowed(buddyUserResource.getMobileNumber(), UserSignUp.INVITED);
 		User newUser = createUserEntity(buddyUserResource, UserSignUp.INVITED);
@@ -449,7 +449,7 @@ public class UserService
 		User savedUser = userRepository.save(newUser);
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
 				savedUser.getId());
-		return savedUser;
+		return createUserDtoWithPrivateData(savedUser);
 	}
 
 	@Transactional

@@ -5,13 +5,22 @@
 package nu.yona.server.device.entities;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.JoinColumnOrFormula;
+import org.hibernate.annotations.JoinColumnsOrFormulas;
+import org.hibernate.annotations.JoinFormula;
 
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
@@ -36,6 +45,14 @@ public class DeviceAnonymized extends EntityWithUuid
 	private LocalDate lastMonitoredActivityDate;
 
 	private String appVersion;
+
+	@OneToMany(mappedBy = "deviceAnonymized", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private Set<VpnStatusChangeEvent> vpnStatusChangeEvents;
+
+	@ManyToOne
+	@JoinColumnsOrFormulas({
+			@JoinColumnOrFormula(formula = @JoinFormula(value = "(SELECT e.id FROM vpn_status_change_events e WHERE e.device_anonymized_id = id ORDER BY e.id DESC LIMIT 1)", referencedColumnName = "id")) })
+	private VpnStatusChangeEvent lastVpnStatusChangeEvent;
 
 	// Default constructor is required for JPA
 	protected DeviceAnonymized()
@@ -114,5 +131,21 @@ public class DeviceAnonymized extends EntityWithUuid
 	public String getVpnLoginId()
 	{
 		return userAnonymized.getId() + "-" + getDeviceIndex();
+	}
+
+	public void addVpnStatusChangeEvent(VpnStatusChangeEvent event)
+	{
+		vpnStatusChangeEvents.add(event);
+		event.setDeviceAnonymized(this);
+	}
+
+	public Set<VpnStatusChangeEvent> getVpnStatusChangeEvents()
+	{
+		return Collections.unmodifiableSet(vpnStatusChangeEvents);
+	}
+
+	public Optional<VpnStatusChangeEvent> getLastVpnStatusChangeEvent()
+	{
+		return Optional.ofNullable(lastVpnStatusChangeEvent);
 	}
 }

@@ -6,6 +6,7 @@ package nu.yona.server.email;
 
 import java.util.Map;
 
+import javax.mail.Message;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.util.ThymeleafUtil;
 
@@ -34,17 +36,12 @@ public class EmailService
 	@Autowired
 	@Qualifier("emailTemplateEngine")
 	private TemplateEngine emailTemplateEngine;
+	private EmailDto lastEmail;
 
 	public void sendEmail(String senderName, InternetAddress receiverAddress, String subjectTemplateName, String bodyTemplateName,
 			Map<String, Object> templateParameters)
 	{
 		logger.info("Sending e-mail to '{}'. subjectTemplateName: '{}'.", receiverAddress, subjectTemplateName);
-
-		if (!yonaProperties.getEmail().isEnabled())
-		{
-			logger.info("E-mail sending is disabled. No message has been sent.");
-			return;
-		}
 
 		MimeMessagePreparator preparator = new MimeMessagePreparator() {
 			@Override
@@ -66,8 +63,80 @@ public class EmailService
 				message.setText(bodyText, true);
 			}
 		};
-		mailSender.send(preparator);
+		if (yonaProperties.getEmail().isEnabled())
+		{
+			mailSender.send(preparator);
+			logger.info("E-mail sent succesfully.");
+		}
+		else
+		{
+			logger.info("E-mail sending is disabled. No message has been sent.");
+			lastEmail = EmailDto.createInstance(mailSender, preparator);
+		}
+	}
 
-		logger.info("E-mail sent succesfully.");
+	/**
+	 * Returns the last sent email, provided the service was configured for testing. In the production configuration, the last
+	 * email is not retained.
+	 * 
+	 * @return the last sent email, provided the service was configured for testing. Null otherwise.
+	 */
+	public EmailDto getLastEmail()
+	{
+		return lastEmail;
+	}
+
+	public static class EmailDto
+	{
+		private final String from;
+		private final String to;
+		private final String subject;
+		private final String body;
+
+		public EmailDto(String from, String to, String subject, String body)
+		{
+			this.from = from;
+			this.to = to;
+			this.subject = subject;
+			this.body = body;
+		}
+
+		public static EmailDto createInstance(JavaMailSender mailSender, MimeMessagePreparator preparator)
+		{
+			try
+			{
+				MimeMessage mimeMessage = mailSender.createMimeMessage();
+				preparator.prepare(mimeMessage);
+				String from = mimeMessage.getFrom()[0].toString();
+				String to = mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString();
+				String subject = mimeMessage.getSubject();
+				String body = mimeMessage.getContent().toString();
+				return new EmailDto(from, to, subject, body);
+			}
+			catch (Exception e)
+			{
+				throw YonaException.unexpected(e);
+			}
+		}
+
+		public String getFrom()
+		{
+			return from;
+		}
+
+		public String getTo()
+		{
+			return to;
+		}
+
+		public String getSubject()
+		{
+			return subject;
+		}
+
+		public String getBody()
+		{
+			return body;
+		}
 	}
 }
