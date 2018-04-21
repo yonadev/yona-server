@@ -54,22 +54,25 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
+
+		User bobby = makeUserForBuddyRequest(bob, "bob@dunn.net", "Bobby", "Dun")
 
 		when:
 		ZonedDateTime buddyRequestTime = YonaServer.now
-		def response = appService.sendBuddyConnectRequest(richard, bob)
+		def response = appService.sendBuddyConnectRequest(richard, bobby)
 
 		then:
 		assertResponseStatus(response, 201)
-		response.responseData._embedded."yona:user".firstName == "Bob"
+		response.responseData._embedded."yona:user".firstName == bobby.firstName
+		response.responseData._embedded."yona:user".lastName == bobby.lastName
 		response.responseData._links."yona:user" == null
 		response.responseData._links.self.href.startsWith(YonaServer.stripQueryString(richard.url))
 
 		User richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
-		richardWithBuddy.buddies[0].user.firstName == bob.firstName
+		richardWithBuddy.buddies[0].user.firstName == bobby.firstName
+		richardWithBuddy.buddies[0].user.lastName == bobby.lastName
 		// goals and devices should not be embedded before accept
 		richardWithBuddy.buddies[0].goals == null
 		richardWithBuddy.buddies[0].user.goals == null
@@ -169,8 +172,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
-		appService.sendBuddyConnectRequest(richard, bob)
+		User bobby = makeUserForBuddyRequest(bob, "bob@dunn.net", "Bobby", "Dun")
+		appService.sendBuddyConnectRequest(richard, bobby)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
 
@@ -198,6 +201,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddies = appService.getBuddies(richard)
 		buddies.size() == 1
 		buddies[0].user.firstName == bob.firstName
+		buddies[0].user.lastName == bob.lastName
 		buddies[0].nickname == bob.nickname
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"

@@ -429,6 +429,8 @@ public class BuddyService
 		}
 		buddy.setUserAnonymizedId(connectResponseMessageEntity.getRelatedUserAnonymizedId().get());
 		buddy.setNickname(connectResponseMessageEntity.getSenderNickname());
+		buddy.setFirstName(connectResponseMessageEntity.getFirstName());
+		buddy.setLastName(connectResponseMessageEntity.getLastName());
 		createBuddyDevices(connectResponseMessageEntity).forEach(buddy::addDevice);
 		buddyRepository.save(buddy);
 		userAnonymizedService.updateUserAnonymized(
