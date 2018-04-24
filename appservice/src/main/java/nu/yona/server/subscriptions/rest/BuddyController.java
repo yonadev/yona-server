@@ -200,7 +200,7 @@ public class BuddyController extends ControllerBase
 		String linkString = link.getHref();
 		if (link.isTemplated())
 		{
-			return linkString.substring(0, linkString.indexOf("{"));
+			return linkString.substring(0, linkString.indexOf('{'));
 		}
 		return linkString;
 	}

@@ -28,6 +28,7 @@ import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.migration.AddFirstDevice;
 import nu.yona.server.subscriptions.service.migration.EncryptBuddyLastStatusChangeTime;
+import nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName;
 import nu.yona.server.subscriptions.service.migration.MoveVpnPasswordToDevice;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.JUnitUtil;
@@ -58,6 +59,9 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 	@MockBean
 	private DeviceService mockDeviceService;
 
+	@MockBean
+	private BuddyService mockBuddyService;
+
 	@Autowired
 	private EncryptBuddyLastStatusChangeTime step1;
 
@@ -66,6 +70,9 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 
 	@Autowired
 	private MoveVpnPasswordToDevice step3;
+
+	@Autowired
+	private EncryptFirstAndLastName step4;
 
 	@Override
 	protected Map<Class<?>, Repository<?, ?>> getRepositories()
@@ -78,6 +85,6 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 	{
 		@SuppressWarnings("unchecked")
 		List<MigrationStep> migrationSteps = (List<MigrationStep>) migrationStepsField.get(service);
-		assertThat(migrationSteps, contains(step1, step2, step3));
+		assertThat(migrationSteps, contains(step1, step2, step3, step4));
 	}
 }

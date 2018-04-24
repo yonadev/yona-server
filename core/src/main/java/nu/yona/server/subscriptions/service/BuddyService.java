@@ -75,10 +75,10 @@ public class BuddyService
 	@Autowired
 	private MessageService messageService;
 
-	@Autowired
+	@Autowired(required = false)
 	private EmailService emailService;
 
-	@Autowired
+	@Autowired(required = false)
 	private SmsService smsService;
 
 	@Autowired
@@ -87,7 +87,7 @@ public class BuddyService
 	@Autowired
 	private YonaProperties properties;
 
-	@Autowired
+	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired(required = false)
@@ -96,7 +96,7 @@ public class BuddyService
 	@Autowired(required = false)
 	private BuddyAnonymizedRepository buddyAnonymizedRepository;
 
-	@Autowired
+	@Autowired(required = false)
 	private BuddyConnectResponseMessageDto.Manager connectResponseMessageHandler;
 
 	@Autowired
@@ -223,6 +223,7 @@ public class BuddyService
 
 		acceptingUser.assertMobileNumberConfirmed();
 		Buddy buddy = Buddy.createInstance(connectRequestMessageEntity.getSenderUser().get().getId(),
+				connectRequestMessageEntity.getFirstName(), connectRequestMessageEntity.getLastName(),
 				connectRequestMessageEntity.getSenderNickname(),
 				connectRequestMessageEntity.requestingSending() ? Status.ACCEPTED : Status.NOT_REQUESTED,
 				connectRequestMessageEntity.requestingReceiving() ? Status.ACCEPTED : Status.NOT_REQUESTED);
@@ -427,7 +428,9 @@ public class BuddyService
 			buddy.setReceivingStatus(Status.ACCEPTED);
 		}
 		buddy.setUserAnonymizedId(connectResponseMessageEntity.getRelatedUserAnonymizedId().get());
-		buddy.setNickName(connectResponseMessageEntity.getSenderNickname());
+		buddy.setNickname(connectResponseMessageEntity.getSenderNickname());
+		buddy.setFirstName(connectResponseMessageEntity.getFirstName());
+		buddy.setLastName(connectResponseMessageEntity.getLastName());
 		createBuddyDevices(connectResponseMessageEntity).forEach(buddy::addDevice);
 		buddyRepository.save(buddy);
 		userAnonymizedService.updateUserAnonymized(
@@ -575,23 +578,23 @@ public class BuddyService
 		{
 			String subjectTemplateName = "buddy-invitation-subject";
 			String bodyTemplateName = "buddy-invitation-body";
-			String requestingUserName = StringUtils
-					.join(new Object[] { requestingUser.getFirstName(), requestingUser.getLastName() }, " ");
+			String requestingUserName = StringUtils.join(new Object[] { requestingUser.getPrivateData().getFirstName(),
+					requestingUser.getPrivateData().getLastName() }, " ");
 			String requestingUserMobileNumber = requestingUser.getMobileNumber();
 			String requestingUserNickname = requestingUser.getOwnPrivateData().getNickname();
-			String buddyName = StringUtils.join(new Object[] { buddy.getUser().getFirstName(), buddy.getUser().getLastName() },
-					" ");
+			String buddyName = StringUtils.join(new Object[] { buddy.getUser().getPrivateData().getFirstName(),
+					buddy.getUser().getPrivateData().getLastName() }, " ");
 			String buddyEmailAddress = buddy.getUser().getEmailAddress();
 			String personalInvitationMessage = buddy.getPersonalInvitationMessage();
 			String buddyMobileNumber = buddy.getUser().getMobileNumber();
 			Map<String, Object> templateParams = new HashMap<>();
 			templateParams.put("inviteUrl", inviteUrl);
-			templateParams.put("requestingUserFirstName", requestingUser.getFirstName());
-			templateParams.put("requestingUserLastName", requestingUser.getLastName());
+			templateParams.put("requestingUserFirstName", requestingUser.getPrivateData().getFirstName());
+			templateParams.put("requestingUserLastName", requestingUser.getPrivateData().getLastName());
 			templateParams.put("requestingUserMobileNumber", requestingUserMobileNumber);
 			templateParams.put("requestingUserNickname", requestingUserNickname);
-			templateParams.put("buddyFirstName", buddy.getUser().getFirstName());
-			templateParams.put("buddyLastName", buddy.getUser().getLastName());
+			templateParams.put("buddyFirstName", buddy.getUser().getPrivateData().getFirstName());
+			templateParams.put("buddyLastName", buddy.getUser().getPrivateData().getLastName());
 			templateParams.put("personalInvitationMessage", personalInvitationMessage);
 			templateParams.put("emailAddress", buddyEmailAddress);
 			emailService.sendEmail(requestingUserName, new InternetAddress(buddyEmailAddress, buddyName), subjectTemplateName,
@@ -673,12 +676,13 @@ public class BuddyService
 	}
 
 	@Transactional
-	void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDto originalUser)
+	public void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDto originalUser)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(
 						BuddyInfoParameters.createInstance(updatedUserEntity, originalUser.getOwnPrivateData().getNickname()),
-						getUserInfoChangeMessageText(), updatedUserEntity.getNickname(), updatedUserEntity.getUserPhotoId()));
+						getUserInfoChangeMessageText(), updatedUserEntity.getFirstName(), updatedUserEntity.getLastName(),
+						updatedUserEntity.getNickname(), updatedUserEntity.getUserPhotoId()));
 	}
 
 	private String getUserInfoChangeMessageText()
@@ -687,13 +691,15 @@ public class BuddyService
 	}
 
 	@Transactional
-	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, String buddyNickname,
-			Optional<UUID> buddyUserPhotoId)
+	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, String buddyFirstName,
+			String buddyLastName, String buddyNickname, Optional<UUID> buddyUserPhotoId)
 	{
 		User user = userService.getValidatedUserById(idOfRequestingUser);
 		Buddy buddy = user.getBuddyByUserAnonymizedId(relatedUserAnonymizedId);
 
-		buddy.setNickName(buddyNickname);
+		buddy.setFirstName(buddyFirstName);
+		buddy.setLastName(buddyLastName);
+		buddy.setNickname(buddyNickname);
 		buddy.setUserPhotoId(buddyUserPhotoId);
 		buddyRepository.save(buddy);
 	}

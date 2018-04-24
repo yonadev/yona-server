@@ -37,6 +37,7 @@ import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.BuddyUserPrivateDataDto;
 import nu.yona.server.subscriptions.service.BuddyVpnConnectionStatusChangeMessageDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
@@ -231,10 +232,10 @@ public abstract class MessageDto extends PolymorphicDto
 					buddy.getUser().getPrivateData().getUserPhotoId(), buddy.getId());
 		}
 
-		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname,
-				Optional<UUID> userPhoto)
+		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> senderUser, BuddyUserPrivateDataDto buddyData)
 		{
-			return senderInfoFactory.createInstanceForDetachedBuddy(UserDto.createInstance(userEntity), nickname, userPhoto);
+			return senderInfoFactory.createInstanceForDetachedBuddy(
+					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyData)), buddyData);
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

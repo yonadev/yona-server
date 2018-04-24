@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -32,17 +32,18 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	private final UUID anonymousMessageSourceId;
 	private final Set<BuddyDto> buddies;
 
-	OwnUserPrivateDataDto(String nickname, Set<UserDeviceDto> devices)
+	OwnUserPrivateDataDto(String firstName, String lastName, String nickname, Set<UserDeviceDto> devices)
 	{
-		this(Optional.empty(), null, nickname, Optional.empty(), null, null, Collections.emptySet(), Collections.emptySet(), null,
-				Optional.empty(), devices);
+		this(Optional.empty(), null, firstName, lastName, nickname, Optional.empty(), null, null, Collections.emptySet(),
+				Collections.emptySet(), null, Optional.empty(), devices);
 	}
 
-	OwnUserPrivateDataDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname,
-			Optional<UUID> userPhotoId, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
-			Set<BuddyDto> buddies, UUID userAnonymizedId, Optional<VPNProfileDto> vpnProfile, Set<UserDeviceDto> devices)
+	OwnUserPrivateDataDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String firstName, String lastName,
+			String nickname, Optional<UUID> userPhotoId, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
+			Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId, Optional<VPNProfileDto> vpnProfile,
+			Set<UserDeviceDto> devices)
 	{
-		super(nickname, userPhotoId, Optional.of(goals), Optional.of(new HashSet<>(devices)));
+		super(firstName, lastName, nickname, userPhotoId, Optional.of(goals), Optional.of(new HashSet<>(devices)));
 
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;

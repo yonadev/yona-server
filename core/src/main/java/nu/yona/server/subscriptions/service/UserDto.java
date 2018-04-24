@@ -43,8 +43,6 @@ public class UserDto
 	private UUID id;
 	private final Optional<LocalDateTime> creationTime;
 	private final Optional<LocalDate> appLastOpenedDate;
-	private final String firstName;
-	private final String lastName;
 	private final String emailAddress;
 	private final String mobileNumber;
 	private final boolean isMobileNumberConfirmed;
@@ -57,16 +55,15 @@ public class UserDto
 			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
 			Set<BuddyDto> buddies, UUID userAnonymizedId, Optional<VPNProfileDto> vpnProfile, Set<UserDeviceDto> devices)
 	{
-		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
-				isCreatedOnBuddyRequest, new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, nickname, userPhotoId,
+		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest,
+				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, firstName, lastName, nickname, userPhotoId,
 						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, vpnProfile, devices));
 	}
 
-	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String firstName, String lastName,
-			String mobileNumber, boolean isConfirmed, boolean isCreatedOnBuddyRequest)
+	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String mobileNumber,
+			boolean isConfirmed, boolean isCreatedOnBuddyRequest)
 	{
-		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
-				isCreatedOnBuddyRequest, null);
+		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest, null);
 	}
 
 	@JsonCreator
@@ -74,19 +71,18 @@ public class UserDto
 			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
 			@JsonProperty("nickname") String nickname)
 	{
-		this(null, Optional.empty(), null, firstName, lastName, emailAddress, mobileNumber, false /* default value, ignored */,
-				false /* default value, ignored */, new OwnUserPrivateDataDto(nickname, Collections.emptySet()));
+		this(null, Optional.empty(), null, emailAddress, mobileNumber, false /* default value, ignored */,
+				false /* default value, ignored */,
+				new OwnUserPrivateDataDto(firstName, lastName, nickname, Collections.emptySet()));
 	}
 
-	private UserDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDate> appLastOpenedDate, String firstName,
-			String lastName, String emailAddress, String mobileNumber, boolean isMobileNumberConfirmed,
-			boolean isCreatedOnBuddyRequest, UserPrivateDataBaseDto privateData)
+	private UserDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDate> appLastOpenedDate, String emailAddress,
+			String mobileNumber, boolean isMobileNumberConfirmed, boolean isCreatedOnBuddyRequest,
+			UserPrivateDataBaseDto privateData)
 	{
 		this.id = id;
 		this.creationTime = creationTime;
 		this.appLastOpenedDate = appLastOpenedDate;
-		this.firstName = firstName;
-		this.lastName = lastName;
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
 		this.isMobileNumberConfirmed = isMobileNumberConfirmed;
@@ -124,16 +120,6 @@ public class UserDto
 	public Optional<LocalDate> getAppLastOpenedDate()
 	{
 		return appLastOpenedDate;
-	}
-
-	public String getFirstName()
-	{
-		return firstName;
-	}
-
-	public String getLastName()
-	{
-		return lastName;
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -194,8 +180,8 @@ public class UserDto
 
 	void updateUser(User originalUserEntity)
 	{
-		originalUserEntity.setFirstName(firstName);
-		originalUserEntity.setLastName(lastName);
+		originalUserEntity.setFirstName(privateData.getFirstName());
+		originalUserEntity.setLastName(privateData.getLastName());
 		originalUserEntity.setMobileNumber(mobileNumber);
 		originalUserEntity.setNickname(privateData.getNickname());
 	}
@@ -225,8 +211,7 @@ public class UserDto
 		Objects.requireNonNull(userEntity, "userEntity cannot be null");
 
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
-				userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber(),
-				userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
 	}
 
 	public static UserDto createInstanceWithPrivateData(User userEntity, Set<BuddyDto> buddies)
@@ -252,20 +237,19 @@ public class UserDto
 		return userEntity.getDevices().stream().filter(d -> d.getDeviceAnonymized().getDeviceIndex() == 0).findAny();
 	}
 
-	static UserDto createInstanceWithBuddyData(User userEntity, BuddyUserPrivateDataDto buddyData)
+	public static UserDto createInstanceWithBuddyData(User userEntity, BuddyUserPrivateDataDto buddyData)
 	{
-		return new UserDto(userEntity.getId(), Optional.of(userEntity.getCreationTime()), userEntity.getAppLastOpenedDate(),
-				userEntity.getFirstName(), userEntity.getLastName(), null, userEntity.getMobileNumber(),
-				userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(), buddyData);
+		return new UserDto(userEntity.getId(), Optional.of(userEntity.getCreationTime()), userEntity.getAppLastOpenedDate(), null,
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
+				buddyData);
 	}
 
 	public static UserDto createInstance(String firstName, String lastName, String mobileNumber, String nickname,
 			Optional<UserDeviceDto> device)
 	{
-		UserPrivateDataBaseDto privateData = new OwnUserPrivateDataDto(nickname,
+		UserPrivateDataBaseDto privateData = new OwnUserPrivateDataDto(firstName, lastName, nickname,
 				device.map(Collections::singleton).orElse(Collections.emptySet()));
-		return new UserDto(null, Optional.empty(), Optional.empty(), firstName, lastName, null, mobileNumber, false, false,
-				privateData);
+		return new UserDto(null, Optional.empty(), Optional.empty(), null, mobileNumber, false, false, privateData);
 	}
 
 	public void assertMobileNumberConfirmed()
