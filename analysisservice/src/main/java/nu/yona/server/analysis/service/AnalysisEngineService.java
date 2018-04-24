@@ -154,7 +154,8 @@ public class AnalysisEngineService
 		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getId()))
 		{
 			transactionHelper.executeInNewTransaction(() -> {
-				UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(payload.userAnonymized.getId());
+				UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(userAnonymizedService,
+						payload.userAnonymized.getId());
 				analyzeInsideLock(userAnonymizedHolder, payload, matchingActivityCategories);
 				if (userAnonymizedHolder.isEntityFetched())
 				{
@@ -217,7 +218,8 @@ public class AnalysisEngineService
 			{
 				// Update message only if the start time is to be updated or if the end time moves with at least five seconds, to
 				// avoid unnecessary cache flushes.
-				activityUpdateService.updateTimeLastActivity(userAnonymizedHolder, payload, matchingGoal, lastRegisteredActivity.get());
+				activityUpdateService.updateTimeLastActivity(userAnonymizedHolder, payload, matchingGoal,
+						lastRegisteredActivity.get());
 			}
 			return;
 		}
@@ -391,13 +393,15 @@ public class AnalysisEngineService
 	 * The "analyze" method will always save the user anonymized entity to its repository if it was fetched. JPA take care of
 	 * preventing unnecessary update actions.
 	 */
-	class UserAnonymizedEntityHolder
+	static class UserAnonymizedEntityHolder
 	{
+		private final UserAnonymizedService userAnonymizedService;
 		private final UUID id;
 		private Optional<UserAnonymized> entity = Optional.empty();
 
-		UserAnonymizedEntityHolder(UUID id)
+		UserAnonymizedEntityHolder(UserAnonymizedService userAnonymizedService, UUID id)
 		{
+			this.userAnonymizedService = userAnonymizedService;
 			this.id = id;
 		}
 

@@ -173,11 +173,8 @@ class ActivityUpdateService
 		{
 			activity.setEndTime(payload.endTime.toLocalDateTime());
 		}
-		if (shouldUpdateCache(Optional.of(lastRegisteredActivity), activity))
-		{
-			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymized.getId(),
-					matchingGoal.getGoalId(), ActivityDto.createInstance(activity));
-		}
+		cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymized.getId(),
+				matchingGoal.getGoalId(), ActivityDto.createInstance(activity));
 
 		// Explicitly fetch the entity to indicate that the user entity is dirty
 		userAnonymizedHolder.getEntity();
@@ -213,7 +210,7 @@ class ActivityUpdateService
 		Duration duration = Duration.between(payload.startTime, payload.endTime);
 		if (duration.compareTo(ONE_MINUTE) < 0)
 		{
-			return payload.endTime.plus(ONE_MINUTE);
+			return payload.startTime.plus(ONE_MINUTE);
 		}
 		return payload.endTime;
 	}

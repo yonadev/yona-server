@@ -449,7 +449,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_networkActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivity()
+	public void analyze_networkActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivityOnFirstActivityAndLogsWarning()
 	{
 		ZonedDateTime now = now();
 		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
@@ -488,7 +488,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivity()
+	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivityOnFirstActivityAndLogsWarning()
 	{
 		ZonedDateTime now = now();
 		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
