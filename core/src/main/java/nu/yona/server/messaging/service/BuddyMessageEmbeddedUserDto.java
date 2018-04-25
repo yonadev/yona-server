@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
@@ -8,9 +8,15 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import nu.yona.server.messaging.entities.BuddyMessage;
+import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
 
 public abstract class BuddyMessageEmbeddedUserDto extends BuddyMessageDto
 {
@@ -32,5 +38,16 @@ public abstract class BuddyMessageEmbeddedUserDto extends BuddyMessageDto
 	public void setEmbeddedUser(String rel, Object userResource)
 	{
 		embeddedResources = Collections.singletonMap(rel, userResource);
+	}
+
+	@Component
+	public abstract static class Manager extends BuddyMessageDto.Manager
+	{
+		@Override
+		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
+		{
+			return createSenderInfoForBuddyConnectionChangeMessage(((BuddyMessage) messageEntity).getSenderUser(),
+					(BuddyConnectionChangeMessage) messageEntity);
+		}
 	}
 }

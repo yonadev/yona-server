@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -22,10 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
-import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity
-public abstract class BuddyConnectMessage extends BuddyMessage
+public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 {
 	private static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
 	private static final String SEPARATOR = DeviceBase.DEVICE_NAMES_SEPARATOR;

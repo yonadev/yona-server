@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -28,9 +29,9 @@ public class UserPrivateDataBaseDto
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.nickname = nickname;
-		this.userPhotoId = userPhotoId;
-		this.goals = goals;
-		this.devices = devices;
+		this.userPhotoId = Objects.requireNonNull(userPhotoId);
+		this.goals = Objects.requireNonNull(goals);
+		this.devices = Objects.requireNonNull(devices);
 	}
 
 	public String getFirstName()
