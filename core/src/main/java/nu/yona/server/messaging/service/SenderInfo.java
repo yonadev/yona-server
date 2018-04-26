@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,11 +34,11 @@ public final class SenderInfo
 	private SenderInfo(Optional<UserDto> user, String nickname, Optional<UUID> userPhotoId, boolean isBuddy,
 			Optional<BuddyDto> buddy)
 	{
-		this.user = user;
+		this.user = Objects.requireNonNull(user);
 		this.nickname = nickname;
-		this.userPhotoId = userPhotoId;
+		this.userPhotoId = Objects.requireNonNull(userPhotoId);
 		this.isBuddy = isBuddy;
-		this.buddy = buddy;
+		this.buddy = Objects.requireNonNull(buddy);
 	}
 
 	public String getNickname()

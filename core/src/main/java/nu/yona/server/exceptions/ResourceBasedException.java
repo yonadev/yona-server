@@ -1,16 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
 import java.io.Serializable;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 
 import nu.yona.server.Translator;
 
@@ -19,23 +15,7 @@ import nu.yona.server.Translator;
  */
 public abstract class ResourceBasedException extends RuntimeException
 {
-	@Component
-	private static class TranslatorInjector
-	{
-		@Autowired
-		private Translator translator;
-
-		@EventListener({ ContextRefreshedEvent.class })
-		void onContextStarted(ContextRefreshedEvent event)
-		{
-			ResourceBasedException.setTranslator(translator);
-		}
-	}
-
 	private static final long serialVersionUID = 8031973645020363969L;
-
-	/** The translator is set upon initialization of the context */
-	private static Translator translator;
 
 	/** Holds the parameters for the exception message. */
 	private final Serializable[] parameters;
@@ -100,11 +80,6 @@ public abstract class ResourceBasedException extends RuntimeException
 		this.statusCode = statusCode;
 	}
 
-	public static void setTranslator(Translator translator)
-	{
-		ResourceBasedException.translator = translator;
-	}
-
 	@Override
 	public String getMessage()
 	{
@@ -144,6 +119,7 @@ public abstract class ResourceBasedException extends RuntimeException
 
 	private String tryTranslateMessage()
 	{
+		Translator translator = Translator.getInstance();
 		if (translator == null)
 		{
 			return null;

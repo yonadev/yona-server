@@ -15,7 +15,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.subscriptions.service.BuddyUserPrivateDataDto;
 import nu.yona.server.subscriptions.service.OwnUserPrivateDataDto;
 import nu.yona.server.subscriptions.service.UserDto;
 
@@ -68,17 +67,6 @@ public abstract class BuddyMessageDto extends MessageDto
 				return Optional.of(actingUser.getOwnPrivateData().getUserAnonymizedId());
 			}
 			return messageEntity.getRelatedUserAnonymizedId();
-		}
-
-		@Override
-		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
-		{
-			// The buddy entity does not contain the user anonymized ID yet
-			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
-			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(
-					buddyMessageEntity.getFirstName(), buddyMessageEntity.getLastName(), buddyMessageEntity.getSenderNickname(),
-					buddyMessageEntity.getSenderUserPhotoId());
-			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(), buddyUserPrivateData);
 		}
 	}
 }

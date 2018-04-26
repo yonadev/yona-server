@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,14 +34,6 @@ public abstract class BuddyMessage extends Message
 	private Optional<UUID> senderUserPhotoId;
 	private byte[] senderUserPhotoIdCiphertext;
 
-	@Transient
-	private String firstName;
-	private byte[] firstNameCiphertext;
-
-	@Transient
-	private String lastName;
-	private byte[] lastNameCiphertext;
-
 	// Default constructor is required for JPA
 	protected BuddyMessage()
 	{
@@ -56,10 +49,8 @@ public abstract class BuddyMessage extends Message
 	{
 		super(buddyInfoParameters.relatedUserAnonymizedId, isSentItem);
 		this.senderUserId = buddyInfoParameters.userId;
-		this.firstName = buddyInfoParameters.firstName;
-		this.lastName = buddyInfoParameters.lastName;
-		this.senderNickname = buddyInfoParameters.nickname;
-		this.senderUserPhotoId = buddyInfoParameters.userPhotoId;
+		this.senderNickname = Objects.requireNonNull(buddyInfoParameters.nickname);
+		this.senderUserPhotoId = Objects.requireNonNull(buddyInfoParameters.userPhotoId);
 		this.message = message;
 	}
 
@@ -104,8 +95,6 @@ public abstract class BuddyMessage extends Message
 	{
 		senderUserIdCiphertext = SecretKeyUtil.encryptUuid(senderUserId);
 		messageCiphertext = SecretKeyUtil.encryptString(message);
-		firstNameCiphertext = SecretKeyUtil.encryptString(firstName);
-		lastNameCiphertext = SecretKeyUtil.encryptString(lastName);
 		senderNicknameCiphertext = SecretKeyUtil.encryptString(senderNickname);
 		senderUserPhotoIdCiphertext = SecretKeyUtil.encryptUuid(senderUserPhotoId.orElse(null));
 	}
@@ -115,20 +104,8 @@ public abstract class BuddyMessage extends Message
 	{
 		senderUserId = SecretKeyUtil.decryptUuid(senderUserIdCiphertext);
 		message = SecretKeyUtil.decryptString(messageCiphertext);
-		firstName = SecretKeyUtil.decryptString(firstNameCiphertext);
-		lastName = SecretKeyUtil.decryptString(lastNameCiphertext);
 		senderNickname = SecretKeyUtil.decryptString(senderNicknameCiphertext);
 		senderUserPhotoId = Optional.ofNullable(SecretKeyUtil.decryptUuid(senderUserPhotoIdCiphertext));
-	}
-
-	public String getFirstName()
-	{
-		return firstName;
-	}
-
-	public String getLastName()
-	{
-		return lastName;
 	}
 
 	/*
@@ -150,10 +127,10 @@ public abstract class BuddyMessage extends Message
 			this.relatedUserAnonymizedId = relatedUserAnonymizedId;
 
 			this.userId = userId;
-			this.firstName = firstName;
-			this.lastName = lastName;
-			this.nickname = nickname;
-			this.userPhotoId = userPhotoId;
+			this.firstName = Objects.requireNonNull(firstName);
+			this.lastName = Objects.requireNonNull(lastName);
+			this.nickname = Objects.requireNonNull(nickname);
+			this.userPhotoId = Objects.requireNonNull(userPhotoId);
 		}
 
 		public static BuddyInfoParameters createInstance(User userEntity)

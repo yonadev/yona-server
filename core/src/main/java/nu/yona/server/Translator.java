@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
@@ -10,6 +10,8 @@ import java.util.Locale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +19,20 @@ import org.springframework.stereotype.Service;
 public class Translator
 {
 	public static final Locale EN_US_LOCALE = Locale.forLanguageTag("en-US");
+
+	/** The translator is set upon initialization of the context */
+	private static Translator staticReference;
+
 	/** The source for the messages to use */
 	@Autowired
 	@Qualifier("messageSource")
 	private MessageSource msgSource;
+
+	@EventListener({ ContextRefreshedEvent.class })
+	void onContextStarted(ContextRefreshedEvent event)
+	{
+		Translator.staticReference = this;
+	}
 
 	/**
 	 * This method returns the translated and formatted message for the passed message ID and parameters based on the given locale
@@ -46,6 +58,11 @@ public class Translator
 		}
 
 		return msgSource.getMessage(messageId, parameters, locale);
+	}
+
+	public static Translator getInstance()
+	{
+		return staticReference;
 	}
 
 	public static String getStandardLocaleString(Locale locale)

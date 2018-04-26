@@ -29,6 +29,7 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DtoManager;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.rest.PolymorphicDto;
+import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDto;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
@@ -232,10 +233,14 @@ public abstract class MessageDto extends PolymorphicDto
 					buddy.getUser().getPrivateData().getUserPhotoId(), buddy.getId());
 		}
 
-		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> senderUser, BuddyUserPrivateDataDto buddyData)
+		protected SenderInfo createSenderInfoForBuddyConnectionChangeMessage(Optional<User> senderUser,
+				BuddyConnectionChangeMessage buddyMessageEntity)
 		{
+			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(
+					buddyMessageEntity.getFirstName(), buddyMessageEntity.getLastName(), buddyMessageEntity.getSenderNickname(),
+					buddyMessageEntity.getSenderUserPhotoId());
 			return senderInfoFactory.createInstanceForDetachedBuddy(
-					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyData)), buddyData);
+					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyUserPrivateData)), buddyUserPrivateData);
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

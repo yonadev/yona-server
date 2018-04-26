@@ -617,7 +617,7 @@ public class BuddyService
 		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		User buddyUserEntity = UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		buddy.getUser().setUserId(buddyUserEntity.getId());
-		Buddy buddyEntity = buddy.createBuddyEntity(translator);
+		Buddy buddyEntity = buddy.createBuddyEntity();
 		Buddy savedBuddyEntity = buddyRepository.save(buddyEntity);
 		BuddyDto savedBuddy = BuddyDto.createInstance(savedBuddyEntity);
 		userService.addBuddy(requestingUser, savedBuddy);
