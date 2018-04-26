@@ -104,16 +104,16 @@ public class BuddyDto
 		return user;
 	}
 
-	Buddy createBuddyEntity(Translator translator)
+	Buddy createBuddyEntity()
 	{
 		return Buddy.createInstance(user.getId(), user.getPrivateData().getFirstName(), user.getPrivateData().getLastName(),
-				determineTempNickname(translator), getSendingStatus(), getReceivingStatus());
+				determineTempNickname(), getSendingStatus(), getReceivingStatus());
 	}
 
-	private String determineTempNickname(Translator translator)
+	private String determineTempNickname()
 	{
 		// Used to till the user accepted the request and shared their nickname
-		return translator.getLocalizedMessage("message.temp.nickname", user.getPrivateData().getFirstName(),
+		return Translator.getInstance().getLocalizedMessage("message.temp.nickname", user.getPrivateData().getFirstName(),
 				user.getPrivateData().getLastName());
 	}
 
