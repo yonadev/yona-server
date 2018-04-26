@@ -53,16 +53,16 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 
 	public String getFirstName()
 	{
-		return (firstName == null) ? getPlaceHolderString("message.alternative.first.name") : firstName;
+		return (firstName == null) ? getTranslation("message.alternative.first.name", getSenderNickname()) : firstName;
 	}
 
 	public String getLastName()
 	{
-		return (lastName == null) ? getPlaceHolderString("message.alternative.last.name") : lastName;
+		return (lastName == null) ? getTranslation("message.alternative.last.name", getSenderNickname()) : lastName;
 	}
 
-	private String getPlaceHolderString(String messageId)
+	private String getTranslation(String messageId, String nickname)
 	{
-		return Translator.getInstance().getLocalizedMessage(messageId, getSenderNickname());
+		return Translator.getInstance().getLocalizedMessage(messageId, nickname);
 	}
 }
