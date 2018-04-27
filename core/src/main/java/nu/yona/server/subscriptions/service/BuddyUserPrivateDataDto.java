@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.core.annotation.Order;
 
+import nu.yona.server.Translator;
 import nu.yona.server.device.service.BuddyDeviceDto;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.goals.service.GoalDto;
@@ -24,7 +25,7 @@ import nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName;
 
 public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 {
-	private static final int VERSION_OF_NAME_MIGRATION = EncryptFirstAndLastName.class.getAnnotation(Order.class).value();
+	private static final int VERSION_OF_NAME_MIGRATION = EncryptFirstAndLastName.class.getAnnotation(Order.class).value() + 1;
 
 	BuddyUserPrivateDataDto(String firstName, String lastName, String nickname, Optional<UUID> userPhotoId)
 	{
@@ -47,9 +48,9 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 					.getGoalsIncludingHistoryItems(buddyEntity.getBuddyAnonymized().getUserAnonymized());
 			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream().map(BuddyDeviceDto::createInstance)
 					.collect(Collectors.toSet());
-			User user = buddyEntity.getUser();
-			String firstName = determineName(buddyEntity::getFirstName, user, User::getFirstName);
-			String lastName = determineName(buddyEntity::getLastName, user, User::getLastName);
+			Optional<User> user = Optional.ofNullable(buddyEntity.getUser());
+			String firstName = determineFirstName(buddyEntity, user);
+			String lastName = determineLastName(buddyEntity, user);
 			return new BuddyUserPrivateDataDto(firstName, lastName, buddyEntity.getNickname(), buddyEntity.getUserPhotoId(),
 					goals, devices);
 		}
@@ -57,17 +58,30 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 				buddyEntity.getUserPhotoId());
 	}
 
-	private static String determineName(Supplier<String> buddyUserNameGetter, User user, Function<User, String> userNameGetter)
+	private static String determineLastName(Buddy buddyEntity, Optional<User> user)
+	{
+		return determineName(buddyEntity::getLastName, user, User::getLastName, "message.alternative.last.name",
+				buddyEntity.getNickname());
+	}
+
+	private static String determineFirstName(Buddy buddyEntity, Optional<User> user)
+	{
+		return determineName(buddyEntity::getFirstName, user, User::getFirstName,
+				"message.alternative.first.name", buddyEntity.getNickname());
+	}
+
+	public static String determineName(Supplier<String> buddyUserNameGetter, Optional<User> user,
+			Function<User, String> userNameGetter, String messageId, String nickname)
 	{
 		String name = buddyUserNameGetter.get();
 		if (name != null)
 		{
 			return name;
 		}
-		if ((user != null) && (user.getPrivateDataMigrationVersion() < VERSION_OF_NAME_MIGRATION))
+		if ((user.isPresent()) && (user.get().getPrivateDataMigrationVersion() < VERSION_OF_NAME_MIGRATION))
 		{
 			// User is not deleted yet and not yet migrated, so get the name from the user entity
-			name = userNameGetter.apply(user);
+			name = userNameGetter.apply(user.get());
 		}
 		if (name != null)
 		{
@@ -76,7 +90,7 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		// We're apparently in a migration process to move first and last name to the private data
 		// The app will fetch the message, causing processing of all unprocessed messages. That'll fill in the first and last
 		// name in the buddy entity, so from then onward, the user will see the right data
-		return "Not available";
+		return Translator.getInstance().getLocalizedMessage(messageId, nickname);
 	}
 
 	public static BuddyUserPrivateDataDto createInstance(String firstName, String lastName, String nickname,

@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
+import nu.yona.server.subscriptions.service.BuddyDto;
 
 public abstract class BuddyMessageEmbeddedUserDto extends BuddyMessageDto
 {
@@ -43,6 +44,12 @@ public abstract class BuddyMessageEmbeddedUserDto extends BuddyMessageDto
 	@Component
 	public abstract static class Manager extends BuddyMessageDto.Manager
 	{
+		@Override
+		protected SenderInfo createSenderInfoForBuddy(BuddyDto buddy, Message messageEntity)
+		{
+			return getSenderInfoExtensionPoint(messageEntity);
+		}
+
 		@Override
 		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
 		{
