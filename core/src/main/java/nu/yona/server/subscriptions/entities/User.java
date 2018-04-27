@@ -133,6 +133,11 @@ public class User extends EntityWithUuid
 
 	public String getFirstName()
 	{
+		if (firstName != null)
+		{
+			// Name not moved to private user yet, so return it
+			return firstName;
+		}
 		return getUserPrivate().getFirstName();
 	}
 
@@ -143,6 +148,11 @@ public class User extends EntityWithUuid
 
 	public String getLastName()
 	{
+		if (lastName != null)
+		{
+			// Name not moved to private user yet, so return it
+			return lastName;
+		}
 		return getUserPrivate().getLastName();
 	}
 
