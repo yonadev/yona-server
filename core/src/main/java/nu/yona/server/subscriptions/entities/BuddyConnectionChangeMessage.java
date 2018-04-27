@@ -7,7 +7,6 @@ package nu.yona.server.subscriptions.entities;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
-import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.messaging.entities.BuddyMessage;
 
@@ -53,16 +52,11 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 
 	public String getFirstName()
 	{
-		return (firstName == null) ? getTranslation("message.alternative.first.name", getSenderNickname()) : firstName;
+		return firstName;
 	}
 
 	public String getLastName()
 	{
-		return (lastName == null) ? getTranslation("message.alternative.last.name", getSenderNickname()) : lastName;
-	}
-
-	private String getTranslation(String messageId, String nickname)
-	{
-		return Translator.getInstance().getLocalizedMessage(messageId, nickname);
+		return lastName;
 	}
 }
