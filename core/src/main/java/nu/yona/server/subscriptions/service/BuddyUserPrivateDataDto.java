@@ -12,15 +12,20 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.springframework.core.annotation.Order;
+
 import nu.yona.server.device.service.BuddyDeviceDto;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName;
 
 public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 {
+	private static final int VERSION_OF_NAME_MIGRATION = EncryptFirstAndLastName.class.getAnnotation(Order.class).value();
+
 	BuddyUserPrivateDataDto(String firstName, String lastName, String nickname, Optional<UUID> userPhotoId)
 	{
 		super(firstName, lastName, nickname, userPhotoId, Optional.empty(), Optional.empty());
@@ -59,9 +64,9 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		{
 			return name;
 		}
-		if (user != null)
+		if ((user != null) && (user.getPrivateDataMigrationVersion() < VERSION_OF_NAME_MIGRATION))
 		{
-			// User is not deleted yet, so try getting the name from the user entity
+			// User is not deleted yet and not yet migrated, so get the name from the user entity
 			name = userNameGetter.apply(user);
 		}
 		if (name != null)
