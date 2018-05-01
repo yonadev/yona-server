@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -29,6 +29,7 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DtoManager;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.rest.PolymorphicDto;
+import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDto;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
@@ -37,6 +38,8 @@ import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.BuddyUserPrivateDataDto;
+import nu.yona.server.subscriptions.service.BuddyVpnConnectionStatusChangeMessageDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
 
@@ -46,6 +49,7 @@ import nu.yona.server.util.TimeUtil;
 		@Type(value = BuddyDisconnectMessageDto.class, name = "BuddyDisconnectMessage"),
 		@Type(value = BuddyInfoChangeMessageDto.class, name = "BuddyInfoChangeMessage"),
 		@Type(value = BuddyDeviceChangeMessageDto.class, name = "BuddyDeviceChangeMessage"),
+		@Type(value = BuddyVpnConnectionStatusChangeMessageDto.class, name = "BuddyVpnConnectionStatusChangeMessage"),
 		@Type(value = DisclosureRequestMessageDto.class, name = "DisclosureRequestMessage"),
 		@Type(value = DisclosureResponseMessageDto.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDto.class, name = "GoalConflictMessage"),
@@ -198,7 +202,7 @@ public abstract class MessageDto extends PolymorphicDto
 						senderUserAnonymizedId.get());
 				if (buddy.isPresent())
 				{
-					return createSenderInfoForBuddy(buddy.get());
+					return createSenderInfoForBuddy(buddy.get(), messageEntity);
 				}
 			}
 
@@ -223,16 +227,34 @@ public abstract class MessageDto extends PolymorphicDto
 					actingUser.getOwnPrivateData().getUserPhotoId());
 		}
 
-		private SenderInfo createSenderInfoForBuddy(BuddyDto buddy)
+		protected SenderInfo createSenderInfoForBuddy(BuddyDto buddy, Message messageEntity)
 		{
 			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(),
 					buddy.getUser().getPrivateData().getUserPhotoId(), buddy.getId());
 		}
 
-		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname,
-				Optional<UUID> userPhoto)
+		protected SenderInfo createSenderInfoForBuddyConnectionChangeMessage(Optional<User> senderUser,
+				BuddyConnectionChangeMessage buddyMessageEntity)
 		{
-			return senderInfoFactory.createInstanceForDetachedBuddy(UserDto.createInstance(userEntity), nickname, userPhoto);
+			String firstName = determineFirstName(senderUser, buddyMessageEntity);
+			String lastName = determineLastName(senderUser, buddyMessageEntity);
+
+			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(firstName, lastName,
+					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId());
+			return senderInfoFactory.createInstanceForDetachedBuddy(
+					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyUserPrivateData)), buddyUserPrivateData);
+		}
+
+		private String determineFirstName(Optional<User> senderUser, BuddyConnectionChangeMessage buddyMessageEntity)
+		{
+			return BuddyUserPrivateDataDto.determineName(buddyMessageEntity::getFirstName, senderUser, User::getFirstName,
+					"message.alternative.first.name", buddyMessageEntity.getSenderNickname());
+		}
+
+		private String determineLastName(Optional<User> senderUser, BuddyConnectionChangeMessage buddyMessageEntity)
+		{
+			return BuddyUserPrivateDataDto.determineName(buddyMessageEntity::getLastName, senderUser, User::getLastName,
+					"message.alternative.last.name", buddyMessageEntity.getSenderNickname());
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

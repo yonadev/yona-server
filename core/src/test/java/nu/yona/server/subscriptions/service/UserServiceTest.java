@@ -4,8 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import static org.mockito.Mockito.reset;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,14 +19,11 @@ import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
-import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
-import nu.yona.server.test.util.JUnitUtil;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
@@ -49,17 +44,9 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	@Autowired
 	private UserService service;
 
-	private static final String PASSWORD = "password";
-	private User richard;
-
 	@Before
 	public void setUpPerTest()
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
-		{
-			richard = JUnitUtil.createRichard();
-		}
-		reset(userRepository);
 	}
 
 	@Override

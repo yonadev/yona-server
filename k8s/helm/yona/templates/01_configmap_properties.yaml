@@ -22,7 +22,7 @@ data:
     yona.security.maxUpdateUserAttemptsPerTimeWindow={{ .Values.app.security.max_update_user_attempts_per_time_window | default "2" }}
     yona.analysisservice.updateSkipWindow={{ .Values.analysis.update_skip_window | default "PT1M" }}
     yona.email.enabled={{ required "True or False required for email.enabled" .Values.email.enabled }}
-    yona.email.senderAddress={{ .Values.email.sender_address | default "noreply@example.com" }}
+    yona.email.senderAddress={{ .Values.email.sender_address | default "noreply@yona.nu" }}
     yona.email.smtp.protocol={{ .Values.email.smtp_protocol | default "smtp" }}
     {{- if .Values.email.smtp_host}}
     yona.email.smtp.host={{ .Values.email.smtp_host}}

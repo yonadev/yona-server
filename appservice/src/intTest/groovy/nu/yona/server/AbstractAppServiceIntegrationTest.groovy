@@ -100,6 +100,22 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return reload? appService.reloadUser(bea) : bea
 	}
 
+	User makeUserForBuddyRequest(User user, emailAddress, firstName = null, lastName = null)
+	{
+		def userJson = user.convertToJson()
+		if (firstName)
+		{
+			userJson.firstName =  firstName
+		}
+		if (lastName)
+		{
+			userJson.lastName =  lastName
+		}
+		User buddUser = new User(userJson)
+		buddUser.emailAddress = emailAddress
+		return buddUser
+	}
+
 	def makeDeviceName(def userName, def operatingSystem)
 	{
 		(operatingSystem == "IOS") ? "$userName's iPhone" : "$userName's S8"

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
 
@@ -32,6 +29,11 @@ public abstract class ControllerBase
 	protected <T> ResponseEntity<T> createOkResponse()
 	{
 		return createResponse(HttpStatus.OK);
+	}
+
+	protected <T> ResponseEntity<T> createNoContentResponse()
+	{
+		return createResponse(HttpStatus.NO_CONTENT);
 	}
 
 	protected <T> ResponseEntity<T> createResponse(HttpStatus status)

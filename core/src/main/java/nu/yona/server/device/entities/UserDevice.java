@@ -47,7 +47,7 @@ public class UserDevice extends DeviceBase
 
 	private UserDevice(UUID id, String name, UUID deviceAnonymizedId, String vpnPassword)
 	{
-		super(id, name, deviceAnonymizedId, true); // Consider the VPN to be connected by default
+		super(id, name, deviceAnonymizedId);
 		this.vpnPassword = Objects.requireNonNull(vpnPassword);
 		this.registrationTime = TimeUtil.utcNow();
 		this.appLastOpenedDate = TimeUtil.utcNow().toLocalDate(); // The user registers this device, so the app is open now

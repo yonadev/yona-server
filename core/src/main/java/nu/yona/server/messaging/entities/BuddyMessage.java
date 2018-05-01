@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,8 +49,8 @@ public abstract class BuddyMessage extends Message
 	{
 		super(buddyInfoParameters.relatedUserAnonymizedId, isSentItem);
 		this.senderUserId = buddyInfoParameters.userId;
-		this.senderNickname = buddyInfoParameters.nickname;
-		this.senderUserPhotoId = buddyInfoParameters.userPhotoId;
+		this.senderNickname = Objects.requireNonNull(buddyInfoParameters.nickname);
+		this.senderUserPhotoId = Objects.requireNonNull(buddyInfoParameters.userPhotoId);
 		this.message = message;
 	}
 
@@ -115,33 +116,39 @@ public abstract class BuddyMessage extends Message
 		public final UUID relatedUserAnonymizedId;
 
 		public final UUID userId;
+		public final String firstName;
+		public final String lastName;
 		public final String nickname;
 		public final Optional<UUID> userPhotoId;
 
-		public BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String nickname, Optional<UUID> userPhotoId)
+		public BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String firstName, String lastName, String nickname,
+				Optional<UUID> userPhotoId)
 		{
 			this.relatedUserAnonymizedId = relatedUserAnonymizedId;
 
 			this.userId = userId;
-			this.nickname = nickname;
-			this.userPhotoId = userPhotoId;
+			this.firstName = Objects.requireNonNull(firstName);
+			this.lastName = Objects.requireNonNull(lastName);
+			this.nickname = Objects.requireNonNull(nickname);
+			this.userPhotoId = Objects.requireNonNull(userPhotoId);
 		}
 
 		public static BuddyInfoParameters createInstance(User userEntity)
 		{
-			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getNickname(),
-					userEntity.getUserPhotoId());
+			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getFirstName(),
+					userEntity.getLastName(), userEntity.getNickname(), userEntity.getUserPhotoId());
 		}
 
 		public static BuddyInfoParameters createInstance(User userEntity, String nickname)
 		{
-			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), nickname,
-					userEntity.getUserPhotoId());
+			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getFirstName(),
+					userEntity.getLastName(), nickname, userEntity.getUserPhotoId());
 		}
 
 		public static BuddyInfoParameters createInstance(Buddy buddy, UUID buddyUserAnonymizedId)
 		{
-			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.getNickname(), buddy.getUserPhotoId());
+			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.getFirstName(), buddy.getLastName(),
+					buddy.getNickname(), buddy.getUserPhotoId());
 		}
 	}
 }

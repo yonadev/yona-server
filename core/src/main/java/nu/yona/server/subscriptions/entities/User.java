@@ -76,14 +76,12 @@ public class User extends EntityWithUuid
 		super(null);
 	}
 
-	public User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
-			UserPrivate userPrivate, MessageDestination messageDestination)
+	public User(UUID id, byte[] initializationVector, String mobileNumber, UserPrivate userPrivate,
+			MessageDestination messageDestination)
 	{
 		super(id);
 		this.initializationVector = initializationVector;
 		this.creationTime = TimeUtil.utcNow();
-		this.firstName = firstName;
-		this.lastName = lastName;
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
@@ -135,22 +133,32 @@ public class User extends EntityWithUuid
 
 	public String getFirstName()
 	{
-		return firstName;
+		if (firstName != null)
+		{
+			// Name not moved to private user yet, so return it
+			return firstName;
+		}
+		return getUserPrivate().getFirstName();
 	}
 
 	public void setFirstName(String firstName)
 	{
-		this.firstName = firstName;
+		getUserPrivate().setFirstName(firstName);
 	}
 
 	public String getLastName()
 	{
-		return lastName;
+		if (lastName != null)
+		{
+			// Name not moved to private user yet, so return it
+			return lastName;
+		}
+		return getUserPrivate().getLastName();
 	}
 
 	public void setLastName(String lastName)
 	{
-		this.lastName = lastName;
+		getUserPrivate().setLastName(lastName);
 	}
 
 	public String getNickname()
@@ -384,5 +392,18 @@ public class User extends EntityWithUuid
 	public void removeDevice(UserDevice device)
 	{
 		getUserPrivate().removeDevice(device);
+	}
+
+	public void moveFirstAndLastNameToPrivate()
+	{
+		if (firstName == null)
+		{
+			// Apparently already moved
+			return;
+		}
+		userPrivate.setFirstName(firstName);
+		userPrivate.setLastName(lastName);
+		firstName = null;
+		lastName = null;
 	}
 }

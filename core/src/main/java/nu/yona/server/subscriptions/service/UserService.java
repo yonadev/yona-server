@@ -256,10 +256,11 @@ public class UserService
 		Set<Goal> goals = buildGoalsSet(user, signUp);
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getNickname(), userAnonymized.getId(),
+		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getFirstName(),
+				user.getOwnPrivateData().getLastName(), user.getOwnPrivateData().getNickname(), userAnonymized.getId(),
 				anonymousMessageSource.getId(), namedMessageSource);
-		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getFirstName(), user.getLastName(),
-				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
+		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getMobileNumber(), userPrivate,
+				namedMessageSource.getDestination());
 		addMandatoryGoals(userEntity);
 		if (signUp == UserSignUp.FREE)
 		{
@@ -439,7 +440,7 @@ public class UserService
 	}
 
 	@Transactional
-	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
+	UserDto addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
 		assertUserIsAllowed(buddyUserResource.getMobileNumber(), UserSignUp.INVITED);
 		User newUser = createUserEntity(buddyUserResource, UserSignUp.INVITED);
@@ -448,7 +449,7 @@ public class UserService
 		User savedUser = userRepository.save(newUser);
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
 				savedUser.getId());
-		return savedUser;
+		return createUserDtoWithPrivateData(savedUser);
 	}
 
 	@Transactional
@@ -621,7 +622,8 @@ public class UserService
 		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
-		new ArrayList<>(userEntity.getDevices()).stream().forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
+		new ArrayList<>(userEntity.getDevices()).stream()
+				.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
 
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
 		userRepository.delete(updatedUserEntity);
@@ -861,12 +863,12 @@ public class UserService
 
 	void assertValidUserFields(UserDto userResource, UserPurpose userPurpose)
 	{
-		if (StringUtils.isBlank(userResource.getFirstName()))
+		if (StringUtils.isBlank(userResource.getOwnPrivateData().getFirstName()))
 		{
 			throw InvalidDataException.blankFirstName();
 		}
 
-		if (StringUtils.isBlank(userResource.getLastName()))
+		if (StringUtils.isBlank(userResource.getOwnPrivateData().getLastName()))
 		{
 			throw InvalidDataException.blankLastName();
 		}

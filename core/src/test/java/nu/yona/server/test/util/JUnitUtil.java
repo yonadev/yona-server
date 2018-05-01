@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.test.util;
 
@@ -93,9 +93,9 @@ public class JUnitUtil
 
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource namedMessageSource = MessageSource.createInstance();
-		UserPrivate userPrivate = UserPrivate.createInstance(nickname, johnAnonymized.getId(), anonymousMessageSource.getId(),
-				namedMessageSource);
-		User user = new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
+		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, johnAnonymized.getId(),
+				anonymousMessageSource.getId(), namedMessageSource);
+		User user = new User(UUID.randomUUID(), initializationVector, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 		return User.getRepository().save(user);
 	}
@@ -108,7 +108,8 @@ public class JUnitUtil
 
 	private static void addAsBuddy(User user, User buddyToBe)
 	{
-		Buddy buddy = Buddy.createInstance(buddyToBe.getId(), buddyToBe.getNickname(), Status.ACCEPTED, Status.ACCEPTED);
+		Buddy buddy = Buddy.createInstance(buddyToBe.getId(), user.getFirstName(), user.getLastName(), buddyToBe.getNickname(),
+				Status.ACCEPTED, Status.ACCEPTED);
 		buddy.setUserAnonymizedId(buddyToBe.getAnonymized().getId());
 		user.addBuddy(buddy);
 	}

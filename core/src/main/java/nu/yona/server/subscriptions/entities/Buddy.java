@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -43,6 +43,12 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	private UUID buddyAnonymizedId;
 
 	@Convert(converter = StringFieldEncryptor.class)
+	private String firstName;
+
+	@Convert(converter = StringFieldEncryptor.class)
+	private String lastName;
+
+	@Convert(converter = StringFieldEncryptor.class)
 	private String nickname;
 
 	@Convert(converter = DateTimeFieldEncryptor.class)
@@ -63,10 +69,12 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 		super(null);
 	}
 
-	private Buddy(UUID id, UUID userId, String nickname, UUID buddyAnonymizedId)
+	private Buddy(UUID id, UUID userId, String firstName, String lastName, String nickname, UUID buddyAnonymizedId)
 	{
 		super(id);
 		this.userId = Objects.requireNonNull(userId);
+		this.firstName = Objects.requireNonNull(firstName);
+		this.lastName = Objects.requireNonNull(lastName);
 		this.nickname = Objects.requireNonNull(nickname);
 		this.buddyAnonymizedId = Objects.requireNonNull(buddyAnonymizedId);
 		this.devices = new HashSet<>();
@@ -79,11 +87,12 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
 	}
 
-	public static Buddy createInstance(UUID buddyUserId, String nickname, Status sendingStatus, Status receivingStatus)
+	public static Buddy createInstance(UUID buddyUserId, String firstName, String lastName, String nickname, Status sendingStatus,
+			Status receivingStatus)
 	{
 		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance(sendingStatus, receivingStatus);
 		buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
-		return new Buddy(UUID.randomUUID(), buddyUserId, nickname, buddyAnonymized.getId());
+		return new Buddy(UUID.randomUUID(), buddyUserId, firstName, lastName, nickname, buddyAnonymized.getId());
 	}
 
 	public UUID getBuddyAnonymizedId()
@@ -100,12 +109,32 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 		return buddyAnonymized;
 	}
 
+	public String getFirstName()
+	{
+		return firstName;
+	}
+
+	public void setFirstName(String firstName)
+	{
+		this.firstName = firstName;
+	}
+
+	public String getLastName()
+	{
+		return lastName;
+	}
+
+	public void setLastName(String lastName)
+	{
+		this.lastName = lastName;
+	}
+
 	public String getNickname()
 	{
 		return nickname;
 	}
 
-	public void setNickName(String nickname)
+	public void setNickname(String nickname)
 	{
 		this.nickname = nickname;
 	}

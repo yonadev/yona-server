@@ -434,8 +434,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 	private void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
 	{
-		assert user.firstName == "John"
-		assert user.lastName == "Doe"
 		assert user.mobileNumber == makeMobileNumber(timestamp)
 		assertEquals(user.creationTime, YonaServer.now)
 		assertEquals(user.appLastOpenedDate, YonaServer.now.toLocalDate())
@@ -443,6 +441,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		if (includePrivateData)
 		{
 			assertUserWithPrivateData(user)
+			assert user.firstName == "John"
+			assert user.lastName == "Doe"
 			assert user.nickname == "JD"
 
 			assert user.buddies != null
@@ -466,6 +466,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		}
 		else
 		{
+			assert user.firstName == null
+			assert user.lastName == null
 			assert user.nickname == null
 			assert user.goals == null
 		}

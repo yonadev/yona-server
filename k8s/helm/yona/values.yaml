@@ -126,7 +126,7 @@ vpn:
 
 email:
   enabled: false
-  sender_address: noreply@example.com
+  sender_address: noreply@yona.nu
   smtp_protocol: smtp
   smtp_host: smtp.example.com
   smtp_port: 587

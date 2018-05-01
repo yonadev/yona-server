@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -104,15 +104,17 @@ public class BuddyDto
 		return user;
 	}
 
-	Buddy createBuddyEntity(Translator translator)
+	Buddy createBuddyEntity()
 	{
-		return Buddy.createInstance(user.getId(), determineTempNickname(translator), getSendingStatus(), getReceivingStatus());
+		return Buddy.createInstance(user.getId(), user.getPrivateData().getFirstName(), user.getPrivateData().getLastName(),
+				determineTempNickname(), getSendingStatus(), getReceivingStatus());
 	}
 
-	private String determineTempNickname(Translator translator)
+	private String determineTempNickname()
 	{
 		// Used to till the user accepted the request and shared their nickname
-		return translator.getLocalizedMessage("message.temp.nickname", user.getFirstName(), user.getLastName());
+		return Translator.getInstance().getLocalizedMessage("message.temp.nickname", user.getPrivateData().getFirstName(),
+				user.getPrivateData().getLastName());
 	}
 
 	public static BuddyDto createInstance(Buddy buddyEntity)
