@@ -21,7 +21,6 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
-import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.device.entities.BuddyDevice;
 import nu.yona.server.entities.RepositoryProvider;
@@ -30,7 +29,7 @@ import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "BUDDIES")
-public class Buddy extends EntityWithUuidAndTouchVersion
+public class Buddy extends PrivateUserProperties
 {
 	@Type(type = "uuid-char")
 	@Column(name = "owning_user_private_id")
@@ -42,20 +41,8 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID buddyAnonymizedId;
 
-	@Convert(converter = StringFieldEncryptor.class)
-	private String firstName;
-
-	@Convert(converter = StringFieldEncryptor.class)
-	private String lastName;
-
-	@Convert(converter = StringFieldEncryptor.class)
-	private String nickname;
-
 	@Convert(converter = DateTimeFieldEncryptor.class)
 	private LocalDateTime lastStatusChangeTime;
-
-	@Convert(converter = UUIDFieldEncryptor.class)
-	private UUID userPhotoId;
 
 	/**
 	 * The BuddyAnonymized entities owned by this user
@@ -66,16 +53,13 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	// Default constructor is required for JPA
 	public Buddy()
 	{
-		super(null);
+		super();
 	}
 
 	private Buddy(UUID id, UUID userId, String firstName, String lastName, String nickname, UUID buddyAnonymizedId)
 	{
-		super(id);
+		super(id, firstName, lastName, Objects.requireNonNull(nickname));
 		this.userId = Objects.requireNonNull(userId);
-		this.firstName = Objects.requireNonNull(firstName);
-		this.lastName = Objects.requireNonNull(lastName);
-		this.nickname = Objects.requireNonNull(nickname);
 		this.buddyAnonymizedId = Objects.requireNonNull(buddyAnonymizedId);
 		this.devices = new HashSet<>();
 
@@ -107,46 +91,6 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 				+ buddyAnonymizedId;
 
 		return buddyAnonymized;
-	}
-
-	public String getFirstName()
-	{
-		return firstName;
-	}
-
-	public void setFirstName(String firstName)
-	{
-		this.firstName = firstName;
-	}
-
-	public String getLastName()
-	{
-		return lastName;
-	}
-
-	public void setLastName(String lastName)
-	{
-		this.lastName = lastName;
-	}
-
-	public String getNickname()
-	{
-		return nickname;
-	}
-
-	public void setNickname(String nickname)
-	{
-		this.nickname = nickname;
-	}
-
-	public Optional<UUID> getUserPhotoId()
-	{
-		return Optional.ofNullable(userPhotoId);
-	}
-
-	public void setUserPhotoId(Optional<UUID> userPhotoId)
-	{
-		this.userPhotoId = userPhotoId.orElse(null);
 	}
 
 	public UUID getUserId()

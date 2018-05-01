@@ -32,21 +32,12 @@ import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
 @Table(name = "USERS_PRIVATE")
-public class UserPrivate extends EntityWithUuidAndTouchVersion
+public class UserPrivate extends PrivateUserProperties
 {
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
 
 	@Convert(converter = StringFieldEncryptor.class)
 	private String decryptionCheck;
-
-	@Convert(converter = StringFieldEncryptor.class)
-	private String firstName;
-
-	@Convert(converter = StringFieldEncryptor.class)
-	private String lastName;
-
-	@Convert(converter = StringFieldEncryptor.class)
-	private String nickname;
 
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID userAnonymizedId;
@@ -66,9 +57,6 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
 
-	@Convert(converter = UUIDFieldEncryptor.class)
-	private UUID userPhotoId;
-
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_private_id", referencedColumnName = "id")
 	@Fetch(FetchMode.JOIN)
@@ -77,17 +65,14 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	// Default constructor is required for JPA
 	public UserPrivate()
 	{
-		super(null);
+		super();
 	}
 
 	private UserPrivate(UUID id, String firstName, String lastName, String nickname, UUID userAnonymizedId,
 			UUID anonymousMessageSourceId, UUID namedMessageSourceId)
 	{
-		super(id);
-		this.firstName = firstName;
-		this.lastName = lastName;
+		super(id, firstName, lastName, nickname);
 		this.decryptionCheck = buildDecryptionCheck();
-		this.nickname = nickname;
 		this.userAnonymizedId = userAnonymizedId;
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
@@ -110,36 +95,6 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	public boolean isDecryptedProperly()
 	{
 		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
-	}
-
-	public String getFirstName()
-	{
-		return firstName;
-	}
-
-	public void setFirstName(String firstName)
-	{
-		this.firstName = firstName;
-	}
-
-	public String getLastName()
-	{
-		return lastName;
-	}
-
-	public void setLastName(String lastName)
-	{
-		this.lastName = lastName;
-	}
-
-	public String getNickname()
-	{
-		return nickname;
-	}
-
-	public void setNickname(String nickname)
-	{
-		this.nickname = nickname;
 	}
 
 	UserAnonymized getUserAnonymized()
@@ -220,16 +175,6 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
-	}
-
-	public Optional<UUID> getUserPhotoId()
-	{
-		return Optional.ofNullable(userPhotoId);
-	}
-
-	public void setUserPhotoId(Optional<UUID> userPhotoId)
-	{
-		this.userPhotoId = userPhotoId.orElse(null);
 	}
 
 	public Set<UserDevice> getDevices()
