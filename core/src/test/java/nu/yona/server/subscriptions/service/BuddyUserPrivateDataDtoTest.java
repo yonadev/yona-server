@@ -119,7 +119,7 @@ public class BuddyUserPrivateDataDtoTest
 	{
 		String userName = "firstName";
 		User user = createUser(userName, "lastName", "nickName");
-		System.out.println("Private user data migration version is " + user.getPrivateDataMigrationVersion());
+		user.setPrivateDataMigrationVersion(0);
 
 		String name = BuddyUserPrivateDataDto.determineName(() -> null, Optional.of(user), User::getFirstName, null, null);
 
