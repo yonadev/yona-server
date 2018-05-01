@@ -45,8 +45,8 @@ import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
+import nu.yona.server.subscriptions.entities.PrivateUserProperties;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
@@ -84,8 +84,8 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 	private static final String PASSWORD = "password";
 	private static final Field firstNameUserField = JUnitUtil.getAccessibleField(User.class, "firstName");
 	private static final Field lastNameUserField = JUnitUtil.getAccessibleField(User.class, "lastName");
-	private static final Field firstNameUserPrivateField = JUnitUtil.getAccessibleField(UserPrivate.class, "firstName");
-	private static final Field lastNameUserPrivateField = JUnitUtil.getAccessibleField(UserPrivate.class, "lastName");
+	private static final Field firstNameUserPrivateField = JUnitUtil.getAccessibleField(PrivateUserProperties.class, "firstName");
+	private static final Field lastNameUserPrivateField = JUnitUtil.getAccessibleField(PrivateUserProperties.class, "lastName");
 	private static final Field userPrivateField = JUnitUtil.getAccessibleField(User.class, "userPrivate");
 	private User richard;
 
