@@ -115,7 +115,7 @@ public class BuddyUserPrivateDataDtoTest
 	}
 
 	@Test
-	public void determineName_userNameAvailable_userName()
+	public void determineName_firstNameAvailable_firstName()
 	{
 		String userName = "UserName";
 		User user = createUser(userName, "lastName", "nickName");
