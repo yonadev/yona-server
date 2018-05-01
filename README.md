@@ -9,6 +9,6 @@ Yona Server
 
 The Yona Server backs the Yona mobile app, providing user management, buddy relationship management, web traffic classification and buddy messaging.
 
-
+=======
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyonadev%2Fyona-server.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyonadev%2Fyona-server?ref=badge_large)
