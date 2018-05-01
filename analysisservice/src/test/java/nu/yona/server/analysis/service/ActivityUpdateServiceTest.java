@@ -42,6 +42,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -278,6 +279,31 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
+	public void updateLastMonitoredActivityDateIfRelevant_default_callsUserAnonymizedEntityHolderGetEntity()
+	{
+		UserAnonymizedEntityHolder mockUserAnonymizedEntityHolder = Mockito.mock(UserAnonymizedEntityHolder.class);
+		when(mockUserAnonymizedEntityHolder.getEntity()).thenReturn(userAnonEntity);
+		ZonedDateTime t1 = now();
+
+		service.updateLastMonitoredActivityDateIfRelevant(mockUserAnonymizedEntityHolder, createPayload(t1, t1));
+
+		verify(mockUserAnonymizedEntityHolder, atLeastOnce()).getEntity();
+	}
+
+	@Test
+	public void addActivity_default_callsUserAnonymizedEntityHolderGetEntity()
+	{
+		UserAnonymizedEntityHolder mockUserAnonymizedEntityHolder = Mockito.mock(UserAnonymizedEntityHolder.class);
+		when(mockUserAnonymizedEntityHolder.getEntity()).thenReturn(userAnonEntity);
+		ZonedDateTime t1 = now();
+
+		service.addActivity(mockUserAnonymizedEntityHolder, createPayload(t1, t1), GoalDto.createInstance(gamblingGoal),
+				Optional.empty());
+
+		verify(mockUserAnonymizedEntityHolder, atLeastOnce()).getEntity();
+	}
+
+	@Test
 	public void addActivity_noLastRegisteredActivity_goalConflictMessageCreated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
@@ -477,6 +503,23 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
+	public void updateTimeLastActivity_default_callsUserAnonymizedEntityHolderGetEntity()
+	{
+		UserAnonymizedEntityHolder mockUserAnonymizedEntityHolder = Mockito.mock(UserAnonymizedEntityHolder.class);
+		when(mockUserAnonymizedEntityHolder.getEntity()).thenReturn(userAnonEntity);
+		ZonedDateTime t1 = now();
+
+		DayActivity existingDayActivityEntity = mockExistingActivity(gamblingGoal, t1, t1, "Lotto");
+		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
+		ActivityDto lastRegisteredActivity = ActivityDto.createInstance(existingActivityEntity);
+
+		service.updateTimeLastActivity(mockUserAnonymizedEntityHolder, createPayload(t1, t1),
+				GoalDto.createInstance(gamblingGoal), lastRegisteredActivity);
+
+		verify(mockUserAnonymizedEntityHolder, atLeastOnce()).getEntity();
+	}
+
+	@Test
 	public void updateTimeLastActivity_startTimeBefore_activityStartTimeUpdated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
@@ -547,6 +590,21 @@ public class ActivityUpdateServiceTest
 				lastRegisteredActivity);
 
 		verifyNoGoalConflictMessagesCreated();
+	}
+
+	@Test
+	public void updateTimeExistingActivity_default_callsUserAnonymizedEntityHolderGetEntity()
+	{
+		UserAnonymizedEntityHolder mockUserAnonymizedEntityHolder = Mockito.mock(UserAnonymizedEntityHolder.class);
+		when(mockUserAnonymizedEntityHolder.getEntity()).thenReturn(userAnonEntity);
+		ZonedDateTime t1 = now();
+
+		DayActivity existingDayActivityEntity = mockExistingActivity(gamblingGoal, t1, t1, "Lotto");
+		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
+
+		service.updateTimeExistingActivity(mockUserAnonymizedEntityHolder, createPayload(t1, t1), existingActivityEntity);
+
+		verify(mockUserAnonymizedEntityHolder, atLeastOnce()).getEntity();
 	}
 
 	@Test
