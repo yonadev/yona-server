@@ -20,6 +20,7 @@ spec:
     metadata:
       labels:
         app: analysis
+        build: {{ .Chart.AppVersion | quote }}
         stage: {{ .Values.global.stage | default "develop" }}
     spec:
       initContainers:
@@ -38,8 +39,8 @@ spec:
               value: "10s"
       containers:
         - name: analysis
-          image: 'yonadev/analysisservice:build-{{ .Chart.AppVersion }}'
-          imagePullPolicy: Always
+          image: '{{ .Values.global.imagebase | default "yonadev" }}/analysisservice:build-{{ .Chart.AppVersion }}'
+          #imagePullPolicy: Always
           env:
             - name: YONA_DB_USER_NAME
               value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
