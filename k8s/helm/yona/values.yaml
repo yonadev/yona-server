@@ -9,6 +9,7 @@ support_infrastructure:
 global:
 
   stage: develop
+  imagebase: yonadev
 
 # Attempt tries in seed/update container before exit.  Not k8s job retry
 # This just reduces the 'failed' jobs spam in pod list until services
@@ -180,6 +181,12 @@ mariadb:
   password: develop
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
   mariadbHostname: yona-mariadb.yona.svc.cluster.local
+
+spring:
+  loglevel: debug
+  hazelcast:
+    loglevel: debug
+    config: /opt/app/config/hazelcast-client.xml
 
 admin:
   act_categories_json_file : productionActivityCategories.json
