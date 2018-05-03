@@ -14,7 +14,6 @@ import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -30,7 +29,6 @@ import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USERS")
-@EntityListeners(UserLockChecker.class)
 public class User extends EntityWithUuid
 {
 	private int privateDataMigrationVersion;
