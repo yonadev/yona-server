@@ -4,6 +4,7 @@ package nu.yona.server;
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 
+import java.io.IOException;
 import java.util.Properties;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -33,12 +34,14 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.XmlClientConfigBuilder;
+import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spring.cache.HazelcastCacheManager;
 
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.rest.RestClientErrorHandler;
@@ -163,8 +166,26 @@ public class CoreConfiguration extends CachingConfigurerSupport
 	@Bean // By making this a bean, Spring takes care of shutting down Hazelcast
 	public HazelcastInstance hazelcastInstance()
 	{
-		return Hazelcast.newHazelcastInstance(new Config());
+		return HazelcastClient.newHazelcastClient(getHazelcastConfig());
 	}
+
+	private ClientConfig getHazelcastConfig()
+	{
+		try
+		{
+			String hazelcastConfigFilePath = yonaProperties.getHazelcastConfigFilePath();
+			if (hazelcastConfigFilePath == null)
+			{
+				return new ClientConfig();
+			}
+			return new XmlClientConfigBuilder(hazelcastConfigFilePath).build();
+		}
+		catch ( IOException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
 
 	@Bean
 	public CacheManager localCache()

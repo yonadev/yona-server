@@ -46,6 +46,8 @@ public class YonaProperties
 
 	private String appleAppId;
 
+	private String hazelcastConfigFilePath;
+
 	private int maxUsers;
 
 	private boolean isWhiteListActiveFreeSignUp;
@@ -118,6 +120,16 @@ public class YonaProperties
 	public String getAppleAppId()
 	{
 		return appleAppId;
+	}
+
+	public String getHazelcastConfigFilePath()
+	{
+		return hazelcastConfigFilePath;
+	}
+
+	public void setHazelcastConfigFilePath(String hazelcastConfigFilePath)
+	{
+		this.hazelcastConfigFilePath = hazelcastConfigFilePath;
 	}
 
 	public int getMaxUsers()
