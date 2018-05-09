@@ -1,6 +1,6 @@
 package nu.yona.server;
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 
@@ -34,9 +34,10 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.config.XmlClientConfigBuilder;
 import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.XmlClientConfigBuilder;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spring.cache.HazelcastCacheManager;
 
@@ -163,29 +164,28 @@ public class CoreConfiguration extends CachingConfigurerSupport
 		return new HazelcastCacheManager(hazelcastInstance());
 	}
 
-	@Bean // By making this a bean, Spring takes care of shutting down Hazelcast
+	@Bean
 	public HazelcastInstance hazelcastInstance()
 	{
-		return HazelcastClient.newHazelcastClient(getHazelcastConfig());
+		String hazelcastConfigFilePath = yonaProperties.getHazelcastConfigFilePath();
+		if (hazelcastConfigFilePath == null)
+		{
+			return Hazelcast.newHazelcastInstance(new Config());
+		}
+		return getHazelcastClientInstance(hazelcastConfigFilePath);
 	}
 
-	private ClientConfig getHazelcastConfig()
+	private HazelcastInstance getHazelcastClientInstance(String hazelcastConfigFilePath)
 	{
 		try
 		{
-			String hazelcastConfigFilePath = yonaProperties.getHazelcastConfigFilePath();
-			if (hazelcastConfigFilePath == null)
-			{
-				return new ClientConfig();
-			}
-			return new XmlClientConfigBuilder(hazelcastConfigFilePath).build();
+			return HazelcastClient.newHazelcastClient(new XmlClientConfigBuilder(hazelcastConfigFilePath).build());
 		}
-		catch ( IOException e)
+		catch (IOException e)
 		{
 			throw YonaException.unexpected(e);
 		}
 	}
-
 
 	@Bean
 	public CacheManager localCache()
