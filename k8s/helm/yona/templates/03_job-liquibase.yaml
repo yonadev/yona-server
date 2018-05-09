@@ -45,7 +45,7 @@ spec:
               value: "{{ .Values.ldap.port | default 389 }}"
       containers:
         - name: liquibase
-          image: yonadev/yona-mariadb-liquibase-update:build-{{ .Chart.AppVersion }}
+          image: {{ .Values.global.imagebase | default "yonadev" }}/yona-mariadb-liquibase-update:build-{{ .Chart.AppVersion }}
           imagePullPolicy: IfNotPresent
           env:       
             - name: USER
@@ -59,7 +59,11 @@ spec:
               value: "jdbc:mariadb://{{ .Values.mariadb.mariadbHostname }}/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: RELEASE
+            {{- if .Values.mariadb.seed_release}}
+              value: {{ .Values.mariadb.seed_release | quote }}
+            {{- else }}
               value: {{ .Chart.AppVersion | quote }}
+            {{- end }}
             - name: MAX_TRIES
               value: {{ .Values.seed_max_tries | default "3" | quote }}
             {{- if .Values.ldap.enabled }}

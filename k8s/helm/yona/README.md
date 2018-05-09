@@ -12,6 +12,11 @@ This chart will do the following:
 * 2 x Yona Admin, Analysis, App, and Batch services
 * All using Kubernetes Deployments
 
+## Chart dependencies
+Pull down the dependant charts (ldap, mariadb, hazelcast)
+
+helm dependency update
+
 ## Installing the Chart
 
 To install the chart with the release name `my-release`:
