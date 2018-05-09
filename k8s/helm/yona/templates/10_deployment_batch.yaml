@@ -20,6 +20,7 @@ spec:
     metadata:
       labels:
         app: batch
+        build: {{ .Chart.AppVersion | quote }}
         stage: {{ .Values.global.stage | default "develop" }}
     spec:
       initContainers:
@@ -38,8 +39,8 @@ spec:
               value: "10s"
       containers:
         - name: batch
-          image: 'yonadev/batchservice:build-{{ .Chart.AppVersion }}'
-          imagePullPolicy: Always
+          image: '{{ .Values.global.imagebase | default "yonadev" }}/batchservice:build-{{ .Chart.AppVersion }}'
+          #imagePullPolicy: Always
           env:       
             - name: YONA_DB_USER_NAME
               value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
@@ -68,6 +69,3 @@ spec:
         - name: config-volume
           configMap:
             name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-springboot
-
-
-
