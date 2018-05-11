@@ -166,7 +166,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		User bob = addBob()
 		bob.emailAddress = "bob@dunn.com"
-		appService.sendBuddyConnectRequest(richard, bob)
+		assertResponseStatusCreated(appService.sendBuddyConnectRequest(richard, bob))
 
 		when:
 		def response = appService.sendBuddyConnectRequest(richard, bob, false)
