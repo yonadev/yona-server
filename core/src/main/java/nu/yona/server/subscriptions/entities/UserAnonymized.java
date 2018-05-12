@@ -49,6 +49,7 @@ public class UserAnonymized extends EntityWithUuid
 	@OneToMany(mappedBy = "owningUserAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
+	@BatchSize(size = 20)
 	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<DeviceAnonymized> devicesAnonymized;
 
