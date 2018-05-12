@@ -41,26 +41,27 @@ public class HibernateStatisticsService
 
 	private SessionFactory sessionFactory;
 
-	private LogAppender logAppender = new LogAppender();
+	private LogAppender logAppender;
 
 	@PostConstruct
 	public void initialize()
 	{
 		sessionFactory = getPrimaryEntityManagerFactory();
-		ch.qos.logback.classic.Logger hibernateLogger = (ch.qos.logback.classic.Logger) LoggerFactory
-				.getLogger("org.hibernate.SQL");
-		if (hibernateLogger.isDebugEnabled())
-		{
-			logAppender.start();
-			hibernateLogger.addAppender(logAppender);
-		}
+		logAppender = LogAppender.initialize();
 	}
 
 	public void setEnabled(boolean enabled)
 	{
 		logger.info("HibernateStatisticsService setEnabled({})", enabled);
 		getHibernateStatistics().ifPresent(s -> s.setStatisticsEnabled(enabled));
-		logAppender.setEnabled(enabled);
+		if (enabled)
+		{
+			logAppender.start();
+		}
+		else
+		{
+			logAppender.stop();
+		}
 	}
 
 	public boolean isStatisticsEnabled()
@@ -349,22 +350,55 @@ public class HibernateStatisticsService
 
 	private static class LogAppender extends AppenderBase<ILoggingEvent>
 	{
-		private boolean enabled;
-		private List<String> messages = new ArrayList<>();
+		private final List<String> messages = new ArrayList<>();
+		private final ch.qos.logback.classic.Logger sqlStatementLogger;
+		private Level originalLevel;
+
+		LogAppender(ch.qos.logback.classic.Logger sqlStatementLogger)
+		{
+			this.sqlStatementLogger = sqlStatementLogger;
+		}
+
+		static LogAppender initialize()
+		{
+			ch.qos.logback.classic.Logger sqlStatementLogger = (ch.qos.logback.classic.Logger) LoggerFactory
+					.getLogger("org.hibernate.SQL");
+			LogAppender logAppender = new LogAppender(sqlStatementLogger);
+			sqlStatementLogger.addAppender(logAppender);
+			return logAppender;
+		}
 
 		@Override
 		protected void append(ILoggingEvent eventObject)
 		{
-			if (!enabled || eventObject.getLevel() != Level.DEBUG)
+			if (eventObject.getLevel() != Level.DEBUG)
 			{
 				return;
 			}
 			messages.add(eventObject.getFormattedMessage());
 		}
 
-		void setEnabled(boolean enabled)
+		@Override
+		public void start()
 		{
-			this.enabled = enabled;
+			if (isStarted())
+			{
+				return;
+			}
+			originalLevel = sqlStatementLogger.getLevel();
+			sqlStatementLogger.setLevel(Level.DEBUG);
+			super.start();
+		}
+
+		@Override
+		public void stop()
+		{
+			if (!isStarted())
+			{
+				return;
+			}
+			sqlStatementLogger.setLevel(originalLevel);
+			super.stop();
 		}
 
 		List<String> getMessages()
