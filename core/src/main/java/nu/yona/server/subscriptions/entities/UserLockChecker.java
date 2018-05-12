@@ -63,11 +63,6 @@ public class UserLockChecker
 			return;
 		}
 		LockModeType lockMode = entityManager.getLockMode(user);
-		if (lockMode != LockModeType.PESSIMISTIC_WRITE)
-		{
-			throw new IllegalStateException("Invalid lock mode: " + lockMode);
-		}
-		registerAsFlushedAlready(user);
 	}
 
 	private boolean isFlushedAlready(User user)

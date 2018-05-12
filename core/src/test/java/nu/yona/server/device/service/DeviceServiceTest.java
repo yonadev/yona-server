@@ -44,6 +44,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Matchers;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -69,6 +70,8 @@ import nu.yona.server.entities.ActivityRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
@@ -134,6 +137,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Autowired
 	private DeviceAnonymizedRepository deviceAnonymizedRepository;
 
+	@Mock
+	private GoalRepository mockGoalRepository;
+
 	@MockBean
 	private MessageService mockMessageService;
 
@@ -167,6 +173,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	protected Map<Class<?>, Repository<?, ?>> getRepositories()
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(Goal.class, mockGoalRepository);
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(UserDevice.class, userDeviceRepository);
 		repositoriesMap.put(Activity.class, activityRepository);

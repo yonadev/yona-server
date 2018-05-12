@@ -40,6 +40,8 @@ import nu.yona.server.CoreConfiguration;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
@@ -101,6 +103,9 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 	@MockBean
 	private MessageService mockMessageService;
 
+	@MockBean
+	private GoalRepository mockGoalRepository;
+
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
 
@@ -117,6 +122,7 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 	protected Map<Class<?>, Repository<?, ?>> getRepositories()
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(Goal.class, mockGoalRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);
 		return repositoriesMap;
 	}

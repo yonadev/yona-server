@@ -121,6 +121,7 @@ public class UserAnonymizedDto implements Serializable
 
 	static Set<GoalDto> getGoalsIncludingHistoryItems(UserAnonymized userAnonymizedEntity)
 	{
+		Goal.getRepository().findByUserAnonymizedId(userAnonymizedEntity.getId()); // Preload in one go
 		Set<Goal> activeGoals = userAnonymizedEntity.getGoals();
 		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);
 		Set<Goal> allGoals = new HashSet<>(activeGoals);

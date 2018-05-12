@@ -52,6 +52,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.repository.Repository;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -74,10 +75,12 @@ import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.service.MessageDestinationDto;
@@ -111,6 +114,8 @@ public class AnalysisEngineServiceTest
 	private YonaProperties mockYonaProperties;
 	@Mock
 	private ActivityCacheService mockAnalysisEngineCacheService;
+	@Mock
+	private GoalRepository mockGoalRepository;
 	@Mock
 	private MessageRepository mockMessageRepository;
 	@Mock
@@ -154,6 +159,8 @@ public class AnalysisEngineServiceTest
 	{
 		Logger logger = (Logger) LoggerFactory.getLogger(AnalysisEngineService.class);
 		logger.addAppender(mockLogAppender);
+
+		setUpRepositoryMocks();
 
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
@@ -263,11 +270,20 @@ public class AnalysisEngineServiceTest
 		when(mockDeviceService.getDeviceAnonymized(userAnonDto, -1)).thenReturn(deviceAnonDto);
 		when(mockDeviceService.getDeviceAnonymized(userAnonDto, deviceAnonId)).thenReturn(deviceAnonDto);
 		when(mockDeviceAnonymizedRepository.getOne(deviceAnonId)).thenReturn(deviceAnonEntity);
+	}
 
-		// Set up the repository mocks
+	private void setUpRepositoryMocks()
+	{
+		JUnitUtil.setUpRepositoryMock(mockGoalRepository);
 		JUnitUtil.setUpRepositoryMock(mockMessageRepository);
 		JUnitUtil.setUpRepositoryMock(mockActivityRepository);
 		JUnitUtil.setUpRepositoryMock(mockDayActivityRepository);
+		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(Goal.class, mockGoalRepository);
+		repositoriesMap.put(Message.class, mockMessageRepository);
+		repositoriesMap.put(Activity.class, mockActivityRepository);
+		repositoriesMap.put(DayActivity.class, mockDayActivityRepository);
+		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 	}
 
 	private Map<Locale, String> usString(String string)
