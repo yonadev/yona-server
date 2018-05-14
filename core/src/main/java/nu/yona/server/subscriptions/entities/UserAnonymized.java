@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -18,6 +18,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Where;
@@ -49,9 +50,11 @@ public class UserAnonymized extends EntityWithUuid
 	@OneToMany(mappedBy = "owningUserAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
-	@BatchSize(size = 20)
 	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<DeviceAnonymized> devicesAnonymized;
+
+	@Transient
+	private boolean isGoalPreloadDone;
 
 	// Default constructor is required for JPA
 	public UserAnonymized()
@@ -151,5 +154,14 @@ public class UserAnonymized extends EntityWithUuid
 	public Set<DeviceAnonymized> getDevicesAnonymized()
 	{
 		return devicesAnonymized;
+	}
+
+	public void preloadGoals()
+	{
+		if (!isGoalPreloadDone)
+		{
+			Goal.getRepository().findByUserAnonymizedId(getId()); // Preload in one go
+			isGoalPreloadDone = true;
+		}
 	}
 }
