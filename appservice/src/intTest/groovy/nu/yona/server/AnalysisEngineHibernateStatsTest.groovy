@@ -57,7 +57,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def stats = analysisService.getStatistics()
 
 		stats.entityDeleteCount == 0
-		stats.entityFetchCount == 4
+		stats.entityFetchCount == 2
 		stats.entityInsertCount == 0
 		stats.entityLoadCount == 10
 		stats.entityUpdateCount == 1 // TODO: Should be 0
@@ -98,7 +98,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def stats = analysisService.getStatistics()
 
 		stats.entityDeleteCount == 0
-		stats.entityFetchCount == 4
+		stats.entityFetchCount == 2
 		stats.entityInsertCount == 3
 		stats.entityLoadCount == 10
 		stats.entityUpdateCount == 2
@@ -139,7 +139,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def stats = analysisService.getStatistics()
 
 		stats.entityDeleteCount == 0
-		stats.entityFetchCount == 5
+		stats.entityFetchCount == 3
 		stats.entityInsertCount == 5
 		stats.entityLoadCount == 19
 		stats.entityUpdateCount == 4
