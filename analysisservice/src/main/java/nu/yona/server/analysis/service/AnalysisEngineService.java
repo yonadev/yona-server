@@ -6,6 +6,7 @@ package nu.yona.server.analysis.service;
 
 import java.text.MessageFormat;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -167,12 +168,23 @@ public class AnalysisEngineService
 	private void analyzeInsideLock(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
 			Set<ActivityCategoryDto> matchingActivityCategories)
 	{
-		activityUpdateService.updateLastMonitoredActivityDateIfRelevant(userAnonymizedHolder, payload);
+		updateLastMonitoredActivityDateIfRelevant(userAnonymizedHolder, payload);
 
 		Set<GoalDto> goals = determineRelevantGoals(payload, matchingActivityCategories);
 		for (GoalDto goal : goals)
 		{
 			addOrUpdateActivity(userAnonymizedHolder, payload, goal);
+		}
+	}
+
+	private void updateLastMonitoredActivityDateIfRelevant(UserAnonymizedEntityHolder userAnonymizedHolder,
+			ActivityPayload payload)
+	{
+		Optional<LocalDate> lastMonitoredActivityDate = payload.userAnonymized.getLastMonitoredActivityDate();
+		LocalDate activityEndTime = payload.endTime.toLocalDate();
+		if (lastMonitoredActivityDate.map(d -> d.isBefore(activityEndTime)).orElse(true))
+		{
+			activityUpdateService.updateLastMonitoredActivityDate(userAnonymizedHolder.getEntity(), activityEndTime);
 		}
 	}
 
@@ -205,7 +217,8 @@ public class AnalysisEngineService
 			Optional<Activity> overlappingActivity = findOverlappingActivitySameApp(payload, matchingGoal);
 			if (overlappingActivity.isPresent())
 			{
-				activityUpdateService.updateTimeExistingActivity(userAnonymizedHolder, payload, overlappingActivity.get());
+				activityUpdateService.updateTimeExistingActivity(userAnonymizedHolder.getEntity(), payload,
+						overlappingActivity.get());
 				return;
 			}
 		}
@@ -217,13 +230,13 @@ public class AnalysisEngineService
 			{
 				// Update message only if the start time is to be updated or if the end time moves with at least five seconds, to
 				// avoid unnecessary cache flushes.
-				activityUpdateService.updateTimeLastActivity(userAnonymizedHolder, payload, matchingGoal,
+				activityUpdateService.updateTimeLastActivity(userAnonymizedHolder.getEntity(), payload, matchingGoal,
 						lastRegisteredActivity.get());
 			}
 			return;
 		}
 
-		activityUpdateService.addActivity(userAnonymizedHolder, payload, matchingGoal, lastRegisteredActivity);
+		activityUpdateService.addActivity(userAnonymizedHolder.getEntity(), payload, matchingGoal, lastRegisteredActivity);
 	}
 
 	private Optional<Activity> findOverlappingActivitySameApp(ActivityPayload payload, GoalDto matchingGoal)

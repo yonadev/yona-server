@@ -21,7 +21,6 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
-import nu.yona.server.analysis.service.AnalysisEngineService.UserAnonymizedEntityHolder;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.exceptions.AnalysisException;
@@ -61,23 +60,17 @@ class ActivityUpdateService
 	@Autowired
 	private ActivityCacheService cacheService;
 
-	public void updateLastMonitoredActivityDateIfRelevant(UserAnonymizedEntityHolder userAnonymizedHolder,
-			ActivityPayload payload)
+	public void updateLastMonitoredActivityDate(UserAnonymized userAnonymizedEntity, LocalDate activityEndTime)
 	{
-		Optional<LocalDate> lastMonitoredActivityDate = payload.userAnonymized.getLastMonitoredActivityDate();
-		LocalDate activityEndTime = payload.endTime.toLocalDate();
-		if (lastMonitoredActivityDate.map(d -> d.isBefore(activityEndTime)).orElse(true))
-		{
-			userAnonymizedHolder.getEntity().setLastMonitoredActivityDate(activityEndTime);
-		}
+		userAnonymizedEntity.setLastMonitoredActivityDate(activityEndTime);
 	}
 
-	public void addActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload, GoalDto matchingGoal,
+	public void addActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload, GoalDto matchingGoal,
 			Optional<ActivityDto> lastRegisteredActivity)
 	{
 		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedId(payload.userAnonymized.getId(),
 				matchingGoal.getGoalId());
-		Activity addedActivity = createNewActivity(userAnonymizedHolder.getEntity(), payload, matchingGoalEntity);
+		Activity addedActivity = createNewActivity(userAnonymizedEntity, payload, matchingGoalEntity);
 		if (shouldUpdateCache(lastRegisteredActivity, addedActivity))
 		{
 			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymized.getId(),
@@ -85,12 +78,11 @@ class ActivityUpdateService
 		}
 
 		// Save first, so the activity is available when saving the message
-		userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 		if (matchingGoal.isNoGoGoal()
 				&& shouldSendNewGoalConflictMessageForNewConflictingActivity(payload, lastRegisteredActivity))
 		{
-			sendConflictMessageToAllDestinationsOfUser(userAnonymizedHolder.getEntity(), payload, addedActivity,
-					matchingGoalEntity);
+			sendConflictMessageToAllDestinationsOfUser(userAnonymizedEntity, payload, addedActivity, matchingGoalEntity);
 		}
 	}
 
@@ -138,7 +130,7 @@ class ActivityUpdateService
 		return messageRepository.save(message);
 	}
 
-	public void updateTimeExistingActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
+	public void updateTimeExistingActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload,
 			Activity existingActivity)
 	{
 		LocalDateTime startTimeLocal = payload.startTime.toLocalDateTime();
@@ -151,13 +143,10 @@ class ActivityUpdateService
 		{
 			existingActivity.setEndTime(endTimeLocal);
 		}
-
-		// Explicitly fetch the entity to indicate that the user entity is dirty
-		userAnonymizedHolder.getEntity();
 	}
 
-	public void updateTimeLastActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
-			GoalDto matchingGoal, ActivityDto lastRegisteredActivity)
+	public void updateTimeLastActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload, GoalDto matchingGoal,
+			ActivityDto lastRegisteredActivity)
 	{
 		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId())
 				.orElseThrow(() -> AnalysisException.dayActivityNotFound(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
@@ -174,9 +163,6 @@ class ActivityUpdateService
 		}
 		cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymized.getId(),
 				matchingGoal.getGoalId(), ActivityDto.createInstance(activity));
-
-		// Explicitly fetch the entity to indicate that the user entity is dirty
-		userAnonymizedHolder.getEntity();
 	}
 
 	private boolean shouldUpdateCache(Optional<ActivityDto> lastRegisteredActivity, Activity newOrUpdatedActivity)
