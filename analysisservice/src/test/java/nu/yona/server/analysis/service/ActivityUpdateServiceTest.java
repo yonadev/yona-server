@@ -59,7 +59,6 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
-import nu.yona.server.analysis.service.AnalysisEngineService.ActivityPayload;
 import nu.yona.server.analysis.service.AnalysisEngineService.UserAnonymizedEntityHolder;
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.device.entities.DeviceAnonymized;
