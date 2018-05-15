@@ -50,8 +50,8 @@ class ActivityPayload
 	{
 		ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
 				.withZoneSameInstant(userAnonymized.getTimeZone());
-		return new ActivityPayload(userAnonymized, deviceAnonymized, Optional.of(networkActivity.getUrl()), startTime,
-				startTime, Optional.empty());
+		return new ActivityPayload(userAnonymized, deviceAnonymized, Optional.of(networkActivity.getUrl()), startTime, startTime,
+				Optional.empty());
 	}
 
 	static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, DeviceAnonymizedDto deviceAnonymized,
@@ -59,19 +59,20 @@ class ActivityPayload
 	{
 		ZoneId userTimeZone = userAnonymized.getTimeZone();
 		return new ActivityPayload(userAnonymized, deviceAnonymized, Optional.empty(),
-				startTime.withZoneSameInstant(userTimeZone), endTime.withZoneSameInstant(userTimeZone),
-				Optional.of(application));
+				startTime.withZoneSameInstant(userTimeZone), endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
 	}
 
 	@Override
 	public boolean equals(Object other)
 	{
-		if (other == null)
-			return false;
 		if (other == this)
+		{
 			return true;
+		}
 		if (!(other instanceof ActivityPayload))
+		{
 			return false;
+		}
 		ActivityPayload otherActivityPayload = (ActivityPayload) other;
 		return otherActivityPayload.application.equals(this.application) && otherActivityPayload.url.equals(this.url)
 				&& otherActivityPayload.startTime.equals(this.startTime) && otherActivityPayload.endTime.equals(this.endTime)

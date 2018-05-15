@@ -10,10 +10,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,11 +44,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
 import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;
@@ -65,13 +59,10 @@ import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.service.DeviceAnonymizedDto;
-import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
-import nu.yona.server.goals.service.ActivityCategoryDto;
-import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -84,19 +75,13 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.test.util.JUnitUtil;
-import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
-import nu.yona.server.util.TransactionHelper;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ActivityUpdateServiceTest
 {
 	private final Map<String, Goal> goalMap = new HashMap<>();
 
-	@Mock
-	private ActivityCategoryService mockActivityCategoryService;
-	@Mock
-	private ActivityCategoryService.FilterService mockActivityCategoryFilterService;
 	@Mock
 	private UserAnonymizedService mockUserAnonymizedService;
 	@Mock
@@ -116,15 +101,7 @@ public class ActivityUpdateServiceTest
 	@Mock
 	private WeekActivityRepository mockWeekActivityRepository;
 	@Mock
-	private LockPool<UUID> userAnonymizedSynchronizer;
-	@Mock
-	private TransactionHelper transactionHelper;
-	@Mock
-	private DeviceService mockDeviceService;
-	@Mock
 	private DeviceAnonymizedRepository mockDeviceAnonymizedRepository;
-	@Mock
-	private Appender<ILoggingEvent> mockLogAppender;
 
 	@InjectMocks
 	private final ActivityUpdateService service = new ActivityUpdateService();
@@ -148,9 +125,6 @@ public class ActivityUpdateServiceTest
 	@Before
 	public void setUp()
 	{
-		Logger logger = (Logger) LoggerFactory.getLogger(AnalysisEngineService.class);
-		logger.addAppender(mockLogAppender);
-
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
@@ -176,33 +150,6 @@ public class ActivityUpdateServiceTest
 
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
-		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
-		when(mockActivityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(anySetOf(String.class)))
-				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
-					@Override
-					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
-					{
-						Object[] args = invocation.getArguments();
-						@SuppressWarnings("unchecked")
-						Set<String> smoothwallCategories = (Set<String>) args[0];
-						return getAllActivityCategories()
-								.stream().filter(ac -> ac.getSmoothwallCategories().stream()
-										.filter(smoothwallCategories::contains).findAny().isPresent())
-								.collect(Collectors.toSet());
-					}
-				});
-		when(mockActivityCategoryFilterService.getMatchingCategoriesForApp(any(String.class)))
-				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
-					@Override
-					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
-					{
-						Object[] args = invocation.getArguments();
-						String application = (String) args[0];
-						return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
-								.collect(Collectors.toSet());
-					}
-				});
-
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
@@ -227,16 +174,6 @@ public class ActivityUpdateServiceTest
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
 
-		// Mock the transaction helper
-		doAnswer(new Answer<Void>() {
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable
-			{
-				invocation.getArgumentAt(0, Runnable.class).run();
-				return null;
-			}
-		}).when(transactionHelper).executeInNewTransaction(any(Runnable.class));
-
 		// Mock the week activity repository
 		when(mockWeekActivityRepository.findOne(any(UUID.class), any(UUID.class), any(LocalDate.class)))
 				.thenAnswer(new Answer<WeekActivity>() {
@@ -256,8 +193,6 @@ public class ActivityUpdateServiceTest
 				});
 
 		// Mock device service and repo
-		when(mockDeviceService.getDeviceAnonymized(userAnonDto, -1)).thenReturn(deviceAnonDto);
-		when(mockDeviceService.getDeviceAnonymized(userAnonDto, deviceAnonId)).thenReturn(deviceAnonDto);
 		when(mockDeviceAnonymizedRepository.getOne(deviceAnonId)).thenReturn(deviceAnonEntity);
 
 		// Set up the repository mocks
@@ -269,12 +204,6 @@ public class ActivityUpdateServiceTest
 	private Map<Locale, String> usString(String string)
 	{
 		return Collections.singletonMap(Translator.EN_US_LOCALE, string);
-	}
-
-	private Set<ActivityCategoryDto> getAllActivityCategories()
-	{
-		return goalMap.values().stream().map(goal -> ActivityCategoryDto.createInstance(goal.getActivityCategory()))
-				.collect(Collectors.toSet());
 	}
 
 	@Test
@@ -342,7 +271,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_afterConflictIntervalLastRegisteredActivity_newGoalConflictMessageCreated()
+	public void addActivity_afterConflictIntervalLastRegisteredActivity_goalConflictMessageCreated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
@@ -357,7 +286,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_withinConflictIntervalLastRegisteredActivity_noNewGoalConflictMessagesCreated()
+	public void addActivity_withinConflictIntervalLastRegisteredActivity_noGoalConflictMessagesCreated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
@@ -372,7 +301,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_completelyPrecedingLastRegisteredActivity_noNewGoalConflictMessagesCreated()
+	public void addActivity_completelyPrecedingLastRegisteredActivity_noGoalConflictMessagesCreated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
@@ -519,7 +448,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeLastActivity_startTimeBefore_activityStartTimeUpdated()
+	public void updateTimeLastActivity_startTimeEarlier_activityStartTimeUpdated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
@@ -538,7 +467,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeLastActivity_endTimeAfter_activityEndTimeUpdated()
+	public void updateTimeLastActivity_endTimeLater_activityEndTimeUpdated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
@@ -575,7 +504,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeLastActivity_default_noNewGoalConflictMessagesCreated()
+	public void updateTimeLastActivity_default_noGoalConflictMessagesCreated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
@@ -607,7 +536,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeExistingActivity_startTimeBefore_activityStartTimeUpdated()
+	public void updateTimeExistingActivity_startTimeEarlier_activityStartTimeUpdated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
@@ -624,7 +553,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeExistingActivity_endTimeAfter_activityEndTimeUpdated()
+	public void updateTimeExistingActivity_endTimeLater_activityEndTimeUpdated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
@@ -656,7 +585,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeExistingActivity_default_noNewGoalConflictMessagesCreated()
+	public void updateTimeExistingActivity_default_noGoalConflictMessagesCreated()
 	{
 		UserAnonymizedEntityHolder userAnonymizedEntityHolder = new UserAnonymizedEntityHolder(mockUserAnonymizedService,
 				userAnonId);
