@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
@@ -18,6 +18,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -41,6 +42,7 @@ import nu.yona.server.exceptions.ConfigurationException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.PropertyInitializer;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.LockPool;
 
 @SpringBootApplication
 @EnableCaching
@@ -199,5 +201,11 @@ public class AppServiceApplication
 		{
 			throw YonaException.unexpected(e);
 		}
+	}
+
+	@Bean
+	public LockPool<UUID> userSynchronizer()
+	{
+		return new LockPool<>();
 	}
 }

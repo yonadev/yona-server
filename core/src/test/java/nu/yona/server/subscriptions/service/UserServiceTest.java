@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +25,7 @@ import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
+import nu.yona.server.util.LockPool;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
@@ -43,6 +45,9 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 
 	@Autowired
 	private UserService service;
+
+	@MockBean
+	private LockPool<UUID> mockUserSynchronizer;
 
 	@Before
 	public void setUpPerTest()

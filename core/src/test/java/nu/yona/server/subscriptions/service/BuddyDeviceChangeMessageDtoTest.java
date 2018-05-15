@@ -12,6 +12,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.junit.Before;
@@ -60,6 +61,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.CryptoSessionRule;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TransactionHelper;
 
 @Configuration
@@ -135,6 +137,9 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 	@MockBean
 	private MessageService mockMessageService;
+
+	@MockBean
+	private LockPool<UUID> mockUserSynchronizer;
 
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
