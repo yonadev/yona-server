@@ -196,9 +196,14 @@ public class UserService
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
+		return createUserDtoWithPrivateData(getPrivateValidatedUserEntity(id));
+	}
+
+	@Transactional
+	public User getPrivateValidatedUserEntity(UUID id)
+	{
 		User validatedUser = getValidatedUserById(id);
-		User updatedUser = handlePrivateDataActions(validatedUser);
-		return createUserDtoWithPrivateData(updatedUser);
+		return handlePrivateDataActions(validatedUser);
 	}
 
 	private User handlePrivateDataActions(User user)

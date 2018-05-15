@@ -33,6 +33,7 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserDto;
@@ -81,13 +82,13 @@ public class MessageService
 
 	// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
 	@Transactional
-	public UserDto prepareMessageCollection(UserDto user)
+	public UserDto prepareMessageCollection(UUID userId)
 	{
 		try
 		{
+			User user = userService.getPrivateValidatedUserEntity(userId);
 			tryTransferDirectMessagesToAnonymousDestination(user);
 			tryProcessUnprocessedMessages(user);
-			return userService.getPrivateUser(user.getId()); // Message processing might change the user
 		}
 		catch (DataIntegrityViolationException e)
 		{
@@ -95,20 +96,18 @@ public class MessageService
 			{
 				// Ignore and proceed. Another concurrent thread has transferred the messages.
 				// We avoid a lock here because that limits scaling this service horizontally.
-				logger.info(
-						"The direct messages of user with mobile number '" + user.getMobileNumber() + "' and ID '" + user.getId()
-								+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
-						e);
-				return user;
+				logger.info("The direct messages of user with ID '" + userId
+						+ "' were apparently concurrently moved to the anonymous messages while handling another request.", e);
 			}
 			else
 			{
 				throw e;
 			}
 		}
+		return userService.getPrivateValidatedUser(userId);
 	}
 
-	private void tryTransferDirectMessagesToAnonymousDestination(UserDto user)
+	private void tryTransferDirectMessagesToAnonymousDestination(User user)
 	{
 		MessageSource directMessageSource = getNamedMessageSource(user);
 		MessageDestination directMessageDestination = directMessageSource.getDestination();
@@ -125,16 +124,21 @@ public class MessageService
 		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
-	private void tryProcessUnprocessedMessages(UserDto user)
+	private void tryProcessUnprocessedMessages(User user)
 	{
 		MessageDestination anonymousMessageDestination = getAnonymousMessageSource(user).getDestination();
 		List<Long> idsOfUnprocessedMessages = Message.getRepository()
 				.findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
+		if (idsOfUnprocessedMessages.isEmpty())
+		{
+			return;
+		}
 
+		UserDto userDto = userService.getPrivateUser(user.getId());
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
 		for (long id : idsOfUnprocessedMessages)
 		{
-			handleMessageAction(user, id, "process", emptyPayload);
+			handleMessageAction(userDto, id, "process", emptyPayload);
 		}
 	}
 
@@ -189,14 +193,24 @@ public class MessageService
 		involvedMessageDestinations.forEach(d -> MessageDestination.getRepository().save(d));
 	}
 
-	private MessageSource getNamedMessageSource(UserDto user)
+	private MessageSource getNamedMessageSource(User user)
 	{
-		return MessageSource.getRepository().findOne(user.getOwnPrivateData().getNamedMessageSourceId());
+		return getMessageSource(user.getNamedMessageSourceId());
 	}
 
 	private MessageSource getAnonymousMessageSource(UserDto user)
 	{
-		return MessageSource.getRepository().findOne(user.getOwnPrivateData().getAnonymousMessageSourceId());
+		return getMessageSource(user.getOwnPrivateData().getAnonymousMessageSourceId());
+	}
+
+	private MessageSource getAnonymousMessageSource(User user)
+	{
+		return getMessageSource(user.getAnonymousMessageSourceId());
+	}
+
+	private MessageSource getMessageSource(UUID id)
+	{
+		return MessageSource.getRepository().findOne(id);
 	}
 
 	private Page<MessageDto> wrapMessagesAsDtos(UserDto user, Page<? extends Message> messageEntities, Pageable pageable)
