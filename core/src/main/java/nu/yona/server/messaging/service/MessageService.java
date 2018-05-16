@@ -110,11 +110,15 @@ public class MessageService
 	private void tryTransferDirectMessagesToAnonymousDestination(User user)
 	{
 		MessageSource directMessageSource = getNamedMessageSource(user);
-		MessageDestination directMessageDestination = directMessageSource.getDestination();
 		Page<Message> directMessages = directMessageSource.getMessages(null);
+		if (!directMessages.hasContent())
+		{
+			return;
+		}
 
 		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
 		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
+		MessageDestination directMessageDestination = directMessageSource.getDestination();
 		for (Message directMessage : directMessages)
 		{
 			directMessageDestination.remove(directMessage);
