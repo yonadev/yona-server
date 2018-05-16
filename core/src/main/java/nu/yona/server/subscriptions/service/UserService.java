@@ -62,6 +62,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
+import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -128,6 +129,9 @@ public class UserService
 
 	@Autowired(required = false)
 	private PrivateUserDataMigrationService privateUserDataMigrationService;
+
+	@Autowired(required = false)
+	private LockPool<UUID> userSynchronizer;
 
 	@PostConstruct
 	private void onStart()
@@ -493,15 +497,27 @@ public class UserService
 	@Transactional
 	public User updateUser(UUID id, Consumer<User> updateAction)
 	{
-		User user = getUserEntityByIdWithUpdateLock(id);
-		updateAction.accept(user);
-		if (user.canAccessPrivateData())
+		// We add a lock here to prevent concurrent user updates.
+		// The lock is per user, so concurrency is not an issue.
+		return withLockOnUser(id, user -> {
+			updateAction.accept(user);
+			if (user.canAccessPrivateData())
+			{
+				// The private data is accessible and might be updated, including the UserAnonymized
+				// Let the UserAnonymizedService save that to the repository and cache it
+				userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+			}
+			return userRepository.save(user);
+		});
+	}
+
+	private User withLockOnUser(UUID userId, Function<User, User> action)
+	{
+		try (LockPool<UUID>.Lock lock = userSynchronizer.lock(userId))
 		{
-			// The private data is accessible and might be updated, including the UserAnonymized
-			// Let the UserAnonymizedService save that to the repository and cache it
-			userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+			User user = getUserEntityById(userId);
+			return action.apply(user);
 		}
-		return userRepository.save(user);
 	}
 
 	@Transactional
@@ -599,43 +615,46 @@ public class UserService
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
-		User userEntity = getUserEntityByIdWithUpdateLock(id);
-		buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
+		withLockOnUser(id, userEntity -> {
+			buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
 
-		handleBuddyUsersRemovedWhileOffline(userEntity);
+			handleBuddyUsersRemovedWhileOffline(userEntity);
 
-		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
-				DropBuddyReason.USER_ACCOUNT_DELETED));
+			userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
+					DropBuddyReason.USER_ACCOUNT_DELETED));
 
-		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
-		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
-		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
-		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
-		userAnonymizedEntity.clearAnonymousDestination();
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-		userEntity.clearNamedMessageDestination();
-		User updatedUserEntity = userRepository.saveAndFlush(userEntity);
+			UUID userAnonymizedId = userEntity.getUserAnonymizedId();
+			MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
+			MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
+			UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+			userAnonymizedEntity.clearAnonymousDestination();
+			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+			userEntity.clearNamedMessageDestination();
+			User updatedUserEntity = userRepository.saveAndFlush(userEntity);
 
-		messageSourceRepository.delete(anonymousMessageSource);
-		messageSourceRepository.delete(namedMessageSource);
-		messageSourceRepository.flush();
+			messageSourceRepository.delete(anonymousMessageSource);
+			messageSourceRepository.delete(namedMessageSource);
+			messageSourceRepository.flush();
 
-		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
-		deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
-		deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+			Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
+			deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
+			deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
+			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
-		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+			allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
+			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
-		new ArrayList<>(userEntity.getDevices()).stream()
-				.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
+			new ArrayList<>(userEntity.getDevices()).stream()
+					.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
 
-		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
-		userRepository.delete(updatedUserEntity);
+			userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
+			userRepository.delete(updatedUserEntity);
 
-		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
-				updatedUserEntity.getId());
+			logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
+					updatedUserEntity.getId());
+
+			return null; // Need to return something, but it isn't used
+		});
 	}
 
 	private void deleteAllDayActivitiesWithTheirCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
@@ -728,20 +747,6 @@ public class UserService
 	public User getUserEntityById(UUID id)
 	{
 		return getUserEntityById(id, LockModeType.NONE);
-	}
-
-	/**
-	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
-	 * value is always the user entity. If not an exception is thrown. A pessimistic database write lock is claimed when fetching
-	 * the entity.
-	 * 
-	 * @param id the ID of the user
-	 * @return The user entity (never null)
-	 */
-	@Transactional
-	public User getUserEntityByIdWithUpdateLock(UUID id)
-	{
-		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
 	}
 
 	private User getUserEntityById(UUID id, LockModeType lockModeType)

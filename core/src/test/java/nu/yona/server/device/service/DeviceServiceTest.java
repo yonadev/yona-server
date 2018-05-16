@@ -82,6 +82,7 @@ import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.CryptoSessionRule;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
 
 @Configuration
@@ -145,6 +146,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	@MockBean
 	private LDAPUserService mockLdapUserService;
+
+	@MockBean
+	private LockPool<UUID> mockUserSynchronizer;
 
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;

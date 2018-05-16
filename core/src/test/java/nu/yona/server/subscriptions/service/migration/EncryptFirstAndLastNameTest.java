@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.junit.Before;
@@ -54,6 +55,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.CryptoSessionRule;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.LockPool;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
@@ -105,6 +107,9 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 
 	@MockBean
 	private GoalRepository mockGoalRepository;
+
+	@MockBean
+	private LockPool<UUID> mockUserSynchronizer;
 
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;

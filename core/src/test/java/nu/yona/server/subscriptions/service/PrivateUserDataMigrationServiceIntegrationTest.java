@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +39,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.LockPool;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
@@ -88,6 +90,9 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 
 	@MockBean
 	private UserAnonymizedService mockUserAnonymizedService;
+
+	@MockBean
+	private LockPool<UUID> mockUserSynchronizer;
 
 	@Autowired
 	private PrivateUserDataMigrationService service;

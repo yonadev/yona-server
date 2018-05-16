@@ -31,7 +31,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import nu.yona.server.Translator;
-import nu.yona.server.analysis.service.AnalysisEngineService.ActivityPayload;
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
