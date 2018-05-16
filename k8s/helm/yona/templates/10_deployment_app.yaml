@@ -20,7 +20,6 @@ spec:
     metadata:
       labels:
         app: app
-        build: {{ .Chart.AppVersion | quote }}
         stage: {{ .Values.global.stage | default "develop" }}
     spec:
       initContainers:
