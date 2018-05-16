@@ -406,8 +406,7 @@ public class ActivityUpdateServiceTest
 		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
 		ActivityDto lastRegisteredActivity = ActivityDto.createInstance(existingActivityEntity);
 
-		service.updateTimeLastActivity(userAnonEntity, createPayload(t1, t2), GoalDto.createInstance(gamblingGoal),
-				lastRegisteredActivity);
+		service.updateTimeLastActivity(createPayload(t1, t2), GoalDto.createInstance(gamblingGoal), lastRegisteredActivity);
 
 		assertThat("Expect start time updated", existingActivityEntity.getStartTimeAsZonedDateTime(), equalTo(t1));
 		assertThat("Expect end time same", existingActivityEntity.getEndTimeAsZonedDateTime(), equalTo(t3));
@@ -423,8 +422,7 @@ public class ActivityUpdateServiceTest
 		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
 		ActivityDto lastRegisteredActivity = ActivityDto.createInstance(existingActivityEntity);
 
-		service.updateTimeLastActivity(userAnonEntity, createPayload(t2, t3), GoalDto.createInstance(gamblingGoal),
-				lastRegisteredActivity);
+		service.updateTimeLastActivity(createPayload(t2, t3), GoalDto.createInstance(gamblingGoal), lastRegisteredActivity);
 
 		assertThat("Expect start time same", existingActivityEntity.getStartTimeAsZonedDateTime(), equalTo(t1));
 		assertThat("Expect end time updated", existingActivityEntity.getEndTimeAsZonedDateTime(), equalTo(t3));
@@ -439,8 +437,7 @@ public class ActivityUpdateServiceTest
 		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
 		ActivityDto lastRegisteredActivity = ActivityDto.createInstance(existingActivityEntity);
 
-		service.updateTimeLastActivity(userAnonEntity, createPayload(t1, t2), GoalDto.createInstance(gamblingGoal),
-				lastRegisteredActivity);
+		service.updateTimeLastActivity(createPayload(t1, t2), GoalDto.createInstance(gamblingGoal), lastRegisteredActivity);
 
 		verify(mockAnalysisEngineCacheService).updateLastActivityForUser(eq(userAnonId), eq(deviceAnonId),
 				eq(gamblingGoal.getId()), any());
@@ -455,8 +452,7 @@ public class ActivityUpdateServiceTest
 		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, t2);
 		ActivityDto lastRegisteredActivity = ActivityDto.createInstance(existingDayActivity.getActivities().get(0));
 
-		service.updateTimeLastActivity(userAnonEntity, createPayload(t1, t3), GoalDto.createInstance(gamblingGoal),
-				lastRegisteredActivity);
+		service.updateTimeLastActivity(createPayload(t1, t3), GoalDto.createInstance(gamblingGoal), lastRegisteredActivity);
 
 		verifyNoGoalConflictMessagesCreated();
 	}
@@ -470,7 +466,7 @@ public class ActivityUpdateServiceTest
 		DayActivity existingDayActivityEntity = mockExistingActivity(gamblingGoal, t2, t3, "Lotto");
 		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
 
-		service.updateTimeExistingActivity(userAnonEntity, createPayload(t1, t2), existingActivityEntity);
+		service.updateTimeExistingActivity(createPayload(t1, t2), existingActivityEntity);
 
 		assertThat("Expect start time updated", existingActivityEntity.getStartTimeAsZonedDateTime(), equalTo(t1));
 		assertThat("Expect end time same", existingActivityEntity.getEndTimeAsZonedDateTime(), equalTo(t3));
@@ -485,7 +481,7 @@ public class ActivityUpdateServiceTest
 		DayActivity existingDayActivityEntity = mockExistingActivity(gamblingGoal, t1, t2, "Lotto");
 		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
 
-		service.updateTimeExistingActivity(userAnonEntity, createPayload(t2, t3), existingActivityEntity);
+		service.updateTimeExistingActivity(createPayload(t2, t3), existingActivityEntity);
 
 		assertThat("Expect start time same", existingActivityEntity.getStartTimeAsZonedDateTime(), equalTo(t1));
 		assertThat("Expect end time updated", existingActivityEntity.getEndTimeAsZonedDateTime(), equalTo(t3));
@@ -499,7 +495,7 @@ public class ActivityUpdateServiceTest
 		DayActivity existingDayActivityEntity = mockExistingActivity(gamblingGoal, t2, t2, "Lotto");
 		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
 
-		service.updateTimeExistingActivity(userAnonEntity, createPayload(t1, t2), existingActivityEntity);
+		service.updateTimeExistingActivity(createPayload(t1, t2), existingActivityEntity);
 
 		verify(mockAnalysisEngineCacheService, never()).updateLastActivityForUser(any(), any(), any(), any());
 	}
@@ -513,7 +509,7 @@ public class ActivityUpdateServiceTest
 		DayActivity existingDayActivityEntity = mockExistingActivity(gamblingGoal, t2, t2, "Lotto");
 		Activity existingActivityEntity = existingDayActivityEntity.getLastActivity(deviceAnonId);
 
-		service.updateTimeExistingActivity(userAnonEntity, createPayload(t1, t3), existingActivityEntity);
+		service.updateTimeExistingActivity(createPayload(t1, t3), existingActivityEntity);
 
 		verifyNoGoalConflictMessagesCreated();
 	}

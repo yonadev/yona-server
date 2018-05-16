@@ -332,8 +332,7 @@ public class AnalysisEngineServiceTest
 
 		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)),
-				any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), eq(GoalDto.createInstance(gamblingGoal)), any());
 	}
 
 	@Test
@@ -381,9 +380,8 @@ public class AnalysisEngineServiceTest
 		// Verify that the cache is used to check existing activity
 		verify(mockAnalysisEngineCacheService, times(3)).fetchLastActivityForUser(userAnonId, deviceAnonId, gamblingGoal.getId());
 
-		verify(mockActivityUpdater, times(3)).updateTimeLastActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)),
-				any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
+		verify(mockActivityUpdater, times(3)).updateTimeLastActivity(any(), eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
 	}
 
@@ -394,8 +392,8 @@ public class AnalysisEngineServiceTest
 
 		verify(mockAnalysisEngineCacheService, never()).fetchLastActivityForUser(eq(userAnonId), eq(deviceAnonId), any());
 
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
 	}
 
@@ -415,8 +413,8 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		verify(mockActivityUpdater).addActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
 
 	@Test
@@ -434,8 +432,8 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		verify(mockActivityUpdater).addActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
 
 	@Test
@@ -467,9 +465,9 @@ public class AnalysisEngineServiceTest
 		// Verify that a database lookup was done finding the existing DayActivity to update
 		verify(mockDayActivityRepository).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
 
-		verify(mockActivityUpdater).updateTimeExistingActivity(any(), any(), any());
+		verify(mockActivityUpdater).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
 
 	@Test
@@ -494,9 +492,9 @@ public class AnalysisEngineServiceTest
 
 		service.analyze(userAnonId, createNetworkActivityForCategories(now.minusMinutes(9), "poker"));
 
-		verify(mockActivityUpdater).updateTimeExistingActivity(any(), any(), any());
+		verify(mockActivityUpdater).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 
 		List<Activity> activities = existingDayActivity.getActivities();
 		assertThat(activities.size(), equalTo(2));
@@ -536,9 +534,9 @@ public class AnalysisEngineServiceTest
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(9), now.minusMinutes(2)));
 
-		verify(mockActivityUpdater).updateTimeExistingActivity(any(), any(), any());
+		verify(mockActivityUpdater).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 
 		ArgumentCaptor<ILoggingEvent> logEventCaptor = ArgumentCaptor.forClass(ILoggingEvent.class);
 		verify(mockLogAppender).doAppend(logEventCaptor.capture());
@@ -560,8 +558,8 @@ public class AnalysisEngineServiceTest
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		verify(mockActivityUpdater).updateTimeLastActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
+		verify(mockActivityUpdater).updateTimeLastActivity(any(), eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
 	}
 
@@ -579,8 +577,8 @@ public class AnalysisEngineServiceTest
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		verify(mockActivityUpdater).updateTimeLastActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
+		verify(mockActivityUpdater).updateTimeLastActivity(any(), eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
 	}
 
@@ -601,8 +599,8 @@ public class AnalysisEngineServiceTest
 		verify(mockDayActivityRepository).findOne(userAnonId, yesterdayTime.toLocalDate(), gamblingGoal.getId());
 
 		verify(mockActivityUpdater).addActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
 
 	@Test
@@ -620,8 +618,8 @@ public class AnalysisEngineServiceTest
 						eq(GoalDto.createInstance(gamblingGoal)), any());
 		verify(mockActivityUpdater).addActivity(any(), eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto,
 				endTime.truncatedTo(ChronoUnit.DAYS), endTime, "Poker App")), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
 
 	@Test
@@ -633,8 +631,8 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(4), now.minusMinutes(2)));
 
 		verify(mockActivityUpdater).addActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
 
 	@Test
@@ -646,8 +644,8 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
 		verify(mockActivityUpdater).addActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
 
 	@Test
@@ -659,8 +657,8 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(4), now.minusMinutes(2)));
 
 		verify(mockActivityUpdater).addActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
-		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
 
 	@Test
@@ -673,8 +671,8 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, deviceAnonId,
 				createSingleAppActivity("Lotto App", existingActivityEndTime, now.minusMinutes(2)));
 
-		verify(mockActivityUpdater).updateTimeLastActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
+		verify(mockActivityUpdater).updateTimeLastActivity(any(), eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
 	}
 
@@ -687,8 +685,8 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, deviceAnonId,
 				createSingleAppActivity("Lotto App", now.minusMinutes(5).minusSeconds(30), now.minusMinutes(2)));
 
-		verify(mockActivityUpdater).updateTimeLastActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
+		verify(mockActivityUpdater).updateTimeLastActivity(any(), eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
 	}
 
