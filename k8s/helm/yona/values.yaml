@@ -183,9 +183,9 @@ mariadb:
   mariadbHostname: yona-mariadb.yona.svc.cluster.local
 
 spring:
-  loglevel: debug
+  loglevel: info
   hazelcast:
-    loglevel: debug
+    loglevel: info
     config: /opt/app/config/hazelcast-client.xml
 
 admin:
