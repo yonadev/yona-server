@@ -7,8 +7,6 @@ package nu.yona.server.analysis.service;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -27,22 +25,13 @@ import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
-import nu.yona.server.analysis.entities.GoalConflictMessage;
-import nu.yona.server.analysis.entities.WeekActivity;
-import nu.yona.server.analysis.entities.WeekActivityRepository;
-import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
-import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.exceptions.AnalysisException;
-import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalDto;
-import nu.yona.server.goals.service.GoalService;
-import nu.yona.server.messaging.entities.MessageRepository;
-import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -57,7 +46,7 @@ public class AnalysisEngineService
 	private static final Logger logger = LoggerFactory.getLogger(AnalysisEngineService.class);
 
 	private static final Duration DEVICE_TIME_INACCURACY_MARGIN = Duration.ofSeconds(10);
-	private static final Duration ONE_MINUTE = Duration.ofMinutes(1);
+
 	@Autowired
 	private YonaProperties yonaProperties;
 	@Autowired
@@ -70,24 +59,16 @@ public class AnalysisEngineService
 	private UserAnonymizedService userAnonymizedService;
 	@Autowired
 	private DeviceService deviceService;
-	@Autowired
-	private GoalService goalService;
-	@Autowired
-	private MessageService messageService;
-	@Autowired(required = false)
-	private DeviceAnonymizedRepository deviceAnonymizedRepository;
-	@Autowired(required = false)
-	private MessageRepository messageRepository;
 	@Autowired(required = false)
 	private ActivityRepository activityRepository;
 	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
-	@Autowired(required = false)
-	private WeekActivityRepository weekActivityRepository;
 	@Autowired
 	private LockPool<UUID> userAnonymizedSynchronizer;
 	@Autowired
 	private TransactionHelper transactionHelper;
+	@Autowired
+	private ActivityUpdateService activityUpdateService;
 
 	// This is intentionally not marked with @Transactional, as the transaction is explicitly started within the lock inside
 	// analyze(ActivityPayload, Set<ActivityCategoryDto>)
@@ -173,7 +154,8 @@ public class AnalysisEngineService
 		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getId()))
 		{
 			transactionHelper.executeInNewTransaction(() -> {
-				UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(payload.userAnonymized.getId());
+				UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(userAnonymizedService,
+						payload.userAnonymized.getId());
 				analyzeInsideLock(userAnonymizedHolder, payload, matchingActivityCategories);
 				if (userAnonymizedHolder.isEntityFetched())
 				{
@@ -202,7 +184,7 @@ public class AnalysisEngineService
 		LocalDate activityEndTime = payload.endTime.toLocalDate();
 		if (lastMonitoredActivityDate.map(d -> d.isBefore(activityEndTime)).orElse(true))
 		{
-			userAnonymizedHolder.getEntity().setLastMonitoredActivityDate(activityEndTime);
+			activityUpdateService.updateLastMonitoredActivityDate(userAnonymizedHolder.getEntity(), activityEndTime);
 		}
 	}
 
@@ -235,7 +217,8 @@ public class AnalysisEngineService
 			Optional<Activity> overlappingActivity = findOverlappingActivitySameApp(payload, matchingGoal);
 			if (overlappingActivity.isPresent())
 			{
-				updateTimeExistingActivity(userAnonymizedHolder, payload, overlappingActivity.get());
+				activityUpdateService.updateTimeExistingActivity(userAnonymizedHolder.getEntity(), payload,
+						overlappingActivity.get());
 				return;
 			}
 		}
@@ -245,14 +228,15 @@ public class AnalysisEngineService
 			if (payload.startTime.isBefore(lastRegisteredActivity.get().getStartTime())
 					|| isBeyondSkipWindowAfterLastRegisteredActivity(payload, lastRegisteredActivity.get()))
 			{
-				// Update message only the start time is to be updated or if the end time moves with at least five seconds, to
+				// Update message only if the start time is to be updated or if the end time moves with at least five seconds, to
 				// avoid unnecessary cache flushes.
-				updateTimeLastActivity(userAnonymizedHolder, payload, matchingGoal, lastRegisteredActivity.get());
+				activityUpdateService.updateTimeLastActivity(userAnonymizedHolder.getEntity(), payload, matchingGoal,
+						lastRegisteredActivity.get());
 			}
 			return;
 		}
 
-		addActivity(userAnonymizedHolder, payload, matchingGoal, lastRegisteredActivity);
+		activityUpdateService.addActivity(userAnonymizedHolder.getEntity(), payload, matchingGoal, lastRegisteredActivity);
 	}
 
 	private Optional<Activity> findOverlappingActivitySameApp(ActivityPayload payload, GoalDto matchingGoal)
@@ -284,8 +268,7 @@ public class AnalysisEngineService
 		}
 
 		String overlappingActivitiesKind = payload.application.isPresent()
-				? MessageFormat.format("app activities of ''{0}''", payload.application.get())
-				: "network activities";
+				? MessageFormat.format("app activities of ''{0}''", payload.application.get()) : "network activities";
 		String overlappingActivities = overlappingOfSameApp.stream().map(Activity::toString).collect(Collectors.joining(", "));
 		logger.warn(
 				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",
@@ -296,26 +279,16 @@ public class AnalysisEngineService
 		return Optional.of(overlappingOfSameApp.get(0));
 	}
 
+	private Optional<DayActivity> findExistingDayActivity(ActivityPayload payload, UUID matchingGoalId)
+	{
+		return Optional.ofNullable(dayActivityRepository.findOne(payload.userAnonymized.getId(),
+				TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).toLocalDate(), matchingGoalId));
+	}
+
 	private boolean isBeyondSkipWindowAfterLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		return Duration.between(lastRegisteredActivity.getEndTime(), payload.endTime)
 				.compareTo(yonaProperties.getAnalysisService().getUpdateSkipWindow()) >= 0;
-	}
-
-	private boolean shouldSendNewGoalConflictMessageForNewConflictingActivity(ActivityPayload payload,
-			Optional<ActivityDto> lastRegisteredActivity)
-	{
-		if (!lastRegisteredActivity.isPresent())
-		{
-			return true;
-		}
-
-		if (isBeyondCombineIntervalWithLastRegisteredActivity(payload, lastRegisteredActivity.get()))
-		{
-			return true;
-		}
-
-		return false;
 	}
 
 	private boolean canCombineWithLastRegisteredActivity(ActivityPayload payload,
@@ -396,159 +369,11 @@ public class AnalysisEngineService
 		return TimeUtil.getEndOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).isBefore(payload.endTime);
 	}
 
-	private void addActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload, GoalDto matchingGoal,
-			Optional<ActivityDto> lastRegisteredActivity)
-	{
-		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedId(payload.userAnonymized.getId(),
-				matchingGoal.getGoalId());
-		Activity addedActivity = createNewActivity(userAnonymizedHolder.getEntity(), payload, matchingGoalEntity);
-		if (shouldUpdateCache(lastRegisteredActivity, addedActivity))
-		{
-			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymized.getId(),
-					matchingGoal.getGoalId(), ActivityDto.createInstance(addedActivity));
-		}
-
-		// Save first, so the activity is available when saving the message
-		userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
-		if (matchingGoal.isNoGoGoal()
-				&& shouldSendNewGoalConflictMessageForNewConflictingActivity(payload, lastRegisteredActivity))
-		{
-			sendConflictMessageToAllDestinationsOfUser(userAnonymizedHolder.getEntity(), payload, addedActivity,
-					matchingGoalEntity);
-		}
-	}
-
-	private void updateTimeExistingActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
-			Activity existingActivity)
-	{
-		LocalDateTime startTimeLocal = payload.startTime.toLocalDateTime();
-		if (startTimeLocal.isBefore(existingActivity.getStartTime()))
-		{
-			existingActivity.setStartTime(startTimeLocal);
-		}
-		LocalDateTime endTimeLocal = payload.endTime.toLocalDateTime();
-		if (endTimeLocal.isAfter(existingActivity.getEndTime()))
-		{
-			existingActivity.setEndTime(endTimeLocal);
-		}
-
-		// Explicitly fetch the entity to indicate that the user entity is dirty
-		userAnonymizedHolder.getEntity();
-	}
-
-	private void updateTimeLastActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
-			GoalDto matchingGoal, ActivityDto lastRegisteredActivity)
-	{
-		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId())
-				.orElseThrow(() -> AnalysisException.dayActivityNotFound(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
-						payload.startTime, lastRegisteredActivity.getStartTime(), lastRegisteredActivity.getEndTime()));
-		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
-		Activity activity = dayActivity.getLastActivity(payload.deviceAnonymized.getId());
-		if (payload.startTime.isBefore(lastRegisteredActivity.getStartTime()))
-		{
-			activity.setStartTime(payload.startTime.toLocalDateTime());
-		}
-		if (payload.endTime.isAfter(lastRegisteredActivity.getEndTime()))
-		{
-			activity.setEndTime(payload.endTime.toLocalDateTime());
-		}
-		if (shouldUpdateCache(Optional.of(lastRegisteredActivity), activity))
-		{
-			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymized.getId(),
-					matchingGoal.getGoalId(), ActivityDto.createInstance(activity));
-		}
-
-		// Explicitly fetch the entity to indicate that the user entity is dirty
-		userAnonymizedHolder.getEntity();
-	}
-
-	private boolean shouldUpdateCache(Optional<ActivityDto> lastRegisteredActivity, Activity newOrUpdatedActivity)
-	{
-		if (!lastRegisteredActivity.isPresent())
-		{
-			return true;
-		}
-
-		// do not update the cache if the new or updated activity occurs earlier than the last registered activity
-		return !newOrUpdatedActivity.getEndTimeAsZonedDateTime().isBefore(lastRegisteredActivity.get().getEndTime());
-	}
-
-	private Activity createNewActivity(UserAnonymized userAnonymized, ActivityPayload payload, Goal matchingGoal)
-	{
-		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getId())
-				.orElseGet(() -> createNewDayActivity(userAnonymized, payload, matchingGoal));
-
-		ZonedDateTime endTime = ensureMinimumDurationOneMinute(payload);
-		DeviceAnonymized deviceAnonymized = deviceAnonymizedRepository.getOne(payload.deviceAnonymized.getId());
-		Activity activity = Activity.createInstance(deviceAnonymized, payload.startTime.getZone(),
-				payload.startTime.toLocalDateTime(), endTime.toLocalDateTime(), payload.application);
-		activity = activityRepository.save(activity);
-		dayActivity.addActivity(activity);
-		return activity;
-	}
-
-	private ZonedDateTime ensureMinimumDurationOneMinute(ActivityPayload payload)
-	{
-		Duration duration = Duration.between(payload.startTime, payload.endTime);
-		if (duration.compareTo(ONE_MINUTE) < 0)
-		{
-			return payload.endTime.plus(ONE_MINUTE);
-		}
-		return payload.endTime;
-	}
-
-	private DayActivity createNewDayActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload, Goal matchingGoal)
-	{
-		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal, payload.startTime.getZone(),
-				TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).toLocalDate());
-		dayActivityRepository.save(dayActivity);
-
-		ZonedDateTime startOfWeek = TimeUtil.getStartOfWeek(payload.userAnonymized.getTimeZone(), payload.startTime);
-		WeekActivity weekActivity = weekActivityRepository.findOne(payload.userAnonymized.getId(), matchingGoal.getId(),
-				startOfWeek.toLocalDate());
-		if (weekActivity == null)
-		{
-			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek.getZone(),
-					startOfWeek.toLocalDate());
-			matchingGoal.addWeekActivity(weekActivity);
-		}
-		weekActivity.addDayActivity(dayActivity);
-
-		return dayActivity;
-	}
-
-	private Optional<DayActivity> findExistingDayActivity(ActivityPayload payload, UUID matchingGoalId)
-	{
-		return Optional.ofNullable(dayActivityRepository.findOne(payload.userAnonymized.getId(),
-				TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).toLocalDate(), matchingGoalId));
-	}
-
 	@Transactional
 	public Set<String> getRelevantSmoothwallCategories()
 	{
 		return activityCategoryService.getAllActivityCategories().stream().flatMap(g -> g.getSmoothwallCategories().stream())
 				.collect(Collectors.toSet());
-	}
-
-	private void sendConflictMessageToAllDestinationsOfUser(UserAnonymized userAnonymized, ActivityPayload payload,
-			Activity activity, Goal matchingGoal)
-	{
-		GoalConflictMessage selfGoalConflictMessage = messageRepository
-				.save(GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity, matchingGoal, payload.url));
-		messageService.sendMessage(selfGoalConflictMessage, userAnonymized.getAnonymousDestination());
-		// Save the messages, so the other messages can reference it
-		userAnonymizedService.updateUserAnonymized(userAnonymized);
-
-		messageService.broadcastMessageToBuddies(payload.userAnonymized,
-				() -> createAndSaveBuddyGoalConflictMessage(payload, selfGoalConflictMessage));
-	}
-
-	private GoalConflictMessage createAndSaveBuddyGoalConflictMessage(ActivityPayload payload,
-			GoalConflictMessage selfGoalConflictMessage)
-	{
-		GoalConflictMessage message = GoalConflictMessage.createInstanceForBuddy(payload.userAnonymized.getId(),
-				selfGoalConflictMessage);
-		return messageRepository.save(message);
 	}
 
 	static Set<GoalDto> determineRelevantGoals(ActivityPayload payload, Set<ActivityCategoryDto> matchingActivityCategories)
@@ -566,62 +391,6 @@ public class AnalysisEngineService
 				.collect(Collectors.toSet());
 	}
 
-	static class ActivityPayload
-	{
-		public final UserAnonymizedDto userAnonymized;
-		public final Optional<String> url;
-		public final ZonedDateTime startTime;
-		public final ZonedDateTime endTime;
-		public final Optional<String> application;
-		private DeviceAnonymizedDto deviceAnonymized;
-
-		private ActivityPayload(UserAnonymizedDto userAnonymized, DeviceAnonymizedDto deviceAnonymized, Optional<String> url,
-				ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> application)
-		{
-			this.userAnonymized = userAnonymized;
-			this.deviceAnonymized = deviceAnonymized;
-			this.url = url;
-			this.startTime = startTime;
-			this.endTime = endTime;
-			this.application = application;
-		}
-
-		boolean isNetworkActivity()
-		{
-			return !application.isPresent();
-		}
-
-		static ActivityPayload copyTillEndTime(ActivityPayload payload, ZonedDateTime endTime)
-		{
-			return new ActivityPayload(payload.userAnonymized, payload.deviceAnonymized, payload.url, payload.startTime, endTime,
-					payload.application);
-		}
-
-		static ActivityPayload copyFromStartTime(ActivityPayload payload, ZonedDateTime startTime)
-		{
-			return new ActivityPayload(payload.userAnonymized, payload.deviceAnonymized, payload.url, startTime, payload.endTime,
-					payload.application);
-		}
-
-		static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, DeviceAnonymizedDto deviceAnonymized,
-				NetworkActivityDto networkActivity)
-		{
-			ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
-					.withZoneSameInstant(userAnonymized.getTimeZone());
-			return new ActivityPayload(userAnonymized, deviceAnonymized, Optional.of(networkActivity.getUrl()), startTime,
-					startTime, Optional.empty());
-		}
-
-		static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, DeviceAnonymizedDto deviceAnonymized,
-				ZonedDateTime startTime, ZonedDateTime endTime, String application)
-		{
-			ZoneId userTimeZone = userAnonymized.getTimeZone();
-			return new ActivityPayload(userAnonymized, deviceAnonymized, Optional.empty(),
-					startTime.withZoneSameInstant(userTimeZone), endTime.withZoneSameInstant(userTimeZone),
-					Optional.of(application));
-		}
-	}
-
 	/**
 	 * Holds a user anonymized entity, provided it was fetched. The purpose of this class is to keep track of whether the user
 	 * anonymized entity was fetched from the database. If it was fetched, it was most likely done to update something in the
@@ -636,13 +405,15 @@ public class AnalysisEngineService
 	 * The "analyze" method will always save the user anonymized entity to its repository if it was fetched. JPA take care of
 	 * preventing unnecessary update actions.
 	 */
-	private class UserAnonymizedEntityHolder
+	static class UserAnonymizedEntityHolder
 	{
+		private final UserAnonymizedService userAnonymizedService;
 		private final UUID id;
 		private Optional<UserAnonymized> entity = Optional.empty();
 
-		UserAnonymizedEntityHolder(UUID id)
+		UserAnonymizedEntityHolder(UserAnonymizedService userAnonymizedService, UUID id)
 		{
+			this.userAnonymizedService = userAnonymizedService;
 			this.id = id;
 		}
 
