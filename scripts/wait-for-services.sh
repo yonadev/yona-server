@@ -28,15 +28,16 @@ function waitTillK8SInstanceWorks() {
 	sleepTime=${4:-5}
 	iterations=$[$duration / $sleepTime]
 	n=0
-  echo "Waiting for ${1}-${BUILD_NUMBER_TO_DEPLOY} to become ${2}"
+	echo "Waiting for ${1}-${BUILD_NUMBER_TO_DEPLOY} to become ${2}"
 	until [ $n -ge $iterations ]
 	do
-    if [ "$2" == "Succeeded" ]; then  #Hack because we can't have labels in deployments that change over releases
-      kubectl get pods -a --selector=app=${1},build=${BUILD_NUMBER_TO_DEPLOY} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} && echo -e "\n - Success\n" && break
-    else
-      kubectl get pods -a --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} && echo -e "\n - Success\n" && break
-    fi
-    echo -n '.'
+	if [ "$2" == "Succeeded" ]; then  #Hack to deal with Job differently
+ 		kubectl get pods -a --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -q -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}" && echo -e "\n - Success\n" && break
+	else
+		kubectl get pods -a --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} &&
+echo -e "\n - Success\n" && break
+	fi
+	echo -n '.'
 		n=$[$n + 1]
 		sleep $sleepTime
 	done
