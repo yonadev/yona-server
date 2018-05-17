@@ -61,6 +61,7 @@ import nu.yona.server.subscriptions.entities.BuddyRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserService.UserPurpose;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.TransactionHelper;
 
 @Service
@@ -192,36 +193,30 @@ public class BuddyService
 	private void assertValidBuddy(UserDto requestingUser, BuddyDto buddy)
 	{
 		userService.assertValidUserFields(buddy.getUser(), UserPurpose.BUDDY);
-		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
-		{
-			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();
-		}
+		Require.isTrue(buddy.getSendingStatus() == Status.REQUESTED && buddy.getReceivingStatus() == Status.REQUESTED,
+				BuddyServiceException::onlyTwoWayBuddiesAllowed);
 		String buddyMobileNumber = buddy.getUser().getMobileNumber();
-		if (requestingUser.getMobileNumber().equals(buddyMobileNumber))
-		{
-			throw BuddyServiceException.cannotInviteSelf();
-		}
-		if (requestingUser.getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getMobileNumber())
-				.anyMatch(m -> m.equals(buddyMobileNumber)))
-		{
-			throw BuddyServiceException.cannotInviteExistingBuddy();
-		}
-
+		Require.isFalse(requestingUser.getMobileNumber().equals(buddyMobileNumber), BuddyServiceException::cannotInviteSelf);
+		Require.isTrue(requestingUser.getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getMobileNumber())
+				.noneMatch(m -> m.equals(buddyMobileNumber)), BuddyServiceException::cannotInviteExistingBuddy);
 	}
 
 	@Transactional
 	public BuddyDto addBuddyToAcceptingUser(UserDto acceptingUser, BuddyConnectRequestMessage connectRequestMessageEntity)
 	{
-		if (acceptingUser == null)
-		{
-			throw BuddyServiceException.acceptingUserIsNull();
-		}
-		if (!connectRequestMessageEntity.getSenderUser().isPresent())
-		{
-			throw UserServiceException.notFoundById(connectRequestMessageEntity.getSenderUserId());
-		}
+		Require.isNonNull(acceptingUser, BuddyServiceException::acceptingUserIsNull);
+		Require.isPresent(connectRequestMessageEntity.getSenderUser(),
+				() -> UserServiceException.notFoundById(connectRequestMessageEntity.getSenderUserId()));
 
 		acceptingUser.assertMobileNumberConfirmed();
+		Buddy buddy = createBuddyEntity(connectRequestMessageEntity);
+		BuddyDto buddyDto = BuddyDto.createInstance(buddyRepository.save(buddy));
+		userService.addBuddy(acceptingUser, buddyDto);
+		return buddyDto;
+	}
+
+	private Buddy createBuddyEntity(BuddyConnectRequestMessage connectRequestMessageEntity)
+	{
 		Buddy buddy = Buddy.createInstance(connectRequestMessageEntity.getSenderUser().get().getId(),
 				connectRequestMessageEntity.getFirstName(), connectRequestMessageEntity.getLastName(),
 				connectRequestMessageEntity.getSenderNickname(),
@@ -229,9 +224,7 @@ public class BuddyService
 				connectRequestMessageEntity.requestingReceiving() ? Status.ACCEPTED : Status.NOT_REQUESTED);
 		buddy.setUserAnonymizedId(connectRequestMessageEntity.getRelatedUserAnonymizedId().get());
 		createBuddyDevices(connectRequestMessageEntity).forEach(buddy::addDevice);
-		BuddyDto buddyDto = BuddyDto.createInstance(buddyRepository.save(buddy));
-		userService.addBuddy(acceptingUser, buddyDto);
-		return buddyDto;
+		return buddy;
 	}
 
 	private Set<BuddyDevice> createBuddyDevices(BuddyConnectMessage connectMessageEntity)
@@ -291,6 +284,11 @@ public class BuddyService
 
 		removeBuddy(user.getId(), buddy);
 
+		logBuddyRemoval(user, buddy);
+	}
+
+	private void logBuddyRemoval(User user, Buddy buddy)
+	{
 		User buddyUser = buddy.getUser();
 		if (buddyUser == null)
 		{
@@ -348,10 +346,7 @@ public class BuddyService
 	@Transactional
 	void removeBuddyInfoForBuddy(User requestingUser, Buddy requestingUserBuddy, Optional<String> message, DropBuddyReason reason)
 	{
-		if (requestingUserBuddy == null)
-		{
-			throw BuddyServiceException.requestingUserBuddyIsNull();
-		}
+		Require.isNonNull(requestingUserBuddy, BuddyServiceException::requestingUserBuddyIsNull);
 
 		if (requestingUserBuddy.getUser() == null)
 		{
@@ -413,12 +408,7 @@ public class BuddyService
 
 	public void setBuddyAcceptedWithSecretUserInfo(UserDto actingUser, BuddyConnectResponseMessage connectResponseMessageEntity)
 	{
-		Buddy buddy = buddyRepository.findOne(connectResponseMessageEntity.getBuddyId());
-		if (buddy == null)
-		{
-			throw BuddyNotFoundException.notFound(connectResponseMessageEntity.getBuddyId());
-		}
-
+		Buddy buddy = getEntityById(connectResponseMessageEntity.getBuddyId());
 		if (buddy.getSendingStatus() == Status.REQUESTED)
 		{
 			buddy.setSendingStatus(Status.ACCEPTED);
@@ -578,33 +568,40 @@ public class BuddyService
 		{
 			String subjectTemplateName = "buddy-invitation-subject";
 			String bodyTemplateName = "buddy-invitation-body";
-			String requestingUserName = StringUtils.join(new Object[] { requestingUser.getPrivateData().getFirstName(),
-					requestingUser.getPrivateData().getLastName() }, " ");
+			String requestingUserName = getFullName(requestingUser.getPrivateData());
 			String requestingUserMobileNumber = requestingUser.getMobileNumber();
-			String requestingUserNickname = requestingUser.getOwnPrivateData().getNickname();
-			String buddyName = StringUtils.join(new Object[] { buddy.getUser().getPrivateData().getFirstName(),
-					buddy.getUser().getPrivateData().getLastName() }, " ");
-			String buddyEmailAddress = buddy.getUser().getEmailAddress();
-			String personalInvitationMessage = buddy.getPersonalInvitationMessage();
+			String buddyName = getFullName(buddy.getUser().getPrivateData());
 			String buddyMobileNumber = buddy.getUser().getMobileNumber();
-			Map<String, Object> templateParams = new HashMap<>();
-			templateParams.put("inviteUrl", inviteUrl);
-			templateParams.put("requestingUserFirstName", requestingUser.getPrivateData().getFirstName());
-			templateParams.put("requestingUserLastName", requestingUser.getPrivateData().getLastName());
-			templateParams.put("requestingUserMobileNumber", requestingUserMobileNumber);
-			templateParams.put("requestingUserNickname", requestingUserNickname);
-			templateParams.put("buddyFirstName", buddy.getUser().getPrivateData().getFirstName());
-			templateParams.put("buddyLastName", buddy.getUser().getPrivateData().getLastName());
-			templateParams.put("personalInvitationMessage", personalInvitationMessage);
-			templateParams.put("emailAddress", buddyEmailAddress);
-			emailService.sendEmail(requestingUserName, new InternetAddress(buddyEmailAddress, buddyName), subjectTemplateName,
-					bodyTemplateName, templateParams);
+			Map<String, Object> templateParams = fillTemplateParams(requestingUser, buddy, inviteUrl, requestingUserMobileNumber);
+			emailService.sendEmail(requestingUserName, new InternetAddress(buddy.getUser().getEmailAddress(), buddyName),
+					subjectTemplateName, bodyTemplateName, templateParams);
 			smsService.send(buddyMobileNumber, SmsTemplate.BUDDY_INVITE, templateParams);
 		}
 		catch (UnsupportedEncodingException e)
 		{
 			throw EmailException.emailSendingFailed(e);
 		}
+	}
+
+	private String getFullName(UserPrivateDataBaseDto privateData)
+	{
+		return StringUtils.join(new Object[] { privateData.getFirstName(), privateData.getLastName() }, " ");
+	}
+
+	private Map<String, Object> fillTemplateParams(UserDto requestingUser, BuddyDto buddy, String inviteUrl,
+			String requestingUserMobileNumber)
+	{
+		Map<String, Object> templateParams = new HashMap<>();
+		templateParams.put("inviteUrl", inviteUrl);
+		templateParams.put("requestingUserFirstName", requestingUser.getPrivateData().getFirstName());
+		templateParams.put("requestingUserLastName", requestingUser.getPrivateData().getLastName());
+		templateParams.put("requestingUserMobileNumber", requestingUserMobileNumber);
+		templateParams.put("requestingUserNickname", requestingUser.getOwnPrivateData().getNickname());
+		templateParams.put("buddyFirstName", buddy.getUser().getPrivateData().getFirstName());
+		templateParams.put("buddyLastName", buddy.getUser().getPrivateData().getLastName());
+		templateParams.put("personalInvitationMessage", buddy.getPersonalInvitationMessage());
+		templateParams.put("emailAddress", buddy.getUser().getEmailAddress());
+		return templateParams;
 	}
 
 	private String getTempPassword()

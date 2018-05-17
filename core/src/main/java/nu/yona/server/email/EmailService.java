@@ -1,12 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.email;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -43,26 +45,8 @@ public class EmailService
 	{
 		logger.info("Sending e-mail to '{}'. subjectTemplateName: '{}'.", receiverAddress, subjectTemplateName);
 
-		MimeMessagePreparator preparator = new MimeMessagePreparator() {
-			@Override
-			public void prepare(MimeMessage mimeMessage) throws Exception
-			{
-				Context ctx = ThymeleafUtil.createContext();
-				ctx.setVariable("includedMediaBaseUrl", yonaProperties.getEmail().getIncludedMediaBaseUrl());
-				ctx.setVariable("appleAppStoreUrl", yonaProperties.getEmail().getAppleAppStoreUrl());
-				ctx.setVariable("googlePlayStoreUrl", yonaProperties.getEmail().getGooglePlayStoreUrl());
-				templateParameters.entrySet().stream().forEach(e -> ctx.setVariable(e.getKey(), e.getValue()));
-
-				String subjectText = emailTemplateEngine.process(subjectTemplateName + ".txt", ctx);
-				String bodyText = emailTemplateEngine.process(bodyTemplateName + ".html", ctx);
-
-				MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
-				message.setFrom(new InternetAddress(yonaProperties.getEmail().getSenderAddress(), senderName));
-				message.setTo(receiverAddress);
-				message.setSubject(subjectText);
-				message.setText(bodyText, true);
-			}
-		};
+		MimeMessagePreparator preparator = mimeMessage -> prepareMimeMessage(mimeMessage, senderName, receiverAddress,
+				subjectTemplateName, bodyTemplateName, templateParameters);
 		if (yonaProperties.getEmail().isEnabled())
 		{
 			mailSender.send(preparator);
@@ -73,6 +57,26 @@ public class EmailService
 			logger.info("E-mail sending is disabled. No message has been sent.");
 			lastEmail = EmailDto.createInstance(mailSender, preparator);
 		}
+	}
+
+	public void prepareMimeMessage(MimeMessage mimeMessage, String senderName, InternetAddress receiverAddress,
+			String subjectTemplateName, String bodyTemplateName, Map<String, Object> templateParameters)
+			throws MessagingException, UnsupportedEncodingException
+	{
+		Context ctx = ThymeleafUtil.createContext();
+		ctx.setVariable("includedMediaBaseUrl", yonaProperties.getEmail().getIncludedMediaBaseUrl());
+		ctx.setVariable("appleAppStoreUrl", yonaProperties.getEmail().getAppleAppStoreUrl());
+		ctx.setVariable("googlePlayStoreUrl", yonaProperties.getEmail().getGooglePlayStoreUrl());
+		templateParameters.entrySet().stream().forEach(e -> ctx.setVariable(e.getKey(), e.getValue()));
+
+		String subjectText = emailTemplateEngine.process(subjectTemplateName + ".txt", ctx);
+		String bodyText = emailTemplateEngine.process(bodyTemplateName + ".html", ctx);
+
+		MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
+		message.setFrom(new InternetAddress(yonaProperties.getEmail().getSenderAddress(), senderName));
+		message.setTo(receiverAddress);
+		message.setSubject(subjectText);
+		message.setText(bodyText, true);
 	}
 
 	/**

@@ -251,9 +251,9 @@ public class AnalysisEngineService
 				payload.deviceAnonymized.getId(), matchingGoal.getActivityCategoryId(), payload.application.orElse(null),
 				payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime());
 
-		// The prognosis is that there is no or one overlapping activity of the same app,
-		// because we don't expect the mobile app to post app activity that spans other existing same app activity
-		// (that indicates that there is something wrong in the app activity bookkeeping).
+		// The prognosis is that there is no or one overlapping activity of the same app, because we don't expect the mobile app
+		// to post app activity that spans other existing same app activity (that indicates that there is something wrong in the
+		// app activity bookkeeping).
 		// Network activity (having payload.application == null) also is not expected to exist and overlap, as network activity
 		// has a very short time span.
 		// So log if there are multiple overlaps.
@@ -267,16 +267,23 @@ public class AnalysisEngineService
 			return Optional.of(overlappingOfSameApp.get(0));
 		}
 
+		logMultipleOverlappingActivities(payload, matchingGoal, dayActivity.get(), overlappingOfSameApp);
+
+		// Pick the first, we can't resolve this
+		return Optional.of(overlappingOfSameApp.get(0));
+	}
+
+	private void logMultipleOverlappingActivities(ActivityPayload payload, GoalDto matchingGoal, DayActivity dayActivity,
+			List<Activity> overlappingOfSameApp)
+	{
 		String overlappingActivitiesKind = payload.application.isPresent()
-				? MessageFormat.format("app activities of ''{0}''", payload.application.get()) : "network activities";
+				? MessageFormat.format("app activities of ''{0}''", payload.application.get())
+				: "network activities";
 		String overlappingActivities = overlappingOfSameApp.stream().map(Activity::toString).collect(Collectors.joining(", "));
 		logger.warn(
 				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",
 				overlappingActivitiesKind, payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime(),
-				dayActivity.get().getId(), matchingGoal.getActivityCategoryId(), overlappingActivities);
-
-		// Pick the first, we can't resolve this
-		return Optional.of(overlappingOfSameApp.get(0));
+				dayActivity.getId(), matchingGoal.getActivityCategoryId(), overlappingActivities);
 	}
 
 	private Optional<DayActivity> findExistingDayActivity(ActivityPayload payload, UUID matchingGoalId)

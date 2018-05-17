@@ -21,6 +21,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -80,16 +81,12 @@ public class PinResetRequestService
 		logger.info("User with mobile number '{}' and ID '{}' requested to verify the pin reset confirmation code",
 				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = userEntity.getPinResetConfirmationCode();
-		if ((confirmationCode == null) || isExpired(confirmationCode))
-		{
-			throw PinResetRequestConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber());
-		}
+		Require.isTrue((confirmationCode != null) && !isExpired(confirmationCode),
+				() -> PinResetRequestConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()));
 
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
-		if (remainingAttempts <= 0)
-		{
-			throw PinResetRequestConfirmationException.tooManyAttempts(userEntity.getMobileNumber());
-		}
+		Require.isTrue(remainingAttempts > 0,
+				() -> PinResetRequestConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
 		if (!userProvidedConfirmationCode.equals(confirmationCode.getCode()))
 		{

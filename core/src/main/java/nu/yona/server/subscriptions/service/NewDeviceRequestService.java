@@ -21,6 +21,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserRepository;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -60,15 +61,10 @@ public class NewDeviceRequestService
 		User userEntity = userService.getValidatedUserById(userId);
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 
-		if (newDeviceRequestEntity == null)
-		{
-			throw DeviceRequestException.noDeviceRequestPresent(userEntity.getMobileNumber());
-		}
-
-		if (isExpired(newDeviceRequestEntity))
-		{
-			throw DeviceRequestException.deviceRequestExpired(userEntity.getMobileNumber());
-		}
+		Require.isNonNull(newDeviceRequestEntity,
+				() -> DeviceRequestException.noDeviceRequestPresent(userEntity.getMobileNumber()));
+		Require.isFalse(isExpired(newDeviceRequestEntity),
+				() -> DeviceRequestException.deviceRequestExpired(userEntity.getMobileNumber()));
 
 		if (newDeviceRequestPassword.isPresent())
 		{

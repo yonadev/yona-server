@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
@@ -182,21 +182,25 @@ public class ActivityCategoryService
 		Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap = activityCategoriesInRepository.stream()
 				.collect(Collectors.toMap(ActivityCategory::getId, ac -> ac));
 
-		for (ActivityCategoryDto activityCategoryDto : activityCategoryDtos)
+		activityCategoryDtos.stream()
+				.forEach(actCat -> addOrUpdateNewActivityCategory(actCat, activityCategoriesInRepositoryMap));
+	}
+
+	private void addOrUpdateNewActivityCategory(ActivityCategoryDto activityCategoryDto,
+			Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap)
+	{
+		ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDto.getId());
+		if (activityCategoryEntity == null)
 		{
-			ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDto.getId());
-			if (activityCategoryEntity == null)
+			addActivityCategory(activityCategoryDto);
+			explicitlyFlushUpdatesToDatabase();
+		}
+		else
+		{
+			if (!isUpToDate(activityCategoryEntity, activityCategoryDto))
 			{
-				addActivityCategory(activityCategoryDto);
+				updateActivityCategory(activityCategoryDto.getId(), activityCategoryDto);
 				explicitlyFlushUpdatesToDatabase();
-			}
-			else
-			{
-				if (!isUpToDate(activityCategoryEntity, activityCategoryDto))
-				{
-					updateActivityCategory(activityCategoryDto.getId(), activityCategoryDto);
-					explicitlyFlushUpdatesToDatabase();
-				}
 			}
 		}
 	}

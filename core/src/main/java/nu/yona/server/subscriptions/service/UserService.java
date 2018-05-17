@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +62,7 @@ import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 import nu.yona.server.util.LockPool;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -365,10 +365,7 @@ public class UserService
 	{
 		int maxUsers = yonaProperties.getMaxUsers();
 		long currentNumberOfUsers = userRepository.count();
-		if (currentNumberOfUsers >= maxUsers)
-		{
-			throw UserServiceException.maximumNumberOfUsersReached();
-		}
+		Require.isTrue(currentNumberOfUsers < maxUsers, UserServiceException::maximumNumberOfUsersReached);
 		if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
 		{
 			logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers, maxUsers);
@@ -570,11 +567,8 @@ public class UserService
 	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto user)
 	{
 		User originalUserEntity = getUserEntityById(id);
-		if (!originalUserEntity.isCreatedOnBuddyRequest())
-		{
-			// security check: should not be able to replace the password on an existing user
-			throw UserServiceException.userNotCreatedOnBuddyRequest(id);
-		}
+		// security check: should not be able to replace the password on an existing user
+		Require.isTrue(originalUserEntity.isCreatedOnBuddyRequest(), () -> UserServiceException.userNotCreatedOnBuddyRequest(id));
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
@@ -609,46 +603,73 @@ public class UserService
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
-		withLockOnUser(id, userEntity -> {
-			buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
+		withLockOnUser(id, userEntity -> deleteUserInsideLock(userEntity, message));
+	}
 
-			handleBuddyUsersRemovedWhileOffline(userEntity);
+	private User deleteUserInsideLock(User userEntity, Optional<String> message)
+	{
+		deleteBuddyInfo(userEntity, message);
 
-			userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
-					DropBuddyReason.USER_ACCOUNT_DELETED));
+		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+		User updatedUserEntity = deleteMessageSources(userEntity, userAnonymizedEntity);
 
-			UUID userAnonymizedId = userEntity.getUserAnonymizedId();
-			MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
-			MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
-			UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
-			userAnonymizedEntity.clearAnonymousDestination();
-			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-			userEntity.clearNamedMessageDestination();
-			User updatedUserEntity = userRepository.saveAndFlush(userEntity);
+		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
+		deleteActivitiesWithTheirComments(userAnonymizedEntity, allGoalsIncludingHistoryItems);
+		deleteGoals(userAnonymizedEntity, allGoalsIncludingHistoryItems);
+		deleteDevices(userEntity);
 
-			messageSourceRepository.delete(anonymousMessageSource);
-			messageSourceRepository.delete(namedMessageSource);
-			messageSourceRepository.flush();
+		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
+		userRepository.delete(updatedUserEntity);
 
-			Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
-			deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
-			deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
-			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
+				updatedUserEntity.getId());
 
-			allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
-			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		return null; // Need to return something, but it isn't used
+	}
 
-			new ArrayList<>(userEntity.getDevices()).stream()
-					.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
+	private void deleteBuddyInfo(User userEntity, Optional<String> message)
+	{
+		buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
 
-			userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
-			userRepository.delete(updatedUserEntity);
+		handleBuddyUsersRemovedWhileOffline(userEntity);
 
-			logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
-					updatedUserEntity.getId());
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
+				DropBuddyReason.USER_ACCOUNT_DELETED));
+	}
 
-			return null; // Need to return something, but it isn't used
-		});
+	private void deleteDevices(User userEntity)
+	{
+		new ArrayList<>(userEntity.getDevices()).stream()
+				.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
+	}
+
+	private void deleteGoals(UserAnonymized userAnonymizedEntity, Set<Goal> allGoalsIncludingHistoryItems)
+	{
+		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+	}
+
+	private void deleteActivitiesWithTheirComments(UserAnonymized userAnonymizedEntity, Set<Goal> allGoalsIncludingHistoryItems)
+	{
+		deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
+		deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+	}
+
+	private User deleteMessageSources(User userEntity, UserAnonymized userAnonymizedEntity)
+	{
+		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
+		userAnonymizedEntity.clearAnonymousDestination();
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		userEntity.clearNamedMessageDestination();
+		User updatedUserEntity = userRepository.saveAndFlush(userEntity);
+
+		messageSourceRepository.delete(anonymousMessageSource);
+		messageSourceRepository.delete(namedMessageSource);
+		messageSourceRepository.flush();
+		return updatedUserEntity;
 	}
 
 	private void deleteAllDayActivitiesWithTheirCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
@@ -688,15 +709,8 @@ public class UserService
 	@Transactional
 	public void addBuddy(UserDto user, BuddyDto buddy)
 	{
-		if (user == null || user.getId() == null)
-		{
-			throw InvalidDataException.emptyUserId();
-		}
-
-		if (buddy == null || buddy.getId() == null)
-		{
-			throw InvalidDataException.emptyBuddyId();
-		}
+		Require.isTrue(user != null && user.getId() != null, InvalidDataException::emptyUserId);
+		Require.isTrue(buddy != null && buddy.getId() != null, InvalidDataException::emptyBuddyId);
 
 		updateUser(user.getId(), userEntity -> {
 			assertValidatedUser(userEntity);
@@ -718,10 +732,7 @@ public class UserService
 	static User findUserByMobileNumber(String mobileNumber)
 	{
 		User userEntity = User.getRepository().findByMobileNumber(mobileNumber);
-		if (userEntity == null)
-		{
-			throw UserServiceException.notFoundByMobileNumber(mobileNumber);
-		}
+		Require.isNonNull(userEntity, () -> UserServiceException.notFoundByMobileNumber(mobileNumber));
 		return userEntity;
 	}
 
@@ -740,33 +751,11 @@ public class UserService
 	@Transactional
 	public User getUserEntityById(UUID id)
 	{
-		return getUserEntityById(id, LockModeType.NONE);
-	}
+		Require.isNonNull(id, InvalidDataException::emptyUserId);
 
-	private User getUserEntityById(UUID id, LockModeType lockModeType)
-	{
-		if (id == null)
-		{
-			throw InvalidDataException.emptyUserId();
-		}
+		User entity = userRepository.findOne(id);
 
-		User entity;
-		switch (lockModeType)
-		{
-			case NONE:
-				entity = userRepository.findOne(id);
-				break;
-			case PESSIMISTIC_WRITE:
-				entity = userRepository.findOneForUpdate(id);
-				break;
-			default:
-				throw new IllegalArgumentException("Lock mode type " + lockModeType + " is unsupported");
-		}
-
-		if (entity == null)
-		{
-			throw UserServiceException.notFoundById(id);
-		}
+		Require.isNonNull(entity, () -> UserServiceException.notFoundById(id));
 
 		return entity;
 	}
@@ -819,10 +808,7 @@ public class UserService
 			Function<Integer, YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
-		if (confirmationCode == null)
-		{
-			throw noConfirmationCodeExceptionSupplier.get();
-		}
+		Require.isNonNull(confirmationCode, noConfirmationCodeExceptionSupplier);
 
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
 		if (remainingAttempts <= 0)
@@ -866,58 +852,34 @@ public class UserService
 		});
 	}
 
-	void assertValidUserFields(UserDto userResource, UserPurpose userPurpose)
+	void assertValidUserFields(UserDto user, UserPurpose purpose)
 	{
-		if (StringUtils.isBlank(userResource.getOwnPrivateData().getFirstName()))
+		Require.isTrue(StringUtils.isNotBlank(user.getOwnPrivateData().getFirstName()), InvalidDataException::blankFirstName);
+		Require.isTrue(StringUtils.isNotBlank(user.getOwnPrivateData().getLastName()), InvalidDataException::blankLastName);
+		Require.isFalse(purpose == UserPurpose.USER && StringUtils.isBlank(user.getOwnPrivateData().getNickname()),
+				InvalidDataException::blankNickname);
+
+		Require.isTrue(StringUtils.isNotBlank(user.getMobileNumber()), InvalidDataException::blankMobileNumber);
+
+		assertValidMobileNumber(user.getMobileNumber());
+
+		if (purpose == UserPurpose.BUDDY)
 		{
-			throw InvalidDataException.blankFirstName();
-		}
+			Require.isTrue(StringUtils.isNotBlank(user.getEmailAddress()), InvalidDataException::blankEmailAddress);
+			assertValidEmailAddress(user.getEmailAddress());
 
-		if (StringUtils.isBlank(userResource.getOwnPrivateData().getLastName()))
-		{
-			throw InvalidDataException.blankLastName();
-		}
-
-		if (userPurpose == UserPurpose.USER && StringUtils.isBlank(userResource.getOwnPrivateData().getNickname()))
-		{
-			throw InvalidDataException.blankNickname();
-		}
-
-		if (StringUtils.isBlank(userResource.getMobileNumber()))
-		{
-			throw InvalidDataException.blankMobileNumber();
-		}
-
-		assertValidMobileNumber(userResource.getMobileNumber());
-
-		if (userPurpose == UserPurpose.BUDDY)
-		{
-			if (StringUtils.isBlank(userResource.getEmailAddress()))
-			{
-				throw InvalidDataException.blankEmailAddress();
-			}
-			assertValidEmailAddress(userResource.getEmailAddress());
-
-			if (!userResource.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty())
-			{
-				throw InvalidDataException.goalsNotSupported();
-			}
+			Require.isTrue(user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty(),
+					InvalidDataException::goalsNotSupported);
 		}
 		else
 		{
-			if (!StringUtils.isBlank(userResource.getEmailAddress()))
-			{
-				throw InvalidDataException.excessEmailAddress();
-			}
+			Require.isTrue(StringUtils.isBlank(user.getEmailAddress()), InvalidDataException::excessEmailAddress);
 		}
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		if (!REGEX_PHONE.matcher(mobileNumber).matches())
-		{
-			throw InvalidDataException.invalidMobileNumber(mobileNumber);
-		}
+		Require.isTrue(REGEX_PHONE.matcher(mobileNumber).matches(), () -> InvalidDataException.invalidMobileNumber(mobileNumber));
 		assertNumberIsMobile(mobileNumber);
 	}
 
@@ -940,10 +902,7 @@ public class UserService
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		if (!REGEX_EMAIL.matcher(emailAddress).matches())
-		{
-			throw InvalidDataException.invalidEmailAddress(emailAddress);
-		}
+		Require.isTrue(REGEX_EMAIL.matcher(emailAddress).matches(), () -> InvalidDataException.invalidEmailAddress(emailAddress));
 	}
 
 	/**
