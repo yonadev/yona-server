@@ -6,6 +6,7 @@ package nu.yona.server;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,7 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.rest.RestClientErrorHandler;
+import nu.yona.server.util.LockPool;
 
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
@@ -191,5 +193,11 @@ public class CoreConfiguration extends CachingConfigurerSupport
 	public CacheManager localCache()
 	{
 		return new ConcurrentMapCacheManager();
+	}
+
+	@Bean
+	public LockPool<UUID> userSynchronizer()
+	{
+		return new LockPool<>();
 	}
 }

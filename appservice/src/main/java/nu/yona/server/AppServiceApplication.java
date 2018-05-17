@@ -18,7 +18,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -42,7 +41,6 @@ import nu.yona.server.exceptions.ConfigurationException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.PropertyInitializer;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.util.LockPool;
 
 @SpringBootApplication
 @EnableCaching
@@ -201,11 +199,5 @@ public class AppServiceApplication
 		{
 			throw YonaException.unexpected(e);
 		}
-	}
-
-	@Bean
-	public LockPool<UUID> userSynchronizer()
-	{
-		return new LockPool<>();
 	}
 }
