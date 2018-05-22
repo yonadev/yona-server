@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -57,7 +57,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def stats = analysisService.getStatistics()
 
 		stats.entityDeleteCount == 0
-		stats.entityFetchCount == 1
+		stats.entityFetchCount == 2
 		stats.entityInsertCount == 0
 		stats.entityLoadCount == 10
 		stats.entityUpdateCount == 1 // TODO: Should be 0
@@ -98,7 +98,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def stats = analysisService.getStatistics()
 
 		stats.entityDeleteCount == 0
-		stats.entityFetchCount == 1
+		stats.entityFetchCount == 2
 		stats.entityInsertCount == 3
 		stats.entityLoadCount == 10
 		stats.entityUpdateCount == 2
@@ -139,7 +139,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def stats = analysisService.getStatistics()
 
 		stats.entityDeleteCount == 0
-		stats.entityFetchCount == 2
+		stats.entityFetchCount == 3
 		stats.entityInsertCount == 5
 		stats.entityLoadCount == 19
 		stats.entityUpdateCount == 4

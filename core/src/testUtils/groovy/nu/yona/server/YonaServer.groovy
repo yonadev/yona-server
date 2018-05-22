@@ -140,10 +140,13 @@ class YonaServer
 	{
 		def file = new File("build/reports/tests/intTest/" + heading + ".md")
 		file << "# $heading\n\n"
-		def statNames = (statistics[statistics.keySet().first()].keySet().findAll{ it != "startTime" } as List).sort()
+		def statNames = (statistics[statistics.keySet().first()].keySet().findAll{ it != "startTime" && it != "sqlStatements"} as List).sort()
 		storeRow(file, ["Operation"]+ statNamesToHeadingNames(statNames))
 		storeRow(file, ["---"]* (statNames.size() + 1))
 		statistics.each{ k, v -> storeRow(file, [k]+ statNames.collect{v[it]}) }
+
+		file << "\n# SQL statements\n\n"
+		statistics.each{ k, v -> storeSqlStatements(file, k, v["sqlStatements"]) }
 	}
 
 	private static def statNamesToHeadingNames(def statNames)
@@ -157,6 +160,12 @@ class YonaServer
 	{
 		cells.each{ file << "| $it"}
 		file << "\n"
+	}
+
+	private static storeSqlStatements(file, testName, sqlStatements)
+	{
+		file << "\n## $testName\n"
+		sqlStatements.each{ file << "1. ``$it``\n"}
 	}
 
 	static def stripQueryString(url)

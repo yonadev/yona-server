@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
@@ -21,6 +23,9 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.AppenderBase;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
 @Service
@@ -36,15 +41,27 @@ public class HibernateStatisticsService
 
 	private SessionFactory sessionFactory;
 
+	private LogAppender logAppender;
+
 	@PostConstruct
 	public void initialize()
 	{
 		sessionFactory = getPrimaryEntityManagerFactory();
+		logAppender = LogAppender.initialize();
 	}
 
 	public void setEnabled(boolean enabled)
 	{
+		logger.info("HibernateStatisticsService setEnabled({})", enabled);
 		getHibernateStatistics().ifPresent(s -> s.setStatisticsEnabled(enabled));
+		if (enabled)
+		{
+			logAppender.start();
+		}
+		else
+		{
+			logAppender.stop();
+		}
 	}
 
 	public boolean isStatisticsEnabled()
@@ -55,26 +72,30 @@ public class HibernateStatisticsService
 
 	public StatisticsDto getStatistics()
 	{
+		logger.info("HibernateStatisticsService getStatistics()");
 		if (!isStatisticsEnabled())
 		{
 			throw new IllegalStateException("Hibernate statistics not enabled");
 		}
 
-		return statisticsToDto(getHibernateStatistics().get());
+		return statisticsToDto(getHibernateStatistics().get(), logAppender.getMessages());
 	}
 
 	public void resetStatistics()
 	{
+		logger.info("HibernateStatisticsService resetStatistics()");
 		if (!isStatisticsEnabled())
 		{
 			throw new IllegalStateException("Hibernate statistics not enabled");
 		}
 
 		resetHibernateStatistics();
+		logAppender.clear();
 	}
 
 	public void clearAllUserDataCaches()
 	{
+		logger.info("HibernateStatisticsService clearAllUserDataCaches()");
 		userAnonymizedService.clearCache();
 		sessionFactory.getCache().evictAllRegions();
 	}
@@ -105,9 +126,9 @@ public class HibernateStatisticsService
 		}
 	}
 
-	private StatisticsDto statisticsToDto(Statistics statistics)
+	private StatisticsDto statisticsToDto(Statistics statistics, List<String> sqlStatements)
 	{
-		return new StatisticsDto(statistics);
+		return new StatisticsDto(statistics, sqlStatements);
 	}
 
 	private void resetHibernateStatistics()
@@ -146,8 +167,9 @@ public class HibernateStatisticsService
 		private final long startTime;
 		private final long successfulTransactionCount;
 		private final long transactionCount;
+		private final List<String> sqlStatements;
 
-		public StatisticsDto(Statistics statistics)
+		public StatisticsDto(Statistics statistics, List<String> sqlStatements)
 		{
 			this.closeStatementCount = statistics.getCloseStatementCount();
 			this.collectionFetchCount = statistics.getCollectionFetchCount();
@@ -177,6 +199,7 @@ public class HibernateStatisticsService
 			this.startTime = statistics.getStartTime();
 			this.successfulTransactionCount = statistics.getSuccessfulTransactionCount();
 			this.transactionCount = statistics.getTransactionCount();
+			this.sqlStatements = sqlStatements;
 		}
 
 		public long getCloseStatementCount()
@@ -317,6 +340,75 @@ public class HibernateStatisticsService
 		public long getTransactionCount()
 		{
 			return transactionCount;
+		}
+
+		public List<String> getSqlStatements()
+		{
+			return sqlStatements;
+		}
+	}
+
+	private static class LogAppender extends AppenderBase<ILoggingEvent>
+	{
+		private final List<String> messages = new ArrayList<>();
+		private final ch.qos.logback.classic.Logger sqlStatementLogger;
+		private Level originalLevel;
+
+		LogAppender(ch.qos.logback.classic.Logger sqlStatementLogger)
+		{
+			this.sqlStatementLogger = sqlStatementLogger;
+		}
+
+		static LogAppender initialize()
+		{
+			ch.qos.logback.classic.Logger sqlStatementLogger = (ch.qos.logback.classic.Logger) LoggerFactory
+					.getLogger("org.hibernate.SQL");
+			LogAppender logAppender = new LogAppender(sqlStatementLogger);
+			sqlStatementLogger.addAppender(logAppender);
+			return logAppender;
+		}
+
+		@Override
+		protected void append(ILoggingEvent eventObject)
+		{
+			if (eventObject.getLevel() != Level.DEBUG)
+			{
+				return;
+			}
+			messages.add(eventObject.getFormattedMessage());
+		}
+
+		@Override
+		public void start()
+		{
+			if (isStarted())
+			{
+				return;
+			}
+			originalLevel = sqlStatementLogger.getLevel();
+			sqlStatementLogger.setLevel(Level.DEBUG);
+			super.start();
+		}
+
+		@Override
+		public void stop()
+		{
+			if (!isStarted())
+			{
+				return;
+			}
+			sqlStatementLogger.setLevel(originalLevel);
+			super.stop();
+		}
+
+		List<String> getMessages()
+		{
+			return messages;
+		}
+
+		void clear()
+		{
+			messages.clear();
 		}
 	}
 }
