@@ -51,6 +51,7 @@ import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -76,6 +77,8 @@ public class ActivityServiceTest
 	private YonaProperties mockYonaProperties;
 	@Mock
 	private UserAnonymizedService mockUserAnonymizedService;
+	@Mock
+	private GoalRepository mockGoalRepository;
 	@Mock
 	private WeekActivityRepository mockWeekActivityRepository;
 	@Mock
@@ -104,6 +107,7 @@ public class ActivityServiceTest
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(DayActivity.class, mockDayActivityRepository);
+		repositoriesMap.put(Goal.class, mockGoalRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 
 		// created 2 weeks ago

@@ -130,8 +130,7 @@ class ActivityUpdateService
 		return messageRepository.save(message);
 	}
 
-	public void updateTimeExistingActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload,
-			Activity existingActivity)
+	public void updateTimeExistingActivity(ActivityPayload payload, Activity existingActivity)
 	{
 		LocalDateTime startTimeLocal = payload.startTime.toLocalDateTime();
 		if (startTimeLocal.isBefore(existingActivity.getStartTime()))
@@ -145,8 +144,7 @@ class ActivityUpdateService
 		}
 	}
 
-	public void updateTimeLastActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload, GoalDto matchingGoal,
-			ActivityDto lastRegisteredActivity)
+	public void updateTimeLastActivity(ActivityPayload payload, GoalDto matchingGoal, ActivityDto lastRegisteredActivity)
 	{
 		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId())
 				.orElseThrow(() -> AnalysisException.dayActivityNotFound(payload.userAnonymized.getId(), matchingGoal.getGoalId(),

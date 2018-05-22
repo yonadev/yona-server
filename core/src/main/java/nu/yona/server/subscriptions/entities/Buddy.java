@@ -15,9 +15,11 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
@@ -45,9 +47,10 @@ public class Buddy extends PrivateUserProperties
 	private LocalDateTime lastStatusChangeTime;
 
 	/**
-	 * The BuddyAnonymized entities owned by this user
+	 * The BuddyDevice entities owned by this user
 	 */
-	@OneToMany(mappedBy = "owningBuddy", cascade = CascadeType.ALL, orphanRemoval = true)
+	@BatchSize(size = 20)
+	@OneToMany(mappedBy = "owningBuddy", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<BuddyDevice> devices;
 
 	// Default constructor is required for JPA

@@ -16,11 +16,14 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
+
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "ACTIVITY_CATEGORIES")
+@BatchSize(size = 20)
 public class ActivityCategory extends EntityWithUuid
 {
 	@ElementCollection

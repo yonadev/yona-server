@@ -217,8 +217,8 @@ public class AnalysisEngineService
 			Optional<Activity> overlappingActivity = findOverlappingActivitySameApp(payload, matchingGoal);
 			if (overlappingActivity.isPresent())
 			{
-				activityUpdateService.updateTimeExistingActivity(userAnonymizedHolder.getEntity(), payload,
-						overlappingActivity.get());
+				userAnonymizedHolder.getEntity(); // Mark that we did an update
+				activityUpdateService.updateTimeExistingActivity(payload, overlappingActivity.get());
 				return;
 			}
 		}
@@ -230,8 +230,8 @@ public class AnalysisEngineService
 			{
 				// Update message only if the start time is to be updated or if the end time moves with at least five seconds, to
 				// avoid unnecessary cache flushes.
-				activityUpdateService.updateTimeLastActivity(userAnonymizedHolder.getEntity(), payload, matchingGoal,
-						lastRegisteredActivity.get());
+				userAnonymizedHolder.getEntity(); // Mark that we did an update
+				activityUpdateService.updateTimeLastActivity(payload, matchingGoal, lastRegisteredActivity.get());
 			}
 			return;
 		}
@@ -268,7 +268,8 @@ public class AnalysisEngineService
 		}
 
 		String overlappingActivitiesKind = payload.application.isPresent()
-				? MessageFormat.format("app activities of ''{0}''", payload.application.get()) : "network activities";
+				? MessageFormat.format("app activities of ''{0}''", payload.application.get())
+				: "network activities";
 		String overlappingActivities = overlappingOfSameApp.stream().map(Activity::toString).collect(Collectors.joining(", "));
 		logger.warn(
 				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",

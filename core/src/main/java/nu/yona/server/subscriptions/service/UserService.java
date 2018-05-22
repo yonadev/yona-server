@@ -200,9 +200,14 @@ public class UserService
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
+		return createUserDtoWithPrivateData(getPrivateValidatedUserEntity(id));
+	}
+
+	@Transactional
+	public User getPrivateValidatedUserEntity(UUID id)
+	{
 		User validatedUser = getValidatedUserById(id);
-		User updatedUser = handlePrivateDataActions(validatedUser);
-		return createUserDtoWithPrivateData(updatedUser);
+		return handlePrivateDataActions(validatedUser);
 	}
 
 	private User handlePrivateDataActions(User user)
@@ -276,6 +281,7 @@ public class UserService
 
 	private void addDevicesToEntity(UserDto userDto, User userEntity)
 	{
+		userRepository.saveAndFlush(userEntity); // To prevent sequence issues when saving the device
 		userDto.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).stream().map(d -> (UserDeviceDto) d)
 				.forEach(d -> deviceService.addDeviceToUser(userEntity, d));
 	}
