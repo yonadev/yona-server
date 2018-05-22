@@ -32,17 +32,12 @@ public class Require
 		}
 	}
 
-	public static void isTrue(boolean flag, Supplier<YonaException> exceptionSupplier)
+	public static void that(boolean flag, Supplier<YonaException> exceptionSupplier)
 	{
 		if (!flag)
 		{
 			throw exceptionSupplier.get();
 		}
-	}
-
-	public static void isFalse(boolean flag, Supplier<YonaException> exceptionSupplier)
-	{
-		isTrue(!flag, exceptionSupplier);
 	}
 
 	public static <E> void isPresent(Optional<E> optional, Supplier<YonaException> exceptionSupplier)

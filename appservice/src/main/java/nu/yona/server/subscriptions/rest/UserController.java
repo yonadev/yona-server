@@ -169,14 +169,13 @@ public class UserController extends ControllerBase
 		{
 			if (requestingUserId.equals(userId))
 			{
-				return getOwnUser(requestingUserId, requestingDeviceIdStr, userId, isCreatedOnBuddyRequest);
+				return getOwnUser(requestingUserId, requestingDeviceIdStr, isCreatedOnBuddyRequest);
 			}
 			return getBuddyUser(userId, requestingUserId);
 		}
 	}
 
-	private HttpEntity<UserResource> getOwnUser(UUID requestingUserId, String requestingDeviceIdStr, UUID userId,
-			boolean isCreatedOnBuddyRequest)
+	private HttpEntity<UserResource> getOwnUser(UUID userId, String requestingDeviceIdStr, boolean isCreatedOnBuddyRequest)
 	{
 		UserDto user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
 		Optional<UUID> requestingDeviceId = determineRequestingDeviceId(user, requestingDeviceIdStr, isCreatedOnBuddyRequest);
@@ -186,7 +185,7 @@ public class UserController extends ControllerBase
 			deviceService.removeDuplicateDefaultDevices(user, requestingDeviceId.get());
 			user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
 		}
-		return createOkResponse(user, createResourceAssemblerForOwnUser(requestingUserId, requestingDeviceId));
+		return createOkResponse(user, createResourceAssemblerForOwnUser(userId, requestingDeviceId));
 	}
 
 	private ResponseEntity<UserResource> getBuddyUser(UUID userId, UUID requestingUserId)
@@ -268,7 +267,7 @@ public class UserController extends ControllerBase
 	private HttpEntity<UserResource> updateUserCreatedOnBuddyRequest(Optional<String> password, UUID userId, UserDto user,
 			String tempPassword)
 	{
-		Require.isFalse(password.isPresent(), InvalidDataException::appProvidedPasswordNotSupported);
+		Require.isNotPresent(password, InvalidDataException::appProvidedPasswordNotSupported);
 		addDefaultDeviceIfNotProvided(user);
 		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{

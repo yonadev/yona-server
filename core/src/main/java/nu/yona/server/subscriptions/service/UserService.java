@@ -365,7 +365,7 @@ public class UserService
 	{
 		int maxUsers = yonaProperties.getMaxUsers();
 		long currentNumberOfUsers = userRepository.count();
-		Require.isTrue(currentNumberOfUsers < maxUsers, UserServiceException::maximumNumberOfUsersReached);
+		Require.that(currentNumberOfUsers < maxUsers, UserServiceException::maximumNumberOfUsersReached);
 		if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
 		{
 			logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers, maxUsers);
@@ -568,7 +568,7 @@ public class UserService
 	{
 		User originalUserEntity = getUserEntityById(id);
 		// security check: should not be able to replace the password on an existing user
-		Require.isTrue(originalUserEntity.isCreatedOnBuddyRequest(), () -> UserServiceException.userNotCreatedOnBuddyRequest(id));
+		Require.that(originalUserEntity.isCreatedOnBuddyRequest(), () -> UserServiceException.userNotCreatedOnBuddyRequest(id));
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
@@ -709,8 +709,8 @@ public class UserService
 	@Transactional
 	public void addBuddy(UserDto user, BuddyDto buddy)
 	{
-		Require.isTrue(user != null && user.getId() != null, InvalidDataException::emptyUserId);
-		Require.isTrue(buddy != null && buddy.getId() != null, InvalidDataException::emptyBuddyId);
+		Require.that(user != null && user.getId() != null, InvalidDataException::emptyUserId);
+		Require.that(buddy != null && buddy.getId() != null, InvalidDataException::emptyBuddyId);
 
 		updateUser(user.getId(), userEntity -> {
 			assertValidatedUser(userEntity);
@@ -854,32 +854,32 @@ public class UserService
 
 	void assertValidUserFields(UserDto user, UserPurpose purpose)
 	{
-		Require.isTrue(StringUtils.isNotBlank(user.getOwnPrivateData().getFirstName()), InvalidDataException::blankFirstName);
-		Require.isTrue(StringUtils.isNotBlank(user.getOwnPrivateData().getLastName()), InvalidDataException::blankLastName);
-		Require.isFalse(purpose == UserPurpose.USER && StringUtils.isBlank(user.getOwnPrivateData().getNickname()),
+		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getFirstName()), InvalidDataException::blankFirstName);
+		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getLastName()), InvalidDataException::blankLastName);
+		Require.that(!(purpose == UserPurpose.USER && StringUtils.isBlank(user.getOwnPrivateData().getNickname())),
 				InvalidDataException::blankNickname);
 
-		Require.isTrue(StringUtils.isNotBlank(user.getMobileNumber()), InvalidDataException::blankMobileNumber);
+		Require.that(StringUtils.isNotBlank(user.getMobileNumber()), InvalidDataException::blankMobileNumber);
 
 		assertValidMobileNumber(user.getMobileNumber());
 
 		if (purpose == UserPurpose.BUDDY)
 		{
-			Require.isTrue(StringUtils.isNotBlank(user.getEmailAddress()), InvalidDataException::blankEmailAddress);
+			Require.that(StringUtils.isNotBlank(user.getEmailAddress()), InvalidDataException::blankEmailAddress);
 			assertValidEmailAddress(user.getEmailAddress());
 
-			Require.isTrue(user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty(),
+			Require.that(user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty(),
 					InvalidDataException::goalsNotSupported);
 		}
 		else
 		{
-			Require.isTrue(StringUtils.isBlank(user.getEmailAddress()), InvalidDataException::excessEmailAddress);
+			Require.that(StringUtils.isBlank(user.getEmailAddress()), InvalidDataException::excessEmailAddress);
 		}
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		Require.isTrue(REGEX_PHONE.matcher(mobileNumber).matches(), () -> InvalidDataException.invalidMobileNumber(mobileNumber));
+		Require.that(REGEX_PHONE.matcher(mobileNumber).matches(), () -> InvalidDataException.invalidMobileNumber(mobileNumber));
 		assertNumberIsMobile(mobileNumber);
 	}
 
@@ -902,7 +902,7 @@ public class UserService
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		Require.isTrue(REGEX_EMAIL.matcher(emailAddress).matches(), () -> InvalidDataException.invalidEmailAddress(emailAddress));
+		Require.that(REGEX_EMAIL.matcher(emailAddress).matches(), () -> InvalidDataException.invalidEmailAddress(emailAddress));
 	}
 
 	/**

@@ -63,8 +63,7 @@ public class NewDeviceRequestService
 
 		Require.isNonNull(newDeviceRequestEntity,
 				() -> DeviceRequestException.noDeviceRequestPresent(userEntity.getMobileNumber()));
-		Require.isFalse(isExpired(newDeviceRequestEntity),
-				() -> DeviceRequestException.deviceRequestExpired(userEntity.getMobileNumber()));
+		Require.that(!isExpired(newDeviceRequestEntity), () -> DeviceRequestException.deviceRequestExpired(userEntity.getMobileNumber()));
 
 		if (newDeviceRequestPassword.isPresent())
 		{

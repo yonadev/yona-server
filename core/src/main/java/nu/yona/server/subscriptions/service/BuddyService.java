@@ -193,11 +193,11 @@ public class BuddyService
 	private void assertValidBuddy(UserDto requestingUser, BuddyDto buddy)
 	{
 		userService.assertValidUserFields(buddy.getUser(), UserPurpose.BUDDY);
-		Require.isTrue(buddy.getSendingStatus() == Status.REQUESTED && buddy.getReceivingStatus() == Status.REQUESTED,
+		Require.that(buddy.getSendingStatus() == Status.REQUESTED && buddy.getReceivingStatus() == Status.REQUESTED,
 				BuddyServiceException::onlyTwoWayBuddiesAllowed);
 		String buddyMobileNumber = buddy.getUser().getMobileNumber();
-		Require.isFalse(requestingUser.getMobileNumber().equals(buddyMobileNumber), BuddyServiceException::cannotInviteSelf);
-		Require.isTrue(requestingUser.getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getMobileNumber())
+		Require.that(!requestingUser.getMobileNumber().equals(buddyMobileNumber), BuddyServiceException::cannotInviteSelf);
+		Require.that(requestingUser.getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getMobileNumber())
 				.noneMatch(m -> m.equals(buddyMobileNumber)), BuddyServiceException::cannotInviteExistingBuddy);
 	}
 

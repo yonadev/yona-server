@@ -182,8 +182,7 @@ public class ActivityCategoryService
 		Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap = activityCategoriesInRepository.stream()
 				.collect(Collectors.toMap(ActivityCategory::getId, ac -> ac));
 
-		activityCategoryDtos.stream()
-				.forEach(actCat -> addOrUpdateNewActivityCategory(actCat, activityCategoriesInRepositoryMap));
+		activityCategoryDtos.stream().forEach(a -> addOrUpdateNewActivityCategory(a, activityCategoriesInRepositoryMap));
 	}
 
 	private void addOrUpdateNewActivityCategory(ActivityCategoryDto activityCategoryDto,

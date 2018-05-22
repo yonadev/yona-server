@@ -164,7 +164,7 @@ public class MessageService
 	private void deleteMessage(UserDto user, Message message)
 	{
 		MessageDto messageDto = dtoManager.createInstance(user, message);
-		Require.isTrue(messageDto.canBeDeleted(), InvalidMessageActionException::unprocessedMessageCannotBeDeleted);
+		Require.that(messageDto.canBeDeleted(), InvalidMessageActionException::unprocessedMessageCannotBeDeleted);
 
 		deleteMessages(Collections.singleton(message));
 	}

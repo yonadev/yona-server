@@ -81,11 +81,11 @@ public class PinResetRequestService
 		logger.info("User with mobile number '{}' and ID '{}' requested to verify the pin reset confirmation code",
 				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = userEntity.getPinResetConfirmationCode();
-		Require.isTrue((confirmationCode != null) && !isExpired(confirmationCode),
+		Require.that((confirmationCode != null) && !isExpired(confirmationCode),
 				() -> PinResetRequestConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()));
 
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
-		Require.isTrue(remainingAttempts > 0,
+		Require.that(remainingAttempts > 0,
 				() -> PinResetRequestConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
 		if (!userProvidedConfirmationCode.equals(confirmationCode.getCode()))
