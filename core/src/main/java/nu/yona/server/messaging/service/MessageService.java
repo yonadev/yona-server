@@ -33,6 +33,7 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -52,6 +53,9 @@ public class MessageService
 
 	@Autowired
 	private TheDtoManager dtoManager;
+
+	@Autowired
+	private MessageSourceRepository messageSourceRepository;
 
 	@Transactional
 	public Page<MessageDto> getReceivedMessages(UserDto user, boolean onlyUnreadMessages, Pageable pageable)
@@ -214,7 +218,7 @@ public class MessageService
 
 	private MessageSource getMessageSource(UUID id)
 	{
-		return MessageSource.getRepository().findOne(id);
+		return messageSourceRepository.findOne(id);
 	}
 
 	private Page<MessageDto> wrapMessagesAsDtos(UserDto user, Page<? extends Message> messageEntities, Pageable pageable)
