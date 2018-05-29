@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -39,6 +39,7 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.Require;
 
 @Service
 public class MessageService
@@ -96,17 +97,16 @@ public class MessageService
 		}
 		catch (DataIntegrityViolationException e)
 		{
-			if (e.getCause() instanceof ConstraintViolationException)
-			{
-				// Ignore and proceed. Another concurrent thread has transferred the messages.
-				// We avoid a lock here because that limits scaling this service horizontally.
-				logger.info("The direct messages of user with ID '" + userId
-						+ "' were apparently concurrently moved to the anonymous messages while handling another request.", e);
-			}
-			else
+			if (!(e.getCause() instanceof ConstraintViolationException))
 			{
 				throw e;
 			}
+			// Ignore and proceed. Another concurrent thread has transferred the messages.
+			// We avoid a lock here because that limits scaling this service horizontally.
+			logger.info(
+					"The direct messages of user with ID '" + userId
+							+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
+					e);
 		}
 		return userService.getPrivateValidatedUser(userId);
 	}
@@ -178,10 +178,7 @@ public class MessageService
 	private void deleteMessage(UserDto user, Message message)
 	{
 		MessageDto messageDto = dtoManager.createInstance(user, message);
-		if (!messageDto.canBeDeleted())
-		{
-			throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
-		}
+		Require.that(messageDto.canBeDeleted(), InvalidMessageActionException::unprocessedMessageCannotBeDeleted);
 
 		deleteMessages(Collections.singleton(message));
 	}

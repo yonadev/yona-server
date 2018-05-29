@@ -94,12 +94,7 @@ class ActivityUpdateService
 			return true;
 		}
 
-		if (isBeyondCombineIntervalWithLastRegisteredActivity(payload, lastRegisteredActivity.get()))
-		{
-			return true;
-		}
-
-		return false;
+		return isBeyondCombineIntervalWithLastRegisteredActivity(payload, lastRegisteredActivity.get());
 	}
 
 	private boolean isBeyondCombineIntervalWithLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)

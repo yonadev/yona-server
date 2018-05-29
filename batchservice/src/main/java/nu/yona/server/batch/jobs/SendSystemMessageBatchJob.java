@@ -125,21 +125,33 @@ public class SendSystemMessageBatchJob
 
 	private ItemReader<UUID> userAnonymizedIdReader()
 	{
+		final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = createQueryProviderFactory();
+		JdbcPagingItemReader<UUID> reader = createReader(sqlPagingQueryProviderFactoryBean);
+		logger.info("Reading users anonymized in chunks of {}", USERS_CHUNK_SIZE);
+		return reader;
+	}
+
+	private SqlPagingQueryProviderFactoryBean createQueryProviderFactory()
+	{
+		final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+		sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
+		sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
+		sqlPagingQueryProviderFactoryBean.setFromClause("from users_anonymized");
+		sqlPagingQueryProviderFactoryBean.setSortKey("id");
+		return sqlPagingQueryProviderFactoryBean;
+	}
+
+	private JdbcPagingItemReader<UUID> createReader(final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean)
+	{
 		try
 		{
 			JdbcPagingItemReader<UUID> reader = new JdbcPagingItemReader<>();
-			final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
-			sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
-			sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
-			sqlPagingQueryProviderFactoryBean.setFromClause("from users_anonymized");
-			sqlPagingQueryProviderFactoryBean.setSortKey("id");
 			reader.setQueryProvider(sqlPagingQueryProviderFactoryBean.getObject());
 			reader.setDataSource(dataSource);
 			reader.setPageSize(USERS_CHUNK_SIZE);
 			reader.setRowMapper(singleUUIDColumnRowMapper());
 			reader.afterPropertiesSet();
 			reader.setSaveState(true);
-			logger.info("Reading users anonymized in chunks of {}", USERS_CHUNK_SIZE);
 			return reader;
 		}
 		catch (Exception e)

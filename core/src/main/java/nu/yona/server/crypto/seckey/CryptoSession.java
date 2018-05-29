@@ -65,21 +65,26 @@ public class CryptoSession implements AutoCloseable
 
 	private Cipher getEncryptionCipher()
 	{
+		if (encryptionCipher == null)
+		{
+			createAndInitializeCipher();
+		}
+		return encryptionCipher;
+	}
+
+	private void createAndInitializeCipher()
+	{
 		try
 		{
-			if (encryptionCipher == null)
+			encryptionCipher = Cipher.getInstance(CIPHER_TYPE);
+			if (!isInitializationVectorSet())
 			{
-				encryptionCipher = Cipher.getInstance(CIPHER_TYPE);
-				if (!isInitializationVectorSet())
-				{
-					encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey);
-				}
-				else
-				{
-					encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(initializationVector.get()));
-				}
+				encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey);
 			}
-			return encryptionCipher;
+			else
+			{
+				encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(initializationVector.get()));
+			}
 		}
 		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
 		{

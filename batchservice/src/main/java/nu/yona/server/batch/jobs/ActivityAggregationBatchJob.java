@@ -160,16 +160,31 @@ public class ActivityAggregationBatchJob
 
 	private ItemReader<Long> intervalActivityIdReader(Date cutOffDate, Class<?> activityClass, int chunkSize)
 	{
+		SqlPagingQueryProviderFactoryBean queryProviderFactory = createQueryProviderFactory(activityClass);
+		JdbcPagingItemReader<Long> reader = createReader(cutOffDate, chunkSize, queryProviderFactory);
+		logger.info("Reading nonaggregated {} entities with startDate <= {} in chunks of {}", activityClass.getSimpleName(),
+				cutOffDate, chunkSize);
+		return reader;
+	}
+
+	private SqlPagingQueryProviderFactoryBean createQueryProviderFactory(Class<?> activityClass)
+	{
+		SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+		sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
+		sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
+		sqlPagingQueryProviderFactoryBean.setFromClause("from interval_activities");
+		sqlPagingQueryProviderFactoryBean.setWhereClause("where dtype = '" + activityClass.getSimpleName()
+				+ "' and aggregates_computed = 0 and start_date <= :cutOffDate");
+		sqlPagingQueryProviderFactoryBean.setSortKey("id");
+		return sqlPagingQueryProviderFactoryBean;
+	}
+
+	private JdbcPagingItemReader<Long> createReader(Date cutOffDate, int chunkSize,
+			SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean)
+	{
 		try
 		{
 			JdbcPagingItemReader<Long> reader = new JdbcPagingItemReader<>();
-			final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
-			sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
-			sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
-			sqlPagingQueryProviderFactoryBean.setFromClause("from interval_activities");
-			sqlPagingQueryProviderFactoryBean.setWhereClause("where dtype = '" + activityClass.getSimpleName()
-					+ "' and aggregates_computed = 0 and start_date <= :cutOffDate");
-			sqlPagingQueryProviderFactoryBean.setSortKey("id");
 			reader.setQueryProvider(sqlPagingQueryProviderFactoryBean.getObject());
 			reader.setDataSource(dataSource);
 			reader.setPageSize(chunkSize);
@@ -177,14 +192,11 @@ public class ActivityAggregationBatchJob
 			reader.setParameterValues(Collections.singletonMap("cutOffDate", cutOffDate));
 			reader.afterPropertiesSet();
 			reader.setSaveState(true);
-			logger.info("Reading nonaggregated {} entities with startDate <= {} in chunks of {}", activityClass.getSimpleName(),
-					cutOffDate, chunkSize);
 			return reader;
 		}
 		catch (Exception e)
 		{
 			throw YonaException.unexpected(e);
 		}
-
 	}
 }
