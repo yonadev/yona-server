@@ -110,7 +110,7 @@ public class MessageController extends ControllerBase
 	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
-		UserDto user = messageService.prepareMessageCollection(userService.getPrivateValidatedUser(userId));
+		UserDto user = messageService.prepareMessageCollection(userId);
 		Page<MessageDto> messages = messageService.getReceivedMessages(user, onlyUnreadMessages, pageable);
 		return createOkResponse(user, messages, pagedResourcesAssembler);
 	}

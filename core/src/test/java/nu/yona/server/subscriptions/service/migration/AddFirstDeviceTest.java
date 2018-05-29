@@ -52,6 +52,8 @@ import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
@@ -127,6 +129,9 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	@MockBean
 	private LDAPUserService mockLdapUserService;
 
+	@MockBean
+	private GoalRepository mockGoalRepository;
+
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
 
@@ -149,6 +154,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	protected Map<Class<?>, Repository<?, ?>> getRepositories()
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(Goal.class, mockGoalRepository);
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);
 		return repositoriesMap;

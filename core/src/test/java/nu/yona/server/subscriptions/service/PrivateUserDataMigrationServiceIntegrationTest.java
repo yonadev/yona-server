@@ -31,6 +31,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
@@ -81,6 +83,9 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	private BuddyService buddyService;
 
 	@MockBean
+	private GoalRepository mockGoalRepository;
+
+	@MockBean
 	private MessageSourceRepository mockMessageSourceRepository;
 
 	@MockBean
@@ -113,6 +118,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(MessageSource.class, mockMessageSourceRepository);
+		repositoriesMap.put(Goal.class, mockGoalRepository);
 		return repositoriesMap;
 	}
 

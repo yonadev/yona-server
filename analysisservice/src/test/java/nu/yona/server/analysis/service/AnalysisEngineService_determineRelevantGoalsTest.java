@@ -16,6 +16,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -29,6 +30,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Mock;
+import org.springframework.data.repository.Repository;
 
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
@@ -38,17 +41,22 @@ import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
 @RunWith(Parameterized.class)
 public class AnalysisEngineService_determineRelevantGoalsTest
 {
+	@Mock
+	private GoalRepository mockGoalRepository;
+
 	private OperatingSystem operatingSystem;
 	private boolean isIOs;
 	private Goal gamblingGoal;
@@ -82,6 +90,8 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 	{
 		initMocks(this);
 
+		setUpRepositoryMocks();
+
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		LocalDateTime dayBeforeYesterday = yesterday.minusDays(1);
 		gamblingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday,
@@ -113,6 +123,14 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);
 		deviceAnonDto = DeviceAnonymizedDto.createInstance(deviceAnonEntity);
 		userAnonZoneId = userAnonDto.getTimeZone();
+	}
+
+	private void setUpRepositoryMocks()
+	{
+		JUnitUtil.setUpRepositoryMock(mockGoalRepository);
+		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(Goal.class, mockGoalRepository);
+		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 	}
 
 	private Map<Locale, String> usString(String string)
