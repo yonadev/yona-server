@@ -416,12 +416,14 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, deviceAnonId, new AppActivitiesDto(now(), new AppActivitiesDto.Activity[] {
 				new AppActivitiesDto.Activity(app, t3, t4), new AppActivitiesDto.Activity(app, t1, t2) }));
 
-		verify(mockActivityUpdater).addActivity(any(),
-				eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t1, t2, app)),
+		ArgumentCaptor<ActivityPayload> activityPayloadCaptor = ArgumentCaptor.forClass(ActivityPayload.class);
+		verify(mockActivityUpdater, times(2)).addActivity(any(), activityPayloadCaptor.capture(),
 				eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater).updateTimeLastActivity(any(),
-				eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t3, t4, app)),
-				eq(GoalDto.createInstance(gamblingGoal)), any());
+		assertThat(activityPayloadCaptor.getAllValues(),
+				equalTo(Arrays
+						.asList(new ActivityPayload[] { ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t1, t2, app),
+								ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t3, t4, app) })));
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any(), any());
 		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
 	}
 

@@ -77,7 +77,7 @@ public class AnalysisEngineService
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		DeviceAnonymizedDto deviceAnonymized = deviceService.getDeviceAnonymized(userAnonymized, deviceAnonymizedId);
 		Duration deviceTimeOffset = determineDeviceTimeOffset(appActivities);
-		for (AppActivitiesDto.Activity appActivity : appActivities.getActivities())
+		for (AppActivitiesDto.Activity appActivity : appActivities.getActivitiesSorted())
 		{
 			Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 					.getMatchingCategoriesForApp(appActivity.getApplication());
