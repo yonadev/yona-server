@@ -6,6 +6,7 @@ package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -83,7 +84,7 @@ public class AppActivitiesDto
 	}
 
 	@JsonIgnore
-	public Iterable<Activity> getActivitiesSorted()
+	public List<Activity> getActivitiesSorted()
 	{
 		return Arrays.stream(activities).sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime()))
 				.collect(Collectors.toList());

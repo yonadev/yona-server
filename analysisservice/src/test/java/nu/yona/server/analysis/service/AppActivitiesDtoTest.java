@@ -9,6 +9,7 @@ import static org.junit.Assert.assertThat;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -26,7 +27,7 @@ public class AppActivitiesDtoTest
 		AppActivitiesDto.Activity secondActivity = new AppActivitiesDto.Activity("Poker App", t3, t4);
 		AppActivitiesDto sut = new AppActivitiesDto(now, new AppActivitiesDto.Activity[] { secondActivity, firstActivity });
 
-		Iterable<AppActivitiesDto.Activity> result = sut.getActivitiesSorted();
+		List<AppActivitiesDto.Activity> result = sut.getActivitiesSorted();
 
 		assertThat(result, equalTo(Arrays.asList(new AppActivitiesDto.Activity[] { firstActivity, secondActivity })));
 	}
