@@ -19,7 +19,7 @@ import nu.yona.server.Constants;
  * @see NetworkActivityDto
  */
 @JsonRootName("appActivity")
-public class AppActivityDto
+public class AppActivitiesDto
 {
 	@JsonRootName("activity")
 	public static class Activity
@@ -60,7 +60,7 @@ public class AppActivityDto
 	private final Activity[] activities;
 
 	@JsonCreator
-	public AppActivityDto(
+	public AppActivitiesDto(
 			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
 			@JsonProperty("activities") Activity[] activities)
 	{

@@ -72,12 +72,12 @@ public class AnalysisEngineService
 
 	// This is intentionally not marked with @Transactional, as the transaction is explicitly started within the lock inside
 	// analyze(ActivityPayload, Set<ActivityCategoryDto>)
-	public void analyze(UUID userAnonymizedId, UUID deviceAnonymizedId, AppActivityDto appActivities)
+	public void analyze(UUID userAnonymizedId, UUID deviceAnonymizedId, AppActivitiesDto appActivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		DeviceAnonymizedDto deviceAnonymized = deviceService.getDeviceAnonymized(userAnonymized, deviceAnonymizedId);
 		Duration deviceTimeOffset = determineDeviceTimeOffset(appActivities);
-		for (AppActivityDto.Activity appActivity : appActivities.getActivities())
+		for (AppActivitiesDto.Activity appActivity : appActivities.getActivities())
 		{
 			Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 					.getMatchingCategoriesForApp(appActivity.getApplication());
@@ -104,14 +104,14 @@ public class AnalysisEngineService
 		analyze(ActivityPayload.createInstance(userAnonymized, deviceAnonymized, networkActivity), matchingActivityCategories);
 	}
 
-	private Duration determineDeviceTimeOffset(AppActivityDto appActivities)
+	private Duration determineDeviceTimeOffset(AppActivitiesDto appActivities)
 	{
 		Duration offset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
 		return (offset.abs().compareTo(DEVICE_TIME_INACCURACY_MARGIN) > 0) ? offset : Duration.ZERO; // Ignore if less than 10
 																										// seconds
 	}
 
-	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDto.Activity appActivity,
+	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivitiesDto.Activity appActivity,
 			UserAnonymizedDto userAnonymized, DeviceAnonymizedDto deviceAnonymized)
 	{
 		ZonedDateTime correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());

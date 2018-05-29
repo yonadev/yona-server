@@ -404,6 +404,28 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
+	public void analyze_unorderedAppActivity_addedOrdered()
+	{
+		String app = "Poker App";
+		ZonedDateTime today = now().truncatedTo(ChronoUnit.DAYS);
+		ZonedDateTime t1 = today.withHour(0).withMinute(0).withSecond(1);
+		ZonedDateTime t2 = t1.plusSeconds(15);
+		ZonedDateTime t3 = t2.plusSeconds(1);
+		ZonedDateTime t4 = t3.plusMinutes(5);
+
+		service.analyze(userAnonId, deviceAnonId, new AppActivitiesDto(now(), new AppActivitiesDto.Activity[] {
+				new AppActivitiesDto.Activity(app, t3, t4), new AppActivitiesDto.Activity(app, t1, t2) }));
+
+		verify(mockActivityUpdater).addActivity(any(),
+				eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t1, t2, app)),
+				eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater).updateTimeLastActivity(any(),
+				eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t3, t4, app)),
+				eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
+	}
+
+	@Test
 	public void analyze_appActivityCompletelyPrecedingLastCachedActivity_addActivity()
 	{
 		ZonedDateTime now = now();
@@ -450,7 +472,6 @@ public class AnalysisEngineServiceTest
 
 		// Verify that a database lookup was done finding the existing DayActivity to update
 		verify(mockDayActivityRepository).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
-
 		verify(mockActivityUpdater).updateTimeExistingActivity(any(), any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
 		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any(), any());
@@ -748,10 +769,10 @@ public class AnalysisEngineServiceTest
 				Optional.of(app));
 	}
 
-	private AppActivityDto createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)
+	private AppActivitiesDto createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
-		AppActivityDto.Activity[] activities = { new AppActivityDto.Activity(app, startTime, endTime) };
-		return new AppActivityDto(now(), activities);
+		AppActivitiesDto.Activity[] activities = { new AppActivitiesDto.Activity(app, startTime, endTime) };
+		return new AppActivitiesDto(now(), activities);
 	}
 
 	private ZonedDateTime now()

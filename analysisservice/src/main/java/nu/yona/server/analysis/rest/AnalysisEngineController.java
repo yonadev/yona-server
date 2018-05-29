@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.analysis.service.AnalysisEngineService;
-import nu.yona.server.analysis.service.AppActivityDto;
+import nu.yona.server.analysis.service.AppActivitiesDto;
 import nu.yona.server.analysis.service.NetworkActivityDto;
 
 @Controller
@@ -63,7 +63,7 @@ public class AnalysisEngineController
 	@RequestMapping(value = "/userAnonymized/{userAnonymizedId}/{deviceAnonymizedId}/appActivity/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void analyzeAppActivity(@PathVariable UUID userAnonymizedId, @PathVariable UUID deviceAnonymizedId,
-			@RequestBody AppActivityDto appActivities)
+			@RequestBody AppActivitiesDto appActivities)
 	{
 		analysisEngineService.analyze(userAnonymizedId, deviceAnonymizedId, appActivities);
 	}
