@@ -87,8 +87,7 @@ public class MessageService
 		return messageSource.getReceivedMessages(pageable, earliestDateTime);
 	}
 
-	// This is intentionally not marked with @Transactional, as the transaction is explicitly started within the lock inside
-	// analyze(ActivityPayload, Set<ActivityCategoryDto>)
+	// This is intentionally not marked with @Transactional, as the transaction is explicitly started inside this method
 	public UserDto prepareMessageCollection(UUID userId)
 	{
 		User user = userService.getPrivateValidatedUserEntity(userId);
