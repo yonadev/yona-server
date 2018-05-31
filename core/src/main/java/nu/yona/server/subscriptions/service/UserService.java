@@ -316,7 +316,7 @@ public class UserService
 		return confirmationCode;
 	}
 
-	UserDto createUserDtoWithPrivateData(User user)
+	public UserDto createUserDtoWithPrivateData(User user)
 	{
 		return UserDto.createInstanceWithPrivateData(user, buddyService.getBuddyDtos(user.getBuddies()));
 	}

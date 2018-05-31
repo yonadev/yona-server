@@ -12,16 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
-import org.hibernate.exception.ConstraintViolationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -39,15 +36,20 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.LockPool;
 import nu.yona.server.util.Require;
+import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class MessageService
 {
-	private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
-
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private LockPool<UUID> userSynchronizer;
+	@Autowired
+	private TransactionHelper transactionHelper;
 
 	@Autowired
 	private BuddyService buddyService;
@@ -85,41 +87,46 @@ public class MessageService
 		return messageSource.getReceivedMessages(pageable, earliestDateTime);
 	}
 
-	// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
-	@Transactional
+	// This is intentionally not marked with @Transactional, as the transaction is explicitly started inside this method
 	public UserDto prepareMessageCollection(UUID userId)
 	{
-		try
+		User user = userService.getPrivateValidatedUserEntity(userId);
+		boolean updated = false;
+		if (mustTransferDirectMessagesToAnonymousDestination(user))
 		{
-			User user = userService.getPrivateValidatedUserEntity(userId);
-			tryTransferDirectMessagesToAnonymousDestination(user);
-			tryProcessUnprocessedMessages(user);
+			doInTransactionWithLockOnUser(user, this::transferDirectMessagesToAnonymousDestination);
+			updated = true;
 		}
-		catch (DataIntegrityViolationException e)
+		if (mustProcessUnprocessedMessages(user))
 		{
-			if (!(e.getCause() instanceof ConstraintViolationException))
-			{
-				throw e;
-			}
-			// Ignore and proceed. Another concurrent thread has transferred the messages.
-			// We avoid a lock here because that limits scaling this service horizontally.
-			logger.info(
-					"The direct messages of user with ID '" + userId
-							+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
-					e);
+			doInTransactionWithLockOnUser(user, this::processUnprocessedMessages);
+			updated = true;
 		}
-		return userService.getPrivateValidatedUser(userId);
+		if (updated)
+		{
+			return transactionHelper.executeInNewTransaction(() -> userService.getPrivateValidatedUser(userId));
+		}
+		return userService.createUserDtoWithPrivateData(user);
 	}
 
-	private void tryTransferDirectMessagesToAnonymousDestination(User user)
+	private void doInTransactionWithLockOnUser(User user, Consumer<User> job)
+	{
+		try (LockPool<UUID>.Lock lock = userSynchronizer.lock(user.getId()))
+		{
+			transactionHelper.executeInNewTransaction(() -> job.accept(user));
+		}
+	}
+
+	private boolean mustTransferDirectMessagesToAnonymousDestination(User user)
+	{
+		return getNamedMessageSource(user).getMessages(null).hasContent();
+	}
+
+	@Transactional
+	private void transferDirectMessagesToAnonymousDestination(User user)
 	{
 		MessageSource directMessageSource = getNamedMessageSource(user);
 		Page<Message> directMessages = directMessageSource.getMessages(null);
-		if (!directMessages.hasContent())
-		{
-			return;
-		}
-
 		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
 		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
 		MessageDestination directMessageDestination = directMessageSource.getDestination();
@@ -132,15 +139,21 @@ public class MessageService
 		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
-	private void tryProcessUnprocessedMessages(User user)
+	private boolean mustProcessUnprocessedMessages(User user)
+	{
+		return !getUnprocessedMessages(user).isEmpty();
+	}
+
+	private List<Long> getUnprocessedMessages(User user)
 	{
 		MessageDestination anonymousMessageDestination = getAnonymousMessageSource(user).getDestination();
-		List<Long> idsOfUnprocessedMessages = Message.getRepository()
-				.findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
-		if (idsOfUnprocessedMessages.isEmpty())
-		{
-			return;
-		}
+		return Message.getRepository().findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
+	}
+
+	@Transactional
+	private void processUnprocessedMessages(User user)
+	{
+		List<Long> idsOfUnprocessedMessages = getUnprocessedMessages(user);
 
 		UserDto userDto = userService.getPrivateUser(user.getId());
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
