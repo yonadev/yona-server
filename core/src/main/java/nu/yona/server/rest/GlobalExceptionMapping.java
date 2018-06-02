@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -67,20 +69,20 @@ public class GlobalExceptionMapping
 	}
 
 	/**
-	 * This method argument mismatches. They indicate that the caller passed a wrong parameter, e.g. an invalid UUID. They result
-	 * in a 400 (BAD REQUEST).
+	 * The request is wrong. Examples: The caller passed a wrong parameter (e.g. an invalid UUID), the HTTP message cannot be read
+	 * (e.g. because the JSON string is wrong), the media type is not supported, etc.<br/>
+	 * Such requests result in a 400 (BAD REQUEST).
 	 * 
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
-	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	@ExceptionHandler({ MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class,
+			HttpMediaTypeNotSupportedException.class })
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public ErrorResponseDto handleArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception,
-			HttpServletRequest request)
+	public ErrorResponseDto handleInvalidRequestException(Exception exception, HttpServletRequest request)
 	{
-		logUnhandledException("Request {0} completed with argument type mismatch exception: {1}", buildRequestInfo(request),
-				exception);
+		logUnhandledException("Request {0} cannot be read: {1}", buildRequestInfo(request), exception);
 
 		return new ErrorResponseDto(null, exception.getMessage());
 	}
