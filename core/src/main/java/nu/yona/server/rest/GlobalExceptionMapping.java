@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -44,9 +47,7 @@ public class GlobalExceptionMapping
 	@ResponseBody
 	public ErrorResponseDto handleOtherException(Exception exception, HttpServletRequest request)
 	{
-		logUnhandledException("Request {0} completed with unknown exception: {1}", buildRequestInfo(request), exception);
-
-		return new ErrorResponseDto(null, exception.getMessage());
+		return logUnhandledExceptionAndCreateErrorDto("completed with unknown exception", exception, request);
 	}
 
 	/**
@@ -59,7 +60,7 @@ public class GlobalExceptionMapping
 	@ExceptionHandler(YonaException.class)
 	public ResponseEntity<ErrorResponseDto> handleYonaException(YonaException exception, HttpServletRequest request)
 	{
-		logUnhandledException("Request {0} completed with Yona exception: {1}", buildRequestInfo(request), exception);
+		logUnhandledException("completed with Yona exception", buildRequestInfo(request), exception);
 
 		ErrorResponseDto responseMessage = new ErrorResponseDto(exception.getMessageId(), exception.getMessage());
 
@@ -67,20 +68,55 @@ public class GlobalExceptionMapping
 	}
 
 	/**
-	 * This method argument mismatches. They indicate that the caller passed a wrong parameter, e.g. an invalid UUID. They result
-	 * in a 400 (BAD REQUEST).
+	 * The request is wrong. Examples: The caller passed a wrong parameter (e.g. an invalid UUID), the HTTP message cannot be read
+	 * (e.g. because the JSON string is wrong), etc.<br/>
+	 * Such requests result in a 400 (Bad Request).
 	 * 
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
-	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	@ExceptionHandler({ MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class })
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public ErrorResponseDto handleArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception,
+	public ErrorResponseDto handleInvalidRequestException(Exception exception, HttpServletRequest request)
+	{
+		return logUnhandledExceptionAndCreateErrorDto("cannot be read", exception, request);
+	}
+
+	/**
+	 * Unsupported media type. Such requests result in a 415 (Unsupported Media Type).
+	 * 
+	 * @param exception The exception.
+	 * @return The response object to return.
+	 */
+	@ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+	@ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+	@ResponseBody
+	public ErrorResponseDto handleUnsupportedMediaTypeException(HttpMediaTypeNotSupportedException exception,
 			HttpServletRequest request)
 	{
-		logUnhandledException("Request {0} completed with argument type mismatch exception: {1}", buildRequestInfo(request),
-				exception);
+		return logUnhandledExceptionAndCreateErrorDto("uses unsupported media type", exception, request);
+	}
+
+	/**
+	 * Unsupported media type. Such requests result in a 406 (Not Acceptable).
+	 * 
+	 * @param exception The exception.
+	 * @return The response object to return.
+	 */
+	@ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+	@ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+	@ResponseBody
+	public ErrorResponseDto handleMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException exception,
+			HttpServletRequest request)
+	{
+		return logUnhandledExceptionAndCreateErrorDto("does not accept our supported media types", exception, request);
+	}
+
+	private ErrorResponseDto logUnhandledExceptionAndCreateErrorDto(String message, Exception exception,
+			HttpServletRequest request)
+	{
+		logUnhandledException(message, buildRequestInfo(request), exception);
 
 		return new ErrorResponseDto(null, exception.getMessage());
 	}
@@ -91,7 +127,7 @@ public class GlobalExceptionMapping
 		try
 		{
 			LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
-			logger.error(MessageFormat.format(message, requestInfo, exception.getMessage()), exception);
+			logger.error(MessageFormat.format("Request {0} {1} : {2}", requestInfo, message, exception.getMessage()), exception);
 		}
 		finally
 		{
