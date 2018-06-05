@@ -8,6 +8,7 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -77,13 +78,10 @@ public class AnalysisEngineService
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		DeviceAnonymizedDto deviceAnonymized = deviceService.getDeviceAnonymized(userAnonymized, deviceAnonymizedId);
 		Duration deviceTimeOffset = determineDeviceTimeOffset(appActivities);
-		for (AppActivitiesDto.Activity appActivity : appActivities.getActivitiesSorted())
-		{
-			Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
-					.getMatchingCategoriesForApp(appActivity.getApplication());
-			analyze(createActivityPayload(deviceTimeOffset, appActivity, userAnonymized, deviceAnonymized),
-					matchingActivityCategories);
-		}
+		ActivityPayload[] activityPayloads = appActivities.getActivitiesSorted().stream()
+				.map(appActivity -> createActivityPayload(deviceTimeOffset, appActivity, userAnonymized, deviceAnonymized))
+				.toArray(ActivityPayload[]::new);
+		analyze(activityPayloads);
 	}
 
 	// This is intentionally not marked with @Transactional, as the transaction is explicitly started within the lock inside
@@ -97,11 +95,13 @@ public class AnalysisEngineService
 			// Ignore the network activities till the user opened the app
 			return;
 		}
-		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
-				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
+
 		DeviceAnonymizedDto deviceAnonymized = deviceService.getDeviceAnonymized(userAnonymized,
 				networkActivity.getDeviceIndex());
-		analyze(ActivityPayload.createInstance(userAnonymized, deviceAnonymized, networkActivity), matchingActivityCategories);
+		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
+				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
+		analyze(new ActivityPayload[] {
+				ActivityPayload.createInstance(userAnonymized, deviceAnonymized, networkActivity, matchingActivityCategories) });
 	}
 
 	private Duration determineDeviceTimeOffset(AppActivitiesDto appActivities)
@@ -118,8 +118,10 @@ public class AnalysisEngineService
 		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
 		String application = appActivity.getApplication();
 		assertValidTimes(userAnonymized, application, correctedStartTime, correctedEndTime);
-		return ActivityPayload.createInstance(userAnonymized, deviceAnonymized, correctedStartTime, correctedEndTime,
-				application);
+		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
+				.getMatchingCategoriesForApp(appActivity.getApplication());
+		return ActivityPayload.createInstance(userAnonymized, deviceAnonymized, correctedStartTime, correctedEndTime, application,
+				matchingActivityCategories);
 	}
 
 	private void assertValidTimes(UserAnonymizedDto userAnonymized, String application, ZonedDateTime correctedStartTime,
@@ -145,18 +147,24 @@ public class AnalysisEngineService
 		return time.minus(deviceTimeOffset);
 	}
 
-	private void analyze(ActivityPayload payload, Set<ActivityCategoryDto> matchingActivityCategories)
+	private void analyze(ActivityPayload[] payloads)
 	{
+		if (payloads.length == 0)
+		{
+			return;
+		}
+
 		// We add a lock here because we further down in this class need to prevent conflicting updates to the DayActivity
 		// entities.
 		// The lock is added in this method (and not further down) so that we only have to lock once.
 		// Because the lock is per user, it doesn't matter much that we block early.
-		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getId()))
+		UUID userAnonymizedId = payloads[0].userAnonymized.getId();
+		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedId))
 		{
 			transactionHelper.executeInNewTransaction(() -> {
 				UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(userAnonymizedService,
-						payload.userAnonymized.getId());
-				analyzeInsideLock(userAnonymizedHolder, payload, matchingActivityCategories);
+						userAnonymizedId);
+				analyzeInsideLock(userAnonymizedHolder, payloads);
 				if (userAnonymizedHolder.isEntityFetched())
 				{
 					userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
@@ -165,26 +173,34 @@ public class AnalysisEngineService
 		}
 	}
 
-	private void analyzeInsideLock(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
-			Set<ActivityCategoryDto> matchingActivityCategories)
+	private void analyzeInsideLock(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload[] payloads)
 	{
-		updateLastMonitoredActivityDateIfRelevant(userAnonymizedHolder, payload);
-
-		Set<GoalDto> goals = determineRelevantGoals(payload, matchingActivityCategories);
-		for (GoalDto goal : goals)
+		for (ActivityPayload payload : payloads)
 		{
-			addOrUpdateActivity(userAnonymizedHolder, payload, goal);
+			updateLastMonitoredActivityDateIfRelevant(userAnonymizedHolder, payloads);
+
+			Set<GoalDto> goals = determineRelevantGoals(payload);
+			for (GoalDto goal : goals)
+			{
+				addOrUpdateActivity(userAnonymizedHolder, payload, goal);
+			}
 		}
 	}
 
 	private void updateLastMonitoredActivityDateIfRelevant(UserAnonymizedEntityHolder userAnonymizedHolder,
-			ActivityPayload payload)
+			ActivityPayload[] payloads)
 	{
-		Optional<LocalDate> lastMonitoredActivityDate = payload.userAnonymized.getLastMonitoredActivityDate();
-		LocalDate activityEndTime = payload.endTime.toLocalDate();
-		if (lastMonitoredActivityDate.map(d -> d.isBefore(activityEndTime)).orElse(true))
+		if (payloads.length == 0)
 		{
-			activityUpdateService.updateLastMonitoredActivityDate(userAnonymizedHolder.getEntity(), activityEndTime);
+			return;
+		}
+
+		LocalDate lastActivityEndTime = Arrays.stream(payloads).map(payload -> payload.endTime).max(ZonedDateTime::compareTo)
+				.get().toLocalDate();
+		Optional<LocalDate> lastMonitoredActivityDate = payloads[0].userAnonymized.getLastMonitoredActivityDate();
+		if (lastMonitoredActivityDate.map(d -> d.isBefore(lastActivityEndTime)).orElse(true))
+		{
+			activityUpdateService.updateLastMonitoredActivityDate(userAnonymizedHolder.getEntity(), lastActivityEndTime);
 		}
 	}
 
@@ -277,8 +293,7 @@ public class AnalysisEngineService
 			List<Activity> overlappingOfSameApp)
 	{
 		String overlappingActivitiesKind = payload.application.isPresent()
-				? MessageFormat.format("app activities of ''{0}''", payload.application.get())
-				: "network activities";
+				? MessageFormat.format("app activities of ''{0}''", payload.application.get()) : "network activities";
 		String overlappingActivities = overlappingOfSameApp.stream().map(Activity::toString).collect(Collectors.joining(", "));
 		logger.warn(
 				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",
@@ -383,11 +398,11 @@ public class AnalysisEngineService
 				.collect(Collectors.toSet());
 	}
 
-	static Set<GoalDto> determineRelevantGoals(ActivityPayload payload, Set<ActivityCategoryDto> matchingActivityCategories)
+	static Set<GoalDto> determineRelevantGoals(ActivityPayload payload)
 	{
 		boolean onlyNoGoGoals = payload.isNetworkActivity()
 				&& payload.deviceAnonymized.getOperatingSystem() == OperatingSystem.ANDROID;
-		Set<UUID> matchingActivityCategoryIds = matchingActivityCategories.stream().map(ActivityCategoryDto::getId)
+		Set<UUID> matchingActivityCategoryIds = payload.activityCategories.stream().map(ActivityCategoryDto::getId)
 				.collect(Collectors.toSet());
 		Set<GoalDto> goalsOfUser = payload.userAnonymized.getGoals();
 		return goalsOfUser.stream().filter(g -> !g.isHistoryItem())

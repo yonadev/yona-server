@@ -8,8 +8,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import nu.yona.server.device.service.DeviceAnonymizedDto;
+import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 
 class ActivityPayload
@@ -20,9 +22,11 @@ class ActivityPayload
 	public final ZonedDateTime endTime;
 	public final Optional<String> application;
 	public final DeviceAnonymizedDto deviceAnonymized;
+	public final Set<ActivityCategoryDto> activityCategories;
 
 	private ActivityPayload(UserAnonymizedDto userAnonymized, DeviceAnonymizedDto deviceAnonymized, Optional<String> url,
-			ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> application)
+			ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> application,
+			Set<ActivityCategoryDto> activityCategories)
 	{
 		this.userAnonymized = userAnonymized;
 		this.deviceAnonymized = deviceAnonymized;
@@ -30,6 +34,7 @@ class ActivityPayload
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.application = application;
+		this.activityCategories = activityCategories;
 	}
 
 	boolean isNetworkActivity()
@@ -40,30 +45,31 @@ class ActivityPayload
 	static ActivityPayload copyTillEndTime(ActivityPayload payload, ZonedDateTime endTime)
 	{
 		return new ActivityPayload(payload.userAnonymized, payload.deviceAnonymized, payload.url, payload.startTime, endTime,
-				payload.application);
+				payload.application, payload.activityCategories);
 	}
 
 	static ActivityPayload copyFromStartTime(ActivityPayload payload, ZonedDateTime startTime)
 	{
 		return new ActivityPayload(payload.userAnonymized, payload.deviceAnonymized, payload.url, startTime, payload.endTime,
-				payload.application);
+				payload.application, payload.activityCategories);
 	}
 
 	static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, DeviceAnonymizedDto deviceAnonymized,
-			NetworkActivityDto networkActivity)
+			NetworkActivityDto networkActivity, Set<ActivityCategoryDto> activityCategories)
 	{
 		ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
 				.withZoneSameInstant(userAnonymized.getTimeZone());
 		return new ActivityPayload(userAnonymized, deviceAnonymized, Optional.of(networkActivity.getUrl()), startTime, startTime,
-				Optional.empty());
+				Optional.empty(), activityCategories);
 	}
 
 	static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, DeviceAnonymizedDto deviceAnonymized,
-			ZonedDateTime startTime, ZonedDateTime endTime, String application)
+			ZonedDateTime startTime, ZonedDateTime endTime, String application, Set<ActivityCategoryDto> activityCategories)
 	{
 		ZoneId userTimeZone = userAnonymized.getTimeZone();
 		return new ActivityPayload(userAnonymized, deviceAnonymized, Optional.empty(),
-				startTime.withZoneSameInstant(userTimeZone), endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
+				startTime.withZoneSameInstant(userTimeZone), endTime.withZoneSameInstant(userTimeZone), Optional.of(application),
+				activityCategories);
 	}
 
 	@Override

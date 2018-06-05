@@ -433,10 +433,9 @@ public class AnalysisEngineServiceTest
 		ArgumentCaptor<ActivityPayload> activityPayloadCaptor = ArgumentCaptor.forClass(ActivityPayload.class);
 		verify(mockActivityUpdater, times(2)).addActivity(any(), activityPayloadCaptor.capture(),
 				eq(GoalDto.createInstance(gamblingGoal)), any());
-		assertThat(activityPayloadCaptor.getAllValues(),
-				equalTo(Arrays
-						.asList(new ActivityPayload[] { ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t1, t2, app),
-								ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t3, t4, app) })));
+		assertThat(activityPayloadCaptor.getAllValues(), equalTo(Arrays.asList(new ActivityPayload[] {
+				ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t1, t2, app, makeCategorySet(gamblingGoal)),
+				ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t3, t4, app, makeCategorySet(gamblingGoal)) })));
 		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
@@ -634,13 +633,15 @@ public class AnalysisEngineServiceTest
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
+		verify(mockActivityUpdater).addActivity(
+				any(), eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime,
+						endTime.truncatedTo(ChronoUnit.DAYS), "Poker App", makeCategorySet(gamblingGoal))),
+				eq(GoalDto.createInstance(gamblingGoal)), any());
 		verify(mockActivityUpdater)
 				.addActivity(any(),
-						eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime,
-								endTime.truncatedTo(ChronoUnit.DAYS), "Poker App")),
+						eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, endTime.truncatedTo(ChronoUnit.DAYS),
+								endTime, "Poker App", makeCategorySet(gamblingGoal))),
 						eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater).addActivity(any(), eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto,
-				endTime.truncatedTo(ChronoUnit.DAYS), endTime, "Poker App")), eq(GoalDto.createInstance(gamblingGoal)), any());
 		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
@@ -794,5 +795,11 @@ public class AnalysisEngineServiceTest
 	private ZonedDateTime now()
 	{
 		return ZonedDateTime.now().withZoneSameInstant(userAnonZoneId);
+	}
+
+	private Set<ActivityCategoryDto> makeCategorySet(Goal... goals)
+	{
+		return Arrays.asList(goals).stream().map(Goal::getActivityCategory).map(ActivityCategoryDto::createInstance)
+				.collect(Collectors.toSet());
 	}
 }
