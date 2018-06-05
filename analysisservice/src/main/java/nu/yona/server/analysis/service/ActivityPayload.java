@@ -6,7 +6,6 @@ package nu.yona.server.analysis.service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -70,29 +69,5 @@ class ActivityPayload
 		return new ActivityPayload(userAnonymized, deviceAnonymized, Optional.empty(),
 				startTime.withZoneSameInstant(userTimeZone), endTime.withZoneSameInstant(userTimeZone), Optional.of(application),
 				activityCategories);
-	}
-
-	@Override
-	public boolean equals(Object other)
-	{
-		if (other == this)
-		{
-			return true;
-		}
-		if (!(other instanceof ActivityPayload))
-		{
-			return false;
-		}
-		ActivityPayload otherActivityPayload = (ActivityPayload) other;
-		return otherActivityPayload.application.equals(this.application) && otherActivityPayload.url.equals(this.url)
-				&& otherActivityPayload.startTime.equals(this.startTime) && otherActivityPayload.endTime.equals(this.endTime)
-				&& otherActivityPayload.deviceAnonymized.equals(this.deviceAnonymized)
-				&& otherActivityPayload.userAnonymized.equals(this.userAnonymized);
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return Objects.hash(application, url, startTime, endTime, deviceAnonymized, userAnonymized);
 	}
 }

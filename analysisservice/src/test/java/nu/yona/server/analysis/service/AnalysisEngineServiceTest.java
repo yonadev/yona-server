@@ -433,9 +433,12 @@ public class AnalysisEngineServiceTest
 		ArgumentCaptor<ActivityPayload> activityPayloadCaptor = ArgumentCaptor.forClass(ActivityPayload.class);
 		verify(mockActivityUpdater, times(2)).addActivity(any(), activityPayloadCaptor.capture(),
 				eq(GoalDto.createInstance(gamblingGoal)), any());
-		assertThat(activityPayloadCaptor.getAllValues(), equalTo(Arrays.asList(new ActivityPayload[] {
-				ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t1, t2, app, makeCategorySet(gamblingGoal)),
-				ActivityPayload.createInstance(userAnonDto, deviceAnonDto, t3, t4, app, makeCategorySet(gamblingGoal)) })));
+		List<ActivityPayload> payloads = activityPayloadCaptor.getAllValues();
+		assertThat(payloads.size(), equalTo(2));
+		assertThat(payloads.get(0).startTime, equalTo(t1));
+		assertThat(payloads.get(0).endTime, equalTo(t2));
+		assertThat(payloads.get(1).startTime, equalTo(t3));
+		assertThat(payloads.get(1).endTime, equalTo(t4));
 		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
@@ -633,15 +636,15 @@ public class AnalysisEngineServiceTest
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		verify(mockActivityUpdater).addActivity(
-				any(), eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime,
-						endTime.truncatedTo(ChronoUnit.DAYS), "Poker App", makeCategorySet(gamblingGoal))),
+		ArgumentCaptor<ActivityPayload> activityPayloadCaptor = ArgumentCaptor.forClass(ActivityPayload.class);
+		verify(mockActivityUpdater, times(2)).addActivity(any(), activityPayloadCaptor.capture(),
 				eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater)
-				.addActivity(any(),
-						eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, endTime.truncatedTo(ChronoUnit.DAYS),
-								endTime, "Poker App", makeCategorySet(gamblingGoal))),
-						eq(GoalDto.createInstance(gamblingGoal)), any());
+		List<ActivityPayload> payloads = activityPayloadCaptor.getAllValues();
+		assertThat(payloads.size(), equalTo(2));
+		assertThat(payloads.get(0).startTime, equalTo(startTime));
+		assertThat(payloads.get(0).endTime, equalTo(endTime.truncatedTo(ChronoUnit.DAYS)));
+		assertThat(payloads.get(1).startTime, equalTo(endTime.truncatedTo(ChronoUnit.DAYS)));
+		assertThat(payloads.get(1).endTime, equalTo(endTime));
 		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
