@@ -1907,6 +1907,9 @@ definitions:
         type: string
         description: The version of the Yona app running on this device, in semver-compatible format
         example: 1.0.0
+      firebaseInstanceId:
+        type: string
+        description: The Instance ID provided by Firebase to the app
     required:
       - name
       - operatingSystem
@@ -1918,6 +1921,9 @@ definitions:
         type: string
         description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
         example: My S8
+      firebaseInstanceId:
+        type: string
+        description: The Instance ID provided by Firebase to the app
     required:
       - name
   DeviceBase:
@@ -2048,6 +2054,9 @@ definitions:
             type: string
             description: The version of the Yona app running on this device, in semver-compatible format
             example: 1.0.0
+          deviceFirebaseInstanceId:
+            type: string
+            description: The Instance ID provided by Firebase to the app
   UserWithPrivateData:
     allOf:
       - $ref: '#/definitions/BaseUser'

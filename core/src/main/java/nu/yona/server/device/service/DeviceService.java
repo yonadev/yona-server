@@ -104,7 +104,7 @@ public class DeviceService
 		assertAcceptableDeviceName(userEntity, deviceDto.getName());
 		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
-				deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
+				deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getFirebaseInstanceId());
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice deviceEntity = userDeviceRepository
 				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId(), userService.generatePassword()));
@@ -192,6 +192,9 @@ public class DeviceService
 			assertAcceptableDeviceName(userEntity, changeRequest.name);
 			deviceEntity.setName(changeRequest.name);
 			userDeviceRepository.save(deviceEntity);
+			DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
+			deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId);
+			deviceAnonymizedRepository.save(deviceAnonymized);
 			sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
 					Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
 		});
@@ -201,7 +204,7 @@ public class DeviceService
 	public UserDeviceDto createDefaultUserDeviceDto()
 	{
 		return new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN,
-				ANDROID_MIN_APP_VERSION);
+				ANDROID_MIN_APP_VERSION, Optional.empty());
 	}
 
 	private int findFirstFreeDeviceIndex(User userEntity)
