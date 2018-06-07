@@ -6,6 +6,7 @@ package nu.yona.server.rest;
 
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -47,6 +48,8 @@ public class GlobalExceptionMapping
 	@ResponseBody
 	public ErrorResponseDto handleOtherException(Exception exception, HttpServletRequest request)
 	{
+		Optional<String> opt = Optional.empty();
+		logger.debug(opt.get());
 		return logUnhandledExceptionAndCreateErrorDto("completed with unknown exception", exception, request);
 	}
 
