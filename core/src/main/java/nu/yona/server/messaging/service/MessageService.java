@@ -155,10 +155,10 @@ public class MessageService
 	{
 		List<Long> idsOfUnprocessedMessages = getUnprocessedMessages(user);
 
-		UserDto userDto = userService.getPrivateUser(user.getId());
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
 		for (long id : idsOfUnprocessedMessages)
 		{
+			UserDto userDto = userService.getPrivateUser(user.getId()); // Inside loop, as message processing might change it
 			handleMessageAction(userDto, id, "process", emptyPayload);
 		}
 	}
