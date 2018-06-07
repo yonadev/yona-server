@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -96,6 +97,21 @@ public class GlobalExceptionMapping
 			HttpServletRequest request)
 	{
 		return logUnhandledExceptionAndCreateErrorDto("uses unsupported media type", exception, request);
+	}
+
+	/**
+	 * Unsupported method (e.g. POST on a read-only path). Such requests result in a 405 (Method Not Allowed).
+	 * 
+	 * @param exception The exception.
+	 * @return The response object to return.
+	 */
+	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+	@ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+	@ResponseBody
+	public ErrorResponseDto handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException exception,
+			HttpServletRequest request)
+	{
+		return logUnhandledExceptionAndCreateErrorDto("attempts an unsupported method", exception, request);
 	}
 
 	/**
