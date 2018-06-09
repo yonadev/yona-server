@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -21,18 +23,23 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Type;
+import org.springframework.core.annotation.Order;
 
+import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.device.entities.BuddyDevice;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
+import nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "BUDDIES")
 public class Buddy extends PrivateUserProperties
 {
+	private static final int VERSION_OF_NAME_MIGRATION = EncryptFirstAndLastName.class.getAnnotation(Order.class).value() + 1;
+
 	@Type(type = "uuid-char")
 	@Column(name = "owning_user_private_id")
 	private UUID owningUserPrivateId;
@@ -188,5 +195,63 @@ public class Buddy extends PrivateUserProperties
 	public Set<BuddyDevice> getDevices()
 	{
 		return devices;
+	}
+
+	/**
+	 * Determines the first name (see {@link #determineName(Supplier, Optional, Function, String, String)}).
+	 * 
+	 * @param user Optional user
+	 * @return The first name or a substitute for it (never null)
+	 */
+	public String determineFirstName(Optional<User> user)
+	{
+		return Buddy.determineName(this::getFirstName, user, User::getFirstName, "message.alternative.first.name", getNickname());
+	}
+
+	/**
+	 * Determines the last name (see {@link #determineName(Supplier, Optional, Function, String, String)}).
+	 * 
+	 * @param user Optional user
+	 * @return The last name or a substitute for it (never null)
+	 */
+	public String determineLastName(Optional<User> user)
+	{
+		return Buddy.determineName(this::getLastName, user, User::getLastName, "message.alternative.last.name", getNickname());
+	}
+
+	/**
+	 * Determines the name of the user (first or last) through an algorithm that ensures the best possible value is returned, but
+	 * never null. It first tries calling the getter that is supposed to take it from the buddy entity or message. If that returns
+	 * null and a user is given and that user is not yet migrated (i.e. the name is not removed from it), it tries to get that. If
+	 * that doesn't return anything either, it builds a string based on the given nickname.
+	 * 
+	 * @param buddyUserNameGetter Getter to fetch the name from the buddy entity or a message
+	 * @param user Optional user entity
+	 * @param userNameGetter Getter to fetch the name (first or last) from the user entity
+	 * @param messageId The ID of the translatable message to build the fallback string
+	 * @param nickname The nickname to include in the fallback string
+	 * @return The name or a substitute for it (never null)
+	 */
+	public static String determineName(Supplier<String> buddyUserNameGetter, Optional<User> user,
+			Function<User, String> userNameGetter, String messageId, String nickname)
+	{
+		String name = buddyUserNameGetter.get();
+		if (name != null)
+		{
+			return name;
+		}
+		if ((user.isPresent()) && (user.get().getPrivateDataMigrationVersion() < VERSION_OF_NAME_MIGRATION))
+		{
+			// User is not deleted yet and not yet migrated, so get the name from the user entity
+			name = userNameGetter.apply(user.get());
+		}
+		if (name != null)
+		{
+			return name;
+		}
+		// We're apparently in a migration process to move first and last name to the private data
+		// The app will fetch the message, causing processing of all unprocessed messages. That'll fill in the first and last
+		// name in the buddy entity, so from then onward, the user will see the right data
+		return Translator.getInstance().getLocalizedMessage(messageId, nickname);
 	}
 }
