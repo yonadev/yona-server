@@ -29,7 +29,6 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DtoManager;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.rest.PolymorphicDto;
-import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDto;
@@ -237,25 +236,13 @@ public abstract class MessageDto extends PolymorphicDto
 		protected SenderInfo createSenderInfoForBuddyConnectionChangeMessage(Optional<User> senderUser,
 				BuddyConnectionChangeMessage buddyMessageEntity)
 		{
-			String firstName = determineFirstName(senderUser, buddyMessageEntity);
-			String lastName = determineLastName(senderUser, buddyMessageEntity);
+			String firstName = buddyMessageEntity.determineFirstName(senderUser);
+			String lastName = buddyMessageEntity.determineLastName(senderUser);
 
 			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(firstName, lastName,
 					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId());
 			return senderInfoFactory.createInstanceForDetachedBuddy(
 					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyUserPrivateData)), buddyUserPrivateData);
-		}
-
-		private String determineFirstName(Optional<User> senderUser, BuddyConnectionChangeMessage buddyMessageEntity)
-		{
-			return Buddy.determineName(buddyMessageEntity::getFirstName, senderUser, User::getFirstName,
-					"message.alternative.first.name", buddyMessageEntity.getSenderNickname());
-		}
-
-		private String determineLastName(Optional<User> senderUser, BuddyConnectionChangeMessage buddyMessageEntity)
-		{
-			return Buddy.determineName(buddyMessageEntity::getLastName, senderUser, User::getLastName,
-					"message.alternative.last.name", buddyMessageEntity.getSenderNickname());
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

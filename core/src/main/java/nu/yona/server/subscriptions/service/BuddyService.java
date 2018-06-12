@@ -217,9 +217,9 @@ public class BuddyService
 
 	private Buddy createBuddyEntity(BuddyConnectRequestMessage connectRequestMessageEntity)
 	{
-		Buddy buddy = Buddy.createInstance(connectRequestMessageEntity.getSenderUser().get().getId(),
-				connectRequestMessageEntity.getFirstName(), connectRequestMessageEntity.getLastName(),
-				connectRequestMessageEntity.getSenderNickname(),
+		Optional<User> senderUser = connectRequestMessageEntity.getSenderUser();
+		Buddy buddy = Buddy.createInstance(senderUser.get().getId(), connectRequestMessageEntity.determineFirstName(senderUser),
+				connectRequestMessageEntity.determineLastName(senderUser), connectRequestMessageEntity.getSenderNickname(),
 				connectRequestMessageEntity.requestingSending() ? Status.ACCEPTED : Status.NOT_REQUESTED,
 				connectRequestMessageEntity.requestingReceiving() ? Status.ACCEPTED : Status.NOT_REQUESTED);
 		buddy.setUserAnonymizedId(connectRequestMessageEntity.getRelatedUserAnonymizedId().get());
