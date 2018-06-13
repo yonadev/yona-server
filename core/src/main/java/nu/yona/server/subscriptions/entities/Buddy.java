@@ -205,7 +205,7 @@ public class Buddy extends PrivateUserProperties
 	 */
 	public String determineFirstName(Optional<User> user)
 	{
-		return Buddy.determineName(this::getFirstName, user, User::getFirstName, "message.alternative.first.name", getNickname());
+		return determineName(this::getFirstName, user, User::getFirstName, "message.alternative.first.name", getNickname());
 	}
 
 	/**
@@ -216,7 +216,7 @@ public class Buddy extends PrivateUserProperties
 	 */
 	public String determineLastName(Optional<User> user)
 	{
-		return Buddy.determineName(this::getLastName, user, User::getLastName, "message.alternative.last.name", getNickname());
+		return determineName(this::getLastName, user, User::getLastName, "message.alternative.last.name", getNickname());
 	}
 
 	/**
@@ -228,12 +228,12 @@ public class Buddy extends PrivateUserProperties
 	 * @param buddyUserNameGetter Getter to fetch the name from the buddy entity or a message
 	 * @param user Optional user entity
 	 * @param userNameGetter Getter to fetch the name (first or last) from the user entity
-	 * @param messageId The ID of the translatable message to build the fallback string
+	 * @param fallbackMessageId The ID of the translatable message to build the fallback string
 	 * @param nickname The nickname to include in the fallback string
 	 * @return The name or a substitute for it (never null)
 	 */
 	public static String determineName(Supplier<String> buddyUserNameGetter, Optional<User> user,
-			Function<User, String> userNameGetter, String messageId, String nickname)
+			Function<User, String> userNameGetter, String fallbackMessageId, String nickname)
 	{
 		String name = buddyUserNameGetter.get();
 		if (name != null)
@@ -252,6 +252,6 @@ public class Buddy extends PrivateUserProperties
 		// We're apparently in a migration process to move first and last name to the private data
 		// The app will fetch the message, causing processing of all unprocessed messages. That'll fill in the first and last
 		// name in the buddy entity, so from then onward, the user will see the right data
-		return Translator.getInstance().getLocalizedMessage(messageId, nickname);
+		return Translator.getInstance().getLocalizedMessage(fallbackMessageId, nickname);
 	}
 }
