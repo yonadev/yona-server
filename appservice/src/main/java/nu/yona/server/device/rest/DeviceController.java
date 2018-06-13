@@ -164,7 +164,7 @@ public class DeviceController extends ControllerBase
 				() -> userService.canAccessPrivateData(userId)))
 		{
 			UserDeviceDto newDevice = deviceService.addDeviceToUser(userId,
-					UserDeviceDto.createDeviceRegistrationInstance(request));
+					UserDeviceDto.createDeviceRegistrationInstance(request), true);
 			return createResponse(userService.getPrivateUser(userId, false), HttpStatus.CREATED,
 					userController.createResourceAssemblerForOwnUser(userId, Optional.of(newDevice.getId())));
 		}
@@ -480,7 +480,8 @@ public class DeviceController extends ControllerBase
 		{
 			if (getContent() instanceof UserDeviceDto)
 			{
-				return createVpnProfileResource(((UserDeviceDto) getContent()).getVpnProfile());
+				VPNProfileDto vpnProfile = ((UserDeviceDto) getContent()).getVpnProfile();
+				return createVpnProfileResource(vpnProfile);
 			}
 			return null;
 		}

@@ -40,7 +40,7 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 	{
 		super(id);
 		this.name = Objects.requireNonNull(name);
-		this.deviceAnonymizedId = Objects.requireNonNull(deviceAnonymizedId);
+		this.deviceAnonymizedId = deviceAnonymizedId;
 	}
 
 	public String getName()
@@ -66,14 +66,33 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 		return deviceAnonymizedId;
 	}
 
+	protected void setDeviceAnonymizeId(UUID deviceAnonymizedId)
+	{
+		assert this.deviceAnonymizedId == null;
+		this.deviceAnonymizedId = deviceAnonymizedId;
+	}
+
 	public DeviceAnonymized getDeviceAnonymized()
 	{
+		if (deviceAnonymizedId == null)
+		{
+			return null; // Device anonymized not created yet
+		}
 		return getDeviceAnonymizedIfExisting()
 				.orElseThrow(() -> new IllegalStateException("DeviceAnonymized with ID " + deviceAnonymizedId + " not found"));
 	}
 
+	public void clearDeviceAnonymized()
+	{
+		deviceAnonymizedId = null;
+	}
+
 	private Optional<DeviceAnonymized> getDeviceAnonymizedIfExisting()
 	{
+		if (deviceAnonymizedId == null)
+		{
+			return Optional.empty();
+		}
 		return Optional.ofNullable(DeviceAnonymized.getRepository().findOne(deviceAnonymizedId));
 	}
 }

@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -158,10 +157,10 @@ public class ActivityUpdateServiceTest
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown");
 		deviceAnonId = deviceAnonEntity.getId();
-		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
+		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity);
+		Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal).stream().forEach(g -> userAnonEntity.addGoal(g));
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);
 		deviceAnonDto = DeviceAnonymizedDto.createInstance(deviceAnonEntity);

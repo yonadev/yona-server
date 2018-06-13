@@ -68,23 +68,18 @@ public class UserPrivate extends PrivateUserProperties
 		super();
 	}
 
-	private UserPrivate(UUID id, String firstName, String lastName, String nickname, UUID userAnonymizedId,
-			UUID anonymousMessageSourceId, UUID namedMessageSourceId)
+	private UserPrivate(UUID id, String firstName, String lastName, String nickname, UUID namedMessageSourceId)
 	{
 		super(id, firstName, lastName, nickname);
 		this.decryptionCheck = buildDecryptionCheck();
-		this.userAnonymizedId = userAnonymizedId;
 		this.buddies = new HashSet<>();
-		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.devices = new HashSet<>();
 	}
 
-	public static UserPrivate createInstance(String firstName, String lastName, String nickname, UUID userAnonymizedId,
-			UUID anonymousMessageSourceId, MessageSource namedMessageSource)
+	public static UserPrivate createInstance(String firstName, String lastName, String nickname, MessageSource namedMessageSource)
 	{
-		return new UserPrivate(UUID.randomUUID(), firstName, lastName, nickname, userAnonymizedId, anonymousMessageSourceId,
-				namedMessageSource.getId());
+		return new UserPrivate(UUID.randomUUID(), firstName, lastName, nickname, namedMessageSource.getId());
 	}
 
 	private static String buildDecryptionCheck()
@@ -99,8 +94,18 @@ public class UserPrivate extends PrivateUserProperties
 
 	UserAnonymized getUserAnonymized()
 	{
+		if (userAnonymizedId == null)
+		{
+			return null;
+		}
 		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(userAnonymizedId);
 		return Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedId + " not found");
+	}
+
+	void setUserAnonymized(UserAnonymized userAnonymized)
+	{
+		assert userAnonymizedId == null;
+		userAnonymizedId = userAnonymized.getId();
 	}
 
 	public Set<Buddy> getBuddies()
@@ -121,6 +126,11 @@ public class UserPrivate extends PrivateUserProperties
 	public UUID getAnonymousMessageSourceId()
 	{
 		return anonymousMessageSourceId;
+	}
+
+	void setAnonymousMessageSourceId(UUID anonymousMessageSourceId)
+	{
+		this.anonymousMessageSourceId = anonymousMessageSourceId;
 	}
 
 	public UUID getNamedMessageSourceId()
@@ -169,7 +179,7 @@ public class UserPrivate extends PrivateUserProperties
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()
 	{
-		return getUserAnonymized().getLastMonitoredActivityDate();
+		return (userAnonymizedId == null) ? Optional.empty() : getUserAnonymized().getLastMonitoredActivityDate();
 	}
 
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
@@ -186,7 +196,6 @@ public class UserPrivate extends PrivateUserProperties
 	{
 		devices.add(device);
 		device.setUserPrivateId(getId());
-		getUserAnonymized().addDeviceAnonymized(device.getDeviceAnonymized());
 	}
 
 	public void removeDevice(UserDevice device)

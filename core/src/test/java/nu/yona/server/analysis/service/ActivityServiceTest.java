@@ -138,9 +138,9 @@ public class ActivityServiceTest
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown");
-		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
+		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity);
+		Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal).stream().forEach(g -> userAnonEntity.addGoal(g));
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
 		userAnonZone = userAnon.getTimeZone();

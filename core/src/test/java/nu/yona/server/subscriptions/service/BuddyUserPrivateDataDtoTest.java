@@ -141,8 +141,7 @@ public class BuddyUserPrivateDataDtoTest
 	private User createUser(String firstName, String lastName, String nickname)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, UUID.randomUUID(), UUID.randomUUID(),
-				messageSource);
+		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, messageSource);
 		return new User(UUID.randomUUID(), initializationVector, "+31123456", userPrivate, messageDestination);
 	}
 }

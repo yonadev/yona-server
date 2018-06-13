@@ -46,7 +46,6 @@ import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
-import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.messaging.service.MessageService;
@@ -245,6 +244,10 @@ public class UserService
 		User userEntity = createUserEntity(user, UserSignUp.FREE);
 		addDevicesToEntity(user, userEntity);
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNeeded(overwriteUserConfirmationCode, userEntity);
+		if (userEntity.isMobileNumberConfirmed())
+		{
+			addAnonymizedEntities(userEntity);
+		}
 		userEntity = userRepository.save(userEntity);
 		UserDto userDto = createUserDtoWithPrivateData(userEntity);
 		if (confirmationCode.isPresent())
@@ -260,17 +263,11 @@ public class UserService
 	private User createUserEntity(UserDto user, UserSignUp signUp)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		Set<Goal> goals = buildGoalsSet(user, signUp);
-		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
-		UserAnonymized.getRepository().save(userAnonymized);
 		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getFirstName(),
-				user.getOwnPrivateData().getLastName(), user.getOwnPrivateData().getNickname(), userAnonymized.getId(),
-				anonymousMessageSource.getId(), namedMessageSource);
+				user.getOwnPrivateData().getLastName(), user.getOwnPrivateData().getNickname(), namedMessageSource);
 		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getMobileNumber(), userPrivate,
 				namedMessageSource.getDestination());
-		addMandatoryGoals(userEntity);
 		if (signUp == UserSignUp.FREE)
 		{
 			// The user signs up through the app, so they apparently opened it now
@@ -279,26 +276,26 @@ public class UserService
 		return userEntity;
 	}
 
+	private void addAnonymizedEntities(User userEntity)
+	{
+		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
+		userEntity.setAnonymousMessageSourceId(anonymousMessageSource.getId());
+		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination());
+		UserAnonymized.getRepository().save(userAnonymized);
+		userEntity.setAnonymized(userAnonymized);
+		addMandatoryGoals(userEntity);
+
+		// The apparently opened the app now
+		userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
+
+		deviceService.addDeviceAnonymizedToUserDevices(userEntity);
+	}
+
 	private void addDevicesToEntity(UserDto userDto, User userEntity)
 	{
 		userRepository.saveAndFlush(userEntity); // To prevent sequence issues when saving the device
 		userDto.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).stream().map(d -> (UserDeviceDto) d)
-				.forEach(d -> deviceService.addDeviceToUser(userEntity, d));
-	}
-
-	private Set<Goal> buildGoalsSet(UserDto user, UserSignUp signUp)
-	{
-		Set<Goal> goals;
-		if (signUp == UserSignUp.INVITED)
-		{
-			goals = Collections.emptySet();
-		}
-		else
-		{
-			goals = user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).stream().map(GoalDto::createGoalEntity)
-					.collect(Collectors.toSet());
-		}
-		return goals;
+				.forEach(d -> deviceService.addDeviceToUser(userEntity, d, false));
 	}
 
 	private Optional<ConfirmationCode> createConfirmationCodeIfNeeded(Optional<String> overwriteUserConfirmationCode,
@@ -426,6 +423,7 @@ public class UserService
 
 			userEntity.setMobileNumberConfirmationCode(null);
 			userEntity.markMobileNumberConfirmed();
+			addAnonymizedEntities(userEntity);
 
 			logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
 					userEntity.getMobileNumber(), userEntity.getId());
@@ -475,7 +473,10 @@ public class UserService
 			}
 			UserDto userDto = createUserDtoWithPrivateData(userEntity);
 			logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
-			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
+			if (userEntity.getUserAnonymizedId() != null)
+			{
+				buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
+			}
 		});
 		return createUserDtoWithPrivateData(updatedUserEntity);
 	}
@@ -498,7 +499,7 @@ public class UserService
 		// The lock is per user, so concurrency is not an issue.
 		return withLockOnUser(id, user -> {
 			updateAction.accept(user);
-			if (user.canAccessPrivateData())
+			if (user.canAccessPrivateData() && user.getAnonymized() != null)
 			{
 				// The private data is accessible and might be updated, including the UserAnonymized
 				// Let the UserAnonymizedService save that to the repository and cache it
@@ -599,7 +600,9 @@ public class UserService
 	private EncryptedUserData retrieveUserEncryptedDataInNewCryptoSession(User originalUserEntity)
 	{
 		MessageSource namedMessageSource = messageSourceRepository.findOne(originalUserEntity.getNamedMessageSourceId());
-		MessageSource anonymousMessageSource = messageSourceRepository.findOne(originalUserEntity.getAnonymousMessageSourceId());
+		UUID anonymousMessageSourceId = originalUserEntity.getAnonymousMessageSourceId();
+		MessageSource anonymousMessageSource = (anonymousMessageSourceId == null) ? null
+				: messageSourceRepository.findOne(anonymousMessageSourceId);
 		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
 				anonymousMessageSource);
 		userEncryptedData.loadLazyEncryptedData();
@@ -617,19 +620,24 @@ public class UserService
 		deleteBuddyInfo(userEntity, message);
 
 		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
-		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
-		User updatedUserEntity = deleteMessageSources(userEntity, userAnonymizedEntity);
 
-		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
-		deleteActivitiesWithTheirComments(userAnonymizedEntity, allGoalsIncludingHistoryItems);
-		deleteGoals(userAnonymizedEntity, allGoalsIncludingHistoryItems);
+		UserAnonymized userAnonymizedEntity = (userAnonymizedId == null) ? null
+				: userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+		if (userAnonymizedId != null)
+		{
+			deleteAnonymousMessageSource(userEntity, userAnonymizedEntity);
+			Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(userEntity);
+			deleteActivitiesWithTheirComments(userAnonymizedEntity, allGoalsIncludingHistoryItems);
+			deleteGoals(userAnonymizedEntity, allGoalsIncludingHistoryItems);
+			deleteDevicesAnonymized(userEntity);
+			userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
+		}
 		deleteDevices(userEntity);
 
-		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
-		userRepository.delete(updatedUserEntity);
+		deleteNamedMessageSource(userEntity);
+		userRepository.delete(userEntity);
 
-		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
-				updatedUserEntity.getId());
+		logger.info("Deleted user with mobile number '{}' and ID '{}'", userEntity.getMobileNumber(), userEntity.getId());
 
 		return null; // Need to return something, but it isn't used
 	}
@@ -650,6 +658,11 @@ public class UserService
 				.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
 	}
 
+	private void deleteDevicesAnonymized(User userEntity)
+	{
+		new ArrayList<>(userEntity.getDevices()).stream().forEach(d -> deviceService.deleteDeviceAnonymized(userEntity, d));
+	}
+
 	private void deleteGoals(UserAnonymized userAnonymizedEntity, Set<Goal> allGoalsIncludingHistoryItems)
 	{
 		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
@@ -663,19 +676,30 @@ public class UserService
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}
 
-	private User deleteMessageSources(User userEntity, UserAnonymized userAnonymizedEntity)
+	private void deleteNamedMessageSource(User userEntity)
 	{
 		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
-		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
-		userAnonymizedEntity.clearAnonymousDestination();
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-		userEntity.clearNamedMessageDestination();
-		User updatedUserEntity = userRepository.saveAndFlush(userEntity);
+		deleteMessageSource(namedMessageSource, () -> {
+			userEntity.clearNamedMessageDestination();
+			userRepository.saveAndFlush(userEntity);
+		});
+	}
 
-		messageSourceRepository.delete(anonymousMessageSource);
-		messageSourceRepository.delete(namedMessageSource);
+	private void deleteAnonymousMessageSource(User userEntity, UserAnonymized userAnonymizedEntity)
+	{
+		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
+		deleteMessageSource(anonymousMessageSource, () -> {
+			userAnonymizedEntity.clearAnonymousDestination();
+			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		});
+	}
+
+	private <T> void deleteMessageSource(MessageSource messageSource, Runnable clearOperation)
+	{
+		clearOperation.run();
+
+		messageSourceRepository.delete(messageSource);
 		messageSourceRepository.flush();
-		return updatedUserEntity;
 	}
 
 	private void deleteAllDayActivitiesWithTheirCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
@@ -849,7 +873,10 @@ public class UserService
 			// (this could also be achieved with very complex reflection)
 			userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
 			messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
-			messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
+			if (retrievedEntitySet.anonymousMessageSource != null)
+			{
+				messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
+			}
 			user.updateUser(userEntity);
 			userEntity.unsetIsCreatedOnBuddyRequest();
 			userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());

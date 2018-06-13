@@ -40,7 +40,7 @@ public class AddFirstDevice implements MigrationStep
 
 	private void createInitialDevice(User user)
 	{
-		deviceService.addDeviceToUser(user, deviceService.createDefaultUserDeviceDto());
+		deviceService.addDeviceToUser(user, deviceService.createDefaultUserDeviceDto(), true);
 	}
 
 	private void addDevicesAnonymizedToUserAnonymizedIfNotDoneYet(User user)

@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -87,16 +86,16 @@ public class JUnitUtil
 	public static User createUserEntity(String firstName, String lastName, String mobileNumber, String nickname)
 	{
 		MessageSource anonymousMessageSource = MessageSource.createInstance();
-		UserAnonymized johnAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(),
-				Collections.emptySet());
-		UserAnonymized.getRepository().save(johnAnonymized);
+		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination());
+		UserAnonymized.getRepository().save(userAnonymized);
 
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource namedMessageSource = MessageSource.createInstance();
-		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, johnAnonymized.getId(),
-				anonymousMessageSource.getId(), namedMessageSource);
+		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, namedMessageSource);
 		User user = new User(UUID.randomUUID(), initializationVector, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
+		user.setAnonymized(userAnonymized);
+		user.setAnonymousMessageSourceId(anonymousMessageSource.getId());
 		return User.getRepository().save(user);
 	}
 

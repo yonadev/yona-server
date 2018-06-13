@@ -62,11 +62,11 @@ public class UserAnonymized extends EntityWithUuid
 		super(null);
 	}
 
-	private UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<Goal> goals)
+	private UserAnonymized(UUID id, MessageDestination anonymousDestination)
 	{
 		super(id);
 		this.anonymousDestination = anonymousDestination;
-		this.goals = new HashSet<>(goals);
+		this.goals = new HashSet<>();
 		this.buddiesAnonymized = new HashSet<>();
 		this.devicesAnonymized = new HashSet<>();
 	}
@@ -76,9 +76,9 @@ public class UserAnonymized extends EntityWithUuid
 		return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
 	}
 
-	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
+	public static UserAnonymized createInstance(MessageDestination anonymousDestination)
 	{
-		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
+		return new UserAnonymized(UUID.randomUUID(), anonymousDestination);
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()
