@@ -86,10 +86,11 @@ public class UserDeviceDto extends DeviceBaseDto
 
 	public static UserDeviceDto createInstance(UserDevice deviceEntity)
 	{
-		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(),
-				deviceEntity.getDeviceAnonymized().getOperatingSystem(), deviceEntity.getDeviceAnonymized().getAppVersion(),
-				deviceEntity.isVpnConnected(), deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(),
-				deviceEntity.getDeviceAnonymizedId(), VPNProfileDto.createInstance(deviceEntity));
+		UUID deviceAnonymizedId = deviceEntity.getDeviceAnonymizedId();
+		VPNProfileDto vpnProfile = (deviceAnonymizedId == null) ? null : VPNProfileDto.createInstance(deviceEntity);
+		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(), deviceEntity.getOperatingSystem(),
+				deviceEntity.getAppVersion(), deviceEntity.isVpnConnected(), deviceEntity.getRegistrationTime(),
+				deviceEntity.getAppLastOpenedDate(), deviceAnonymizedId, vpnProfile);
 	}
 
 	public static UserDeviceDto createDeviceRegistrationInstance(DeviceRegistrationRequestDto deviceRegistration)

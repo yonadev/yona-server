@@ -210,10 +210,10 @@ public class AnalysisEngineServiceTest
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown");
 		deviceAnonId = deviceAnonEntity.getId();
-		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
+		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity);
+		Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal).stream().forEach(g -> userAnonEntity.addGoal(g));
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);
 		deviceAnonDto = DeviceAnonymizedDto.createInstance(deviceAnonEntity);

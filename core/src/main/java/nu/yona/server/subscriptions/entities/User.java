@@ -270,6 +270,11 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getAnonymousMessageSourceId();
 	}
 
+	public void setAnonymousMessageSourceId(UUID anonymousMessageSourceId)
+	{
+		getUserPrivate().setAnonymousMessageSourceId(anonymousMessageSourceId);
+	}
+
 	public Set<Buddy> getBuddies()
 	{
 		return getUserPrivate().getBuddies();
@@ -287,6 +292,11 @@ public class User extends EntityWithUuid
 	public UserAnonymized getAnonymized()
 	{
 		return getUserPrivate().getUserAnonymized();
+	}
+
+	public void setAnonymized(UserAnonymized userAnonymized)
+	{
+		getUserPrivate().setUserAnonymized(userAnonymized);
 	}
 
 	public User touch()

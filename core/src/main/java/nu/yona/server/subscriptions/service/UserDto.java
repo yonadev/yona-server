@@ -216,14 +216,16 @@ public class UserDto
 
 	public static UserDto createInstanceWithPrivateData(User userEntity, Set<BuddyDto> buddies)
 	{
+		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
+		Set<GoalDto> goals = (userAnonymizedId == null) ? Collections.emptySet()
+				: UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized());
+		Optional<VPNProfileDto> vpnProfile = (userAnonymizedId == null) ? Optional.empty() : createVpnProfileDto(userEntity);
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
-				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(),
-				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
-				userEntity.getUserAnonymizedId(), createVpnProfileDto(userEntity),
-				userEntity.getDevices().stream().map(UserDeviceDto::createInstance).collect(Collectors.toSet()));
+				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(), goals, buddies, userAnonymizedId,
+				vpnProfile, userEntity.getDevices().stream().map(UserDeviceDto::createInstance).collect(Collectors.toSet()));
 	}
 
 	// YD-541: Remove this method

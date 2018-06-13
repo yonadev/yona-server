@@ -99,22 +99,48 @@ public class DeviceService
 	}
 
 	@Transactional
-	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
+	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto, boolean includeDeviceAnonymized)
 	{
 		assertAcceptableDeviceName(userEntity, deviceDto.getName());
 		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
-				deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
-		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice deviceEntity = userDeviceRepository
-				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId(), userService.generatePassword()));
+		UserDevice deviceEntity = userDeviceRepository.save(UserDevice.createInstance(deviceDto.getName(),
+				deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), userService.generatePassword()));
 		userEntity.addDevice(deviceEntity);
 
-		ldapUserService.createVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), deviceEntity),
-				deviceEntity.getVpnPassword());
-		sendDeviceChangeMessageToBuddies(DeviceChange.ADD, userEntity, Optional.empty(), Optional.of(deviceDto.getName()),
-				deviceAnonymized.getId());
+		if (includeDeviceAnonymized)
+		{
+			DeviceAnonymized deviceAnonymized = addDeviceAnonymizedToDevice(userEntity, deviceEntity);
+			sendDeviceChangeMessageToBuddies(DeviceChange.ADD, userEntity, Optional.empty(), Optional.of(deviceDto.getName()),
+					deviceAnonymized.getId());
+		}
 		return UserDeviceDto.createInstance(deviceEntity);
+	}
+
+	@Transactional
+	public UserDeviceDto addDeviceToUser(UUID userId, UserDeviceDto deviceDto, boolean includeDeviceAnonymized)
+	{
+		return addDeviceToUser(userService.getUserEntityById(userId), deviceDto, includeDeviceAnonymized);
+	}
+
+	@Transactional
+	public void addDeviceAnonymizedToUserDevices(User userEntity)
+	{
+		userEntity.getDevices().forEach(d -> addDeviceAnonymizedToDevice(userEntity, d));
+	}
+
+	private DeviceAnonymized addDeviceAnonymizedToDevice(User userEntity, UserDevice deviceEntity)
+	{
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
+				deviceEntity.getOperatingSystem(), deviceEntity.getAppVersion());
+		deviceAnonymizedRepository.save(deviceAnonymized);
+		deviceEntity.attachDeviceAnonymized(deviceAnonymized);
+
+		UserAnonymized userAnonymized = userEntity.getAnonymized();
+		userAnonymized.addDeviceAnonymized(deviceAnonymized);
+		userAnonymizedService.updateUserAnonymized(userAnonymized);
+
+		ldapUserService.createVpnAccount(buildVpnLoginId(userAnonymized, deviceEntity), deviceEntity.getVpnPassword());
+		return deviceAnonymized;
 	}
 
 	public static String buildVpnLoginId(UserAnonymized userAnonymizedEntity, UserDevice deviceEntity)
@@ -134,12 +160,6 @@ public class DeviceService
 				() -> BuddyDeviceChangeMessage.createInstance(
 						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
 						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymizedId, oldName, newName));
-	}
-
-	@Transactional
-	public UserDeviceDto addDeviceToUser(UUID userId, UserDeviceDto deviceDto)
-	{
-		return addDeviceToUser(userService.getUserEntityById(userId), deviceDto);
 	}
 
 	private static void assertAcceptableDeviceName(User userEntity, String deviceName)
@@ -207,7 +227,7 @@ public class DeviceService
 	private int findFirstFreeDeviceIndex(User userEntity)
 	{
 		Set<Integer> deviceIndexes = userEntity.getDevices().stream().map(UserDevice::getDeviceAnonymized)
-				.map(DeviceAnonymized::getDeviceIndex).collect(Collectors.toSet());
+				.filter(Objects::nonNull).map(DeviceAnonymized::getDeviceIndex).collect(Collectors.toSet());
 		return IntStream.range(0, deviceIndexes.size() + 1).filter(i -> !deviceIndexes.contains(i)).findFirst()
 				.orElseThrow(() -> new IllegalStateException("Should always find a nonexisting index"));
 	}
@@ -241,21 +261,47 @@ public class DeviceService
 		{
 			throw DeviceServiceException.notFoundById(device.getId());
 		}
-		ldapUserService.deleteVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), device));
+		if (device.getDeviceAnonymizedId() != null)
+		{
+			ldapUserService.deleteVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), device));
 
-		deviceAnonymizedRepository.delete(device.getDeviceAnonymized());
-		deviceAnonymizedRepository.flush(); // Without this, the delete doesn't always occur
+			deviceAnonymizedRepository.delete(device.getDeviceAnonymized());
+			deviceAnonymizedRepository.flush(); // Without this, the delete doesn't always occur
+		}
 		userEntity.removeDevice(device);
+	}
+
+	@Transactional
+	public void deleteDeviceAnonymized(User userEntity, UserDevice device)
+	{
+		Set<UserDevice> devices = userEntity.getDevices();
+		if (!devices.contains(device))
+		{
+			throw DeviceServiceException.notFoundById(device.getId());
+		}
+		if (device.getDeviceAnonymizedId() != null)
+		{
+			ldapUserService.deleteVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), device));
+
+			deviceAnonymizedRepository.delete(device.getDeviceAnonymized());
+			deviceAnonymizedRepository.flush(); // Without this, the delete doesn't always occur
+			device.clearDeviceAnonymized();
+		}
 	}
 
 	public UUID getDefaultDeviceId(UserDto userDto)
 	{
-		UserAnonymizedDto userAnonymized = userAnonymizedService
-				.getUserAnonymized(userDto.getOwnPrivateData().getUserAnonymizedId());
+		UUID userAnonymizedId = userDto.getOwnPrivateData().getUserAnonymizedId();
+		if (userAnonymizedId == null)
+		{
+			return userDto.getPrivateData().getDevices().map(devices -> devices.iterator().next().getId())
+					.orElseThrow(() -> DeviceServiceException.noDevicesFound(userAnonymizedId));
+		}
+		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		UUID defaultDeviceAnonymizedId = getDefaultDeviceAnonymized(userAnonymized).getId();
 		return userDto.getOwnPrivateData().getOwnDevices().stream()
 				.filter(d -> d.getDeviceAnonymizedId().equals(defaultDeviceAnonymizedId)).map(DeviceBaseDto::getId).findAny()
-				.orElseThrow(() -> DeviceServiceException.noDevicesFound(userAnonymized.getId()));
+				.orElseThrow(() -> DeviceServiceException.noDevicesFound(userAnonymizedId));
 	}
 
 	private DeviceAnonymizedDto getDefaultDeviceAnonymized(UserAnonymizedDto userAnonymized)

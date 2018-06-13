@@ -63,6 +63,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.LDAPUserService;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.CryptoSessionRule;
@@ -127,6 +128,9 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	private UserService mockUserService;
 
 	@MockBean
+	private UserAnonymizedService mockAnonymizedUserService;
+
+	@MockBean
 	private LDAPUserService mockLdapUserService;
 
 	@MockBean
@@ -166,9 +170,11 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		// Add device
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, SUPPORTED_APP_VERSION);
+		UserDevice device = UserDevice.createInstance(deviceName, operatingSystem, SUPPORTED_APP_VERSION, "topSecret");
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, device.getOperatingSystem(),
+				device.getAppVersion());
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
+		device.attachDeviceAnonymized(deviceAnonymized);
 		richard.addDevice(device);
 
 		// Verify device is present

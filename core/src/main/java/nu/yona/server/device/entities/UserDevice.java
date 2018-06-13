@@ -19,6 +19,7 @@ import org.hibernate.annotations.Type;
 import nu.yona.server.crypto.seckey.DateFieldEncryptor;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -40,22 +41,28 @@ public class UserDevice extends DeviceBase
 	@Convert(converter = DateFieldEncryptor.class)
 	private LocalDate appLastOpenedDate;
 
+	private OperatingSystem operatingSystem;
+
+	private String appVersion;
+
 	// Default constructor is required for JPA
 	public UserDevice()
 	{
 	}
 
-	private UserDevice(UUID id, String name, UUID deviceAnonymizedId, String vpnPassword)
+	private UserDevice(UUID id, String name, OperatingSystem operatingSystem, String appVersion, String vpnPassword)
 	{
-		super(id, name, deviceAnonymizedId);
+		super(id, name, null);
+		this.operatingSystem = operatingSystem;
+		this.appVersion = appVersion;
 		this.vpnPassword = Objects.requireNonNull(vpnPassword);
 		this.registrationTime = TimeUtil.utcNow();
 		this.appLastOpenedDate = TimeUtil.utcNow().toLocalDate(); // The user registers this device, so the app is open now
 	}
 
-	public static UserDevice createInstance(String name, UUID deviceAnonymizedId, String vpnPassword)
+	public static UserDevice createInstance(String name, OperatingSystem operatingSystem, String appVersion, String vpnPassword)
 	{
-		return new UserDevice(UUID.randomUUID(), name, deviceAnonymizedId, vpnPassword);
+		return new UserDevice(UUID.randomUUID(), name, operatingSystem, appVersion, vpnPassword);
 	}
 
 	public UUID getUserPrivateId()
@@ -76,6 +83,16 @@ public class UserDevice extends DeviceBase
 	public boolean isLegacyVpnAccount()
 	{
 		return isLegacyVpnAccount;
+	}
+
+	public OperatingSystem getOperatingSystem()
+	{
+		return (operatingSystem == null) ? getDeviceAnonymized().getOperatingSystem() : operatingSystem;
+	}
+
+	public String getAppVersion()
+	{
+		return (appVersion == null) ? getDeviceAnonymized().getAppVersion() : appVersion;
 	}
 
 	public String getVpnPassword()
@@ -107,5 +124,12 @@ public class UserDevice extends DeviceBase
 	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
 	{
 		this.appLastOpenedDate = Objects.requireNonNull(appLastOpenedDate);
+	}
+
+	public void attachDeviceAnonymized(DeviceAnonymized deviceAnonymized)
+	{
+		setDeviceAnonymizeId(deviceAnonymized.getId());
+		operatingSystem = null;
+		appVersion = null;
 	}
 }

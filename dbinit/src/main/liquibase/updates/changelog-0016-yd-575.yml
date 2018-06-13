@@ -1,0 +1,21 @@
+databaseChangeLog:
+- changeSet:
+    id: 1528746764942-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: app_version
+            type: varchar(255)
+        tableName: user_devices
+- changeSet:
+    id: 1528746764942-2
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: operating_system
+            type: integer
+        tableName: user_devices

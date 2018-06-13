@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
@@ -15,11 +15,9 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
@@ -29,7 +27,6 @@ import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
-import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -58,9 +55,9 @@ public abstract class IntervalActivityTestBase
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<>(Arrays.asList(budgetGoal));
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown");
-		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
+		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity);
+		userAnonEntity.addGoal(budgetGoal);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 	}
 
