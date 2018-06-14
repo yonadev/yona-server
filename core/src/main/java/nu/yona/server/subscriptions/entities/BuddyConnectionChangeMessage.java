@@ -4,6 +4,10 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
@@ -58,5 +62,29 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 	public String getLastName()
 	{
 		return lastName;
+	}
+
+	/**
+	 * Determines the first name (see {@link Buddy#determineName(Supplier, Optional, Function, String, String)}).
+	 * 
+	 * @param user Optional user
+	 * @return The first name or a substitute for it (never null)
+	 */
+	public String determineFirstName(Optional<User> senderUser)
+	{
+		return Buddy.determineName(this::getFirstName, senderUser, User::getFirstName, "message.alternative.first.name",
+				getSenderNickname());
+	}
+
+	/**
+	 * Determines the last name (see {@link Buddy#determineName(Supplier, Optional, Function, String, String)}).
+	 * 
+	 * @param user Optional user
+	 * @return The last name or a substitute for it (never null)
+	 */
+	public String determineLastName(Optional<User> senderUser)
+	{
+		return Buddy.determineName(this::getLastName, senderUser, User::getLastName, "message.alternative.last.name",
+				getSenderNickname());
 	}
 }

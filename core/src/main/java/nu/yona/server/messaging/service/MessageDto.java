@@ -236,25 +236,13 @@ public abstract class MessageDto extends PolymorphicDto
 		protected SenderInfo createSenderInfoForBuddyConnectionChangeMessage(Optional<User> senderUser,
 				BuddyConnectionChangeMessage buddyMessageEntity)
 		{
-			String firstName = determineFirstName(senderUser, buddyMessageEntity);
-			String lastName = determineLastName(senderUser, buddyMessageEntity);
+			String firstName = buddyMessageEntity.determineFirstName(senderUser);
+			String lastName = buddyMessageEntity.determineLastName(senderUser);
 
 			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(firstName, lastName,
 					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId());
 			return senderInfoFactory.createInstanceForDetachedBuddy(
 					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyUserPrivateData)), buddyUserPrivateData);
-		}
-
-		private String determineFirstName(Optional<User> senderUser, BuddyConnectionChangeMessage buddyMessageEntity)
-		{
-			return BuddyUserPrivateDataDto.determineName(buddyMessageEntity::getFirstName, senderUser, User::getFirstName,
-					"message.alternative.first.name", buddyMessageEntity.getSenderNickname());
-		}
-
-		private String determineLastName(Optional<User> senderUser, BuddyConnectionChangeMessage buddyMessageEntity)
-		{
-			return BuddyUserPrivateDataDto.determineName(buddyMessageEntity::getLastName, senderUser, User::getLastName,
-					"message.alternative.last.name", buddyMessageEntity.getSenderNickname());
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

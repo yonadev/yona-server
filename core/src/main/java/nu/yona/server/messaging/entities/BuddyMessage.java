@@ -147,8 +147,8 @@ public abstract class BuddyMessage extends Message
 
 		public static BuddyInfoParameters createInstance(Buddy buddy, UUID buddyUserAnonymizedId)
 		{
-			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.getFirstName(), buddy.getLastName(),
-					buddy.getNickname(), buddy.getUserPhotoId());
+			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.determineFirstName(Optional.empty()),
+					buddy.determineLastName(Optional.empty()), buddy.getNickname(), buddy.getUserPhotoId());
 		}
 	}
 }
