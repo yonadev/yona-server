@@ -19,6 +19,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -76,12 +77,13 @@ public class GlobalExceptionMapping
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
-	@ExceptionHandler({ MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class })
+	@ExceptionHandler({ MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class,
+			MissingServletRequestParameterException.class })
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
 	public ErrorResponseDto handleInvalidRequestException(Exception exception, HttpServletRequest request)
 	{
-		return logUnhandledExceptionAndCreateErrorDto("cannot be read", exception, request);
+		return logUnhandledExceptionAndCreateErrorDto("cannot be processed", exception, request);
 	}
 
 	/**
