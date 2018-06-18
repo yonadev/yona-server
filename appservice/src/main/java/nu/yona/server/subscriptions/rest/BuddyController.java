@@ -84,7 +84,7 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(
 					createAllBuddiesCollectionResource(curieProvider, userId, buddyService.getBuddiesOfUser(userId)),
@@ -97,7 +97,7 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID buddyId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 
 			return createOkResponse(buddyService.getBuddy(buddyId), createResourceAssembler(userId));
@@ -109,7 +109,7 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody PostPutBuddyDto postPutBuddy)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createResponse(buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postPutBuddy), this::getInviteUrl),
 					HttpStatus.CREATED, createResourceAssembler(userId));
@@ -122,7 +122,7 @@ public class BuddyController extends ControllerBase
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			buddyService.removeBuddy(userId, buddyId, Optional.ofNullable(messageStr));
 		}
@@ -133,7 +133,7 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID buddyId, @PathVariable UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(getGoal(userId, buddyId, goalId), new GoalResourceAssembler(userId));
 		}
@@ -144,7 +144,7 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID buddyId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(createAllGoalsCollectionResource(userId, buddyId, getGoals(buddyId)), HttpStatus.OK);
 		}

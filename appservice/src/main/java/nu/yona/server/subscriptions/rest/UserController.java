@@ -165,7 +165,7 @@ public class UserController extends ControllerBase
 			boolean isCreatedOnBuddyRequest, Optional<String> password)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.canAccessPrivateData(requestingUserId)))
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
 			if (requestingUserId.equals(userId))
 			{
@@ -255,7 +255,8 @@ public class UserController extends ControllerBase
 	{
 		assert !user.getOwnPrivateData().getDevices().orElse(Collections.emptySet())
 				.isEmpty() : "Embedding devices in an update request is only allowed when updating a user created on buddy request";
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			// use DOS protection to prevent enumeration of all occupied mobile numbers
 			return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder(userId, Optional.of(requestingDeviceId)).toUri(),
@@ -298,7 +299,8 @@ public class UserController extends ControllerBase
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userService.deleteUser(userId, Optional.ofNullable(messageStr));
 		}
@@ -311,7 +313,8 @@ public class UserController extends ControllerBase
 			@RequestParam(value = REQUESTING_DEVICE_ID_PARAM, required = false) UUID requestingDeviceId,
 			@RequestBody ConfirmationCodeDto mobileNumberConfirmation)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(userService.confirmMobileNumber(userId, mobileNumberConfirmation.getCode()),
 					createResourceAssemblerForOwnUser(userId, Optional.of(requestingDeviceId)));
@@ -323,7 +326,8 @@ public class UserController extends ControllerBase
 	public ResponseEntity<Void> resendMobileNumberConfirmationCode(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userService.resendMobileNumberConfirmationCode(userId);
 			return createOkResponse();

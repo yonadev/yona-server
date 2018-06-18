@@ -146,9 +146,61 @@ public class UserService
 	}
 
 	@Transactional
-	public boolean canAccessPrivateData(UUID id)
+	public boolean doPreparationsAndCheckCanAccessPrivateData(UUID id)
 	{
-		return getUserEntityById(id).canAccessPrivateData();
+		if (!getUserEntityById(id).canAccessPrivateData())
+		{
+			return false;
+		}
+		// We add a lock here to prevent concurrent user updates. The lock is per user, so concurrency is not an issue.
+		withLockOnUser(id, user -> {
+			boolean updated = doPreparations(user);
+			if (updated)
+			{
+				// The private data is accessible and might be updated, including the UserAnonymized
+				// Let the UserAnonymizedService save that to the repository and cache it
+				userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+				userRepository.save(user);
+			}
+			return null;
+		});
+
+		return true;
+	}
+
+	private boolean doPreparations(User user)
+	{
+		boolean updated = false;
+		updated |= doPreparationBuddiesRemovedWhileOffline(user);
+		updated |= doPreparationPrivateDataMigration(user);
+		updated |= doPreparationForMessages(user);
+		return updated;
+	}
+
+	private boolean doPreparationBuddiesRemovedWhileOffline(User user)
+	{
+		Set<Buddy> buddiesOfRemovedUsers = user.getBuddiesRelatedToRemovedUsers();
+		if (!buddiesOfRemovedUsers.isEmpty())
+		{
+			buddiesOfRemovedUsers.stream().forEach(b -> buddyService.removeBuddyInfoForRemovedUser(user, b));
+			return true;
+		}
+		return false;
+	}
+
+	private boolean doPreparationPrivateDataMigration(User user)
+	{
+		if (!privateUserDataMigrationService.isUpToDate(user))
+		{
+			privateUserDataMigrationService.upgrade(user);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean doPreparationForMessages(User user)
+	{
+		return messageService.prepareMessageCollection(user);
 	}
 
 	@Transactional
@@ -174,8 +226,7 @@ public class UserService
 	{
 		User user = getUserEntityById(id);
 		userStatusAsserter.accept(user);
-		User updatedUser = handlePrivateDataActions(user);
-		return createUserDtoWithPrivateData(updatedUser);
+		return createUserDtoWithPrivateData(user);
 	}
 
 	private void assertCreatedOnBuddyRequestStatus(User user, boolean isCreatedOnBuddyRequest)
@@ -206,20 +257,7 @@ public class UserService
 	@Transactional
 	public User getPrivateValidatedUserEntity(UUID id)
 	{
-		User validatedUser = getValidatedUserById(id);
-		return handlePrivateDataActions(validatedUser);
-	}
-
-	private User handlePrivateDataActions(User user)
-	{
-		handleBuddyUsersRemovedWhileOffline(user);
-
-		if (!privateUserDataMigrationService.isUpToDate(user))
-		{
-			updateUser(user.getId(), privateUserDataMigrationService::upgrade);
-		}
-
-		return user;
+		return getValidatedUserById(id);
 	}
 
 	@Transactional
@@ -590,7 +628,7 @@ public class UserService
 	{
 		// use a separate crypto session to read the data based on the temporary password
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
-				() -> canAccessPrivateData(originalUserEntity.getId())))
+				() -> doPreparationsAndCheckCanAccessPrivateData(originalUserEntity.getId())))
 		{
 			return retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity);
 		}

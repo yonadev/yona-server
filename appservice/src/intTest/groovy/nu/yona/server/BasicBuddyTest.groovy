@@ -514,9 +514,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 		richard.buddies.size() == 0 // Buddy removed for Richard
-		bob.buddies.size() == 1 // Buddy not yet removed for Bob (not processed yet)
-		assertDateTimeFormat(bob.buddies[0].lastStatusChangeTime)
-		assertEquals(bob.buddies[0].lastStatusChangeTime, removeBuddyTime)
+		bob.buddies.size() == 0 // Buddy removed for Bob (processed as part of reload)
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
@@ -628,8 +626,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
-		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (not processed yet)
-		!appService.getBuddies(bob)[0].goals
+		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob (processed during request handling)
 
 		assertGoalConflictIsNotReportedToBuddy(richard, bob)
 		assertGoalConflictIsNotReportedToBuddy(bob, richard)
@@ -678,7 +675,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (didn't process the disconnect)
+		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob (processed during request handling)
 		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
 
 		appService.getMessages(bob).responseData.page.totalElements == 1 // Only the disconnect message
@@ -710,10 +707,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(response)
 		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob
 		def buddiesRichard = appService.getBuddies(richard)
-		buddiesRichard.size() == 1 // Buddy not yet removed for Richard
-		Buddy buddy = buddiesRichard[0]
-		buddy.sendingStatus == "REQUESTED"
-		buddy.receivingStatus == "REQUESTED"
+		buddiesRichard.size() == 0 // Buddy removed for Richard (processed during request handling)
 
 		def messagesRichard = appService.getMessages(richard)
 		messagesRichard.responseData.page.totalElements == 1
