@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.rest;
@@ -117,7 +117,7 @@ public class GoalController extends ControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			goalService.removeGoal(userId, goalId, Optional.ofNullable(messageStr));
+			goalService.deleteGoalAndInformBuddies(userId, goalId, Optional.ofNullable(messageStr));
 		}
 	}
 

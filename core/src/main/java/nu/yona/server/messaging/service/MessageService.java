@@ -29,6 +29,7 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
@@ -59,6 +60,9 @@ public class MessageService
 
 	@Autowired
 	private MessageSourceRepository messageSourceRepository;
+
+	@Autowired(required = false)
+	private MessageRepository messageRepository;
 
 	@Transactional
 	public Page<MessageDto> getReceivedMessages(UserDto user, boolean onlyUnreadMessages, Pageable pageable)
@@ -340,6 +344,6 @@ public class MessageService
 		{
 			return;
 		}
-		Message.getRepository().deleteMessagesForIntervalActivities(intervalActivities);
+		deleteMessages(messageRepository.findByIntervalActivity(intervalActivities));
 	}
 }
