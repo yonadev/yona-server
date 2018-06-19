@@ -11,6 +11,7 @@ use Data::Dumper;
 use LWP::UserAgent;
 use HTTP::Request::Common;
 use Getopt::Long;
+use File::Tail;
 
 my $verbose = '';
 my $analysis_engine_url = 'http://localhost:8081/';
@@ -112,43 +113,52 @@ sub fetch_relevant_url_categories {
 	log_info "Finished loading relevant categories";
 }
 
+sub handle_record {
+	my ($log_record) = @_;
+	fetch_relevant_url_categories
+	my $log_message = eval { decode_json($log_record) };
+	if ($@)
+	{
+		log_warning "decode_json failed, invalid json in log record. error:$@. Log record: $log_record";
+	}
+	else
+	{
+		my $analysis_event_json = transform_log_record $log_message;
+
+		if ($analysis_event_json) {
+			my $user_dn = (keys $log_message->{'tagset'}->{'username'}) [0];
+			my $user_anonymized_id = substr $user_dn, 3, 36;
+			my $user_anonymized_url = "${analysis_engine_url}userAnonymized/${user_anonymized_id}/networkActivity/";
+			$verbose && print "POST to $user_anonymized_url, content: $analysis_event_json\n";
+			my $post_result = $ua->request(POST $user_anonymized_url, Content_Type => 'application/json', Content => $analysis_event_json);
+			my $status_code = $post_result->{'_rc'};
+			if ($status_code != 200 && $status_code != 204) {
+				log_error "POST to '$user_anonymized_url' returned status $status_code";
+			}
+		}
+	}
+}
+
+
 sub handle_records_from_stream {
 	my ($fh) = @_;
 
 	fetch_relevant_url_categories; # To check the connection, before receiving the first event
 	while (<$fh>) {
-		fetch_relevant_url_categories
 		my $log_record = $_;
-		my $log_message = eval { decode_json($log_record) };
-		if ($@)
-		{
-			log_warning "decode_json failed, invalid json in log record. error:$@. Log record: $log_record";
-		}
-		else
-		{
-			my $analysis_event_json = transform_log_record $log_message;
-
-			if ($analysis_event_json) {
-				my $user_dn = (keys $log_message->{'tagset'}->{'username'}) [0];
-				my $user_anonymized_id = substr $user_dn, 3, 36;
-				my $user_anonymized_url = "${analysis_engine_url}userAnonymized/${user_anonymized_id}/networkActivity/";
-				$verbose && print "POST to $user_anonymized_url, content: $analysis_event_json\n";
-				my $post_result = $ua->request(POST $user_anonymized_url, Content_Type => 'application/json', Content => $analysis_event_json);
-				my $status_code = $post_result->{'_rc'};
-				if ($status_code != 200 && $status_code != 204) {
-					log_error "POST to '$user_anonymized_url' returned status $status_code";
-				}
-			}
-		}
+		handle_record($log_record);
 	}
 }
 
 sub handle_records_from_file {
 	my ($file_name) = @_;
 	log_info "Reading records from '$file_name'";
-	open INPUT_FILE, "<$file_name" or die "Cannot open file $INPUT_FILE\n";
-	handle_records_from_stream(*INPUT_FILE);
-	close INPUT_FILE;
+	$file=File::Tail->new(name=>$file_name, maxinterval=>60, interval=> 5);
+	fetch_relevant_url_categories; # To check the connection, before receiving the first event
+	while (defined($line=$file->read)) {
+		my $log_record = $line;
+		handle_record($log_record);
+	}
 }
 
 BEGIN {
