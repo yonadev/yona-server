@@ -76,7 +76,7 @@ public class UserPhotoController extends ControllerBase
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "file", required = false) MultipartFile userPhoto, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(userPhotoService.addUserPhoto(userId, UserPhotoDto.createInstance(getPngBytes(userPhoto))),
 					new UserPhotoResourceAssembler());
@@ -96,7 +96,7 @@ public class UserPhotoController extends ControllerBase
 	public void removeUserPhoto(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userPhotoService.removeUserPhoto(userId);
 		}

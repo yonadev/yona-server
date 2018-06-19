@@ -83,7 +83,7 @@ abstract class ActivityControllerBase extends ControllerBase
 			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
 			Supplier<Page<WeekActivityOverviewDto>> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
 					createWeekActivityOverviewResourceAssembler(linkProvider));
@@ -93,7 +93,7 @@ abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<WeekActivityOverviewResource> getWeekActivityOverview(Optional<String> password, UUID userId,
 			String dateStr, Function<LocalDate, WeekActivityOverviewDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = WeekActivityDto.parseDate(dateStr);
 			return createOkResponse(activitySupplier.apply(date), createWeekActivityOverviewResourceAssembler(linkProvider));
@@ -104,7 +104,7 @@ abstract class ActivityControllerBase extends ControllerBase
 			UUID userId, PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
 					createDayActivityOverviewResourceAssembler(linkProvider));
@@ -115,7 +115,7 @@ abstract class ActivityControllerBase extends ControllerBase
 			String dateStr, Function<LocalDate, DayActivityOverviewDto<DayActivityDto>> activitySupplier,
 			LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = DayActivityDto.parseDate(dateStr);
 			return createOkResponse(activitySupplier.apply(date), createDayActivityOverviewResourceAssembler(linkProvider));
@@ -125,7 +125,7 @@ abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<WeekActivityResource> getWeekActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, WeekActivityDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = WeekActivityDto.parseDate(dateStr);
 			return createOkResponse(activitySupplier.apply(date), createWeekActivityResourceAssembler(linkProvider));
@@ -135,7 +135,7 @@ abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<DayActivityResource> getDayActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, DayActivityDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = DayActivityDto.parseDate(dateStr);
 			return createOkResponse(activitySupplier.apply(date), createDayActivityResourceAssembler(linkProvider));
@@ -146,7 +146,7 @@ abstract class ActivityControllerBase extends ControllerBase
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, Supplier<Page<MessageDto>> messageSupplier,
 			LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDto user = userService.getPrivateValidatedUser(userId);
 			return messageController.createOkResponse(user, messageSupplier.get(), pagedResourcesAssembler);

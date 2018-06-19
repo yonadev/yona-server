@@ -6,6 +6,8 @@ package nu.yona.server.subscriptions.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,6 +37,7 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
@@ -83,6 +86,9 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	private BuddyService buddyService;
 
 	@MockBean
+	private MessageService messageService;
+
+	@MockBean
 	private GoalRepository mockGoalRepository;
 
 	@MockBean
@@ -123,13 +129,13 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	}
 
 	@Test
-	public void getPrivateUser_twoVersionsBehind_migratesToCurrentVersion()
+	public void doPreparationsAndCheckCanAccessPrivateData_twoVersionsBehind_migratesToCurrentVersion()
 	{
 		richard.setPrivateDataMigrationVersion(0);
 
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
-			userService.getPrivateUser(richard.getId());
+			userService.doPreparationsAndCheckCanAccessPrivateData(richard.getId());
 
 			ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 			verify(userRepository, times(1)).save(userCaptor.capture());
@@ -139,19 +145,15 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	}
 
 	@Test
-	public void getPrivateValidatedUser_twoVersionsBehind_migratesToCurrentVersion()
+	public void doPreparationsAndCheckCanAccessPrivateData_upToDate_saveNotCalled()
 	{
-		richard.setPrivateDataMigrationVersion(0);
+		richard.setPrivateDataMigrationVersion(2);
 
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
-			userService.getPrivateValidatedUser(richard.getId());
+			userService.doPreparationsAndCheckCanAccessPrivateData(richard.getId());
 
-			ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-			verify(userRepository, times(1)).save(userCaptor.capture());
-			assertThat(userCaptor.getValue().getFirstName(), equalTo("Richardfoobar"));
-			assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(), equalTo(service.getCurrentVersion()));
+			verify(userRepository, never()).save(any(User.class));
 		}
-
 	}
 }

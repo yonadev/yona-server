@@ -1196,32 +1196,6 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Richard retrieves buddy activity info before he processed Bob\'s acceptance'()
-	{
-		given:
-		User richard = addRichard()
-		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
-		appService.sendBuddyConnectRequest(richard, bob)
-		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
-		def acceptUrl = connectRequestMessage.acceptUrl
-		assertResponseStatusOk(appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password))
-		richard = appService.reloadUser(richard)
-
-		when:
-		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 14])
-
-		then:
-		richard.buddies[0].dailyActivityReportsUrl == null
-		richard.buddies[0].weeklyActivityReportsUrl == null
-		assertResponseStatusOk(responseDayOverviewsWithBuddies)
-		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals yet
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
 	def 'Bob retrieves buddy activity info before Richard processed Bob\'s acceptance'()
 	{
 		given:

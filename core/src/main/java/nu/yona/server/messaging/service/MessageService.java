@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -37,20 +36,13 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
-import nu.yona.server.util.LockPool;
 import nu.yona.server.util.Require;
-import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class MessageService
 {
 	@Autowired
 	private UserService userService;
-
-	@Autowired
-	private LockPool<UUID> userSynchronizer;
-	@Autowired
-	private TransactionHelper transactionHelper;
 
 	@Autowired
 	private BuddyService buddyService;
@@ -91,34 +83,21 @@ public class MessageService
 		return messageSource.getReceivedMessages(pageable, earliestDateTime);
 	}
 
-	// This is intentionally not marked with @Transactional, as the transaction is explicitly started inside this method
-	public UserDto prepareMessageCollection(UUID userId)
+	@Transactional
+	public boolean prepareMessageCollection(User user)
 	{
-		User user = userService.getPrivateValidatedUserEntity(userId);
 		boolean updated = false;
 		if (mustTransferDirectMessagesToAnonymousDestination(user))
 		{
-			doInTransactionWithLockOnUser(user, this::transferDirectMessagesToAnonymousDestination);
+			transferDirectMessagesToAnonymousDestination(user);
 			updated = true;
 		}
 		if (mustProcessUnprocessedMessages(user))
 		{
-			doInTransactionWithLockOnUser(user, this::processUnprocessedMessages);
+			processUnprocessedMessages(user);
 			updated = true;
 		}
-		if (updated)
-		{
-			return transactionHelper.executeInNewTransaction(() -> userService.getPrivateValidatedUser(userId));
-		}
-		return userService.createUserDtoWithPrivateData(user);
-	}
-
-	private void doInTransactionWithLockOnUser(User user, Consumer<User> job)
-	{
-		try (LockPool<UUID>.Lock lock = userSynchronizer.lock(user.getId()))
-		{
-			transactionHelper.executeInNewTransaction(() -> job.accept(user));
-		}
+		return updated;
 	}
 
 	private boolean mustTransferDirectMessagesToAnonymousDestination(User user)

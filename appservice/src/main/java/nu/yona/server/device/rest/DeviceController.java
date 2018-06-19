@@ -131,7 +131,7 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			Optional<UUID> requestingDeviceId = nullableStringToOptionalUuid(requestingDeviceIdStr);
 			return createOkResponse(deviceService.getDevicesOfUser(userId), createResourceAssembler(userId, requestingDeviceId),
@@ -145,7 +145,7 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.getDevice(deviceId),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
@@ -161,7 +161,7 @@ public class DeviceController extends ControllerBase
 		NewDeviceRequestDto newDeviceRequest = newDeviceRequestService.getNewDeviceRequestForUser(userId,
 				Optional.of(newDeviceRequestPassword));
 		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequest.getYonaPassword(),
-				() -> userService.canAccessPrivateData(userId)))
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDeviceDto newDevice = deviceService.addDeviceToUser(userId,
 					UserDeviceDto.createDeviceRegistrationInstance(request));
@@ -175,7 +175,7 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppOpenEventDto request)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(),
 					Optional.ofNullable(request.appVersion));
@@ -191,7 +191,7 @@ public class DeviceController extends ControllerBase
 	{
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(getDeviceSpecificAppleMobileConfig(deviceService.getDevice(deviceId)), headers,
 					HttpStatus.OK);
@@ -223,7 +223,7 @@ public class DeviceController extends ControllerBase
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr,
 			@RequestBody DeviceUpdateRequestDto request)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.updateDevice(userId, deviceId, request),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
@@ -237,7 +237,7 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.deleteDevice(userId, deviceId);
 		}
@@ -263,7 +263,7 @@ public class DeviceController extends ControllerBase
 		{
 			logLongAppActivityBatch(MessageType.WARNING, userId, appActivities);
 		}
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDto userDto = userService.getPrivateUser(userId);
 			autoregisterAndroid(userDto, deviceId);
@@ -323,7 +323,7 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postVpnStatusChangeEvent(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody VpnStatusDto vpnStatus)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.registerVpnStatusChangeEvent(userId, deviceId, vpnStatus.vpnConnected);
 			return createNoContentResponse();

@@ -514,9 +514,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 		richard.buddies.size() == 0 // Buddy removed for Richard
-		bob.buddies.size() == 1 // Buddy not yet removed for Bob (not processed yet)
-		assertDateTimeFormat(bob.buddies[0].lastStatusChangeTime)
-		assertEquals(bob.buddies[0].lastStatusChangeTime, removeBuddyTime)
+		bob.buddies.size() == 0 // Buddy removed for Bob (processed as part of reload)
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
@@ -628,8 +626,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
-		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (not processed yet)
-		!appService.getBuddies(bob)[0].goals
+		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob (processed during request handling)
 
 		assertGoalConflictIsNotReportedToBuddy(richard, bob)
 		assertGoalConflictIsNotReportedToBuddy(bob, richard)
@@ -657,71 +654,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		// Connect request message is removed, so Bob doesn't have any messages
 		appService.getMessages(bob).responseData.page.totalElements == 0
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Richard deletes Bob\'s buddy entry before processing Bob\'s accept message'()
-	{
-		given:
-		User richard = addRichard()
-		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
-		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-
-		when:
-		def response = appService.removeBuddy(richard, appService.getBuddies(richard)[0], "Sorry, I regret having asked you")
-
-		then:
-		assertResponseStatusOk(response)
-		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (didn't process the disconnect)
-		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
-
-		appService.getMessages(bob).responseData.page.totalElements == 1 // Only the disconnect message
-
-		def disconnectMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
-
-		appService.getBuddies(bob).size() == 0 // Buddy removed now
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Bob deletes Richard\'s buddy entry before Richard processed the accept message'()
-	{
-		given:
-		User richard = addRichard()
-		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
-		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-
-		when:
-		def response = appService.removeBuddy(bob, appService.getBuddies(bob)[0], "Sorry, I regret accepting you")
-
-		then:
-		assertResponseStatusOk(response)
-		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob
-		def buddiesRichard = appService.getBuddies(richard)
-		buddiesRichard.size() == 1 // Buddy not yet removed for Richard
-		Buddy buddy = buddiesRichard[0]
-		buddy.sendingStatus == "REQUESTED"
-		buddy.receivingStatus == "REQUESTED"
-
-		def messagesRichard = appService.getMessages(richard)
-		messagesRichard.responseData.page.totalElements == 1
-		messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}?.size() == 1
-		def disconnectMessage = messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
-
-		appService.getBuddies(richard).size() == 0 // Buddy now removed for Richard
 
 		cleanup:
 		appService.deleteUser(richard)

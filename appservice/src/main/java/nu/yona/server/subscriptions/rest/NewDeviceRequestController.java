@@ -67,7 +67,7 @@ public class NewDeviceRequestController extends ControllerBase
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
 			try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
-					() -> userService.canAccessPrivateData(userId)))
+					() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 			{
 				newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
 						newDeviceRequestCreation.getNewDeviceRequestPassword());
@@ -112,7 +112,7 @@ public class NewDeviceRequestController extends ControllerBase
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+			try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 			{
 				newDeviceRequestService.clearNewDeviceRequestForUser(userId);
 			}
