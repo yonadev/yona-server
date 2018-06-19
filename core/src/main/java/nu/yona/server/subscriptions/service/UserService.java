@@ -148,12 +148,12 @@ public class UserService
 	@Transactional
 	public boolean doPreparationsAndCheckCanAccessPrivateData(UUID id)
 	{
-		if (!getUserEntityById(id).canAccessPrivateData())
-		{
-			return false;
-		}
 		// We add a lock here to prevent concurrent user updates. The lock is per user, so concurrency is not an issue.
-		withLockOnUser(id, user -> {
+		return withLockOnUser(id, user -> {
+			if (!user.canAccessPrivateData())
+			{
+				return false;
+			}
 			boolean updated = doPreparations(user);
 			if (updated)
 			{
@@ -162,10 +162,8 @@ public class UserService
 				userAnonymizedService.updateUserAnonymized(user.getAnonymized());
 				userRepository.save(user);
 			}
-			return null;
+			return true;
 		});
-
-		return true;
 	}
 
 	private boolean doPreparations(User user)
@@ -546,7 +544,7 @@ public class UserService
 		});
 	}
 
-	private User withLockOnUser(UUID userId, Function<User, User> action)
+	private <T> T withLockOnUser(UUID userId, Function<User, T> action)
 	{
 		try (LockPool<UUID>.Lock lock = userSynchronizer.lock(userId))
 		{

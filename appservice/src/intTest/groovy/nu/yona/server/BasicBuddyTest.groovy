@@ -660,68 +660,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Richard deletes Bob\'s buddy entry before processing Bob\'s accept message'()
-	{
-		given:
-		User richard = addRichard()
-		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
-		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-
-		when:
-		def response = appService.removeBuddy(richard, appService.getBuddies(richard)[0], "Sorry, I regret having asked you")
-
-		then:
-		assertResponseStatusOk(response)
-		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob (processed during request handling)
-		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
-
-		appService.getMessages(bob).responseData.page.totalElements == 1 // Only the disconnect message
-
-		def disconnectMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
-
-		appService.getBuddies(bob).size() == 0 // Buddy removed now
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Bob deletes Richard\'s buddy entry before Richard processed the accept message'()
-	{
-		given:
-		User richard = addRichard()
-		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
-		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-
-		when:
-		def response = appService.removeBuddy(bob, appService.getBuddies(bob)[0], "Sorry, I regret accepting you")
-
-		then:
-		assertResponseStatusOk(response)
-		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob
-		def buddiesRichard = appService.getBuddies(richard)
-		buddiesRichard.size() == 0 // Buddy removed for Richard (processed during request handling)
-
-		def messagesRichard = appService.getMessages(richard)
-		messagesRichard.responseData.page.totalElements == 1
-		messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}?.size() == 1
-		def disconnectMessage = messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
-
-		appService.getBuddies(richard).size() == 0 // Buddy now removed for Richard
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
 	def 'Richard and Bob connect and break up multiple times'()
 	{
 		given:
