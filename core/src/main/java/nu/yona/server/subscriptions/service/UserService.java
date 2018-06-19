@@ -48,6 +48,7 @@ import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.sms.SmsTemplate;
@@ -118,6 +119,9 @@ public class UserService
 
 	@Autowired(required = false)
 	private ActivityCategoryService activityCategoryService;
+
+	@Autowired(required = false)
+	private MessageService messageService;
 
 	@Autowired(required = false)
 	private GoalService goalService;
