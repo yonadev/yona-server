@@ -57,8 +57,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
-import nu.yona.server.analysis.service.AppActivityDto;
-import nu.yona.server.analysis.service.AppActivityDto.Activity;
+import nu.yona.server.analysis.service.AppActivitiesDto;
+import nu.yona.server.analysis.service.AppActivitiesDto.Activity;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
@@ -252,7 +252,7 @@ public class DeviceController extends ControllerBase
 	@RequestMapping(value = "/{deviceId}/appActivity/", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Void> addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppActivityDto appActivities)
+			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppActivitiesDto appActivities)
 	{
 		if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountIgnoreThreshold())
 		{
@@ -294,7 +294,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	private void logLongAppActivityBatch(MessageType messageType, UUID userId, AppActivityDto appActivities)
+	private void logLongAppActivityBatch(MessageType messageType, UUID userId, AppActivitiesDto appActivities)
 	{
 		int numAppActivities = appActivities.getActivities().length;
 		List<Activity> appActivityCollection = Arrays.asList(appActivities.getActivities());

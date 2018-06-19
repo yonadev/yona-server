@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +31,6 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
 
-import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.service.DeviceService;
@@ -47,9 +45,9 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalDto;
+import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
-import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.sms.SmsTemplate;
@@ -122,7 +120,7 @@ public class UserService
 	private ActivityCategoryService activityCategoryService;
 
 	@Autowired(required = false)
-	private MessageService messageService;
+	private GoalService goalService;
 
 	@Autowired(required = false)
 	private WhiteListedNumberService whiteListedNumberService;
@@ -654,11 +652,9 @@ public class UserService
 
 		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+		deleteGoals(userAnonymizedEntity);
 		User updatedUserEntity = deleteMessageSources(userEntity, userAnonymizedEntity);
 
-		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
-		deleteActivitiesWithTheirComments(userAnonymizedEntity, allGoalsIncludingHistoryItems);
-		deleteGoals(userAnonymizedEntity, allGoalsIncludingHistoryItems);
 		deleteDevices(userEntity);
 
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
@@ -686,17 +682,10 @@ public class UserService
 				.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
 	}
 
-	private void deleteGoals(UserAnonymized userAnonymizedEntity, Set<Goal> allGoalsIncludingHistoryItems)
+	private void deleteGoals(UserAnonymized userAnonymizedEntity)
 	{
-		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-	}
-
-	private void deleteActivitiesWithTheirComments(UserAnonymized userAnonymizedEntity, Set<Goal> allGoalsIncludingHistoryItems)
-	{
-		deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
-		deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		Set<Goal> goals = new HashSet<>(userAnonymizedEntity.getGoals()); // Copy to prevent ConcurrentModificationException
+		goals.forEach(g -> goalService.deleteGoal(userAnonymizedEntity, g));
 	}
 
 	private User deleteMessageSources(User userEntity, UserAnonymized userAnonymizedEntity)
@@ -712,40 +701,6 @@ public class UserService
 		messageSourceRepository.delete(namedMessageSource);
 		messageSourceRepository.flush();
 		return updatedUserEntity;
-	}
-
-	private void deleteAllDayActivitiesWithTheirCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
-	{
-		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> {
-			// Other users might have commented on the activities being deleted. Delete these messages.
-			messageService.deleteMessagesForIntervalActivities(wa.getDayActivities().stream().collect(Collectors.toList()));
-			wa.removeAllDayActivities();
-		}));
-	}
-
-	private void deleteAllWeekActivityCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
-	{
-		// Other users might have commented on the activities being deleted. Delete these messages.
-		List<IntervalActivity> allWeekActivities = allGoalsIncludingHistoryItems.stream()
-				.flatMap(g -> g.getWeekActivities().stream()).collect(Collectors.toList());
-		messageService.deleteMessagesForIntervalActivities(allWeekActivities);
-	}
-
-	private Set<Goal> getAllGoalsIncludingHistoryItems(User userEntity)
-	{
-		Set<Goal> allGoals = new HashSet<>(userEntity.getGoals());
-		Set<Goal> historyItems = new HashSet<>();
-		for (Goal goal : allGoals)
-		{
-			Optional<Goal> historyItem = goal.getPreviousVersionOfThisGoal();
-			while (historyItem.isPresent())
-			{
-				historyItems.add(historyItem.get());
-				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
-			}
-		}
-		allGoals.addAll(historyItems);
-		return allGoals;
 	}
 
 	@Transactional
