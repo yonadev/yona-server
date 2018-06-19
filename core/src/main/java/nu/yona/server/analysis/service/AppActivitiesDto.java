@@ -1,13 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
@@ -19,7 +23,7 @@ import nu.yona.server.Constants;
  * @see NetworkActivityDto
  */
 @JsonRootName("appActivity")
-public class AppActivityDto
+public class AppActivitiesDto
 {
 	@JsonRootName("activity")
 	public static class Activity
@@ -60,7 +64,7 @@ public class AppActivityDto
 	private final Activity[] activities;
 
 	@JsonCreator
-	public AppActivityDto(
+	public AppActivitiesDto(
 			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
 			@JsonProperty("activities") Activity[] activities)
 	{
@@ -77,5 +81,12 @@ public class AppActivityDto
 	public Activity[] getActivities()
 	{
 		return activities;
+	}
+
+	@JsonIgnore
+	public List<Activity> getActivitiesSorted()
+	{
+		return Arrays.stream(activities).sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime()))
+				.collect(Collectors.toList());
 	}
 }
