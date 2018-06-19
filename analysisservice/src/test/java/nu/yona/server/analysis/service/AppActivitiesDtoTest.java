@@ -25,9 +25,10 @@ public class AppActivitiesDtoTest
 		ZonedDateTime t4 = t3.plusSeconds(15);
 		AppActivitiesDto.Activity firstActivity = new AppActivitiesDto.Activity("Poker App", t1, t2);
 		AppActivitiesDto.Activity secondActivity = new AppActivitiesDto.Activity("Poker App", t3, t4);
-		AppActivitiesDto sut = new AppActivitiesDto(now, new AppActivitiesDto.Activity[] { secondActivity, firstActivity });
+		AppActivitiesDto appActivitiesDto = new AppActivitiesDto(now,
+				new AppActivitiesDto.Activity[] { secondActivity, firstActivity });
 
-		List<AppActivitiesDto.Activity> result = sut.getActivitiesSorted();
+		List<AppActivitiesDto.Activity> result = appActivitiesDto.getActivitiesSorted();
 
 		assertThat(result, equalTo(Arrays.asList(new AppActivitiesDto.Activity[] { firstActivity, secondActivity })));
 	}
