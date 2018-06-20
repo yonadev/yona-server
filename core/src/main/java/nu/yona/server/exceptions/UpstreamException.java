@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
@@ -23,9 +23,9 @@ public class UpstreamException extends YonaException
 		this.message = Optional.of(message);
 	}
 
-	private UpstreamException(String messageId, Serializable... parameters)
+	private UpstreamException(HttpStatus statusCode, String messageId, Serializable... parameters)
 	{
-		super(messageId, parameters);
+		super(statusCode, messageId, parameters);
 		message = Optional.empty();
 	}
 
@@ -42,6 +42,6 @@ public class UpstreamException extends YonaException
 
 	public static UpstreamException remoteServiceError(HttpStatus statusCode, String body)
 	{
-		return new UpstreamException("error.from.remote.service", statusCode, body);
+		return new UpstreamException(statusCode, "error.from.remote.service", statusCode, body);
 	}
 }
