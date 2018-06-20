@@ -73,7 +73,7 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@Component
-	private static class Manager extends BuddyMessageDto.Manager
+	static class Manager extends BuddyMessageDto.Manager
 	{
 		@Autowired
 		private TheDtoManager theDtoFactory;

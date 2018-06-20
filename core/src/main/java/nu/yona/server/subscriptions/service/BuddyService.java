@@ -160,7 +160,7 @@ public class BuddyService
 
 		logger.info(
 				"User with mobile number '{}' and ID '{}' sent buddy connect message to {} user with mobile number '{}' and ID '{}' as buddy",
-				requestingUser.getMobileNumber(), requestingUser.getId(), (buddyUserExists) ? "new" : "existing",
+				requestingUser.getMobileNumber(), requestingUser.getId(), (buddyUserExists) ? "existing" : "new",
 				buddy.getUser().getMobileNumber(), buddy.getUser().getId());
 
 		return savedBuddy;
