@@ -1,1 +1,0 @@
-nohup perl HandleDansGuardianLog.pl --analysisEngineURL http://185.3.210.63:8081/analysisEngine/ access.log > yona.log 2>&1 &
