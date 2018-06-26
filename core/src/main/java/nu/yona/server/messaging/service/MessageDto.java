@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -165,6 +166,7 @@ public abstract class MessageDto extends PolymorphicDto
 		private SenderInfo.Factory senderInfoFactory;
 
 		@Override
+		@Transactional
 		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
