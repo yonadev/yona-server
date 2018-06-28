@@ -5,14 +5,21 @@
 # /etc/actions/secondboot/9399yona-log-parser
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/usr/local/sbin/HandleDansGuardianLog.pl
+DAEMON=/modules/yona/bin/HandleDansGuardianLog.pl
 NAME=HandleDansGuardianLog
 DESC="Yona DansGuardian Log Parser"
-OPTIONS="--analysisEngineUrl http://10.127.9.61/ /var/log/dansguardian3/access.log"
+
+#Default Options - Override in /modules/yona/settings/yona-log-parser.conf
+ACCESS_LOG=/var/log/dandguardian3/access.log
+ANALYSIS_URL=http://localhost:8081
 
 test -f $DAEMON || exit 0
 
+. /modules/yona/settings/yona-log-parser.conf
+
 set -e
+
+OPTIONS="--analysisEngineUrl ${ANALYSIS_URL} ${ACCESS_LOG}"
 
 case "$1" in
   start)

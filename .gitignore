@@ -60,3 +60,6 @@ atlassian-ide-plugin.xml
 
 # Exclude the production configuration properties, as this should not become public in GitHub
 /config/application.properties
+
+# Include the smoothwall parser bin directory (package convention for Smoothwall OEM code) 
+!/scripts/smoothwall/modules/yona/bin
