@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
@@ -60,7 +61,6 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
-import nu.yona.server.util.LockPool;
 import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
 
@@ -131,9 +131,6 @@ public class UserService
 
 	@Autowired(required = false)
 	private PrivateUserDataMigrationService privateUserDataMigrationService;
-
-	@Autowired(required = false)
-	private LockPool<UUID> userSynchronizer;
 
 	@PostConstruct
 	private void onStart()
@@ -521,9 +518,10 @@ public class UserService
 	/**
 	 * Performs the given update action on the user with the specified ID, while holding a write-lock on the user. After the
 	 * update, the entity is saved to the repository.<br/>
-	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing migration
-	 * steps. Migration steps are executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't
-	 * be an option here as that would cause the GETs to fail rather than to wait for the other one to complete.
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing the user
+	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
+	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
+	 * would cause the GETs to fail rather than to wait for the other one to complete.
 	 * 
 	 * @param id The ID of the user to update
 	 * @param updateAction The update action to perform
@@ -548,11 +546,9 @@ public class UserService
 
 	private <T> T withLockOnUser(UUID userId, Function<User, T> action)
 	{
-		try (LockPool<UUID>.Lock lock = userSynchronizer.lock(userId))
-		{
-			User user = getUserEntityById(userId);
-			return action.apply(user);
-		}
+		User user = getUserEntityByIdWithUpdateLock(userId);
+
+		return action.apply(user);
 	}
 
 	@Transactional
@@ -644,6 +640,12 @@ public class UserService
 		return userEncryptedData;
 	}
 
+	/**
+	 * Deletes the specified user, while holding a write-lock on the user.
+	 * 
+	 * @param id The ID of the user to delete
+	 * @param message the message to communicate to buddies
+	 */
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
@@ -752,9 +754,39 @@ public class UserService
 	@Transactional
 	public User getUserEntityById(UUID id)
 	{
+		return getUserEntityById(id, LockModeType.NONE);
+	}
+
+	/**
+	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
+	 * value is always the user entity. If not an exception is thrown. A pessimistic database write lock is claimed when fetching
+	 * the entity.
+	 * 
+	 * @param id the ID of the user
+	 * @return The user entity (never null)
+	 */
+	@Transactional
+	private User getUserEntityByIdWithUpdateLock(UUID id)
+	{
+		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
+	}
+
+	private User getUserEntityById(UUID id, LockModeType lockModeType)
+	{
 		Require.isNonNull(id, InvalidDataException::emptyUserId);
 
-		User entity = userRepository.findOne(id);
+		User entity;
+		switch (lockModeType)
+		{
+			case NONE:
+				entity = userRepository.findOne(id);
+				break;
+			case PESSIMISTIC_WRITE:
+				entity = userRepository.findOneForUpdate(id);
+				break;
+			default:
+				throw new IllegalArgumentException("Lock mode type " + lockModeType + " is unsupported");
+		}
 
 		Require.isNonNull(entity, () -> UserServiceException.notFoundById(id));
 
