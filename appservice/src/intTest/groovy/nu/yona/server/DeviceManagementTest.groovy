@@ -13,7 +13,6 @@ import groovy.json.*
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 {
@@ -333,7 +332,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	@IgnoreRest
 	def 'Richard updates his device firebase instance id; device is updated but not disclosed to Bob'()
 	{
 		given:
