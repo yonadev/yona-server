@@ -19,11 +19,11 @@ public class DeviceRegistrationRequestDto
 	@JsonCreator
 	public DeviceRegistrationRequestDto(@JsonProperty("name") String name,
 			@JsonProperty("operatingSystem") String operatingSystemStr, @JsonProperty("appVersion") String appVersion,
-			@JsonProperty("firebaseInstanceId") String firebaseInstanceId)
+			@JsonProperty("firebaseInstanceId") Optional<String> firebaseInstanceId)
 	{
 		this.name = name;
 		this.operatingSystemStr = operatingSystemStr;
 		this.appVersion = appVersion;
-		this.firebaseInstanceId = Optional.ofNullable(firebaseInstanceId);
+		this.firebaseInstanceId = firebaseInstanceId;
 	}
 }

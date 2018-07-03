@@ -13,6 +13,7 @@ import groovy.json.*
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
+import spock.lang.IgnoreRest
 
 class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 {
@@ -80,7 +81,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def newDeviceName = "My S9"
 		def newDeviceOs = "ANDROID"
-		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION)
+		def newDeviceFirebaseInstanceId = "New firebase instance id"
+		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION, newDeviceFirebaseInstanceId)
 		assertResponseStatusCreated(registerResponse)
 		assertUserGetResponseDetailsWithPrivateData(registerResponse, false)
 
@@ -93,6 +95,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertDefaultOwnDevice(defaultDevice, false)
 		assert newDevice.name == newDeviceName
 		assert newDevice.operatingSystem == newDeviceOs
+		assert newDevice.firebaseInstanceId == newDeviceFirebaseInstanceId
 		assertDateTimeFormat(newDevice.registrationTime)
 		assertDateFormat(newDevice.appLastOpenedDate)
 
@@ -139,7 +142,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		when:
 		def newDeviceName = "My iPhone"
 		def newDeviceOs = "ANDROID"
-		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1")
+		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1", null)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -158,7 +161,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		when:
 		def newDeviceName = "My iPhone"
 		def newDeviceOs = "ANDROID"
-		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1")
+		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1", null)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -324,6 +327,42 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		User bobAfterReload = appService.reloadUser(bob)
 		bobAfterReload.buddies[0].user.devices[0].name == updatedName
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	@IgnoreRest
+	def 'Richard updates his device firebase instance id; device is updated but not disclosed to Bob'()
+	{
+		given:
+		def ts = timestamp
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		def existingName = richard.devices[0].name
+		def updatedFirebaseInstanceId = "Updated firebase instance id"
+
+		when:
+		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$existingName", "firebaseInstanceId":"$updatedFirebaseInstanceId"}""", richard.password)
+
+		then:
+		assertResponseStatusOk(response)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+
+		richardAfterReload.devices.size == 1
+		richardAfterReload.devices[0].name == existingName
+		richardAfterReload.devices[0].firebaseInstanceId == updatedFirebaseInstanceId
+
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesAfterUpdate)
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage"}
+
+		deviceChangeMessages.size() == 0
+
+		User bobAfterReload = appService.reloadUser(bob)
+		bobAfterReload.buddies[0].user.devices[0].firebaseInstanceId == null
 
 		cleanup:
 		appService.deleteUser(richard)

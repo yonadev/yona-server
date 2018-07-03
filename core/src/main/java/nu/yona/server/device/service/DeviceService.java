@@ -184,19 +184,24 @@ public class DeviceService
 	{
 		userService.updateUser(userId, userEntity -> {
 			UserDevice deviceEntity = getDeviceEntity(deviceId);
+
 			String oldName = deviceEntity.getName();
-			if (oldName.equals(changeRequest.name))
+			if (!oldName.equals(changeRequest.name))
 			{
-				return;
+				assertAcceptableDeviceName(userEntity, changeRequest.name);
+				deviceEntity.setName(changeRequest.name);
+				userDeviceRepository.save(deviceEntity);
+				sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
+						Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
 			}
-			assertAcceptableDeviceName(userEntity, changeRequest.name);
-			deviceEntity.setName(changeRequest.name);
-			userDeviceRepository.save(deviceEntity);
+
 			DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
-			deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId);
-			deviceAnonymizedRepository.save(deviceAnonymized);
-			sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
-					Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
+			Optional<String> oldFirebaseInstanceId = deviceAnonymized.getFirebaseInstanceId();
+			if (!oldFirebaseInstanceId.equals(changeRequest.firebaseInstanceId))
+			{
+				deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId);
+				deviceAnonymizedRepository.save(deviceAnonymized);
+			}
 		});
 		return getDevice(deviceId);
 	}

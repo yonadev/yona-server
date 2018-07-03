@@ -1,0 +1,11 @@
+databaseChangeLog:
+- changeSet:
+    id: 1530642397545-1
+    author: avdijk (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: firebase_instance_id
+            type: varchar(255)
+        tableName: devices_anonymized

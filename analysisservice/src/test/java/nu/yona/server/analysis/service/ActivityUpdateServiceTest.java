@@ -159,7 +159,7 @@ public class ActivityUpdateServiceTest
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown");
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown", Optional.empty());
 		deviceAnonId = deviceAnonEntity.getId();
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);

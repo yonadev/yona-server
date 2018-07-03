@@ -15,9 +15,10 @@ public class DeviceUpdateRequestDto
 	final Optional<String> firebaseInstanceId;
 
 	@JsonCreator
-	public DeviceUpdateRequestDto(@JsonProperty("name") String name, @JsonProperty("name") String firebaseInstanceId)
+	public DeviceUpdateRequestDto(@JsonProperty("name") String name,
+			@JsonProperty("firebaseInstanceId") Optional<String> firebaseInstanceId)
 	{
 		this.name = name;
-		this.firebaseInstanceId = Optional.ofNullable(firebaseInstanceId);
+		this.firebaseInstanceId = firebaseInstanceId;
 	}
 }

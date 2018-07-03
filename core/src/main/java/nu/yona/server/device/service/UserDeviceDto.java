@@ -34,6 +34,11 @@ public class UserDeviceDto extends DeviceBaseDto
 	private final UUID deviceAnonymizedId;
 	private final VPNProfileDto vpnProfile;
 
+	public UserDeviceDto(String name, OperatingSystem operatingSystem, String appVersion)
+	{
+		this(name, operatingSystem, appVersion, Optional.empty());
+	}
+
 	public UserDeviceDto(String name, OperatingSystem operatingSystem, String appVersion, Optional<String> firebaseInstanceId)
 	{
 		this(null, name, operatingSystem, appVersion, firebaseInstanceId, true, LocalDateTime.now(), LocalDate.now(), null, null);
