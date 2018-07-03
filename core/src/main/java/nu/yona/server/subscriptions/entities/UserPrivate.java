@@ -110,12 +110,12 @@ public class UserPrivate extends PrivateUserProperties
 
 	public void addBuddy(Buddy buddy)
 	{
-		buddies.add(buddy);
+		buddies.add(Objects.requireNonNull(buddy));
 	}
 
 	public void removeBuddy(Buddy buddy)
 	{
-		buddies.remove(buddy);
+		buddies.remove(Objects.requireNonNull(buddy));
 	}
 
 	public UUID getAnonymousMessageSourceId()

@@ -10,8 +10,11 @@ import static nu.yona.server.test.CommonAssertions.*
 
 import java.time.Duration
 import java.time.ZonedDateTime
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
 
 import groovy.json.*
+import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Goal
@@ -755,6 +758,33 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Richard finds Bob\'s buddy connect response with multiple threads'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		User bobby = makeUserForBuddyRequest(bob, "bob@dunn.net", "Bobby", "Dun")
+		appService.sendBuddyConnectRequest(richard, bobby)
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
+
+		int numThreads = 10
+		CyclicBarrier startBarrier = new CyclicBarrier(numThreads)
+		CountDownLatch doneSignal = new CountDownLatch(numThreads)
+		List<MessagesRetriever> messagesRetrievers = [].withDefault { new MessagesRetriever(startBarrier, doneSignal, richard, bob)}
+		numThreads.times{ new Thread(messagesRetrievers[it]).start()}
+
+		when:
+		doneSignal.await()
+
+		then:
+		messagesRetrievers.each{ it.assertSuccess()}
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	private void makeBuddies(User user, User buddy) {
 		appService.makeBuddies(user, buddy)
 		appService.getBuddies(user).size() == 1
@@ -811,5 +841,46 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assert goalConflictMessagesUser.size() == 1
 		def responseDeleteMessageUser = appService.deleteResourceWithPassword(goalConflictMessagesUser[0]._links.edit.href, user.password)
 		assertResponseStatusOk(responseDeleteMessageUser)
+	}
+
+	private class MessagesRetriever implements Runnable{
+		private final CyclicBarrier startBarrier
+		private final CountDownLatch doneSignal
+		private User richard
+		private User bob
+		private def response
+		private def AppService ownAppService = new AppService()
+
+		MessagesRetriever(CyclicBarrier startBarrier, CountDownLatch doneSignal, User richard, User bob) {
+			this.startBarrier = startBarrier
+			this.doneSignal = doneSignal
+			this.richard = richard
+			this.bob = bob
+		}
+		public void run() {
+			try {
+				startBarrier.await()
+				doWork()
+				doneSignal.countDown()
+			} catch (InterruptedException ex) {} // return;
+		}
+
+		void doWork() {
+			response = ownAppService.getMessages(richard)
+		}
+
+		void assertSuccess()
+		{
+			assertResponseStatusOk(response)
+			def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
+			{ it."@type" == "BuddyConnectResponseMessage" }
+			buddyConnectResponseMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(bob.url))
+			buddyConnectResponseMessages[0]._embedded?."yona:user" == null
+			buddyConnectResponseMessages[0].nickname == bob.nickname
+			assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
+			buddyConnectResponseMessages[0].status == "ACCEPTED"
+			buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
+			buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		}
 	}
 }
