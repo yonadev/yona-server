@@ -765,7 +765,6 @@ public class UserService
 	 * @param id the ID of the user
 	 * @return The user entity (never null)
 	 */
-	@Transactional
 	private User getUserEntityByIdWithUpdateLock(UUID id)
 	{
 		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
