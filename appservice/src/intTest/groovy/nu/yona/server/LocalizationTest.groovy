@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -28,6 +28,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatus(errorResponse, 400)
 		errorResponse.data.code == "error.user.mobile.number.invalid"
 		errorResponse.data.message == "The mobile number '$wrongNumber' is invalid. It must start with a + sign, with no spaces between the digits"
+		errorResponse.data.correlationId ==~ /(?i)^$UUID_PATTERN$/
 		errorResponse.headers."Content-Language" == "en-US"
 	}
 
@@ -47,6 +48,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatus(errorResponse, 400)
 		errorResponse.data.code == "error.user.mobile.number.invalid"
 		errorResponse.data.message == "Het mobiele nummer '$wrongNumber' is ongeldig. Het moet beginnen met een +-teken, zonder spaties tussen de tekens"
+		errorResponse.data.correlationId ==~ /(?i)^$UUID_PATTERN$/
 		errorResponse.headers."Content-Language" == "nl-NL"
 	}
 
@@ -66,6 +68,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatus(errorResponse, 400)
 		errorResponse.data.code == "error.user.mobile.number.invalid"
 		errorResponse.data.message == "The mobile number '$wrongNumber' is invalid. It must start with a + sign, with no spaces between the digits"
+		errorResponse.data.correlationId ==~ /(?i)^$UUID_PATTERN$/
 		errorResponse.headers."Content-Language" == "en-US"
 	}
 }

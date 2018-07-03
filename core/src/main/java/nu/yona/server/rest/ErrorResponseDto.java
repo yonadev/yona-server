@@ -1,43 +1,78 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * This DTO is used to communicate error messages or other type of messages to the client.
+ * This error response is used to return the error details to the client.
  */
 public class ErrorResponseDto
 {
-	/** Holds the actual message */
-	private String message;
+	/** The textual error message */
+	private final String message;
 
-	/** Holds the message code. */
-	private String code;
+	/** The error code. */
+	private final String code;
+
+	/** ID that correlates the server log messages to this error */
+	private final String correlationId;
 
 	/**
-	 * Default constructor
+	 * Creates a new error response based on the given message and code.
+	 * 
+	 * @param code The error code.
+	 * @param message The textual error message.
 	 */
-	public ErrorResponseDto()
+	protected ErrorResponseDto(String code, String message)
 	{
+		this(code, message, null);
 	}
 
 	/**
-	 * Creates a new DTO based on the given message.
+	 * Creates a new error response based on the given message, code and correlation ID.
 	 * 
-	 * @param type The type of message.
-	 * @param message The actual message to display.
+	 * @param code The error code.
+	 * @param message The textual error message.
+	 * @param correlationId The ID that correlates the server log messages to this error.
 	 */
-	public ErrorResponseDto(String code, String message)
+	@JsonCreator
+	public ErrorResponseDto(@JsonProperty("code") String code, @JsonProperty("message") String message,
+			@JsonProperty("correlationId") String correlationId)
 	{
 		this.code = code;
 		this.message = message;
+		this.correlationId = correlationId;
 	}
 
 	/**
-	 * This method gets the message code.
+	 * Creates a new error response based on the given message and code.
 	 * 
-	 * @return The message code.
+	 * @param code The error code.
+	 * @param message The textual error message.
+	 */
+	public static ErrorResponseDto createInstance(String code, String message)
+	{
+		return new ErrorResponseDto(code, message, ErrorLoggingFilter.LoggingContext.getCorrelationId());
+	}
+
+	/**
+	 * Creates a new error response based on the given message.
+	 * 
+	 * @param message The textual error message.
+	 */
+	public static ErrorResponseDto createInstance(String message)
+	{
+		return new ErrorResponseDto(null, message, ErrorLoggingFilter.LoggingContext.getCorrelationId());
+	}
+
+	/**
+	 * Returns the error code.
+	 * 
+	 * @return The error code.
 	 */
 	public String getCode()
 	{
@@ -45,19 +80,9 @@ public class ErrorResponseDto
 	}
 
 	/**
-	 * This method sets the message code.
+	 * Returns the textual error message.
 	 * 
-	 * @param code The message code.
-	 */
-	public void setCode(String code)
-	{
-		this.code = code;
-	}
-
-	/**
-	 * This method gets the actual message.
-	 * 
-	 * @return The actual message.
+	 * @return The textual error message.
 	 */
 	public String getMessage()
 	{
@@ -65,12 +90,12 @@ public class ErrorResponseDto
 	}
 
 	/**
-	 * This method sets the actual message.
+	 * Returns the ID that correlates the server log messages to this error.
 	 * 
-	 * @param message The actual message.
+	 * @return The ID that correlates the server log messages to this error.
 	 */
-	public void setMessage(String message)
+	public String getCorrelationId()
 	{
-		this.message = message;
+		return correlationId;
 	}
 }
