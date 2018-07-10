@@ -197,9 +197,9 @@ public class DeviceService
 
 			DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
 			Optional<String> oldFirebaseInstanceId = deviceAnonymized.getFirebaseInstanceId();
-			if (!oldFirebaseInstanceId.equals(changeRequest.firebaseInstanceId))
+			if (changeRequest.firebaseInstanceId.isPresent() && !oldFirebaseInstanceId.equals(changeRequest.firebaseInstanceId))
 			{
-				deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId);
+				deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId.get());
 				deviceAnonymizedRepository.save(deviceAnonymized);
 			}
 		});

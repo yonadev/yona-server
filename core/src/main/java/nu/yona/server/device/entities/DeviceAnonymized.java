@@ -159,8 +159,8 @@ public class DeviceAnonymized extends EntityWithUuid
 		return Optional.ofNullable(firebaseInstanceId);
 	}
 
-	public void setFirebaseInstanceId(Optional<String> firebaseInstanceId)
+	public void setFirebaseInstanceId(String firebaseInstanceId)
 	{
-		this.firebaseInstanceId = firebaseInstanceId.orElse(null);
+		this.firebaseInstanceId = firebaseInstanceId;
 	}
 }
