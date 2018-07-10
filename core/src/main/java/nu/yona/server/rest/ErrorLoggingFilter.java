@@ -37,7 +37,6 @@ public class ErrorLoggingFilter implements Filter
 
 	public static class LoggingContext implements AutoCloseable
 	{
-
 		private static final String CORRELATION_ID = "yona.correlation.id";
 		private static final String TRACE_ID_HEADER = "x-b3-traceid";
 
@@ -56,6 +55,11 @@ public class ErrorLoggingFilter implements Filter
 		{
 			MDC.put(CORRELATION_ID, getCorrelationId(request));
 			return new LoggingContext();
+		}
+
+		public static String getCorrelationId()
+		{
+			return (String) MDC.get(CORRELATION_ID);
 		}
 
 		private static String getCorrelationId(HttpServletRequest request)

@@ -3219,6 +3219,10 @@ definitions:
         type: string
         description: A localized error message
         example: The mobile number ''+31 6 12345678'' is invalid. It must start with a + sign, with no spaces between the digits
+      correlationId:
+        type: string
+        description: ID that correlates the server log messages to this error
+        example: 463ac35c9f6413ad48485a3953bb6124
   ConfirmationError:
     allOf:
       - $ref: '#/definitions/Error'

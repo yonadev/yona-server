@@ -64,7 +64,7 @@ public class GlobalExceptionMapping
 	{
 		logUnhandledException("completed with Yona exception", buildRequestInfo(request), exception);
 
-		ErrorResponseDto responseMessage = new ErrorResponseDto(exception.getMessageId(), exception.getMessage());
+		ErrorResponseDto responseMessage = ErrorResponseDto.createInstance(exception.getMessageId(), exception.getMessage());
 
 		return new ResponseEntity<>(responseMessage, exception.getStatusCode());
 	}
@@ -136,7 +136,7 @@ public class GlobalExceptionMapping
 	{
 		logUnhandledException(message, buildRequestInfo(request), exception);
 
-		return new ErrorResponseDto(null, exception.getMessage());
+		return ErrorResponseDto.createInstance(exception.getMessage());
 	}
 
 	private void logUnhandledException(String message, String requestInfo, Exception exception)
