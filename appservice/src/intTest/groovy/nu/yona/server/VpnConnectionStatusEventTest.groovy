@@ -172,7 +172,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 
 		def registerUrl = getResponseAfter.responseData._links."yona:registerDevice".href
 
-		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION, null)
+		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION)
 		assertResponseStatusCreated(registerResponse)
 
 		def devices = registerResponse.responseData._embedded."yona:devices"._embedded."yona:devices"

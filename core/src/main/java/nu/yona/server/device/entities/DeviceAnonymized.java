@@ -69,7 +69,7 @@ public class DeviceAnonymized extends EntityWithUuid
 		this.deviceIndex = deviceIndex;
 		this.operatingSystem = operatingSystem;
 		this.appVersion = Objects.requireNonNull(appVersion);
-		this.firebaseInstanceId = Objects.requireNonNull(firebaseInstanceId).orElse(null);
+		this.firebaseInstanceId = firebaseInstanceId.orElse(null);
 	}
 
 	public static DeviceAnonymized createInstance(int deviceIndex, OperatingSystem operatingSystem, String appVersion,

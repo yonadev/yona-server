@@ -141,7 +141,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		when:
 		def newDeviceName = "My iPhone"
 		def newDeviceOs = "ANDROID"
-		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1", null)
+		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1")
 
 		then:
 		assertResponseStatus(response, 400)
@@ -160,7 +160,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		when:
 		def newDeviceName = "My iPhone"
 		def newDeviceOs = "ANDROID"
-		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1", null)
+		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1")
 
 		then:
 		assertResponseStatus(response, 400)
