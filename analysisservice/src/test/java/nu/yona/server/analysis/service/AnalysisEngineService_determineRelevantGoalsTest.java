@@ -117,7 +117,7 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(
 				Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal, shoppingGoalHistoryItem));
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, operatingSystem, "Unknown");
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, operatingSystem, "Unknown", Optional.empty());
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);

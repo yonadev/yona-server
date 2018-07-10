@@ -463,6 +463,17 @@ public class DeviceController extends ControllerBase
 			return isRequestingDevice;
 		}
 
+		@JsonProperty("firebaseInstanceId")
+		@JsonInclude(Include.NON_EMPTY)
+		public Optional<String> getFirebaseInstanceId()
+		{
+			if (getContent() instanceof UserDeviceDto)
+			{
+				return ((UserDeviceDto) getContent()).getFirebaseInstanceId();
+			}
+			return Optional.empty();
+		}
+
 		@JsonProperty("sslRootCertCN")
 		@JsonInclude(Include.NON_EMPTY)
 		public Optional<String> getSslRootCertCn()
@@ -472,7 +483,6 @@ public class DeviceController extends ControllerBase
 				return Optional.of(sslRootCertificateCn);
 			}
 			return Optional.empty();
-
 		}
 
 		@JsonInclude(Include.NON_EMPTY)

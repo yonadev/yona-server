@@ -80,7 +80,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def newDeviceName = "My S9"
 		def newDeviceOs = "ANDROID"
-		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION)
+		def newDeviceFirebaseInstanceId = "New firebase instance id"
+		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION, newDeviceFirebaseInstanceId)
 		assertResponseStatusCreated(registerResponse)
 		assertUserGetResponseDetailsWithPrivateData(registerResponse, false)
 
@@ -93,6 +94,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertDefaultOwnDevice(defaultDevice, false)
 		assert newDevice.name == newDeviceName
 		assert newDevice.operatingSystem == newDeviceOs
+		assert newDevice.firebaseInstanceId == newDeviceFirebaseInstanceId
 		assertDateTimeFormat(newDevice.registrationTime)
 		assertDateFormat(newDevice.appLastOpenedDate)
 
@@ -324,6 +326,84 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		User bobAfterReload = appService.reloadUser(bob)
 		bobAfterReload.buddies[0].user.devices[0].name == updatedName
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard updates his device firebase instance id; device is updated but not disclosed to Bob'()
+	{
+		given:
+		def ts = timestamp
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		def existingName = richard.devices[0].name
+		def updatedFirebaseInstanceId = "Updated firebase instance id"
+
+		when:
+		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$existingName", "firebaseInstanceId":"$updatedFirebaseInstanceId"}""", richard.password)
+
+		then:
+		assertResponseStatusOk(response)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+
+		richardAfterReload.devices.size == 1
+		richardAfterReload.devices[0].name == existingName
+		richardAfterReload.devices[0].firebaseInstanceId == updatedFirebaseInstanceId
+
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesAfterUpdate)
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage"}
+
+		deviceChangeMessages.size() == 0
+
+		User bobAfterReload = appService.reloadUser(bob)
+		bobAfterReload.buddies[0].user.devices[0].name == existingName
+		bobAfterReload.buddies[0].user.devices[0].firebaseInstanceId == null
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard updates device name after setting firebase instance id; firebase instance id is not changed'()
+	{
+		given:
+		def ts = timestamp
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		def existingName = richard.devices[0].name
+		def existingFirebaseInstanceId = "Existing firebase instance id"
+		appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$existingName", "firebaseInstanceId":"$existingFirebaseInstanceId"}""", richard.password)
+		def updatedName = "Updated name"
+
+		when:
+		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$updatedName"}""", richard.password)
+
+		then:
+		assertResponseStatusOk(response)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+
+		richardAfterReload.devices.size == 1
+		richardAfterReload.devices[0].name == updatedName
+		richardAfterReload.devices[0].firebaseInstanceId == existingFirebaseInstanceId
+
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesAfterUpdate)
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage"}
+
+		deviceChangeMessages.size() == 1
+		deviceChangeMessages[0]._links.self != null
+		deviceChangeMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		deviceChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
+		deviceChangeMessages[0].message == "User renamed device 'Richard's iPhone' into '$updatedName'"
+
+		User bobAfterReload = appService.reloadUser(bob)
+		bobAfterReload.buddies[0].user.devices[0].name == updatedName
+		bobAfterReload.buddies[0].user.devices[0].firebaseInstanceId == null // Firebase instance ID is not disclosed to buddies
 
 		cleanup:
 		appService.deleteUser(richard)

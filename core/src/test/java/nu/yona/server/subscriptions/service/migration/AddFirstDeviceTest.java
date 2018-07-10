@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -166,7 +167,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		// Add device
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, SUPPORTED_APP_VERSION);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, SUPPORTED_APP_VERSION,
+				Optional.empty());
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
 		richard.addDevice(device);

@@ -104,7 +104,7 @@ public class DeviceService
 		assertAcceptableDeviceName(userEntity, deviceDto.getName());
 		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
-				deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
+				deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getFirebaseInstanceId());
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice deviceEntity = userDeviceRepository
 				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId(), userService.generatePassword()));
@@ -184,16 +184,24 @@ public class DeviceService
 	{
 		userService.updateUser(userId, userEntity -> {
 			UserDevice deviceEntity = getDeviceEntity(deviceId);
+
 			String oldName = deviceEntity.getName();
-			if (oldName.equals(changeRequest.name))
+			if (!oldName.equals(changeRequest.name))
 			{
-				return;
+				assertAcceptableDeviceName(userEntity, changeRequest.name);
+				deviceEntity.setName(changeRequest.name);
+				userDeviceRepository.save(deviceEntity);
+				sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
+						Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
 			}
-			assertAcceptableDeviceName(userEntity, changeRequest.name);
-			deviceEntity.setName(changeRequest.name);
-			userDeviceRepository.save(deviceEntity);
-			sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
-					Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
+
+			DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
+			Optional<String> oldFirebaseInstanceId = deviceAnonymized.getFirebaseInstanceId();
+			if (changeRequest.firebaseInstanceId.isPresent() && !oldFirebaseInstanceId.equals(changeRequest.firebaseInstanceId))
+			{
+				deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId.get());
+				deviceAnonymizedRepository.save(deviceAnonymized);
+			}
 		});
 		return getDevice(deviceId);
 	}
@@ -201,7 +209,7 @@ public class DeviceService
 	public UserDeviceDto createDefaultUserDeviceDto()
 	{
 		return new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN,
-				ANDROID_MIN_APP_VERSION);
+				ANDROID_MIN_APP_VERSION, Optional.empty());
 	}
 
 	private int findFirstFreeDeviceIndex(User userEntity)

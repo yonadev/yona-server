@@ -91,6 +91,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		assert johnAfterNumberConfirmation.devices[0].operatingSystem == operatingSystem
 		assert johnAfterNumberConfirmation.devices[0].sslRootCertCn == "smoothwall003.yona"
 		assert johnAfterNumberConfirmation.devices[0].sslRootCertUrl
+		assert johnAfterNumberConfirmation.devices[0].firebaseInstanceId == null
 		assertEquals(johnAfterNumberConfirmation.devices[0].appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		def responseSslRootCert = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.devices[0].sslRootCertUrl)

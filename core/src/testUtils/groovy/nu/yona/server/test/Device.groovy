@@ -29,6 +29,7 @@ class Device
 	final String appActivityUrl
 	final String postVpnStatusEventUrl
 	final String sslRootCertUrl
+	final String firebaseInstanceId
 	final String appleMobileConfig
 	Device(password, json)
 	{
@@ -48,6 +49,7 @@ class Device
 		this.postVpnStatusEventUrl = json._links?."yona:postVpnStatusEvent"?.href
 		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
 		this.appleMobileConfig = json._links?."yona:appleMobileConfig"?.href
+		this.firebaseInstanceId = json.firebaseInstanceId
 	}
 
 	def postOpenAppEvent(AppService appService, operatingSystem = this.operatingSystem, appVersion = Device.SUPPORTED_APP_VERSION)

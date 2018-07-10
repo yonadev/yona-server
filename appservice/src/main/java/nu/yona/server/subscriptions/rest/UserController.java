@@ -486,7 +486,8 @@ public class UserController extends ControllerBase
 			this.mobileNumber = mobileNumber;
 			this.nickname = nickname;
 			this.deviceRegistration = deviceName == null ? Optional.empty()
-					: Optional.of(new DeviceRegistrationRequestDto(deviceName, deviceOperatingSystem, deviceAppVersion));
+					: Optional.of(new DeviceRegistrationRequestDto(deviceName, deviceOperatingSystem, deviceAppVersion,
+							Optional.empty()));
 		}
 
 		Optional<UserDeviceDto> getDevice()
