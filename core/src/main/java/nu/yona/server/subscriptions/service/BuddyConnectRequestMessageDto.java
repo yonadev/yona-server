@@ -91,7 +91,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 	}
 
 	@Component
-	private static class Manager extends BuddyMessageEmbeddedUserDto.Manager
+	static class Manager extends BuddyMessageEmbeddedUserDto.Manager
 	{
 		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 

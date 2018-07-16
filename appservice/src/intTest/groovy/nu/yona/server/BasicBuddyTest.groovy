@@ -10,8 +10,11 @@ import static nu.yona.server.test.CommonAssertions.*
 
 import java.time.Duration
 import java.time.ZonedDateTime
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
 
 import groovy.json.*
+import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Goal
@@ -514,9 +517,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 		richard.buddies.size() == 0 // Buddy removed for Richard
-		bob.buddies.size() == 1 // Buddy not yet removed for Bob (not processed yet)
-		assertDateTimeFormat(bob.buddies[0].lastStatusChangeTime)
-		assertEquals(bob.buddies[0].lastStatusChangeTime, removeBuddyTime)
+		bob.buddies.size() == 0 // Buddy removed for Bob (processed as part of reload)
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
@@ -628,8 +629,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
-		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (not processed yet)
-		!appService.getBuddies(bob)[0].goals
+		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob (processed during request handling)
 
 		assertGoalConflictIsNotReportedToBuddy(richard, bob)
 		assertGoalConflictIsNotReportedToBuddy(bob, richard)
@@ -657,71 +657,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		// Connect request message is removed, so Bob doesn't have any messages
 		appService.getMessages(bob).responseData.page.totalElements == 0
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Richard deletes Bob\'s buddy entry before processing Bob\'s accept message'()
-	{
-		given:
-		User richard = addRichard()
-		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
-		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-
-		when:
-		def response = appService.removeBuddy(richard, appService.getBuddies(richard)[0], "Sorry, I regret having asked you")
-
-		then:
-		assertResponseStatusOk(response)
-		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (didn't process the disconnect)
-		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
-
-		appService.getMessages(bob).responseData.page.totalElements == 1 // Only the disconnect message
-
-		def disconnectMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
-
-		appService.getBuddies(bob).size() == 0 // Buddy removed now
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Bob deletes Richard\'s buddy entry before Richard processed the accept message'()
-	{
-		given:
-		User richard = addRichard()
-		User bob = addBob()
-		bob.emailAddress = "bob@dunn.net"
-		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-
-		when:
-		def response = appService.removeBuddy(bob, appService.getBuddies(bob)[0], "Sorry, I regret accepting you")
-
-		then:
-		assertResponseStatusOk(response)
-		appService.getBuddies(bob).size() == 0 // Buddy removed for Bob
-		def buddiesRichard = appService.getBuddies(richard)
-		buddiesRichard.size() == 1 // Buddy not yet removed for Richard
-		Buddy buddy = buddiesRichard[0]
-		buddy.sendingStatus == "REQUESTED"
-		buddy.receivingStatus == "REQUESTED"
-
-		def messagesRichard = appService.getMessages(richard)
-		messagesRichard.responseData.page.totalElements == 1
-		messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}?.size() == 1
-		def disconnectMessage = messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
-
-		appService.getBuddies(richard).size() == 0 // Buddy now removed for Richard
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -823,6 +758,33 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Richard finds Bob\'s buddy connect response with multiple threads'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		User bobby = makeUserForBuddyRequest(bob, "bob@dunn.net", "Bobby", "Dun")
+		appService.sendBuddyConnectRequest(richard, bobby)
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
+
+		int numThreads = 10
+		CyclicBarrier startBarrier = new CyclicBarrier(numThreads)
+		CountDownLatch doneSignal = new CountDownLatch(numThreads)
+		List<MessagesRetriever> messagesRetrievers = [].withDefault { new MessagesRetriever(startBarrier, doneSignal, richard, bob)}
+		numThreads.times{ new Thread(messagesRetrievers[it]).start()}
+
+		when:
+		doneSignal.await()
+
+		then:
+		messagesRetrievers.each{ it.assertSuccess()}
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	private void makeBuddies(User user, User buddy) {
 		appService.makeBuddies(user, buddy)
 		appService.getBuddies(user).size() == 1
@@ -879,5 +841,46 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assert goalConflictMessagesUser.size() == 1
 		def responseDeleteMessageUser = appService.deleteResourceWithPassword(goalConflictMessagesUser[0]._links.edit.href, user.password)
 		assertResponseStatusOk(responseDeleteMessageUser)
+	}
+
+	private class MessagesRetriever implements Runnable{
+		private final CyclicBarrier startBarrier
+		private final CountDownLatch doneSignal
+		private User richard
+		private User bob
+		private def response
+		private def AppService ownAppService = new AppService()
+
+		MessagesRetriever(CyclicBarrier startBarrier, CountDownLatch doneSignal, User richard, User bob) {
+			this.startBarrier = startBarrier
+			this.doneSignal = doneSignal
+			this.richard = richard
+			this.bob = bob
+		}
+		public void run() {
+			try {
+				startBarrier.await()
+				doWork()
+				doneSignal.countDown()
+			} catch (InterruptedException ex) {} // return;
+		}
+
+		void doWork() {
+			response = ownAppService.getMessages(richard)
+		}
+
+		void assertSuccess()
+		{
+			assertResponseStatusOk(response)
+			def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
+			{ it."@type" == "BuddyConnectResponseMessage" }
+			buddyConnectResponseMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(bob.url))
+			buddyConnectResponseMessages[0]._embedded?."yona:user" == null
+			buddyConnectResponseMessages[0].nickname == bob.nickname
+			assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
+			buddyConnectResponseMessages[0].status == "ACCEPTED"
+			buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
+			buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		}
 	}
 }

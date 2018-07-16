@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -17,11 +17,7 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
-import org.hibernate.exception.ConstraintViolationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +28,7 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
@@ -39,12 +36,11 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.Require;
 
 @Service
 public class MessageService
 {
-	private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
-
 	@Autowired
 	private UserService userService;
 
@@ -56,6 +52,9 @@ public class MessageService
 
 	@Autowired
 	private MessageSourceRepository messageSourceRepository;
+
+	@Autowired(required = false)
+	private MessageRepository messageRepository;
 
 	@Transactional
 	public Page<MessageDto> getReceivedMessages(UserDto user, boolean onlyUnreadMessages, Pageable pageable)
@@ -84,42 +83,33 @@ public class MessageService
 		return messageSource.getReceivedMessages(pageable, earliestDateTime);
 	}
 
-	// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
 	@Transactional
-	public UserDto prepareMessageCollection(UUID userId)
+	public boolean prepareMessageCollection(User user)
 	{
-		try
+		boolean updated = false;
+		if (mustTransferDirectMessagesToAnonymousDestination(user))
 		{
-			User user = userService.getPrivateValidatedUserEntity(userId);
-			tryTransferDirectMessagesToAnonymousDestination(user);
-			tryProcessUnprocessedMessages(user);
+			transferDirectMessagesToAnonymousDestination(user);
+			updated = true;
 		}
-		catch (DataIntegrityViolationException e)
+		if (mustProcessUnprocessedMessages(user))
 		{
-			if (e.getCause() instanceof ConstraintViolationException)
-			{
-				// Ignore and proceed. Another concurrent thread has transferred the messages.
-				// We avoid a lock here because that limits scaling this service horizontally.
-				logger.info("The direct messages of user with ID '" + userId
-						+ "' were apparently concurrently moved to the anonymous messages while handling another request.", e);
-			}
-			else
-			{
-				throw e;
-			}
+			processUnprocessedMessages(user);
+			updated = true;
 		}
-		return userService.getPrivateValidatedUser(userId);
+		return updated;
 	}
 
-	private void tryTransferDirectMessagesToAnonymousDestination(User user)
+	private boolean mustTransferDirectMessagesToAnonymousDestination(User user)
+	{
+		return getNamedMessageSource(user).getMessages(null).hasContent();
+	}
+
+	@Transactional
+	private void transferDirectMessagesToAnonymousDestination(User user)
 	{
 		MessageSource directMessageSource = getNamedMessageSource(user);
 		Page<Message> directMessages = directMessageSource.getMessages(null);
-		if (!directMessages.hasContent())
-		{
-			return;
-		}
-
 		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
 		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
 		MessageDestination directMessageDestination = directMessageSource.getDestination();
@@ -132,20 +122,26 @@ public class MessageService
 		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
-	private void tryProcessUnprocessedMessages(User user)
+	private boolean mustProcessUnprocessedMessages(User user)
+	{
+		return !getUnprocessedMessages(user).isEmpty();
+	}
+
+	private List<Long> getUnprocessedMessages(User user)
 	{
 		MessageDestination anonymousMessageDestination = getAnonymousMessageSource(user).getDestination();
-		List<Long> idsOfUnprocessedMessages = Message.getRepository()
-				.findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
-		if (idsOfUnprocessedMessages.isEmpty())
-		{
-			return;
-		}
+		return Message.getRepository().findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
+	}
 
-		UserDto userDto = userService.getPrivateUser(user.getId());
+	@Transactional
+	private void processUnprocessedMessages(User user)
+	{
+		List<Long> idsOfUnprocessedMessages = getUnprocessedMessages(user);
+
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
 		for (long id : idsOfUnprocessedMessages)
 		{
+			UserDto userDto = userService.getPrivateUser(user.getId()); // Inside loop, as message processing might change it
 			handleMessageAction(userDto, id, "process", emptyPayload);
 		}
 	}
@@ -178,10 +174,7 @@ public class MessageService
 	private void deleteMessage(UserDto user, Message message)
 	{
 		MessageDto messageDto = dtoManager.createInstance(user, message);
-		if (!messageDto.canBeDeleted())
-		{
-			throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
-		}
+		Require.that(messageDto.canBeDeleted(), InvalidMessageActionException::unprocessedMessageCannotBeDeleted);
 
 		deleteMessages(Collections.singleton(message));
 	}
@@ -330,6 +323,6 @@ public class MessageService
 		{
 			return;
 		}
-		Message.getRepository().deleteMessagesForIntervalActivities(intervalActivities);
+		deleteMessages(messageRepository.findByIntervalActivity(intervalActivities));
 	}
 }

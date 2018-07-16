@@ -1907,6 +1907,9 @@ definitions:
         type: string
         description: The version of the Yona app running on this device, in semver-compatible format
         example: 1.0.0
+      firebaseInstanceId:
+        type: string
+        description: The Instance ID provided by Firebase to the app
     required:
       - name
       - operatingSystem
@@ -1918,6 +1921,9 @@ definitions:
         type: string
         description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
         example: My S8
+      firebaseInstanceId:
+        type: string
+        description: The Instance ID provided by Firebase to the app
     required:
       - name
   DeviceBase:
@@ -1959,6 +1965,9 @@ definitions:
             example: "smoothwall003.yona"
           vpnProfile:
             $ref: '#/definitions/VPNProfile'
+          firebaseInstanceId:
+            type: string
+            description: The Instance ID provided by Firebase to the app, if known to the server.
           _links:
             allOf:
               - $ref: '#/definitions/Curies'
@@ -3219,6 +3228,10 @@ definitions:
         type: string
         description: A localized error message
         example: The mobile number ''+31 6 12345678'' is invalid. It must start with a + sign, with no spaces between the digits
+      correlationId:
+        type: string
+        description: ID that correlates the server log messages to this error
+        example: 463ac35c9f6413ad48485a3953bb6124
   ConfirmationError:
     allOf:
       - $ref: '#/definitions/Error'

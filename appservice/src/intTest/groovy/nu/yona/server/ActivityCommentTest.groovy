@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -359,6 +359,52 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 		getActivityDetailMessages(richardResponseDetails, richard, expectedData2, 10)
 		getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, expectedData2, 10)
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard can delete a goal after Bob commented on a related activity'()
+	{
+		given:
+		/** Begin of standard test setup for message delete tests **/
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		Goal richardGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
+		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
+
+		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+
+		def expectedData1 = [[nickname: "BD", message: "Hi buddy! How ya doing?"]]
+		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, expectedData1).responseData._embedded."yona:messages"
+		def messageBob1AsSeenByRichard = richardMessages[0]
+		assert messageBob1AsSeenByRichard.nickname == "BD"
+		def messageRichardReplyToBob = appService.postMessageActionWithPassword(messageBob1AsSeenByRichard._links."yona:reply".href, ["message" : "Hi Bob! Doing fine!"], richard.password)
+
+		def expectedData2 = [[nickname: "BD", message: "Hi buddy! How ya doing?"], [nickname: "RQ", message: "Hi Bob! Doing fine!"]]
+		def bobMessagesRichard = getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, expectedData2).responseData._embedded."yona:messages"
+		def messageBobReplyToRichardAgain = appService.postMessageActionWithPassword(bobMessagesRichard[1]._links."yona:reply".href, ["message" : "Great buddy!"], bob.password)
+
+		def expectedData3 = [[nickname: "BD", message: "Hi buddy! How ya doing?"], [nickname: "RQ", message: "Hi Bob! Doing fine!"], [nickname: "BD", message: "Great buddy!"]]
+		def richardMessagesRevisited = getActivityDetailMessages(richardResponseDetails, richard, expectedData3, 10).responseData._embedded."yona:messages"
+
+		assert richardMessagesRevisited[0].nickname == "BD"
+		assert richardMessagesRevisited[1].nickname == "RQ (me)"
+		assert richardMessagesRevisited[2].nickname == "BD"
+		/** End of standard test setup for message delete tests **/
+
+		when:
+		def response = appService.removeGoal(richard, richardGoal, "Don't want to monitor my news time anymore")
+
+		then:
+		assertResponseStatusOk(response)
 
 		cleanup:
 		appService.deleteUser(richard)

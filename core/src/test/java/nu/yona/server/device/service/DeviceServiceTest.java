@@ -407,7 +407,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		assertThat(richard.getDevices().size(), equalTo(1));
 
 		String newName = "New name";
-		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(newName);
+		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(newName, Optional.empty());
 		service.updateDevice(richard.getId(), device.getId(), changeRequest);
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
@@ -440,7 +440,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		String newName = "ORIGINAL".toLowerCase();
 		assertThat(oldName, not(sameInstance(newName)));
-		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(newName);
+		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(newName, Optional.empty());
 		service.updateDevice(richard.getId(), device.getId(), changeRequest);
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
@@ -469,7 +469,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertThat(richard.getDevices().size(), equalTo(2));
 
-		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(firstDeviceName);
+		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(firstDeviceName, Optional.empty());
 		service.updateDevice(richard.getId(), device.getId(), changeRequest);
 	}
 
@@ -897,7 +897,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion)
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion,
+				Optional.empty());
 		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		userDeviceRepository.save(device);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -738,6 +738,23 @@ public class ActivityService
 		UUID targetUserAnonymizedId = repliedMessage.getRelatedUserAnonymizedId().get();
 		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivity(),
 				Optional.of(repliedMessage), Optional.of(repliedMessage.getSenderCopyMessage()), message);
+	}
+
+	@Transactional
+	public void deleteAllDayActivityCommentMessages(Goal goal)
+	{
+		goal.getWeekActivities().forEach(wa -> messageService
+				.deleteMessagesForIntervalActivities(wa.getDayActivities().stream().collect(Collectors.toList())));
+
+		goal.getPreviousVersionOfThisGoal().ifPresent(this::deleteAllDayActivityCommentMessages);
+	}
+
+	@Transactional
+	public void deleteAllWeekActivityCommentMessages(Goal goal)
+	{
+		messageService.deleteMessagesForIntervalActivities(goal.getWeekActivities().stream().collect(Collectors.toList()));
+
+		goal.getPreviousVersionOfThisGoal().ifPresent(this::deleteAllWeekActivityCommentMessages);
 	}
 
 	@FunctionalInterface

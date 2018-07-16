@@ -43,6 +43,7 @@ pipeline {
 				checkpoint 'Build done'
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
 				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
+				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
 				sh 'helm upgrade --install --namespace yona --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
@@ -51,7 +52,7 @@ pipeline {
 		stage('Run integration tests') {
 			agent { label 'yona' }
 			steps {
-				sh './gradlew -Pyona_adminservice_url=http://185.3.209.132:31000 -Pyona_analysisservice_url=http://185.3.209.132:31001 -Pyona_appservice_url=http://185.3.209.132:31002 -Pyona_batchservice_url=http://185.3.209.132:31003 intTest'
+				sh './gradlew -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=http://build.dev.yona.nu:31002 -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest'
 			}
 			post {
 				always {
@@ -59,40 +60,10 @@ pipeline {
 				}
 			}
 		}
-		stage('Decide deploy to Mobiquity test server') {
+		stage('Decide deploy to acceptance test server') {
 			agent none
 			steps {
 				checkpoint 'Build and tests done'
-				script {
-					env.DEPLOY_TO_MOB_TEST = input message: 'User input required',
-							submitter: 'authenticated',
-							parameters: [choice(name: 'Deploy to Mobiquity test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the Mobiquity test server')]
-				}
-			}
-		}
-		stage('Deploy to Mobiquity test server') {
-			agent { label 'mob-test' }
-			environment {
-				YONA_DB = credentials('test-db')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
-				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
-			}
-			when {
-				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
-			}
-			steps {
-				sh 'helm repo update'
-				sh 'helm upgrade --install --namespace yona --set mariadb.mariadbUser=$YONA_DB_USR --set mariadb.mariadbPassword="$YONA_DB_PSW" --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
-				sh 'scripts/wait-for-services.sh k8snew'
-			}
-		}
-		stage('Decide deploy to acceptance test server') {
-			agent none
-			when {
-				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
-			}
-			steps {
-				checkpoint 'Mobiquity test server deployed'
 				script {
 					env.DEPLOY_TO_ACC_TEST = input message: 'User input required',
 							submitter: 'authenticated',

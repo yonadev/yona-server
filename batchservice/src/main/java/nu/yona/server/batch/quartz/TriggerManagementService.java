@@ -111,12 +111,7 @@ public class TriggerManagementService
 	{
 		try
 		{
-			CronTrigger trigger = newTrigger().forJob(triggerDto.getJobName(), group).withIdentity(triggerDto.getName(), group)
-					.startNow()
-					.withSchedule(cronSchedule(triggerDto.getCronExpression())
-							.inTimeZone(TimeZone.getTimeZone(triggerDto.getTimeZone()))
-							.withMisfireHandlingInstructionFireAndProceed())
-					.build();
+			CronTrigger trigger = createTrigger(group, triggerDto);
 			if (changeType == ChangeType.ADD)
 			{
 				scheduler.scheduleJob(trigger);
@@ -133,6 +128,15 @@ public class TriggerManagementService
 		{
 			throw YonaException.unexpected(e);
 		}
+	}
+
+	private CronTrigger createTrigger(String group, CronTriggerDto triggerDto)
+	{
+		return newTrigger().forJob(triggerDto.getJobName(), group).withIdentity(triggerDto.getName(), group).startNow()
+				.withSchedule(
+						cronSchedule(triggerDto.getCronExpression()).inTimeZone(TimeZone.getTimeZone(triggerDto.getTimeZone()))
+								.withMisfireHandlingInstructionFireAndProceed())
+				.build();
 	}
 
 	private TriggerKey getTriggerKey(String group, CronTriggerDto trigger)

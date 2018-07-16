@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.subscriptions.service;
+package nu.yona.server.subscriptions.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -28,14 +28,11 @@ import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.subscriptions.entities.PrivateUserProperties;
-import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.test.util.CryptoSessionRule;
 import nu.yona.server.test.util.JUnitUtil;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BuddyUserPrivateDataDtoTest
+public class BuddyTest
 {
 	private static final String PASSWORD = "PASSWORD";
 
@@ -81,7 +78,7 @@ public class BuddyUserPrivateDataDtoTest
 	{
 		String buddyName = "BuddyName";
 
-		String name = BuddyUserPrivateDataDto.determineName(() -> buddyName, null, null, null, null);
+		String name = Buddy.determineName(() -> buddyName, null, null, null, null);
 
 		assertThat(name, equalTo(buddyName));
 	}
@@ -94,8 +91,7 @@ public class BuddyUserPrivateDataDtoTest
 		User user = createUser("firstName", "lastName", nickname);
 		privateUserPropertiesFirstNameField.set(userUserPrivateField.get(user), null);
 
-		String name = BuddyUserPrivateDataDto.determineName(() -> null, Optional.of(user), User::getFirstName, messageId,
-				nickname);
+		String name = Buddy.determineName(() -> null, Optional.of(user), User::getFirstName, messageId, nickname);
 
 		assertThat(name, equalTo(messageId + ":" + nickname));
 	}
@@ -108,8 +104,7 @@ public class BuddyUserPrivateDataDtoTest
 		User user = createUser("firstName", "lastName", nickname);
 		user.setPrivateDataMigrationVersion(9999);
 
-		String name = BuddyUserPrivateDataDto.determineName(() -> null, Optional.of(user), User::getFirstName, messageId,
-				nickname);
+		String name = Buddy.determineName(() -> null, Optional.of(user), User::getFirstName, messageId, nickname);
 
 		assertThat(name, equalTo(messageId + ":" + nickname));
 	}
@@ -121,7 +116,7 @@ public class BuddyUserPrivateDataDtoTest
 		User user = createUser(userName, "lastName", "nickName");
 		user.setPrivateDataMigrationVersion(0);
 
-		String name = BuddyUserPrivateDataDto.determineName(() -> null, Optional.of(user), User::getFirstName, null, null);
+		String name = Buddy.determineName(() -> null, Optional.of(user), User::getFirstName, null, null);
 
 		assertThat(name, equalTo(userName));
 	}
@@ -132,8 +127,7 @@ public class BuddyUserPrivateDataDtoTest
 		String nickname = "nickname";
 		String messageId = "message.id";
 
-		String name = BuddyUserPrivateDataDto.determineName(() -> null, Optional.empty(), User::getFirstName, messageId,
-				nickname);
+		String name = Buddy.determineName(() -> null, Optional.empty(), User::getFirstName, messageId, nickname);
 
 		assertThat(name, equalTo(messageId + ":" + nickname));
 	}

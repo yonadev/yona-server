@@ -46,6 +46,8 @@ public class DeviceAnonymized extends EntityWithUuid
 
 	private String appVersion;
 
+	private String firebaseInstanceId;
+
 	@OneToMany(mappedBy = "deviceAnonymized", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private Set<VpnStatusChangeEvent> vpnStatusChangeEvents;
 
@@ -60,17 +62,20 @@ public class DeviceAnonymized extends EntityWithUuid
 		super(null);
 	}
 
-	private DeviceAnonymized(UUID id, int deviceIndex, OperatingSystem operatingSystem, String appVersion)
+	private DeviceAnonymized(UUID id, int deviceIndex, OperatingSystem operatingSystem, String appVersion,
+			Optional<String> firebaseInstanceId)
 	{
 		super(id);
 		this.deviceIndex = deviceIndex;
 		this.operatingSystem = operatingSystem;
 		this.appVersion = Objects.requireNonNull(appVersion);
+		this.firebaseInstanceId = firebaseInstanceId.orElse(null);
 	}
 
-	public static DeviceAnonymized createInstance(int deviceIndex, OperatingSystem operatingSystem, String appVersion)
+	public static DeviceAnonymized createInstance(int deviceIndex, OperatingSystem operatingSystem, String appVersion,
+			Optional<String> firebaseInstanceId)
 	{
-		return new DeviceAnonymized(UUID.randomUUID(), deviceIndex, operatingSystem, appVersion);
+		return new DeviceAnonymized(UUID.randomUUID(), deviceIndex, operatingSystem, appVersion, firebaseInstanceId);
 	}
 
 	public static DeviceAnonymizedRepository getRepository()
@@ -147,5 +152,15 @@ public class DeviceAnonymized extends EntityWithUuid
 	public Optional<VpnStatusChangeEvent> getLastVpnStatusChangeEvent()
 	{
 		return Optional.ofNullable(lastVpnStatusChangeEvent);
+	}
+
+	public Optional<String> getFirebaseInstanceId()
+	{
+		return Optional.ofNullable(firebaseInstanceId);
+	}
+
+	public void setFirebaseInstanceId(String firebaseInstanceId)
+	{
+		this.firebaseInstanceId = firebaseInstanceId;
 	}
 }

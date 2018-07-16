@@ -432,12 +432,14 @@ class AppService extends Service
 		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
 	}
 
-	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion)
+	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion, firebaseInstanceId = null)
 	{
+		def firebaseInstanceIdString = firebaseInstanceId ? "\"$firebaseInstanceId\"" : "null"
 		def json = """{
 				"name": "$name",
 				"operatingSystem": "$operatingSystem",
-				"appVersion": "$appVersion"
+				"appVersion": "$appVersion",
+				"firebaseInstanceId": $firebaseInstanceIdString
 				}"""
 		yonaServer.postJson(url, json, ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
 	}

@@ -63,6 +63,7 @@ import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.goals.entities.TimeZoneGoal;
+import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.Message;
@@ -159,7 +160,7 @@ public class ActivityUpdateServiceTest
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown");
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown", Optional.empty());
 		deviceAnonId = deviceAnonEntity.getId();
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
@@ -580,6 +581,13 @@ public class ActivityUpdateServiceTest
 
 	private ActivityPayload createPayload(ZonedDateTime startTime, ZonedDateTime endTime)
 	{
-		return ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime, endTime, "Lotto");
+		return ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime, endTime, "Lotto",
+				makeCategorySet(gamblingGoal));
+	}
+
+	private Set<ActivityCategoryDto> makeCategorySet(Goal... goals)
+	{
+		return Arrays.asList(goals).stream().map(Goal::getActivityCategory).map(ActivityCategoryDto::createInstance)
+				.collect(Collectors.toSet());
 	}
 }

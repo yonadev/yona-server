@@ -81,6 +81,7 @@ import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.subscriptions.service.VPNProfileDto;
+import nu.yona.server.util.Require;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -164,33 +165,44 @@ public class UserController extends ControllerBase
 			boolean isCreatedOnBuddyRequest, Optional<String> password)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.canAccessPrivateData(requestingUserId)))
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
-			boolean isForOwnUser = requestingUserId.equals(userId);
-			if (isForOwnUser)
+			if (requestingUserId.equals(userId))
 			{
-				UserDto user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
-				Optional<UUID> requestingDeviceId = determineRequestingDeviceId(user, requestingDeviceIdStr,
-						isCreatedOnBuddyRequest);
-				if (requestingDeviceId.isPresent() && user.getOwnPrivateData().getDevices().map(d -> d.size() > 1).orElse(false))
-				{
-					// User has multiple devices
-					deviceService.removeDuplicateDefaultDevices(user, requestingDeviceId.get());
-					user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
-				}
-				return createOkResponse(user, createResourceAssemblerForOwnUser(requestingUserId, requestingDeviceId));
+				return getOwnUser(requestingUserId, requestingDeviceIdStr, isCreatedOnBuddyRequest);
 			}
-			return createOkResponse(buddyService.getUserOfBuddy(requestingUserId, userId),
-					createResourceAssemblerForBuddy(requestingUserId));
+			return getBuddyUser(userId, requestingUserId);
 		}
+	}
+
+	private HttpEntity<UserResource> getOwnUser(UUID userId, String requestingDeviceIdStr, boolean isCreatedOnBuddyRequest)
+	{
+		UserDto user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
+		Optional<UUID> requestingDeviceId = determineRequestingDeviceId(user, requestingDeviceIdStr, isCreatedOnBuddyRequest);
+		if (requestingDeviceId.isPresent() && user.getOwnPrivateData().getDevices().map(d -> d.size() > 1).orElse(false))
+		{
+			// User has multiple devices
+			deviceService.removeDuplicateDefaultDevices(user, requestingDeviceId.get());
+			user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
+		}
+		return createOkResponse(user, createResourceAssemblerForOwnUser(userId, requestingDeviceId));
+	}
+
+	private ResponseEntity<UserResource> getBuddyUser(UUID userId, UUID requestingUserId)
+	{
+		return createOkResponse(buddyService.getUserOfBuddy(requestingUserId, userId),
+				createResourceAssemblerForBuddy(requestingUserId));
 	}
 
 	private Optional<UUID> determineRequestingDeviceId(UserDto user, String requestingDeviceIdStr,
 			boolean isCreatedOnBuddyRequest)
 	{
-		return (isCreatedOnBuddyRequest) ? Optional.empty()
-				: (requestingDeviceIdStr == null ? Optional.of(deviceService.getDefaultDeviceId(user))
-						: Optional.of(UUID.fromString(requestingDeviceIdStr)));
+		if (isCreatedOnBuddyRequest)
+		{
+			return Optional.empty();
+		}
+		return requestingDeviceIdStr == null ? Optional.of(deviceService.getDefaultDeviceId(user))
+				: Optional.of(UUID.fromString(requestingDeviceIdStr));
 	}
 
 	private HttpEntity<UserResource> getPublicUser(UUID userId)
@@ -243,7 +255,8 @@ public class UserController extends ControllerBase
 	{
 		assert !user.getOwnPrivateData().getDevices().orElse(Collections.emptySet())
 				.isEmpty() : "Embedding devices in an update request is only allowed when updating a user created on buddy request";
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			// use DOS protection to prevent enumeration of all occupied mobile numbers
 			return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder(userId, Optional.of(requestingDeviceId)).toUri(),
@@ -255,10 +268,7 @@ public class UserController extends ControllerBase
 	private HttpEntity<UserResource> updateUserCreatedOnBuddyRequest(Optional<String> password, UUID userId, UserDto user,
 			String tempPassword)
 	{
-		if (password.isPresent())
-		{
-			throw InvalidDataException.appProvidedPasswordNotSupported();
-		}
+		Require.isNotPresent(password, InvalidDataException::appProvidedPasswordNotSupported);
 		addDefaultDeviceIfNotProvided(user);
 		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{
@@ -289,7 +299,8 @@ public class UserController extends ControllerBase
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userService.deleteUser(userId, Optional.ofNullable(messageStr));
 		}
@@ -302,7 +313,8 @@ public class UserController extends ControllerBase
 			@RequestParam(value = REQUESTING_DEVICE_ID_PARAM, required = false) UUID requestingDeviceId,
 			@RequestBody ConfirmationCodeDto mobileNumberConfirmation)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(userService.confirmMobileNumber(userId, mobileNumberConfirmation.getCode()),
 					createResourceAssemblerForOwnUser(userId, Optional.of(requestingDeviceId)));
@@ -314,7 +326,8 @@ public class UserController extends ControllerBase
 	public ResponseEntity<Void> resendMobileNumberConfirmationCode(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userService.resendMobileNumberConfirmationCode(userId);
 			return createOkResponse();
@@ -473,7 +486,8 @@ public class UserController extends ControllerBase
 			this.mobileNumber = mobileNumber;
 			this.nickname = nickname;
 			this.deviceRegistration = deviceName == null ? Optional.empty()
-					: Optional.of(new DeviceRegistrationRequestDto(deviceName, deviceOperatingSystem, deviceAppVersion));
+					: Optional.of(new DeviceRegistrationRequestDto(deviceName, deviceOperatingSystem, deviceAppVersion,
+							Optional.empty()));
 		}
 
 		Optional<UserDeviceDto> getDevice()
@@ -631,33 +645,48 @@ public class UserController extends ControllerBase
 			addSelfLink(userResource);
 			if (representation.includeGeneralContent.apply(user))
 			{
-				addUserPhotoLinkIfPhotoPresent(userResource);
+				addGeneralLinks(userResource);
 			}
 			if (representation.includeOwnUserNumNotConfirmedContent.apply(user))
 			{
-				addEditLink(userResource);
-				if (!user.isCreatedOnBuddyRequest())
-				{
-					addConfirmMobileNumberLink(userResource);
-					addResendMobileNumberConfirmationLink(userResource);
-				}
+				addOwnUserNumNotConfirmedLinks(user, userResource);
 			}
 			if (representation.includeOwnUserNumConfirmedContent.apply(user))
 			{
-				addEditLink(userResource);
-				addPostOpenAppEventLink(userResource); // YD-544
-				addMessagesLink(userResource);
-				addDayActivityOverviewsLink(userResource);
-				addWeekActivityOverviewsLink(userResource);
-				addDayActivityOverviewsWithBuddiesLink(userResource);
-				addNewDeviceRequestLink(userResource);
-				addAppActivityLink(userResource); // YD-544
-				pinResetRequestController.get().addLinks(userResource);
-				addSslRootCertificateLink(userResource); // YD-544
-				addAppleMobileConfigLink(userResource); // YD-544
-				addEditUserPhotoLink(userResource);
+				addOwnUserNumConfirmedLinks(userResource);
 			}
 			return userResource;
+		}
+
+		private void addGeneralLinks(UserResource userResource)
+		{
+			addUserPhotoLinkIfPhotoPresent(userResource);
+		}
+
+		private void addOwnUserNumNotConfirmedLinks(UserDto user, UserResource userResource)
+		{
+			addEditLink(userResource);
+			if (!user.isCreatedOnBuddyRequest())
+			{
+				addConfirmMobileNumberLink(userResource);
+				addResendMobileNumberConfirmationLink(userResource);
+			}
+		}
+
+		private void addOwnUserNumConfirmedLinks(UserResource userResource)
+		{
+			addEditLink(userResource);
+			addPostOpenAppEventLink(userResource); // YD-544
+			addMessagesLink(userResource);
+			addDayActivityOverviewsLink(userResource);
+			addWeekActivityOverviewsLink(userResource);
+			addDayActivityOverviewsWithBuddiesLink(userResource);
+			addNewDeviceRequestLink(userResource);
+			addAppActivityLink(userResource); // YD-544
+			pinResetRequestController.get().addLinks(userResource);
+			addSslRootCertificateLink(userResource); // YD-544
+			addAppleMobileConfigLink(userResource); // YD-544
+			addEditUserPhotoLink(userResource);
 		}
 
 		private void addEditUserPhotoLink(UserResource userResource)

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -33,7 +32,6 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
 
-import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.service.DeviceService;
@@ -48,6 +46,7 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalDto;
+import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.messaging.service.MessageService;
@@ -62,7 +61,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
-import nu.yona.server.util.LockPool;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -125,13 +124,13 @@ public class UserService
 	private MessageService messageService;
 
 	@Autowired(required = false)
+	private GoalService goalService;
+
+	@Autowired(required = false)
 	private WhiteListedNumberService whiteListedNumberService;
 
 	@Autowired(required = false)
 	private PrivateUserDataMigrationService privateUserDataMigrationService;
-
-	@Autowired(required = false)
-	private LockPool<UUID> userSynchronizer;
 
 	@PostConstruct
 	private void onStart()
@@ -146,9 +145,59 @@ public class UserService
 	}
 
 	@Transactional
-	public boolean canAccessPrivateData(UUID id)
+	public boolean doPreparationsAndCheckCanAccessPrivateData(UUID id)
 	{
-		return getUserEntityById(id).canAccessPrivateData();
+		// We add a lock here to prevent concurrent user updates. The lock is per user, so concurrency is not an issue.
+		return withLockOnUser(id, user -> {
+			if (!user.canAccessPrivateData())
+			{
+				return false;
+			}
+			boolean updated = doPreparations(user);
+			if (updated)
+			{
+				// The private data is accessible and might be updated, including the UserAnonymized
+				// Let the UserAnonymizedService save that to the repository and cache it
+				userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+				userRepository.save(user);
+			}
+			return true;
+		});
+	}
+
+	private boolean doPreparations(User user)
+	{
+		boolean updated = false;
+		updated |= doPreparationBuddiesRemovedWhileOffline(user);
+		updated |= doPreparationPrivateDataMigration(user);
+		updated |= doPreparationForMessages(user);
+		return updated;
+	}
+
+	private boolean doPreparationBuddiesRemovedWhileOffline(User user)
+	{
+		Set<Buddy> buddiesOfRemovedUsers = user.getBuddiesRelatedToRemovedUsers();
+		if (!buddiesOfRemovedUsers.isEmpty())
+		{
+			buddiesOfRemovedUsers.stream().forEach(b -> buddyService.removeBuddyInfoForRemovedUser(user, b));
+			return true;
+		}
+		return false;
+	}
+
+	private boolean doPreparationPrivateDataMigration(User user)
+	{
+		if (!privateUserDataMigrationService.isUpToDate(user))
+		{
+			privateUserDataMigrationService.upgrade(user);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean doPreparationForMessages(User user)
+	{
+		return messageService.prepareMessageCollection(user);
 	}
 
 	@Transactional
@@ -174,8 +223,7 @@ public class UserService
 	{
 		User user = getUserEntityById(id);
 		userStatusAsserter.accept(user);
-		User updatedUser = handlePrivateDataActions(user);
-		return createUserDtoWithPrivateData(updatedUser);
+		return createUserDtoWithPrivateData(user);
 	}
 
 	private void assertCreatedOnBuddyRequestStatus(User user, boolean isCreatedOnBuddyRequest)
@@ -206,20 +254,7 @@ public class UserService
 	@Transactional
 	public User getPrivateValidatedUserEntity(UUID id)
 	{
-		User validatedUser = getValidatedUserById(id);
-		return handlePrivateDataActions(validatedUser);
-	}
-
-	private User handlePrivateDataActions(User user)
-	{
-		handleBuddyUsersRemovedWhileOffline(user);
-
-		if (!privateUserDataMigrationService.isUpToDate(user))
-		{
-			updateUser(user.getId(), privateUserDataMigrationService::upgrade);
-		}
-
-		return user;
+		return getValidatedUserById(id);
 	}
 
 	@Transactional
@@ -316,7 +351,7 @@ public class UserService
 		return confirmationCode;
 	}
 
-	UserDto createUserDtoWithPrivateData(User user)
+	public UserDto createUserDtoWithPrivateData(User user)
 	{
 		return UserDto.createInstanceWithPrivateData(user, buddyService.getBuddyDtos(user.getBuddies()));
 	}
@@ -371,10 +406,7 @@ public class UserService
 	{
 		int maxUsers = yonaProperties.getMaxUsers();
 		long currentNumberOfUsers = userRepository.count();
-		if (currentNumberOfUsers >= maxUsers)
-		{
-			throw UserServiceException.maximumNumberOfUsersReached();
-		}
+		Require.that(currentNumberOfUsers < maxUsers, UserServiceException::maximumNumberOfUsersReached);
 		if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
 		{
 			logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers, maxUsers);
@@ -486,9 +518,10 @@ public class UserService
 	/**
 	 * Performs the given update action on the user with the specified ID, while holding a write-lock on the user. After the
 	 * update, the entity is saved to the repository.<br/>
-	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing migration
-	 * steps. Migration steps are executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't
-	 * be an option here as that would cause the GETs to fail rather than to wait for the other one to complete.
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing the user
+	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
+	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
+	 * would cause the GETs to fail rather than to wait for the other one to complete.
 	 * 
 	 * @param id The ID of the user to update
 	 * @param updateAction The update action to perform
@@ -511,13 +544,11 @@ public class UserService
 		});
 	}
 
-	private User withLockOnUser(UUID userId, Function<User, User> action)
+	private <T> T withLockOnUser(UUID userId, Function<User, T> action)
 	{
-		try (LockPool<UUID>.Lock lock = userSynchronizer.lock(userId))
-		{
-			User user = getUserEntityById(userId);
-			return action.apply(user);
-		}
+		User user = getUserEntityByIdWithUpdateLock(userId);
+
+		return action.apply(user);
 	}
 
 	@Transactional
@@ -576,11 +607,8 @@ public class UserService
 	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto user)
 	{
 		User originalUserEntity = getUserEntityById(id);
-		if (!originalUserEntity.isCreatedOnBuddyRequest())
-		{
-			// security check: should not be able to replace the password on an existing user
-			throw UserServiceException.userNotCreatedOnBuddyRequest(id);
-		}
+		// security check: should not be able to replace the password on an existing user
+		Require.that(originalUserEntity.isCreatedOnBuddyRequest(), () -> UserServiceException.userNotCreatedOnBuddyRequest(id));
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
@@ -596,7 +624,7 @@ public class UserService
 	{
 		// use a separate crypto session to read the data based on the temporary password
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
-				() -> canAccessPrivateData(originalUserEntity.getId())))
+				() -> doPreparationsAndCheckCanAccessPrivateData(originalUserEntity.getId())))
 		{
 			return retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity);
 		}
@@ -612,97 +640,80 @@ public class UserService
 		return userEncryptedData;
 	}
 
+	/**
+	 * Deletes the specified user, while holding a write-lock on the user.
+	 * 
+	 * @param id The ID of the user to delete
+	 * @param message the message to communicate to buddies
+	 */
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
-		withLockOnUser(id, userEntity -> {
-			buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
-
-			handleBuddyUsersRemovedWhileOffline(userEntity);
-
-			userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
-					DropBuddyReason.USER_ACCOUNT_DELETED));
-
-			UUID userAnonymizedId = userEntity.getUserAnonymizedId();
-			MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
-			MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
-			UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
-			userAnonymizedEntity.clearAnonymousDestination();
-			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-			userEntity.clearNamedMessageDestination();
-			User updatedUserEntity = userRepository.saveAndFlush(userEntity);
-
-			messageSourceRepository.delete(anonymousMessageSource);
-			messageSourceRepository.delete(namedMessageSource);
-			messageSourceRepository.flush();
-
-			Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
-			deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
-			deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
-			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-
-			allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
-			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-
-			new ArrayList<>(userEntity.getDevices()).stream()
-					.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
-
-			userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
-			userRepository.delete(updatedUserEntity);
-
-			logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
-					updatedUserEntity.getId());
-
-			return null; // Need to return something, but it isn't used
-		});
+		withLockOnUser(id, userEntity -> deleteUserInsideLock(userEntity, message));
 	}
 
-	private void deleteAllDayActivitiesWithTheirCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
+	private User deleteUserInsideLock(User userEntity, Optional<String> message)
 	{
-		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> {
-			// Other users might have commented on the activities being deleted. Delete these messages.
-			messageService.deleteMessagesForIntervalActivities(wa.getDayActivities().stream().collect(Collectors.toList()));
-			wa.removeAllDayActivities();
-		}));
+		deleteBuddyInfo(userEntity, message);
+
+		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+		deleteGoals(userAnonymizedEntity);
+		User updatedUserEntity = deleteMessageSources(userEntity, userAnonymizedEntity);
+
+		deleteDevices(userEntity);
+
+		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
+		userRepository.delete(updatedUserEntity);
+
+		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
+				updatedUserEntity.getId());
+
+		return null; // Need to return something, but it isn't used
 	}
 
-	private void deleteAllWeekActivityCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
+	private void deleteBuddyInfo(User userEntity, Optional<String> message)
 	{
-		// Other users might have commented on the activities being deleted. Delete these messages.
-		List<IntervalActivity> allWeekActivities = allGoalsIncludingHistoryItems.stream()
-				.flatMap(g -> g.getWeekActivities().stream()).collect(Collectors.toList());
-		messageService.deleteMessagesForIntervalActivities(allWeekActivities);
+		buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
+
+		handleBuddyUsersRemovedWhileOffline(userEntity);
+
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
+				DropBuddyReason.USER_ACCOUNT_DELETED));
 	}
 
-	private Set<Goal> getAllGoalsIncludingHistoryItems(User userEntity)
+	private void deleteDevices(User userEntity)
 	{
-		Set<Goal> allGoals = new HashSet<>(userEntity.getGoals());
-		Set<Goal> historyItems = new HashSet<>();
-		for (Goal goal : allGoals)
-		{
-			Optional<Goal> historyItem = goal.getPreviousVersionOfThisGoal();
-			while (historyItem.isPresent())
-			{
-				historyItems.add(historyItem.get());
-				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
-			}
-		}
-		allGoals.addAll(historyItems);
-		return allGoals;
+		new ArrayList<>(userEntity.getDevices()).stream()
+				.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
+	}
+
+	private void deleteGoals(UserAnonymized userAnonymizedEntity)
+	{
+		Set<Goal> goals = new HashSet<>(userAnonymizedEntity.getGoals()); // Copy to prevent ConcurrentModificationException
+		goals.forEach(g -> goalService.deleteGoal(userAnonymizedEntity, g));
+	}
+
+	private User deleteMessageSources(User userEntity, UserAnonymized userAnonymizedEntity)
+	{
+		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
+		userAnonymizedEntity.clearAnonymousDestination();
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		userEntity.clearNamedMessageDestination();
+		User updatedUserEntity = userRepository.saveAndFlush(userEntity);
+
+		messageSourceRepository.delete(anonymousMessageSource);
+		messageSourceRepository.delete(namedMessageSource);
+		messageSourceRepository.flush();
+		return updatedUserEntity;
 	}
 
 	@Transactional
 	public void addBuddy(UserDto user, BuddyDto buddy)
 	{
-		if (user == null || user.getId() == null)
-		{
-			throw InvalidDataException.emptyUserId();
-		}
-
-		if (buddy == null || buddy.getId() == null)
-		{
-			throw InvalidDataException.emptyBuddyId();
-		}
+		Require.that(user != null && user.getId() != null, InvalidDataException::emptyUserId);
+		Require.that(buddy != null && buddy.getId() != null, InvalidDataException::emptyBuddyId);
 
 		updateUser(user.getId(), userEntity -> {
 			assertValidatedUser(userEntity);
@@ -724,10 +735,7 @@ public class UserService
 	static User findUserByMobileNumber(String mobileNumber)
 	{
 		User userEntity = User.getRepository().findByMobileNumber(mobileNumber);
-		if (userEntity == null)
-		{
-			throw UserServiceException.notFoundByMobileNumber(mobileNumber);
-		}
+		Require.isNonNull(userEntity, () -> UserServiceException.notFoundByMobileNumber(mobileNumber));
 		return userEntity;
 	}
 
@@ -749,12 +757,22 @@ public class UserService
 		return getUserEntityById(id, LockModeType.NONE);
 	}
 
+	/**
+	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
+	 * value is always the user entity. If not an exception is thrown. A pessimistic database write lock is claimed when fetching
+	 * the entity.
+	 * 
+	 * @param id the ID of the user
+	 * @return The user entity (never null)
+	 */
+	private User getUserEntityByIdWithUpdateLock(UUID id)
+	{
+		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
+	}
+
 	private User getUserEntityById(UUID id, LockModeType lockModeType)
 	{
-		if (id == null)
-		{
-			throw InvalidDataException.emptyUserId();
-		}
+		Require.isNonNull(id, InvalidDataException::emptyUserId);
 
 		User entity;
 		switch (lockModeType)
@@ -769,10 +787,7 @@ public class UserService
 				throw new IllegalArgumentException("Lock mode type " + lockModeType + " is unsupported");
 		}
 
-		if (entity == null)
-		{
-			throw UserServiceException.notFoundById(id);
-		}
+		Require.isNonNull(entity, () -> UserServiceException.notFoundById(id));
 
 		return entity;
 	}
@@ -825,10 +840,7 @@ public class UserService
 			Function<Integer, YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
-		if (confirmationCode == null)
-		{
-			throw noConfirmationCodeExceptionSupplier.get();
-		}
+		Require.isNonNull(confirmationCode, noConfirmationCodeExceptionSupplier);
 
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
 		if (remainingAttempts <= 0)
@@ -872,58 +884,34 @@ public class UserService
 		});
 	}
 
-	void assertValidUserFields(UserDto userResource, UserPurpose userPurpose)
+	void assertValidUserFields(UserDto user, UserPurpose purpose)
 	{
-		if (StringUtils.isBlank(userResource.getOwnPrivateData().getFirstName()))
+		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getFirstName()), InvalidDataException::blankFirstName);
+		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getLastName()), InvalidDataException::blankLastName);
+		Require.that(!(purpose == UserPurpose.USER && StringUtils.isBlank(user.getOwnPrivateData().getNickname())),
+				InvalidDataException::blankNickname);
+
+		Require.that(StringUtils.isNotBlank(user.getMobileNumber()), InvalidDataException::blankMobileNumber);
+
+		assertValidMobileNumber(user.getMobileNumber());
+
+		if (purpose == UserPurpose.BUDDY)
 		{
-			throw InvalidDataException.blankFirstName();
-		}
+			Require.that(StringUtils.isNotBlank(user.getEmailAddress()), InvalidDataException::blankEmailAddress);
+			assertValidEmailAddress(user.getEmailAddress());
 
-		if (StringUtils.isBlank(userResource.getOwnPrivateData().getLastName()))
-		{
-			throw InvalidDataException.blankLastName();
-		}
-
-		if (userPurpose == UserPurpose.USER && StringUtils.isBlank(userResource.getOwnPrivateData().getNickname()))
-		{
-			throw InvalidDataException.blankNickname();
-		}
-
-		if (StringUtils.isBlank(userResource.getMobileNumber()))
-		{
-			throw InvalidDataException.blankMobileNumber();
-		}
-
-		assertValidMobileNumber(userResource.getMobileNumber());
-
-		if (userPurpose == UserPurpose.BUDDY)
-		{
-			if (StringUtils.isBlank(userResource.getEmailAddress()))
-			{
-				throw InvalidDataException.blankEmailAddress();
-			}
-			assertValidEmailAddress(userResource.getEmailAddress());
-
-			if (!userResource.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty())
-			{
-				throw InvalidDataException.goalsNotSupported();
-			}
+			Require.that(user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty(),
+					InvalidDataException::goalsNotSupported);
 		}
 		else
 		{
-			if (!StringUtils.isBlank(userResource.getEmailAddress()))
-			{
-				throw InvalidDataException.excessEmailAddress();
-			}
+			Require.that(StringUtils.isBlank(user.getEmailAddress()), InvalidDataException::excessEmailAddress);
 		}
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		if (!REGEX_PHONE.matcher(mobileNumber).matches())
-		{
-			throw InvalidDataException.invalidMobileNumber(mobileNumber);
-		}
+		Require.that(REGEX_PHONE.matcher(mobileNumber).matches(), () -> InvalidDataException.invalidMobileNumber(mobileNumber));
 		assertNumberIsMobile(mobileNumber);
 	}
 
@@ -946,10 +934,7 @@ public class UserService
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		if (!REGEX_EMAIL.matcher(emailAddress).matches())
-		{
-			throw InvalidDataException.invalidEmailAddress(emailAddress);
-		}
+		Require.that(REGEX_EMAIL.matcher(emailAddress).matches(), () -> InvalidDataException.invalidEmailAddress(emailAddress));
 	}
 
 	/**

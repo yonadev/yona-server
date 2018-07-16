@@ -57,8 +57,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
-import nu.yona.server.analysis.service.AppActivityDto;
-import nu.yona.server.analysis.service.AppActivityDto.Activity;
+import nu.yona.server.analysis.service.AppActivitiesDto;
+import nu.yona.server.analysis.service.AppActivitiesDto.Activity;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
@@ -131,7 +131,7 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			Optional<UUID> requestingDeviceId = nullableStringToOptionalUuid(requestingDeviceIdStr);
 			return createOkResponse(deviceService.getDevicesOfUser(userId), createResourceAssembler(userId, requestingDeviceId),
@@ -145,7 +145,7 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.getDevice(deviceId),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
@@ -161,7 +161,7 @@ public class DeviceController extends ControllerBase
 		NewDeviceRequestDto newDeviceRequest = newDeviceRequestService.getNewDeviceRequestForUser(userId,
 				Optional.of(newDeviceRequestPassword));
 		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequest.getYonaPassword(),
-				() -> userService.canAccessPrivateData(userId)))
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDeviceDto newDevice = deviceService.addDeviceToUser(userId,
 					UserDeviceDto.createDeviceRegistrationInstance(request));
@@ -175,7 +175,7 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppOpenEventDto request)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(),
 					Optional.ofNullable(request.appVersion));
@@ -191,7 +191,7 @@ public class DeviceController extends ControllerBase
 	{
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(getDeviceSpecificAppleMobileConfig(deviceService.getDevice(deviceId)), headers,
 					HttpStatus.OK);
@@ -223,7 +223,7 @@ public class DeviceController extends ControllerBase
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr,
 			@RequestBody DeviceUpdateRequestDto request)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.updateDevice(userId, deviceId, request),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
@@ -237,7 +237,7 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.deleteDevice(userId, deviceId);
 		}
@@ -252,7 +252,7 @@ public class DeviceController extends ControllerBase
 	@RequestMapping(value = "/{deviceId}/appActivity/", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Void> addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppActivityDto appActivities)
+			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppActivitiesDto appActivities)
 	{
 		if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountIgnoreThreshold())
 		{
@@ -263,7 +263,7 @@ public class DeviceController extends ControllerBase
 		{
 			logLongAppActivityBatch(MessageType.WARNING, userId, appActivities);
 		}
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDto userDto = userService.getPrivateUser(userId);
 			autoregisterAndroid(userDto, deviceId);
@@ -294,7 +294,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	private void logLongAppActivityBatch(MessageType messageType, UUID userId, AppActivityDto appActivities)
+	private void logLongAppActivityBatch(MessageType messageType, UUID userId, AppActivitiesDto appActivities)
 	{
 		int numAppActivities = appActivities.getActivities().length;
 		List<Activity> appActivityCollection = Arrays.asList(appActivities.getActivities());
@@ -323,7 +323,7 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postVpnStatusChangeEvent(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody VpnStatusDto vpnStatus)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.registerVpnStatusChangeEvent(userId, deviceId, vpnStatus.vpnConnected);
 			return createNoContentResponse();
@@ -463,6 +463,17 @@ public class DeviceController extends ControllerBase
 			return isRequestingDevice;
 		}
 
+		@JsonProperty("firebaseInstanceId")
+		@JsonInclude(Include.NON_EMPTY)
+		public Optional<String> getFirebaseInstanceId()
+		{
+			if (getContent() instanceof UserDeviceDto)
+			{
+				return ((UserDeviceDto) getContent()).getFirebaseInstanceId();
+			}
+			return Optional.empty();
+		}
+
 		@JsonProperty("sslRootCertCN")
 		@JsonInclude(Include.NON_EMPTY)
 		public Optional<String> getSslRootCertCn()
@@ -472,7 +483,6 @@ public class DeviceController extends ControllerBase
 				return Optional.of(sslRootCertificateCn);
 			}
 			return Optional.empty();
-
 		}
 
 		@JsonInclude(Include.NON_EMPTY)

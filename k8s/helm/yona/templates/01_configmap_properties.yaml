@@ -13,6 +13,7 @@ data:
   application.properties: |
     {{- if .Values.spring.hazelcast.loglevel}}
     logging.level.com.hazelcast={{ .Values.spring.hazelcast.loglevel | default "info" }}
+    logging.pattern.level={{ .Values.spring.logpattern | default "%5p" }}
     {{- end }}
     {{- if .Values.spring.loglevel}}
     logging.level.org.springframework={{ .Values.spring.loglevel | default "info" }}

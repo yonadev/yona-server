@@ -211,7 +211,7 @@ public class AnalysisEngineServiceTest
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown");
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown", Optional.empty());
 		deviceAnonId = deviceAnonEntity.getId();
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
@@ -418,6 +418,32 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
+	public void analyze_unorderedAppActivity_addedOrdered()
+	{
+		String app = "Poker App";
+		ZonedDateTime today = now().truncatedTo(ChronoUnit.DAYS);
+		ZonedDateTime t1 = today.withHour(0).withMinute(0).withSecond(1);
+		ZonedDateTime t2 = t1.plusSeconds(15);
+		ZonedDateTime t3 = t2.plusSeconds(1);
+		ZonedDateTime t4 = t3.plusMinutes(5);
+
+		service.analyze(userAnonId, deviceAnonId, new AppActivitiesDto(now(), new AppActivitiesDto.Activity[] {
+				new AppActivitiesDto.Activity(app, t3, t4), new AppActivitiesDto.Activity(app, t1, t2) }));
+
+		ArgumentCaptor<ActivityPayload> activityPayloadCaptor = ArgumentCaptor.forClass(ActivityPayload.class);
+		verify(mockActivityUpdater, times(2)).addActivity(any(), activityPayloadCaptor.capture(),
+				eq(GoalDto.createInstance(gamblingGoal)), any());
+		List<ActivityPayload> payloads = activityPayloadCaptor.getAllValues();
+		assertThat(payloads.size(), equalTo(2));
+		assertThat(payloads.get(0).startTime, equalTo(t1));
+		assertThat(payloads.get(0).endTime, equalTo(t2));
+		assertThat(payloads.get(1).startTime, equalTo(t3));
+		assertThat(payloads.get(1).endTime, equalTo(t4));
+		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
+		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
+	}
+
+	@Test
 	public void analyze_appActivityCompletelyPrecedingLastCachedActivity_addActivity()
 	{
 		ZonedDateTime now = now();
@@ -464,7 +490,6 @@ public class AnalysisEngineServiceTest
 
 		// Verify that a database lookup was done finding the existing DayActivity to update
 		verify(mockDayActivityRepository).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
-
 		verify(mockActivityUpdater).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).addActivity(any(), any(), any(), any());
 		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
@@ -611,13 +636,15 @@ public class AnalysisEngineServiceTest
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		verify(mockActivityUpdater)
-				.addActivity(any(),
-						eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime,
-								endTime.truncatedTo(ChronoUnit.DAYS), "Poker App")),
-						eq(GoalDto.createInstance(gamblingGoal)), any());
-		verify(mockActivityUpdater).addActivity(any(), eq(ActivityPayload.createInstance(userAnonDto, deviceAnonDto,
-				endTime.truncatedTo(ChronoUnit.DAYS), endTime, "Poker App")), eq(GoalDto.createInstance(gamblingGoal)), any());
+		ArgumentCaptor<ActivityPayload> activityPayloadCaptor = ArgumentCaptor.forClass(ActivityPayload.class);
+		verify(mockActivityUpdater, times(2)).addActivity(any(), activityPayloadCaptor.capture(),
+				eq(GoalDto.createInstance(gamblingGoal)), any());
+		List<ActivityPayload> payloads = activityPayloadCaptor.getAllValues();
+		assertThat(payloads.size(), equalTo(2));
+		assertThat(payloads.get(0).startTime, equalTo(startTime));
+		assertThat(payloads.get(0).endTime, equalTo(endTime.truncatedTo(ChronoUnit.DAYS)));
+		assertThat(payloads.get(1).startTime, equalTo(endTime.truncatedTo(ChronoUnit.DAYS)));
+		assertThat(payloads.get(1).endTime, equalTo(endTime));
 		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
 		verify(mockActivityUpdater, never()).updateTimeLastActivity(any(), any(), any());
 	}
@@ -762,14 +789,20 @@ public class AnalysisEngineServiceTest
 				Optional.of(app));
 	}
 
-	private AppActivityDto createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)
+	private AppActivitiesDto createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
-		AppActivityDto.Activity[] activities = { new AppActivityDto.Activity(app, startTime, endTime) };
-		return new AppActivityDto(now(), activities);
+		AppActivitiesDto.Activity[] activities = { new AppActivitiesDto.Activity(app, startTime, endTime) };
+		return new AppActivitiesDto(now(), activities);
 	}
 
 	private ZonedDateTime now()
 	{
 		return ZonedDateTime.now().withZoneSameInstant(userAnonZoneId);
+	}
+
+	private Set<ActivityCategoryDto> makeCategorySet(Goal... goals)
+	{
+		return Arrays.asList(goals).stream().map(Goal::getActivityCategory).map(ActivityCategoryDto::createInstance)
+				.collect(Collectors.toSet());
 	}
 }
