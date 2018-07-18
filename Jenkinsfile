@@ -31,7 +31,7 @@ pipeline {
 					junit '**/build/test-results/*/*.xml'
 				}
 				failure {
-					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed"
+					slackSend color: 'bad', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} failed"
 				}
 			}
 		}
@@ -53,7 +53,7 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed to deploy to integration test server"
+					slackSend color: 'bad', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} failed to deploy to integration test server"
 				}
 			}
 		}
@@ -67,10 +67,10 @@ pipeline {
 					junit '**/build/test-results/*/*.xml'
 				}
 				success {
-					slackSend color: 'good', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} passed all tests"
+					slackSend color: 'good', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} passed all tests"
 				}
 				failure {
-					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed in integration test"
+					slackSend color: 'bad', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} failed in integration test"
 				}
 			}
 		}
@@ -106,7 +106,7 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed to deploy to acceptance"
+					slackSend color: 'bad', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} failed to deploy to acceptance"
 				}
 			}
 		}
@@ -136,7 +136,7 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed to deploy to beta"
+					slackSend color: 'bad', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} failed to deploy to beta"
 				}
 			}
 		}
@@ -147,7 +147,7 @@ pipeline {
 			}
 			steps {
 				checkpoint 'Beta test server deployed'
-				slackSend color: 'good', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} ready to deploy to production"
+				slackSend color: 'good', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} ready to deploy to production"
 				script {
 					env.DEPLOY_TO_PRD = input message: 'User input required',
 					submitter: 'authenticated',
@@ -167,10 +167,10 @@ pipeline {
 			}
 			post {
 				success {
-					slackSend color: 'good', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} successfully deployed to production"
+					slackSend color: 'good', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} successfully deployed to production"
 				}
 				failure {
-					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed to deploy to production"
+					slackSend color: 'bad', channel: '#devops' message: "Server build ${env.BUILD_NUMBER} failed to deploy to production"
 				}
 			}
 		}
