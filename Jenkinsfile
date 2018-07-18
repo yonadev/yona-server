@@ -9,7 +9,6 @@ pipeline {
 				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
 			}
 			steps {
-				slackSend color: 'good', team: 'yonadev', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} started"
 				checkout scm
 				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 				script {
