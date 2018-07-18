@@ -30,6 +30,9 @@ pipeline {
 				always {
 					junit '**/build/test-results/*/*.xml'
 				}
+				failure {
+					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed"
+				}
 			}
 		}
 		stage('Setup test server') {
@@ -48,6 +51,11 @@ pipeline {
 				sh 'helm upgrade --install --namespace yona --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
+			post {
+				failure {
+					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed to deploy to integration test server"
+				}
+			}
 		}
 		stage('Run integration tests') {
 			agent { label 'yona' }
@@ -57,6 +65,12 @@ pipeline {
 			post {
 				always {
 					junit '**/build/test-results/*/*.xml'
+				}
+				success {
+					slackSend color: 'good', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} passed all tests"
+				}
+				failure {
+					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed in integration test"
 				}
 			}
 		}
@@ -90,6 +104,11 @@ pipeline {
 				sh 'chmod +x wait-for-services.sh'
 				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
 			}
+			post {
+				failure {
+					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed to deploy to acceptance"
+				}
+			}
 		}
 		stage('Decide deploy to beta test server') {
 			agent none
@@ -115,6 +134,11 @@ pipeline {
 				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
+			post {
+				failure {
+					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed to deploy to beta"
+				}
+			}
 		}
 		stage('Decide deploy to production server') {
 			agent none
@@ -123,6 +147,7 @@ pipeline {
 			}
 			steps {
 				checkpoint 'Beta test server deployed'
+				slackSend color: 'good', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} ready to deploy to production"
 				script {
 					env.DEPLOY_TO_PRD = input message: 'User input required',
 					submitter: 'authenticated',
@@ -139,6 +164,14 @@ pipeline {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
+			}
+			post {
+				success {
+					slackSend color: 'good', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} successfully deployed to production"
+				}
+				failure {
+					slackSend color: 'bad', channel: "#devops" message: "Server build ${env.BUILD_NUMBER} failed to deploy to production"
+				}
 			}
 		}
 	}
