@@ -81,12 +81,3 @@ spec:
         - name: config-volume
           configMap:
             name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-springboot
-        {{- if .Values.istio.enabled }}
-        - name: istio-envoy
-          emptyDir:
-            medium: Memory
-        - name: istio-certs
-          secret:
-            optional: true
-            secretName: istio.default
-        {{- end }}
