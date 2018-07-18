@@ -16,6 +16,9 @@ spec:
         app: liquibase
         stage: {{ .Values.global.stage | default "develop" }}
       name: {{ .Values.global.stage | default "develop" }}-yona-liquibase-update
+      #Istio does not like Jobs
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       initContainers:
         - name: validatedb
