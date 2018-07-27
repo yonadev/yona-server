@@ -182,6 +182,7 @@ mariadb:
   user: develop
   password: develop
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
+  #hostname_override: yona-mariadb.yona.svc.cluster.local
 
 spring:
   loglevel: info

@@ -29,7 +29,11 @@ spec:
             - name: DBPASSWORD
               value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
             - name: DBHOST
+              {{- if .Values.mariadb.hostname_override }}
+              value: {{ .Values.mariadb.hostname_override | quote }}
+              {{- else }}
               value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
+              {{- end }}
             - name: DBNAME
               value: {{ .Values.mariadb.mariadbDatabase | quote }}
             - name: TIMEOUT
