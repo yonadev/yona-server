@@ -7,7 +7,6 @@ support_infrastructure:
   enabled: true
 
 global:
-
   stage: develop
   imagebase: yonadev
 
@@ -15,6 +14,9 @@ global:
 # This just reduces the 'failed' jobs spam in pod list until services
 # come online (5 second delay on curl, 2 on sql)
 seed_max_tries: 3
+
+istio:
+  enabled: false
 
 vpn:
   remote: "vpn.yona.local 443"
@@ -180,7 +182,7 @@ mariadb:
   user: develop
   password: develop
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
-  mariadbHostname: yona-mariadb.yona.svc.cluster.local
+  #hostname_override: yona-mariadb.yona.svc.cluster.local
 
 spring:
   loglevel: info

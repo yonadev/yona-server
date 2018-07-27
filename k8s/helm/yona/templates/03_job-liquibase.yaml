@@ -16,6 +16,9 @@ spec:
         app: liquibase
         stage: {{ .Values.global.stage | default "develop" }}
       name: {{ .Values.global.stage | default "develop" }}-yona-liquibase-update
+      #Istio does not like Jobs
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       initContainers:
         - name: validatedb
@@ -26,7 +29,11 @@ spec:
             - name: DBPASSWORD
               value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
             - name: DBHOST
-              value: {{ .Values.mariadb.mariadbHostname | quote }}
+              {{- if .Values.mariadb.hostname_override }}
+              value: {{ .Values.mariadb.hostname_override | quote }}
+              {{- else }}
+              value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
+              {{- end }}
             - name: DBNAME
               value: {{ .Values.mariadb.mariadbDatabase | quote }}
             - name: TIMEOUT
@@ -55,7 +62,7 @@ spec:
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Values.mariadb.mariadbHostname }}/{{ .Values.mariadb.mariadbDatabase }}"
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: RELEASE
             {{- if .Values.mariadb.seed_release}}
