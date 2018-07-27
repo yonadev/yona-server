@@ -38,7 +38,7 @@ spec:
             - name: DBPASSWORD
               value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
             - name: DBHOST
-              value: {{ .Values.mariadb.mariadbHostname | quote }}
+              value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
             - name: DBNAME
               value: {{ .Values.mariadb.mariadbDatabase | quote }}
             - name: TIMEOUT
@@ -56,7 +56,7 @@ spec:
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Values.mariadb.mariadbHostname }}/{{ .Values.mariadb.mariadbDatabase }}"
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
           ports:
             - containerPort: 8080
