@@ -131,7 +131,7 @@ public class ActivityUpdateServiceTest
 	{
 		setUpRepositoryMocks();
 
-		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
+		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1).withHour(0).withMinute(1).withSecond(0);
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 						new HashSet<>(Arrays.asList("poker", "lotto")), new HashSet<>(Arrays.asList("Poker App", "Lotto App")),
