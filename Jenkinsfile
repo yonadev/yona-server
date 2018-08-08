@@ -93,6 +93,7 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			when {
+				beforeAgent true
 				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
 			}
 			steps {
@@ -113,6 +114,7 @@ pipeline {
 		stage('Decide deploy to beta test server') {
 			agent none
 			when {
+				beforeAgent true
 				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
 			}
 			steps {
@@ -127,6 +129,7 @@ pipeline {
 		stage('Deploy to beta test server') {
 			agent { label 'beta' }
 			when {
+				beforeAgent true
 				environment name: 'DEPLOY_TO_BETA', value: 'yes'
 			}
 			steps {
@@ -143,6 +146,7 @@ pipeline {
 		stage('Decide deploy to production server') {
 			agent none
 			when {
+				beforeAgent true
 				environment name: 'DEPLOY_TO_BETA', value: 'yes'
 			}
 			steps {
@@ -158,6 +162,7 @@ pipeline {
 		stage('Deploy to production server') {
 			agent { label 'prd' }
 			when {
+				beforeAgent true
 				environment name: 'DEPLOY_TO_PRD', value: 'yes'
 			}
 			steps {
