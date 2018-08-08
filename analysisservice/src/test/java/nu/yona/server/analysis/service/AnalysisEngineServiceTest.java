@@ -155,7 +155,7 @@ public class AnalysisEngineServiceTest
 
 		setUpRepositoryMocks();
 
-		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
+		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1).withHour(0).withMinute(1).withSecond(0);
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 						new HashSet<>(Arrays.asList("poker", "lotto")), new HashSet<>(Arrays.asList("Poker App", "Lotto App")),
@@ -400,6 +400,7 @@ public class AnalysisEngineServiceTest
 	@Test
 	public void analyze_appActivityOnNewDay_addActivity()
 	{
+		JUnitUtil.skipBefore("Skip shortly after midnight", now(), 0, 15);
 		ZonedDateTime today = now().truncatedTo(ChronoUnit.DAYS);
 		// mock earlier activity at yesterday 23:59:58,
 		// add new activity at today 00:00:01
@@ -420,6 +421,7 @@ public class AnalysisEngineServiceTest
 	@Test
 	public void analyze_unorderedAppActivity_addedOrdered()
 	{
+		JUnitUtil.skipBefore("Skip shortly after midnignt", now(), 0, 10);
 		String app = "Poker App";
 		ZonedDateTime today = now().truncatedTo(ChronoUnit.DAYS);
 		ZonedDateTime t1 = today.withHour(0).withMinute(0).withSecond(1);
@@ -447,6 +449,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityCompletelyPrecedingLastCachedActivity_addActivity()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
 		ZonedDateTime existingActivityStartTime = now.minusMinutes(4);
 		ZonedDateTime existingActivityEndTime = existingActivityStartTime.plusMinutes(2);
 
@@ -466,6 +469,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingExistingActivity_updateTimeExistingActivity()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 30);
 		ZonedDateTime existingActivityTimeStartTime = now.minusMinutes(20);
 		ZonedDateTime existingActivityTimeEndTime = existingActivityTimeStartTime.plusMinutes(10);
 
@@ -499,6 +503,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_networkActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivityOnFirstActivityAndLogsWarning()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
 		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
 				createActivity(now.minusMinutes(10), now.minusMinutes(8)), createActivity(now.minusMinutes(1), now));
 		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class),
@@ -540,6 +545,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivityOnFirstActivityAndLogsWarning()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 10);
 		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
 				createActivity(now.minusMinutes(10), now.minusMinutes(8), "Lotto App"),
 				createActivity(now.minusMinutes(7), now.minusMinutes(5), "Lotto App"), createActivity(now, now, "Lotto App"));
@@ -573,6 +579,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityOverlappingLastCachedActivityBeginAndEnd_updateTimeLastActivity()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 20);
 		ZonedDateTime existingActivityStartTime = now.minusMinutes(5);
 		ZonedDateTime existingActivityEndTime = now.minusSeconds(15);
 
@@ -592,6 +599,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityOverlappingLastCachedActivityBeginOnly_updateTimeLastActivity()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
 		ZonedDateTime existingActivityStartTime = now.minusMinutes(5);
 		ZonedDateTime existingActivityEndTime = now.minusSeconds(15);
 
@@ -611,17 +619,17 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityPreviousDayPrecedingCachedDayActivity_addActivity()
 	{
 		ZonedDateTime now = now();
-		ZonedDateTime yesterdayTime = now.minusDays(1);
+		ZonedDateTime yesterdayNoon = now.minusDays(1).withHour(12).withMinute(0).withSecond(0);
 
 		mockExistingActivity(gamblingGoal, now);
 
-		ZonedDateTime startTime = yesterdayTime;
-		ZonedDateTime endTime = yesterdayTime.plusMinutes(10);
+		ZonedDateTime startTime = yesterdayNoon;
+		ZonedDateTime endTime = yesterdayNoon.plusMinutes(10);
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that a database lookup was done for yesterday
-		verify(mockDayActivityRepository).findOne(userAnonId, yesterdayTime.toLocalDate(), gamblingGoal.getId());
+		verify(mockDayActivityRepository).findOne(userAnonId, yesterdayNoon.toLocalDate(), gamblingGoal.getId());
 
 		verify(mockActivityUpdater).addActivity(any(), any(), eq(GoalDto.createInstance(gamblingGoal)), any());
 		verify(mockActivityUpdater, never()).updateTimeExistingActivity(any(), any());
@@ -632,6 +640,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_crossDayAppActivity_twoDayActivitiesCreated()
 	{
 		ZonedDateTime endTime = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", endTime, 0, 5);
 		ZonedDateTime startTime = endTime.minusDays(1);
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
@@ -653,7 +662,8 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityAfterNetworkActivityWithinConflictInterval_addActivity()
 	{
 		ZonedDateTime now = now();
-		mockExistingActivity(gamblingGoal, now());
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 5);
+		mockExistingActivity(gamblingGoal, now);
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(4), now.minusMinutes(2)));
 
@@ -679,6 +689,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityDifferentAppWithinConflictInterval_addActivity()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
 		mockExistingActivity(gamblingGoal, now.minusMinutes(10), now.minusMinutes(5), "Poker App");
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(4), now.minusMinutes(2)));
@@ -692,6 +703,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivitySameAppWithinConflictIntervalContinuous_updateTimeLastActivity()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
 		ZonedDateTime existingActivityEndTime = now.minusMinutes(5);
 		mockExistingActivity(gamblingGoal, now.minusMinutes(10), existingActivityEndTime, "Lotto App");
 
@@ -707,6 +719,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivitySameAppOverlappingLastCachedActivityEndTime_updateTimeLastActivity()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
 		mockExistingActivity(gamblingGoal, now.minusMinutes(10), now.minusMinutes(5), "Lotto App");
 
 		service.analyze(userAnonId, deviceAnonId,
@@ -721,6 +734,7 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivitySameAppWithinConflictIntervalButNotContinuous_addActivity()
 	{
 		ZonedDateTime now = now();
+		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
 		ZonedDateTime existingActivityEndTime = now.minusMinutes(5);
 		mockExistingActivity(gamblingGoal, now.minusMinutes(10), now.minusMinutes(5), "Lotto App");
 
@@ -798,11 +812,5 @@ public class AnalysisEngineServiceTest
 	private ZonedDateTime now()
 	{
 		return ZonedDateTime.now().withZoneSameInstant(userAnonZoneId);
-	}
-
-	private Set<ActivityCategoryDto> makeCategorySet(Goal... goals)
-	{
-		return Arrays.asList(goals).stream().map(Goal::getActivityCategory).map(ActivityCategoryDto::createInstance)
-				.collect(Collectors.toSet());
 	}
 }
