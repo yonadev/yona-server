@@ -44,8 +44,13 @@ import nu.yona.server.util.TimeUtil;
 @Service
 public class DeviceService
 {
+	// When updating the minimum version, be sure to update the version code and the version.
+	// Minimal technical version codes, used to verify the minimum
 	private static final int ANDROID_MIN_APP_VERSION_CODE = 5;
 	private static final int IOS_MIN_APP_VERSION_CODE = ANDROID_MIN_APP_VERSION_CODE;
+	// User-friendly minimum version, used for error message
+	private static final String ANDROID_MIN_APP_VERSION = "1.0.1";
+	private static final String IOS_MIN_APP_VERSION = ANDROID_MIN_APP_VERSION;
 
 	@Autowired(required = false)
 	private UserService userService;
@@ -98,7 +103,7 @@ public class DeviceService
 	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
 	{
 		assertAcceptableDeviceName(userEntity, deviceDto.getName());
-		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersionCode());
+		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode());
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
 				deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode(),
 				deviceDto.getFirebaseInstanceId());
@@ -335,7 +340,7 @@ public class DeviceService
 			Optional<String> appVersion, int appVersionCode)
 	{
 		userService.updateUser(userId, userEntity -> {
-			operatingSystem.ifPresent(os -> assertValidAppVersion(os, appVersionCode));
+			operatingSystem.ifPresent(os -> assertValidAppVersion(os, appVersion.get(), appVersionCode));
 
 			LocalDate now = TimeUtil.utcNow().toLocalDate();
 			UserDevice deviceEntity = getDeviceEntity(deviceId);
@@ -380,16 +385,19 @@ public class DeviceService
 		}
 	}
 
-	private void assertValidAppVersion(OperatingSystem operatingSystem, int appVersionCode)
+	private void assertValidAppVersion(OperatingSystem operatingSystem, String appVersion, int appVersionCode)
 	{
 		int minAppVersionCode;
+		String minAppVersion;
 		switch (operatingSystem)
 		{
 			case ANDROID:
 				minAppVersionCode = ANDROID_MIN_APP_VERSION_CODE;
+				minAppVersion = ANDROID_MIN_APP_VERSION;
 				break;
 			case IOS:
 				minAppVersionCode = IOS_MIN_APP_VERSION_CODE;
+				minAppVersion = IOS_MIN_APP_VERSION;
 				break;
 			case UNKNOWN:
 				// Everything is OK for as long as the app didn't confirm the operating system
@@ -397,15 +405,16 @@ public class DeviceService
 			default:
 				throw new IllegalArgumentException("Unknown operating system: " + operatingSystem);
 		}
-		assertNotOlderThan(minAppVersionCode, appVersionCode, operatingSystem);
+		assertNotOlderThan(minAppVersion, minAppVersionCode, operatingSystem, appVersion, appVersionCode);
 	}
 
-	private void assertNotOlderThan(int minAppVersionCode, int appVersionCode, OperatingSystem operatingSystem)
+	private void assertNotOlderThan(String minAppVersion, int minAppVersionCode, OperatingSystem operatingSystem,
+			String appVersion, int appVersionCode)
 	{
 		assertPositiveVersionCode(appVersionCode);
 		if (appVersionCode < minAppVersionCode)
 		{
-			throw DeviceServiceException.appVersionNotSupported(operatingSystem, minAppVersionCode, appVersionCode);
+			throw DeviceServiceException.appVersionNotSupported(operatingSystem, minAppVersion, appVersion);
 		}
 	}
 

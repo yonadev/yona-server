@@ -57,11 +57,10 @@ public class DeviceServiceException extends YonaException
 		return new DeviceServiceException("error.device.name.already.exists", name);
 	}
 
-	public static DeviceServiceException appVersionNotSupported(OperatingSystem operatingSystem, int minAppVersionCode,
-			int appVersionCode)
+	public static DeviceServiceException appVersionNotSupported(OperatingSystem operatingSystem, String minAppVersion,
+			String appVersion)
 	{
-		return new DeviceServiceException("error.device.app.version.not.supported", operatingSystem, minAppVersionCode,
-				appVersionCode);
+		return new DeviceServiceException("error.device.app.version.not.supported", operatingSystem, minAppVersion, appVersion);
 	}
 
 	public static DeviceServiceException cannotSwitchDeviceOperatingSystem(OperatingSystem currentOperatingSystem,

@@ -19,11 +19,11 @@ public class AppOpenEventDto
 
 	@JsonCreator
 	public AppOpenEventDto(@JsonProperty("operatingSystem") String operatingSystemStr,
-			@JsonProperty("appVersion") String appVersion, @JsonProperty("appVersionCode") Integer appVersionCode)
+			@JsonProperty("appVersion") String appVersion, @JsonProperty("appVersionCode") int appVersionCode)
 	{
 		this.operatingSystemStr = operatingSystemStr;
 		this.appVersion = appVersion;
-		this.appVersionCode = (appVersionCode == null) ? 0 : appVersionCode;
+		this.appVersionCode = appVersionCode;
 	}
 
 	public Optional<OperatingSystem> getOperatingSystem()

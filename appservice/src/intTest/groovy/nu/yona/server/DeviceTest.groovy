@@ -253,11 +253,13 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, "9.9.9", 2)
+		def appVersion = "9.9.9"
+		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, appVersion, 2)
 
 		then:
 		assertResponseStatus(response, 400)
 		assert response.responseData.code == "error.device.app.version.not.supported"
+		assert response.responseData.message == "Yona app is out of date and must be updated. Actual version is '$appVersion' but oldest supported version for 'IOS' is '1.0.1'"
 
 		cleanup:
 		appService.deleteUser(richard)
