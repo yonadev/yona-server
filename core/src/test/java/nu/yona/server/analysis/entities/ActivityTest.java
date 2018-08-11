@@ -35,7 +35,7 @@ public class ActivityTest
 	@Before
 	public void setUp()
 	{
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", Optional.empty());
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty());
 	}
 
 	@Test

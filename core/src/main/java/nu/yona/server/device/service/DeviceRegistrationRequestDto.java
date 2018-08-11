@@ -9,21 +9,19 @@ import java.util.Optional;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class DeviceRegistrationRequestDto
+public class DeviceRegistrationRequestDto extends AppOpenEventDto
 {
 	final String name;
-	final String operatingSystemStr;
-	final String appVersion;
 	final Optional<String> firebaseInstanceId;
 
 	@JsonCreator
 	public DeviceRegistrationRequestDto(@JsonProperty("name") String name,
 			@JsonProperty("operatingSystem") String operatingSystemStr, @JsonProperty("appVersion") String appVersion,
+			@JsonProperty("appVersionCode") int appVersionCode,
 			@JsonProperty("firebaseInstanceId") Optional<String> firebaseInstanceId)
 	{
+		super(operatingSystemStr, appVersion, appVersionCode);
 		this.name = name;
-		this.operatingSystemStr = operatingSystemStr;
-		this.appVersion = appVersion;
 		this.firebaseInstanceId = firebaseInstanceId;
 	}
 }

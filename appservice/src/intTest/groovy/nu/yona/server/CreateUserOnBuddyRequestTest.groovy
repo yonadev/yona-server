@@ -143,7 +143,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User bobToBeUpdated = new User(updatedBobJson)
 		bobToBeUpdated.deviceName = "My S8"
 		bobToBeUpdated.deviceOperatingSystem = "ANDROID"
-		bobToBeUpdated.deviceAppVersion = Device.SUPPORTED_APP_VERSION
+		bobToBeUpdated.deviceAppVersion = Device.SOME_APP_VERSION
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(CommonAssertions.&assertUserUpdateResponseDetails, bobToBeUpdated, inviteUrl)
 
 		then:

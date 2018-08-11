@@ -43,9 +43,17 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, parameters = [:])
+	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:]) // YD-544
 	{
-		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion)
+		def jsonStr = User.makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber)
+		def response = addUser(jsonStr, parameters)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, parameters = [:])
+	{
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode)
 		def response = addUser(jsonStr, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
@@ -432,13 +440,14 @@ class AppService extends Service
 		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
 	}
 
-	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion, firebaseInstanceId = null)
+	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
 	{
 		def firebaseInstanceIdString = firebaseInstanceId ? "\"$firebaseInstanceId\"" : "null"
 		def json = """{
 				"name": "$name",
 				"operatingSystem": "$operatingSystem",
 				"appVersion": "$appVersion",
+				"appVersionCode": "$appVersionCode",
 				"firebaseInstanceId": $firebaseInstanceIdString
 				}"""
 		yonaServer.postJson(url, json, ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
@@ -449,7 +458,7 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", password)
 	}
 
-	User addDevice(User user, name, operatingSystem, appVersion)
+	User addDevice(User user, name, operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE)
 	{
 		def newDeviceRequestPassword = "Zomaar"
 		assertResponseStatusSuccess(setNewDeviceRequest(user.mobileNumber, user.password, newDeviceRequestPassword))
@@ -457,7 +466,7 @@ class AppService extends Service
 		def getResponse = getNewDeviceRequest(user.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatusSuccess(getResponse)
 
-		def registerResponse = registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion)
+		def registerResponse = registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion, appVersionCode)
 		assertResponseStatusSuccess(registerResponse)
 
 		new User(registerResponse.responseData)

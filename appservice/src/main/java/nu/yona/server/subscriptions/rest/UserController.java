@@ -479,6 +479,7 @@ public class UserController extends ControllerBase
 				@JsonProperty(value = "deviceName", required = false) String deviceName,
 				@JsonProperty(value = "deviceOperatingSystem", required = false) String deviceOperatingSystem,
 				@JsonProperty(value = "deviceAppVersion", required = false) String deviceAppVersion,
+				@JsonProperty(value = "deviceAppVersionCode", required = false) Integer deviceAppVersionCode,
 				@JsonProperty("_links") Object ignored1, @JsonProperty("yonaPassword") Object ignored2)
 		{
 			this.firstName = firstName;
@@ -487,7 +488,7 @@ public class UserController extends ControllerBase
 			this.nickname = nickname;
 			this.deviceRegistration = deviceName == null ? Optional.empty()
 					: Optional.of(new DeviceRegistrationRequestDto(deviceName, deviceOperatingSystem, deviceAppVersion,
-							Optional.empty()));
+							deviceAppVersionCode, Optional.empty()));
 		}
 
 		Optional<UserDeviceDto> getDevice()

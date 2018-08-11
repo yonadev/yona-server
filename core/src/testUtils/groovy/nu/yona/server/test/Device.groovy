@@ -12,7 +12,8 @@ import groovy.transform.ToString
 @ToString(includeNames=true)
 class Device
 {
-	private static final String SUPPORTED_APP_VERSION = "9.9.9"
+	private static final String SOME_APP_VERSION = "9.9.9"
+	private static final int SUPPORTED_APP_VERSION_CODE = 999
 
 	final String password
 	final String url
@@ -52,9 +53,9 @@ class Device
 		this.firebaseInstanceId = json.firebaseInstanceId
 	}
 
-	def postOpenAppEvent(AppService appService, operatingSystem = this.operatingSystem, appVersion = Device.SUPPORTED_APP_VERSION)
+	def postOpenAppEvent(AppService appService, operatingSystem = this.operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE)
 	{
-		appService.createResourceWithPassword(postOpenAppEventUrl, """{"operatingSystem":"$operatingSystem", "appVersion":"$appVersion"}""", password)
+		appService.createResourceWithPassword(postOpenAppEventUrl, """{"operatingSystem":"$operatingSystem", "appVersion":"$appVersion", "appVersionCode":"$appVersionCode"}""", password)
 	}
 
 	def postVpnStatus(AppService appService, boolean vpnConnected)
