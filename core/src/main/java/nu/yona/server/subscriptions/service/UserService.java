@@ -272,6 +272,7 @@ public class UserService
 	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
+		System.out.println(overwriteUserConfirmationCode.get());
 		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
 		assertValidUserFields(user, UserPurpose.USER);
 
