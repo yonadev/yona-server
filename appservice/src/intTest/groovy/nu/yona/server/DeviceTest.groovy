@@ -117,7 +117,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.unknown.operating.system"
 				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "My Raspberry", "RASPBIAN", Device.SUPPORTED_APP_VERSION)
+				makeMobileNumber(ts), "My Raspberry", "RASPBIAN", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
 		assert johnAsCreated == null // Creation failed
@@ -134,7 +134,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.unknown.operating.system"
 				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "First device", "UNKNOWN", Device.SUPPORTED_APP_VERSION)
+				makeMobileNumber(ts), "First device", "UNKNOWN", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
 		assert johnAsCreated == null // Creation failed
@@ -151,7 +151,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.invalid.device.name"
 				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "012345678901234567891", "IOS", Device.SUPPORTED_APP_VERSION)
+				makeMobileNumber(ts), "012345678901234567891", "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
 		assert johnAsCreated == null // Creation failed
@@ -193,25 +193,27 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.invalid.device.name"
 				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "some:thing", "IOS", Device.SUPPORTED_APP_VERSION)
+				makeMobileNumber(ts), "some:thing", "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
 		assert johnAsCreated == null // Creation failed
 	}
 
-	def 'Richard posts empty app opened event to legacy URL (YD-544)'()
+	def 'John Doe posts empty app opened event to legacy URL (YD-544)'()
 	{
 		given:
-		def richard = addRichard()
+		def ts = timestamp
+		def john = createJohnDoe(ts)
+		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
 
 		when:
-		def response = appService.createResourceWithPassword(richard.postOpenAppEventUrl, "{}", richard.password)
+		def response = appService.createResourceWithPassword(john.postOpenAppEventUrl, "{}", john.password)
 
 		then:
 		assertResponseStatusOk(response)
 
 		cleanup:
-		appService.deleteUser(richard)
+		appService.deleteUser(john)
 	}
 
 	def 'Richard posts app opened event with a valid operating system and app version'()
@@ -251,27 +253,29 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, "0.0.1")
+		def appVersion = "9.9.9"
+		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, appVersion, 2)
 
 		then:
 		assertResponseStatus(response, 400)
 		assert response.responseData.code == "error.device.app.version.not.supported"
+		assert response.responseData.message == "Yona app is out of date and must be updated. Actual version is '$appVersion' but oldest supported version for 'IOS' is '1.0.1'"
 
 		cleanup:
 		appService.deleteUser(richard)
 	}
 
-	def 'Try to post app opened event with an invalid version string (not semver)'()
+	def 'Try to post app opened event with an invalid version code (negative)'()
 	{
 		given:
 		def richard = addRichard()
 
 		when:
-		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, "1.0")
+		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, "1.0.0", -2)
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.invalid.version.string"
+		assert response.responseData.code == "error.device.invalid.version.code"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -280,12 +284,12 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem)
 	{
 		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
-				makeMobileNumber(ts), deviceName, deviceOperatingSystem, Device.SUPPORTED_APP_VERSION)
+				makeMobileNumber(ts), deviceName, deviceOperatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 	}
 
 	private User createJohnDoe(ts)
 	{
-		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
+		appService.addLegacyUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
 				makeMobileNumber(ts))
 	}
 }

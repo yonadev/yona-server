@@ -73,7 +73,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def deviceName = makeDeviceName("Richard", operatingSystem)
 		User richard = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
-				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SUPPORTED_APP_VERSION)
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 		richard = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)
@@ -84,7 +84,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def deviceName = makeDeviceName("Bob", operatingSystem)
 		User bob = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bob", "Dunn", "BD",
-				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SUPPORTED_APP_VERSION)
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 		bob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)
@@ -95,7 +95,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def deviceName = makeDeviceName("Bea", operatingSystem)
 		User bea = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bea", "Dundee", "BDD",
-				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SUPPORTED_APP_VERSION)
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 		bea = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bea)
 		return reload? appService.reloadUser(bea) : bea
 	}

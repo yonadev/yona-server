@@ -81,7 +81,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def newDeviceName = "My S9"
 		def newDeviceOs = "ANDROID"
 		def newDeviceFirebaseInstanceId = "New firebase instance id"
-		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION, newDeviceFirebaseInstanceId)
+		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, newDeviceFirebaseInstanceId)
 		assertResponseStatusCreated(registerResponse)
 		assertUserGetResponseDetailsWithPrivateData(registerResponse, false)
 
@@ -141,7 +141,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		when:
 		def newDeviceName = "My iPhone"
 		def newDeviceOs = "ANDROID"
-		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1")
+		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -160,7 +160,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		when:
 		def newDeviceName = "My iPhone"
 		def newDeviceOs = "ANDROID"
-		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1")
+		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -435,7 +435,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		Device deviceToUpdate = richard.devices[0]
 		def existingName = "Existing name"
-		appService.addDevice(richard, existingName, "ANDROID", Device.SUPPORTED_APP_VERSION)
+		appService.addDevice(richard, existingName, "ANDROID")
 
 		when:
 		def response = appService.updateResourceWithPassword(deviceToUpdate.editUrl, """{"name":"$existingName"}""", richard.password)
@@ -457,7 +457,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 		Device remainingDevice = richard.devices[0]
 		def deletedDeviceName = "Second device"
-		richard = appService.addDevice(richard, deletedDeviceName, "ANDROID", Device.SUPPORTED_APP_VERSION)
+		richard = appService.addDevice(richard, deletedDeviceName, "ANDROID")
 		Device deviceToDelete = richard.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
 
 		when:

@@ -124,7 +124,8 @@ class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 @ContextConfiguration(classes = { DeviceServiceTestConfiguration.class })
 public class DeviceServiceTest extends BaseSpringIntegrationTest
 {
-	private static final String SUPPORTED_APP_VERSION = "9.9.9";
+	private static final String SOME_APP_VERSION = "9.9.9";
+	private static final int SUPPORTED_APP_VERSION_CODE = 999;
 
 	@Autowired
 	private UserDeviceRepository userDeviceRepository;
@@ -198,7 +199,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, SUPPORTED_APP_VERSION);
+		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard, deviceDto);
 
 		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
@@ -219,11 +220,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		richard.addDevice(createDevice(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION));
+		richard.addDevice(createDevice(0, deviceName1, operatingSystem1, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
@@ -252,9 +253,10 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(hasMessageId("error.device.name.already.exists"));
 
 		String deviceName = "First";
-		richard.addDevice(createDevice(0, deviceName, OperatingSystem.ANDROID, SUPPORTED_APP_VERSION));
+		richard.addDevice(createDevice(0, deviceName, OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName, OperatingSystem.IOS, SUPPORTED_APP_VERSION);
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName, OperatingSystem.IOS, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard, deviceDto2);
 	}
 
@@ -263,12 +265,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	{
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String deviceName = "First";
-		UserDevice device1 = createDevice(0, deviceName, OperatingSystem.ANDROID, SUPPORTED_APP_VERSION);
+		UserDevice device1 = createDevice(0, deviceName, OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		richard.addDevice(createDevice(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION));
+		richard.addDevice(createDevice(1, deviceName2, operatingSystem2, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
 		assertThat(richard.getDevices().size(), equalTo(2));
 
@@ -298,13 +300,13 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		richard.addDevice(createDevice(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION));
+		richard.addDevice(createDevice(1, deviceName2, operatingSystem2, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
 		assertThat(richard.getDevices().size(), equalTo(1));
 
 		String deviceName3 = "Third";
 		OperatingSystem operatingSystem3 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto3 = new UserDeviceDto(deviceName3, operatingSystem3, SUPPORTED_APP_VERSION);
+		UserDeviceDto deviceDto3 = new UserDeviceDto(deviceName3, operatingSystem3, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard, deviceDto3);
 
 		Set<UserDevice> devices = richard.getDevices();
@@ -327,7 +329,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, SUPPORTED_APP_VERSION);
+		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard.getId(), deviceDto);
 
 		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
@@ -346,7 +348,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.cannot.delete.last.one"));
 
-		richard.addDevice(createDevice(0, "Testing", OperatingSystem.ANDROID, SUPPORTED_APP_VERSION));
+		richard.addDevice(createDevice(0, "Testing", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
 		assertThat(richard.getDevices().size(), equalTo(1));
 
@@ -361,8 +363,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.not.found.id"));
 
-		richard.addDevice(createDevice(0, "First", OperatingSystem.ANDROID, SUPPORTED_APP_VERSION));
-		UserDevice notAddedDevice = createDevice(1, "NotAddedDevice", OperatingSystem.IOS, SUPPORTED_APP_VERSION);
+		richard.addDevice(createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
+		UserDevice notAddedDevice = createDevice(1, "NotAddedDevice", OperatingSystem.IOS, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 
 		assertThat(richard.getDevices().size(), equalTo(1));
 
@@ -387,7 +390,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDefaultDeviceId_oneDevice_deviceReturned()
 	{
-		UserDevice device = createDevice(0, "First", OperatingSystem.ANDROID, SUPPORTED_APP_VERSION);
+		UserDevice device = createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device);
 
 		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
@@ -401,7 +404,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String oldName = "Original name";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		UserDevice device = createDevice(0, oldName, operatingSystem, "1.0.0");
+		UserDevice device = createDevice(0, oldName, operatingSystem, "1.0.0", 2);
 		richard.addDevice(device);
 
 		assertThat(richard.getDevices().size(), equalTo(1));
@@ -433,7 +436,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String oldName = "original";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		UserDevice device = createDevice(0, oldName, operatingSystem, "1.0.0");
+		UserDevice device = createDevice(0, oldName, operatingSystem, "1.0.0", 2);
 		richard.addDevice(device);
 
 		assertThat(richard.getDevices().size(), equalTo(1));
@@ -460,11 +463,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(hasMessageId("error.device.name.already.exists"));
 
 		String firstDeviceName = "First";
-		UserDevice device1 = createDevice(0, firstDeviceName, OperatingSystem.ANDROID, "Unknown");
+		UserDevice device1 = createDevice(0, firstDeviceName, OperatingSystem.ANDROID, "Unknown", 0);
 		richard.addDevice(device1);
 
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		UserDevice device = createDevice(0, "Original name", operatingSystem, "1.0.0");
+		UserDevice device = createDevice(0, "Original name", operatingSystem, "1.0.0", 2);
 		richard.addDevice(device);
 
 		assertThat(richard.getDevices().size(), equalTo(2));
@@ -476,9 +479,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDefaultDeviceId_twoDevices_firstDeviceReturned()
 	{
-		UserDevice device1 = createDevice(0, "First", OperatingSystem.ANDROID, SUPPORTED_APP_VERSION);
+		UserDevice device1 = createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device1);
-		UserDevice device2 = createDevice(1, "Second", OperatingSystem.IOS, SUPPORTED_APP_VERSION);
+		UserDevice device2 = createDevice(1, "Second", OperatingSystem.IOS, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device2);
 
 		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
@@ -501,11 +504,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(1, deviceName2, operatingSystem2);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -525,11 +528,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -549,11 +552,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(1, deviceName2, operatingSystem2);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -576,11 +579,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(1, deviceName2, operatingSystem2);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -597,12 +600,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1);
 		UUID deviceAnonymizedId1 = device1.getDeviceAnonymizedId();
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(1, deviceName2, operatingSystem2);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -622,11 +625,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2);
 		UUID deviceAnonymizedId2 = device2.getDeviceAnonymizedId();
 
 		// Verify two devices are present
@@ -650,11 +653,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(1, deviceName2, operatingSystem2);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -671,11 +674,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(1, deviceName2, operatingSystem2);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -695,11 +698,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -722,13 +725,14 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(1, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		addDeviceToRichard(1, deviceName2, operatingSystem2);
 
-		UserDevice notAddedDevice = createDevice(2, "NotAddedDevice", OperatingSystem.IOS, SUPPORTED_APP_VERSION);
+		UserDevice notAddedDevice = createDevice(2, "NotAddedDevice", OperatingSystem.IOS, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -742,12 +746,13 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void postOpenAppEvent_appLastOpenedDateOnEarlierDay_appLastOpenedDateUpdated()
 	{
-		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID, SUPPORTED_APP_VERSION);
+		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
 		device.setAppLastOpenedDate(originalDate);
 
-		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.empty());
+		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
+				SUPPORTED_APP_VERSION_CODE);
 
 		assertThat(richard.getAppLastOpenedDate().get(), equalTo(TimeUtil.utcNow().toLocalDate()));
 		assertThat(device.getAppLastOpenedDate(), equalTo(TimeUtil.utcNow().toLocalDate()));
@@ -757,45 +762,46 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
 	{
-		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID, SUPPORTED_APP_VERSION);
+		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate();
 		richard.setAppLastOpenedDate(originalDate);
 		device.setAppLastOpenedDate(originalDate);
 
-		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.empty());
+		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
+				SUPPORTED_APP_VERSION_CODE);
 
 		assertThat(richard.getAppLastOpenedDate().get(), sameInstance(originalDate));
 		assertThat(device.getAppLastOpenedDate(), sameInstance(originalDate));
 	}
 
 	@Test
-	public void postOpenAppEvent_unsupportedVersion_exception()
+	public void postOpenAppEvent_unsupportedVersionCode_exception()
 	{
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.app.version.not.supported"));
 
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		UserDevice device = addDeviceToRichard(0, "First", operatingSystem, SUPPORTED_APP_VERSION);
+		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
 		device.setAppLastOpenedDate(originalDate);
 
-		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("0.0.1"));
+		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("0.0.1"), 1);
 	}
 
 	@Test
-	public void postOpenAppEvent_invalidVersion_exception()
+	public void postOpenAppEvent_invalidVersionCode_exception()
 	{
 		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.invalid.version.string"));
+		expectedException.expect(hasMessageId("error.device.invalid.version.code"));
 
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		UserDevice device = addDeviceToRichard(0, "First", operatingSystem, SUPPORTED_APP_VERSION);
+		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
 		device.setAppLastOpenedDate(originalDate);
 
-		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"));
+		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"), -1);
 	}
 
 	@Test
@@ -804,13 +810,13 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.cannot.switch.operating.system"));
 
-		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID, SUPPORTED_APP_VERSION);
+		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
 		device.setAppLastOpenedDate(originalDate);
 
-		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS),
-				Optional.of(SUPPORTED_APP_VERSION));
+		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS), Optional.of(SOME_APP_VERSION),
+				SUPPORTED_APP_VERSION_CODE);
 	}
 
 	@Test
@@ -819,7 +825,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1);
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -859,7 +865,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, SUPPORTED_APP_VERSION);
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1);
 		ActivityData activity1 = new ActivityData("WhatsApp", 10, 2);
 		ActivityData activity2 = new ActivityData("WhatsApp", 5, 1);
 		Set<Activity> device1Activities = addActivities(device1, startTime, activity1, activity2);
@@ -868,7 +874,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
 		ActivityData activity3 = new ActivityData("WhatsApp", 9, 2);
 		ActivityData activity4 = new ActivityData("WhatsApp", 3, 1);
-		UserDevice device2 = addDeviceToRichard(0, deviceName2, operatingSystem2, SUPPORTED_APP_VERSION);
+		UserDevice device2 = addDeviceToRichard(0, deviceName2, operatingSystem2);
 		Set<Activity> device2Activities = addActivities(device2, startTime, activity3, activity4);
 
 		List<UserDevice> createdDevices = Arrays.asList(device1, device2);
@@ -895,10 +901,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 				.collect(Collectors.toSet());
 	}
 
-	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion)
+	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion,
+			int appVersionCode)
 	{
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion,
-				Optional.empty());
+				appVersionCode, Optional.empty());
 		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		userDeviceRepository.save(device);
@@ -915,9 +922,10 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		return UserAnonymizedDto.createInstance(richard.getAnonymized());
 	}
 
-	private UserDevice addDeviceToRichard(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion)
+	private UserDevice addDeviceToRichard(int deviceIndex, String deviceName, OperatingSystem operatingSystem)
 	{
-		UserDevice deviceEntity = createDevice(deviceIndex, deviceName, operatingSystem, appVersion);
+		UserDevice deviceEntity = createDevice(deviceIndex, deviceName, operatingSystem, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(deviceEntity);
 		return deviceEntity;
 	}

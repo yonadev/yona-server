@@ -1412,7 +1412,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal timeZoneGoalSocialRichard = richardDefault.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
 		def iphoneDeviceName = "My second iPhone"
-		User richardIphone = appService.addDevice(richardDefault, iphoneDeviceName, "IOS", Device.SUPPORTED_APP_VERSION)
+		User richardIphone = appService.addDevice(richardDefault, iphoneDeviceName, "IOS", Device.SOME_APP_VERSION)
 
 		// Activities on default device
 		reportAppActivity(richardDefault, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")

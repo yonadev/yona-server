@@ -402,21 +402,9 @@ paths:
         - in: body
           name: body
           description: The app open event
-          required: false
+          required: true
           schema:
-            type: object
-            properties:
-              operatingSystem:
-                $ref: '#/definitions/DeviceOperatingSystem'
-                description: The operating system of the device running the Yona app
-                example: ANDROID
-              appVersion:
-                type: string
-                description: The version of the Yona app running on this device, in semver-compatible format
-                example: 1.0.0
-            required:
-              - operatingSystem
-              - appVersion
+            $ref: '#/definitions/OpenAppEvent'
       tags:
         - Device
       responses:
@@ -1892,28 +1880,32 @@ definitions:
     - ANDROID
     - IOS
     - UNKNOWN
+    example: ANDROID
+  DeviceAppVersion:
+    type: string
+    description: The version of the Yona app running on this device. This is the marketing version, a free text string.
+    example: 1.1 build 83
+  DeviceAppVersionCode:
+    type: integer
+    description: The version code of the Yona app running on this device. This is positive a monotonic increassing number, across releases
+    example: 31
   DeviceRegistrationRequest:
-    type: object
-    properties:
-      name:
-        type: string
-        description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
-        example: My S8
-      operatingSystem:
-        $ref: '#/definitions/DeviceOperatingSystem'
-        description: The operating system of the device running the Yona app
-        example: ANDROID
-      appVersion:
-        type: string
-        description: The version of the Yona app running on this device, in semver-compatible format
-        example: 1.0.0
-      firebaseInstanceId:
-        type: string
-        description: The Instance ID provided by Firebase to the app
+    allOf:
+      - $ref: '#/definitions/OpenAppEvent'
+      - type: object
+        properties:
+          name:
+            type: string
+            description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
+            example: My S8
+          firebaseInstanceId:
+            type: string
+            description: The Instance ID provided by Firebase to the app
     required:
       - name
       - operatingSystem
       - appVersion
+      - appVersionCode
   PostPutDevice:
     type: object
     properties:
@@ -1942,8 +1934,6 @@ definitions:
         properties:
           operatingSystem:
             $ref: '#/definitions/DeviceOperatingSystem'
-            description: The operating system of the device running the Yona app
-            example: ANDROID
           registrationTime:
             type: string
             format: dateTime
@@ -2051,12 +2041,10 @@ definitions:
             example: My S8
           deviceOperatingSystem:
             $ref: '#/definitions/DeviceOperatingSystem'
-            description: The operating system of the device on which the user signs up for Yona. The value UNKNOWN is not supported in this context. Not supported for a regular user update.
-            example: ANDROID
           deviceAppVersion:
-            type: string
-            description: The version of the Yona app running on this device, in semver-compatible format
-            example: 1.0.0
+            $ref: '#/definitions/DeviceAppVersion'
+          deviceAppVersionCode:
+            $ref: '#/definitions/DeviceAppVersionCode'
   UserWithPrivateData:
     allOf:
       - $ref: '#/definitions/BaseUser'
@@ -3217,6 +3205,15 @@ definitions:
           type: string
     required:
       - "properties"
+  OpenAppEvent:
+    type: object
+    properties:
+      operatingSystem:
+        $ref: '#/definitions/DeviceOperatingSystem'
+      appVersion:
+        $ref: '#/definitions/DeviceAppVersion'
+      appVersionCode:
+        $ref: '#/definitions/DeviceAppVersionCode'
   Error:
     type: object
     properties:

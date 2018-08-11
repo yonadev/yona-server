@@ -62,6 +62,7 @@ import nu.yona.server.analysis.service.AppActivitiesDto.Activity;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
+import nu.yona.server.device.service.AppOpenEventDto;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.device.service.DeviceRegistrationRequestDto;
 import nu.yona.server.device.service.DeviceService;
@@ -131,7 +132,8 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			Optional<UUID> requestingDeviceId = nullableStringToOptionalUuid(requestingDeviceIdStr);
 			return createOkResponse(deviceService.getDevicesOfUser(userId), createResourceAssembler(userId, requestingDeviceId),
@@ -145,7 +147,8 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.getDevice(deviceId),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
@@ -175,10 +178,11 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppOpenEventDto request)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(),
-					Optional.ofNullable(request.appVersion));
+					Optional.ofNullable(request.appVersion), request.appVersionCode);
 			return createOkResponse();
 		}
 	}
@@ -191,7 +195,8 @@ public class DeviceController extends ControllerBase
 	{
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(getDeviceSpecificAppleMobileConfig(deviceService.getDevice(deviceId)), headers,
 					HttpStatus.OK);
@@ -223,7 +228,8 @@ public class DeviceController extends ControllerBase
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr,
 			@RequestBody DeviceUpdateRequestDto request)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.updateDevice(userId, deviceId, request),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
@@ -237,7 +243,8 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.deleteDevice(userId, deviceId);
 		}
@@ -263,7 +270,8 @@ public class DeviceController extends ControllerBase
 		{
 			logLongAppActivityBatch(MessageType.WARNING, userId, appActivities);
 		}
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDto userDto = userService.getPrivateUser(userId);
 			autoregisterAndroid(userDto, deviceId);
@@ -323,7 +331,8 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postVpnStatusChangeEvent(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody VpnStatusDto vpnStatus)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.registerVpnStatusChangeEvent(userId, deviceId, vpnStatus.vpnConnected);
 			return createNoContentResponse();
@@ -409,25 +418,6 @@ public class DeviceController extends ControllerBase
 		catch (InvalidNameException e)
 		{
 			throw YonaException.unexpected(e);
-		}
-	}
-
-	static class AppOpenEventDto
-	{
-		private final String operatingSystemStr;
-		private final String appVersion;
-
-		@JsonCreator
-		AppOpenEventDto(@JsonProperty("operatingSystem") String operatingSystemStr, @JsonProperty("appVersion") String appVersion)
-		{
-			this.operatingSystemStr = operatingSystemStr;
-			this.appVersion = appVersion;
-		}
-
-		Optional<OperatingSystem> getOperatingSystem()
-		{
-			return operatingSystemStr == null ? Optional.empty()
-					: Optional.of(UserDeviceDto.parseOperatingSystemOfRegistrationRequest(operatingSystemStr));
 		}
 	}
 
