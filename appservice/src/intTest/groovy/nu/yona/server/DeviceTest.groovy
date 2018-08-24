@@ -281,6 +281,47 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Try to post incomplete app opened event'(operatingSystem, appVersion, appVersionCode, responseStatus)
+	{
+		given:
+		def ts = timestamp
+		def john = createJohnDoe(ts)
+		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
+
+		when:
+		def values = [ : ]
+		if (operatingSystem)
+		{
+			values["operatingSystem"] = operatingSystem
+		}
+		if (appVersion)
+		{
+			values["appVersion"] = appVersion
+		}
+		if (appVersionCode)
+		{
+			values["appVersionCode"] = appVersionCode
+		}
+
+		def response = appService.createResourceWithPassword(john.devices[0].postOpenAppEventUrl, JsonOutput.prettyPrint(JsonOutput.toJson(values)), john.password)
+
+		then:
+		assertResponseStatus(response, responseStatus)
+
+		cleanup:
+		appService.deleteUser(john)
+
+		where:
+		operatingSystem | appVersion | appVersionCode | responseStatus
+		"IOS" | "1.1" | 50 | 200
+		null | null | null | 200
+		"IOS" | null | null | 400
+		null | "1.1" | null | 400
+		null | null | 50 | 400
+		"IOS" | "1.1" | null | 400
+		"IOS" | null | 50 | 400
+	}
+
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem)
 	{
 		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",

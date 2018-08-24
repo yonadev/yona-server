@@ -69,6 +69,7 @@ import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.DeviceServiceException;
 import nu.yona.server.device.service.DeviceUpdateRequestDto;
 import nu.yona.server.device.service.UserDeviceDto;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
@@ -83,6 +84,7 @@ import nu.yona.server.subscriptions.service.NewDeviceRequestService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.subscriptions.service.VPNProfileDto;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.ThymeleafUtil;
 
 @Controller
@@ -181,9 +183,28 @@ public class DeviceController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
+			assertValidOpenAppEvent(request);
 			deviceService.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(),
 					Optional.ofNullable(request.appVersion), request.appVersionCode);
 			return createOkResponse();
+		}
+	}
+
+	private void assertValidOpenAppEvent(AppOpenEventDto request)
+	{
+		if (request.operatingSystemStr == null)
+		{
+			Require.isNull(request.appVersion, () -> InvalidDataException.extraProperty("appVersion",
+					"If the operating system is provided, the other properties must be present too"));
+			Require.that(request.appVersionCode == 0, () -> InvalidDataException.extraProperty("appVersionCode",
+					"If the operating system is provided, the other properties must be present too"));
+		}
+		else
+		{
+			Require.isNonNull(request.appVersion, () -> InvalidDataException.missingProperty("appVersion",
+					"If the operating system is not provided, the other properties should not be provided either"));
+			Require.that(request.appVersionCode != 0, () -> InvalidDataException.missingProperty("appVersionCode",
+					"If the operating system is not provided, the other properties should not be provided either"));
 		}
 	}
 
