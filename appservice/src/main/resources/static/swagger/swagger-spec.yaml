@@ -1887,7 +1887,7 @@ definitions:
     example: 1.1 build 83
   DeviceAppVersionCode:
     type: integer
-    description: The version code of the Yona app running on this device. This is positive a monotonic increassing number, across releases
+    description: The version code of the Yona app running on this device. This is a positive, monotonic increasing number, across releases
     example: 31
   DeviceRegistrationRequest:
     allOf:
