@@ -318,6 +318,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		"IOS" | null | null | 400
 		null | "1.1" | null | 400
 		null | null | 50 | 400
+		null | "1.1" | 50 | 400
 		"IOS" | "1.1" | null | 400
 		"IOS" | null | 50 | 400
 	}

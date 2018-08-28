@@ -195,16 +195,16 @@ public class DeviceController extends ControllerBase
 		if (request.operatingSystemStr == null)
 		{
 			Require.isNull(request.appVersion, () -> InvalidDataException.extraProperty("appVersion",
-					"If the operating system is provided, the other properties must be present too"));
+					"If the operating system is not provided, the other properties should not be provided either"));
 			Require.that(request.appVersionCode == 0, () -> InvalidDataException.extraProperty("appVersionCode",
-					"If the operating system is provided, the other properties must be present too"));
+					"If the operating system is not provided, the other properties should not be provided either"));
 		}
 		else
 		{
 			Require.isNonNull(request.appVersion, () -> InvalidDataException.missingProperty("appVersion",
-					"If the operating system is not provided, the other properties should not be provided either"));
+					"If the operating system is provided, the other properties must be present too"));
 			Require.that(request.appVersionCode != 0, () -> InvalidDataException.missingProperty("appVersionCode",
-					"If the operating system is not provided, the other properties should not be provided either"));
+					"If the operating system is provided, the other properties must be present too"));
 		}
 	}
 
