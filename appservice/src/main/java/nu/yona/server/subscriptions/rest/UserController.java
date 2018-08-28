@@ -253,8 +253,9 @@ public class UserController extends ControllerBase
 	private HttpEntity<UserResource> updateUser(Optional<String> password, UUID userId, UUID requestingDeviceId, UserDto user,
 			HttpServletRequest request)
 	{
-		assert !user.getOwnPrivateData().getDevices().orElse(Collections.emptySet())
-				.isEmpty() : "Embedding devices in an update request is only allowed when updating a user created on buddy request";
+		Require.that(user.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).isEmpty(),
+				() -> InvalidDataException.extraProperty("deviceName",
+						"Embedding devices in an update request is only allowed when updating a user created on buddy request"));
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
