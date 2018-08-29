@@ -235,5 +235,5 @@ certs:
     A+pewjPUaERijjkgaT2qygKCkQQ03iaLEz6jD1DKvY9NipcY2f8WBK+STNz6qAyp
     MCuIv7V26zjwX1P91NOo0s/htoxxxxDiv86nUuYW8A==
 
-nodePorts:
+nodePorts: {}
   # Placeholder. Normally, we use the defaults configured in the services yamls
