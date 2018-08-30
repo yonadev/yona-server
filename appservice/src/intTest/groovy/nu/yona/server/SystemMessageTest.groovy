@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -19,12 +19,13 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		def bob = addBob()
 
 		when:
-		adminService.postSystemMessage("Hi there!")
-		sleepTillSystemMessagesAreSent()
+		def response = adminService.postSystemMessage("Hi there!")
+		sleepTillSystemMessagesAreSent(richard)
 		def messagesRichard = appService.getMessages(richard)
 		def messagesBob = appService.getMessages(bob)
 
 		then:
+		assertResponseStatus(response, 302)
 		assertResponseStatusOk(messagesRichard)
 		def systemMessagesRichard = messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		systemMessagesRichard.size() == 1
@@ -51,8 +52,9 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
-		adminService.postSystemMessage("Hi there!")
-		sleepTillSystemMessagesAreSent()
+		def postResponse = adminService.postSystemMessage("Hi there!")
+		assertResponseStatus(postResponse, 302)
+		sleepTillSystemMessagesAreSent(richard)
 		def systemMessagesBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		assert systemMessagesBob.size() == 1
 		def messageDeleteUrl = systemMessagesBob[0]._links?.edit?.href
@@ -70,8 +72,20 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	private void sleepTillSystemMessagesAreSent()
+	private void sleepTillSystemMessagesAreSent(user)
 	{
-		sleep(2000)
+		for (def i = 0; i <10; i++)
+		{
+			def getUnreadMessagesResponse = appService.getMessages(user, [ "onlyUnreadMessages" : true,
+				"page": 0,
+				"size": 1])
+			assertResponseStatusOk(getUnreadMessagesResponse)
+			if (getUnreadMessagesResponse.responseData.page.totalElements > 0)
+			{
+				return
+			}
+			sleep(500)
+		}
+		assert false, "System message not delivered in time"
 	}
 }
