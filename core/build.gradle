@@ -28,6 +28,8 @@ dependencies {
 	compile "org.springframework.boot:spring-boot-starter-data-jpa"
 	compile "org.springframework.boot:spring-boot-starter-web"
 	compile "org.springframework.boot:spring-boot-starter-actuator"
+	compile "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
+	compile "io.prometheus:simpleclient_common:0.5.0"
 	compile "org.springframework:spring-context-support"
 	compile "org.hibernate:hibernate-java8:5.1.2.Final"
 	compile "org.atteo:evo-inflector:1.2.1"
