@@ -24,8 +24,8 @@ import org.junit.Test;
 import org.junit.rules.MethodRule;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
-import org.mockito.Matchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
@@ -148,7 +148,7 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 		assertThat(firstNameUserField.get(richard), is(nullValue()));
 		assertThat(lastNameUserField.get(richard), is(nullValue()));
 
-		verify(mockMessageService, times(1)).broadcastMessageToBuddies(Matchers.<UserAnonymizedDto> any(),
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(),
 				messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyInfoChangeMessage.class));

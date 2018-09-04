@@ -119,4 +119,14 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.request.extra.property", name, hint);
 	}
+
+	public static InvalidDataException missingEntity(Class<?> clazz, UUID id)
+	{
+		return new InvalidDataException("error.missing.entity", clazz.getName(), id);
+	}
+
+	public static InvalidDataException missingEntity(Class<?> clazz, long id)
+	{
+		return new InvalidDataException("error.missing.entity", clazz.getName(), id);
+	}
 }

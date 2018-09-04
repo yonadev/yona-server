@@ -6,8 +6,7 @@ package nu.yona.server.subscriptions.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyVararg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
@@ -21,7 +20,7 @@ import org.junit.rules.MethodRule;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import nu.yona.server.Translator;
@@ -59,7 +58,7 @@ public class BuddyTest
 		translatorStaticField.set(null, translator);
 
 		when(messageSource.getId()).thenReturn(UUID.randomUUID());
-		when(translator.getLocalizedMessage(any(String.class), anyVararg())).thenAnswer(new Answer<String>() {
+		when(translator.getLocalizedMessage(any(String.class), any())).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable
 			{

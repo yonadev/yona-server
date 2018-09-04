@@ -2,12 +2,10 @@ description = "Batch service"
 
 apply plugin: "application"
 
+mainClassName = "nu.yona.server.BatchServiceApplication"
+
 import com.bmuschko.gradle.docker.tasks.container.*
 import com.bmuschko.gradle.docker.tasks.image.*
-
-jar {
-	baseName = "batchservice"
-}
 
 release {
 	failOnCommitNeeded = true
@@ -54,14 +52,14 @@ docker {
 	url = project.hasProperty("dockerUrl")? project.dockerUrl : "http://localhost:2375"
 }
 
-task buildDockerImage(type: DockerBuildImage, dependsOn: bootRepackage) {
+task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 	inputDir = mkdir("build/docker")
 	tag = "${project.group}/${jar.baseName}:${project.ext.docker_tag}"
 	doFirst {
 		copy {
-			from bootRepackage
+			from bootJar
 			into inputDir
-			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
+			rename "${jar.baseName}-${jar.version}-${bootJar.classifier}", "${jar.baseName}"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
@@ -95,6 +93,7 @@ task intTest(type:Test){
 	classpath = project.sourceSets.intTest.runtimeClasspath
 }
 
-bootRepackage {
+bootJar {
 	classifier = "full"
+	baseName = "batchservice"
 }

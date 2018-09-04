@@ -6,6 +6,7 @@ package nu.yona.server.entities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -27,7 +28,7 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	}
 
 	@Override
-	public <S extends T> S findOne(Example<S> example)
+	public <S extends T> Optional<S> findOne(Example<S> example)
 	{
 		throw new NotImplementedException();
 	}
@@ -63,10 +64,10 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	}
 
 	@Override
-	public List<T> findAll(Iterable<UUID> ids)
+	public List<T> findAllById(Iterable<UUID> ids)
 	{
 		List<T> retVal = new ArrayList<>();
-		for (T entity : super.findAll(ids))
+		for (T entity : super.findAllById(ids))
 		{
 			retVal.add(entity);
 		}
@@ -74,9 +75,9 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	}
 
 	@Override
-	public <S extends T> List<S> save(Iterable<S> entities)
+	public <S extends T> List<S> saveAll(Iterable<S> entities)
 	{
-		return new ArrayList<>(save(entities));
+		return new ArrayList<>(saveAll(entities));
 	}
 
 	@Override
@@ -94,7 +95,7 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	@Override
 	public void deleteInBatch(Iterable<T> entities)
 	{
-		delete(entities);
+		deleteAll(entities);
 	}
 
 	@Override
@@ -106,12 +107,7 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	@Override
 	public T getOne(UUID id)
 	{
-		T entity = findOne(id);
-		if (entity == null)
-		{
-			throw new javax.persistence.EntityNotFoundException("ID " + id + " not found");
-		}
-		return entity;
+		return findById(id).orElseThrow(() -> new javax.persistence.EntityNotFoundException("ID " + id + " not found"));
 	}
 
 	@Override

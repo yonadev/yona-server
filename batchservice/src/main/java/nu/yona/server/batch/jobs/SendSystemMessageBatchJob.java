@@ -34,8 +34,8 @@ import org.springframework.stereotype.Component;
 
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.SystemMessage;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
@@ -70,7 +70,7 @@ public class SendSystemMessageBatchJob
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
-	private MessageDestinationRepository messageDestinationRepository;
+	private MessageService messageService;
 
 	@Bean("sendSystemMessageJob")
 	public Job sendSystemMessagesBatchJob()
@@ -106,8 +106,8 @@ public class SendSystemMessageBatchJob
 				logger.debug("Processing user anonymized with id {}", userAnonymizedId);
 				UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 
-				MessageDestination messageDestination = messageDestinationRepository
-						.findOne(userAnonymized.getAnonymousDestination().getId());
+				MessageDestination messageDestination = messageService
+						.getMessageDestination(userAnonymized.getAnonymousDestination().getId());
 				messageDestination.send(SystemMessage.createInstance(messageText));
 
 				return messageDestination;

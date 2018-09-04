@@ -434,7 +434,8 @@ public class MessageController extends ControllerBase
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDto message)
 		{
-			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findOne(message.getIntervalActivityId());
+			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findById(message.getIntervalActivityId())
+					.orElse(null);
 			Objects.requireNonNull(activity,
 					String.format("Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
 							message.getSenderNickname(), message.getIntervalActivityId()));

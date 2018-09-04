@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.Repository;
@@ -153,11 +153,9 @@ public class ActivityServiceTest
 
 		// Stub the UserAnonymizedService to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnon);
-		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(userAnonEntity);
 
 		// Stub the GoalService to return our goals.
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, newsGoal.getId())).thenReturn(newsGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
@@ -187,7 +185,7 @@ public class ActivityServiceTest
 				today.plusDays(1).toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> dayOverviews = service.getUserDayActivityOverviews(userId,
-				new PageRequest(0, 3));
+				PageRequest.of(0, 3));
 
 		// assert that the right retrieve from database was done
 		verify(mockDayActivityRepository, times(1)).findAll(userAnonId, relevantGoalIds, today.minusDays(2).toLocalDate(),
@@ -250,7 +248,7 @@ public class ActivityServiceTest
 				getWeekStartTime(today).plusWeeks(1).toLocalDate()))
 						.thenReturn(new HashSet<>(Arrays.asList(previousWeekRecordedActivity)));
 
-		Page<WeekActivityOverviewDto> weekOverviews = service.getUserWeekActivityOverviews(userId, new PageRequest(0, 5));
+		Page<WeekActivityOverviewDto> weekOverviews = service.getUserWeekActivityOverviews(userId, PageRequest.of(0, 5));
 
 		// assert that the right retrieve from database was done
 		verify(mockWeekActivityRepository, times(1)).findAll(userAnonId, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
@@ -304,7 +302,7 @@ public class ActivityServiceTest
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> inactivityDayOverviews = service.getUserDayActivityOverviews(userId,
-				new PageRequest(0, 3));
+				PageRequest.of(0, 3));
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days
 		assertThat(inactivityDayOverviews.getNumberOfElements(), equalTo(3));
@@ -322,7 +320,7 @@ public class ActivityServiceTest
 	public void getUserWeekActivityOverviews_noActivityPresent_resultsWithInactivity()
 	{
 		Page<WeekActivityOverviewDto> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userId,
-				new PageRequest(0, 5));
+				PageRequest.of(0, 5));
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
 		assertThat(inactivityWeekOverviews.getNumberOfElements(), equalTo(3));

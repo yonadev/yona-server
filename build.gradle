@@ -8,10 +8,10 @@ plugins {
 	id "java"
 	id "eclipse"
 	id "groovy"
-	id "io.spring.dependency-management" version "1.0.3.RELEASE"
-	id "org.springframework.boot" version "1.5.7.RELEASE" apply false
+	id "io.spring.dependency-management" version "1.0.6.RELEASE"
+	id "org.springframework.boot" version "2.0.4.RELEASE" apply false
 	id "net.researchgate.release" version "2.6.0"
-	id "com.bmuschko.docker-remote-api" version "3.0.11" apply false
+	id "com.bmuschko.docker-remote-api" version "3.6.1" apply false
 }
 
 description = "Yona server"
@@ -19,8 +19,6 @@ description = "Yona server"
 allprojects {
 	group = "yonadev"
 }
-
-ext['thymeleaf.version'] = "3.0.3.RELEASE"
 
 subprojects {
 	sourceCompatibility = 1.8
@@ -71,10 +69,12 @@ subprojects {
 	}
 
 	springBoot {
-		buildInfo() {
-			additionalProperties = [
-				buildNumber : project.ext.build_number
-			]
+		buildInfo {
+			properties {
+				additional = [
+					buildNumber : project.ext.build_number
+				]
+			}
 		}
 	}
 }

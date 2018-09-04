@@ -70,12 +70,8 @@ public class GoalService
 
 	public Goal getGoalEntityForUserAnonymizedId(UUID userAnonymizedId, UUID goalId)
 	{
-		Goal goal = Goal.getRepository().findOne(goalId);
-		if (goal == null)
-		{
-			throw GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymizedId, goalId);
-		}
-		return goal;
+		return Goal.getRepository().findById(goalId)
+				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymizedId, goalId));
 	}
 
 	private Goal getGoalEntity(User userEntity, UUID goalId)

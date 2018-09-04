@@ -158,12 +158,7 @@ public class ActivityCategoryService
 
 	private ActivityCategory getEntityById(UUID id)
 	{
-		ActivityCategory entity = repository.findOne(id);
-		if (entity == null)
-		{
-			throw ActivityCategoryException.notFound(id);
-		}
-		return entity;
+		return repository.findById(id).orElseThrow(() -> ActivityCategoryException.notFound(id));
 	}
 
 	private Set<ActivityCategory> getAllActivityCategoryEntities()

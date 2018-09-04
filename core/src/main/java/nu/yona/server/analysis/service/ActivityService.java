@@ -38,6 +38,7 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.analysis.service.IntervalActivityDto.LevelOfDetail;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
@@ -695,7 +696,8 @@ public class ActivityService
 
 	private void sendMessage(UUID targetUserAnonymizedId, ActivityCommentMessage messageEntity)
 	{
-		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(targetUserAnonymizedId);
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(targetUserAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(targetUserAnonymizedId));
 		messageService.sendMessage(messageEntity, userAnonymizedEntity.getAnonymousDestination());
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}

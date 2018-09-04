@@ -287,7 +287,8 @@ public class AnalysisEngineService
 			List<Activity> overlappingOfSameApp)
 	{
 		String overlappingActivitiesKind = payload.application.isPresent()
-				? MessageFormat.format("app activities of ''{0}''", payload.application.get()) : "network activities";
+				? MessageFormat.format("app activities of ''{0}''", payload.application.get())
+				: "network activities";
 		String overlappingActivities = overlappingOfSameApp.stream().map(Activity::toString).collect(Collectors.joining(", "));
 		logger.warn(
 				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",
@@ -437,7 +438,7 @@ public class AnalysisEngineService
 		{
 			if (!entity.isPresent())
 			{
-				entity = Optional.of(userAnonymizedService.getUserAnonymizedEntity(id));
+				entity = userAnonymizedService.getUserAnonymizedEntity(id);
 			}
 			return entity.get();
 		}

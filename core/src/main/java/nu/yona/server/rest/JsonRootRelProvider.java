@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
 
@@ -8,6 +8,8 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
 import org.atteo.evo.inflector.English;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.core.DefaultRelProvider;
 
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
  * resource is of a subtype that is annotated with @JsonSubTypes, then the name of that basetype is used to generate the name of
  * the embedded resource.
  */
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class JsonRootRelProvider implements RelProvider
 {
 	public static final String EDIT_REL = "edit";

@@ -19,7 +19,7 @@ public class RepositoryProvider implements ApplicationContextAware
 	@SuppressWarnings("unchecked")
 	public static <E, K extends Serializable> CrudRepository<E, K> getRepository(Class<E> entityClass, Class<K> keyClass)
 	{
-		return (CrudRepository<E, K>) repositories.getRepositoryFor(entityClass);
+		return (CrudRepository<E, K>) repositories.getRepositoryFor(entityClass).get();
 	}
 
 	@Override

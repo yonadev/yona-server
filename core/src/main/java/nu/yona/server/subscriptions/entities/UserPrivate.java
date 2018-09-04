@@ -28,6 +28,7 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
@@ -99,8 +100,8 @@ public class UserPrivate extends PrivateUserProperties
 
 	UserAnonymized getUserAnonymized()
 	{
-		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(userAnonymizedId);
-		return Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedId + " not found");
+		return UserAnonymized.getRepository().findById(userAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId));
 	}
 
 	public Set<Buddy> getBuddies()
@@ -159,12 +160,12 @@ public class UserPrivate extends PrivateUserProperties
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
 		loadAllBuddyUsersAtOnce();
-		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
+		return buddies.stream().filter(b -> !b.getUserIfExists().isPresent()).collect(Collectors.toSet());
 	}
 
 	private void loadAllBuddyUsersAtOnce()
 	{
-		User.getRepository().findAll(buddies.stream().map(Buddy::getUserId).collect(Collectors.toList()));
+		User.getRepository().findAllById(buddies.stream().map(Buddy::getUserId).collect(Collectors.toList()));
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()

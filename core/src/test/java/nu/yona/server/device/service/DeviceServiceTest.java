@@ -15,7 +15,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -42,8 +42,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.MethodRule;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -284,7 +284,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertDevice(device2, startTime, deviceName2, operatingSystem2, 1);
 
-		verify(mockMessageService, times(1)).broadcastMessageToBuddies(Matchers.<UserAnonymizedDto> any(),
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(),
 				messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));
@@ -419,7 +419,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertDevice(device, startTime, newName, operatingSystem, 0);
 
-		verify(mockMessageService, times(1)).broadcastMessageToBuddies(Matchers.<UserAnonymizedDto> any(),
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(),
 				messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));
@@ -452,7 +452,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertDevice(device, startTime, newName, operatingSystem, 0);
 
-		verify(mockMessageService, never()).broadcastMessageToBuddies(Matchers.<UserAnonymizedDto> any(), any());
+		verify(mockMessageService, never()).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(), any());
 		assertThat(device.getName(), sameInstance(oldName));
 	}
 

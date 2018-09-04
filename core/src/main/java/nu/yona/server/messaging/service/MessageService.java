@@ -25,9 +25,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
@@ -52,6 +54,9 @@ public class MessageService
 
 	@Autowired
 	private MessageSourceRepository messageSourceRepository;
+
+	@Autowired
+	private MessageDestinationRepository messageDestinationRepository;
 
 	@Autowired(required = false)
 	private MessageRepository messageRepository;
@@ -209,9 +214,18 @@ public class MessageService
 		return getMessageSource(user.getAnonymousMessageSourceId());
 	}
 
-	private MessageSource getMessageSource(UUID id)
+	@Transactional
+	public MessageSource getMessageSource(UUID id)
 	{
-		return messageSourceRepository.findOne(id);
+		return messageSourceRepository.findById(id)
+				.orElseThrow(() -> InvalidDataException.missingEntity(MessageSource.class, id));
+	}
+
+	@Transactional
+	public MessageDestination getMessageDestination(UUID id)
+	{
+		return messageDestinationRepository.findById(id)
+				.orElseThrow(() -> InvalidDataException.missingEntity(MessageDestination.class, id));
 	}
 
 	private Page<MessageDto> wrapMessagesAsDtos(UserDto user, Page<? extends Message> messageEntities, Pageable pageable)
@@ -273,7 +287,7 @@ public class MessageService
 	@Transactional
 	public void sendMessageAndFlushToDatabase(Message message, MessageDestinationDto destination)
 	{
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
+		MessageDestination destinationEntity = getMessageDestination(destination.getId());
 		destinationEntity.send(message);
 		MessageDestination.getRepository().saveAndFlush(destinationEntity);
 	}
@@ -292,7 +306,7 @@ public class MessageService
 			throw new IllegalArgumentException("sentByUserAnonymizedId cannot be null");
 		}
 
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
+		MessageDestination destinationEntity = getMessageDestination(destination.getId());
 		deleteMessages(destinationEntity.getMessagesFromUser(sentByUserAnonymizedId));
 	}
 

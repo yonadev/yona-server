@@ -17,6 +17,7 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.InvalidDataException;
 
 /**
  * This class captures the anonymized information of a buddy. <br/>
@@ -87,7 +88,8 @@ public class BuddyAnonymized extends EntityWithUuid
 		{
 			throw new IllegalStateException("UserAnonymized is not available in this state");
 		}
-		return UserAnonymized.getRepository().findOne(userAnonymizedId);
+		return UserAnonymized.getRepository().findById(userAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId));
 	}
 
 	public Status getSendingStatus()
