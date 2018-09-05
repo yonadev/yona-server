@@ -77,6 +77,11 @@ subprojects {
 			}
 		}
 	}
+
+	tasks.withType(JavaCompile) {
+		options.compilerArgs << '-Xlint:all,-try'
+		options.deprecation = true
+	}
 }
 
 eclipse {
