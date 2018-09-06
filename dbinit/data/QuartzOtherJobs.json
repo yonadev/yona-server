@@ -13,5 +13,10 @@
 		"name": "NewDeviceRequestCleanUp",
 		"description": "Deletes the expired new device requests",
 		"className": "nu.yona.server.batch.quartz.jobs.NewDeviceRequestCleanUpQuartzJob"
+	},
+	{
+		"name": "EmailTest",
+		"description": "Sends a test e-mail to an ops monitoring service",
+		"className": "nu.yona.server.batch.quartz.jobs.EmailTestQuartzJob"
 	}
 ]
