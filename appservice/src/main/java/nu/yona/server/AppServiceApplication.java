@@ -36,7 +36,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.spring4.SpringTemplateEngine;
+import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 
 import nu.yona.server.exceptions.ConfigurationException;
@@ -55,8 +55,8 @@ public class AppServiceApplication
 
 	public static void main(String[] args)
 	{
-		Optional<String> opt = Optional.empty();
-		System.out.println(opt.get());
+		Optional<String> optional = Optional.empty();
+		System.out.println(optional.get());
 		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication.run(AppServiceApplication.class, args);
 	}
