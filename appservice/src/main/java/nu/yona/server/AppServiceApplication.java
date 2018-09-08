@@ -64,6 +64,8 @@ public class AppServiceApplication
 	@PostConstruct
 	public void initialize()
 	{
+		Optional<String> optional = Optional.empty();
+		System.out.println(optional.get());
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
