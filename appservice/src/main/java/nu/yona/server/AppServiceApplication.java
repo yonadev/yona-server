@@ -18,6 +18,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
@@ -54,6 +55,8 @@ public class AppServiceApplication
 
 	public static void main(String[] args)
 	{
+		Optional<String> optional = Optional.empty();
+		System.out.println(optional.get());
 		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication.run(AppServiceApplication.class, args);
 	}
@@ -61,6 +64,8 @@ public class AppServiceApplication
 	@PostConstruct
 	public void initialize()
 	{
+		Optional<String> optional = Optional.empty();
+		System.out.println(optional.get());
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
