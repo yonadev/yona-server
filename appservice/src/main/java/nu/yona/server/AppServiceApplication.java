@@ -55,8 +55,8 @@ public class AppServiceApplication
 
 	public static void main(String[] args)
 	{
-		Optional<String> optional = Optional.empty();
-		System.out.println(optional.get());
+		Optional<String> opt = Optional.empty();
+		System.out.println(opt.get());
 		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication.run(AppServiceApplication.class, args);
 	}
