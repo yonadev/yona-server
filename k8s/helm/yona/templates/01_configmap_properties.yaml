@@ -39,6 +39,9 @@ data:
     {{- else }}
     yona.email.smtp.host="smtp.{{ .Release.Namespace }}.svc.cluster.local" }}
     {{- end }}
+    {{- if .Values.email.testEmailAddress }}
+    yona.email.testEmailAddress={{ .Values.email.testEmailAddress }}
+    {{- end }}
     yona.email.smtp.port={{ .Values.email.smtp_port | default "587" }}
     yona.email.smtp.enableAuth={{ required "True or False required for email.smtp_enable_auth" .Values.email.smtp_enable_auth }}
     yona.email.smtp.enableStartTls={{ required "True or False required for email.smtp_enable_start_tls" .Values.email.smtp_enable_start_tls }}
