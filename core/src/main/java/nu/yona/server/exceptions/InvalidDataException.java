@@ -109,4 +109,14 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.device.invalid.device.name", name, maxLength, deviceNamesSeparator);
 	}
+
+	public static InvalidDataException missingProperty(String name, String hint)
+	{
+		return new InvalidDataException("error.request.missing.property", name, hint);
+	}
+
+	public static InvalidDataException extraProperty(String name, String hint)
+	{
+		return new InvalidDataException("error.request.extra.property", name, hint);
+	}
 }

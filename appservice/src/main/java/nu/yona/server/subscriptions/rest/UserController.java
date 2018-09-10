@@ -253,8 +253,9 @@ public class UserController extends ControllerBase
 	private HttpEntity<UserResource> updateUser(Optional<String> password, UUID userId, UUID requestingDeviceId, UserDto user,
 			HttpServletRequest request)
 	{
-		assert !user.getOwnPrivateData().getDevices().orElse(Collections.emptySet())
-				.isEmpty() : "Embedding devices in an update request is only allowed when updating a user created on buddy request";
+		Require.that(user.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).isEmpty(),
+				() -> InvalidDataException.extraProperty("deviceName",
+						"Embedding devices in an update request is only allowed when updating a user created on buddy request"));
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
@@ -479,6 +480,7 @@ public class UserController extends ControllerBase
 				@JsonProperty(value = "deviceName", required = false) String deviceName,
 				@JsonProperty(value = "deviceOperatingSystem", required = false) String deviceOperatingSystem,
 				@JsonProperty(value = "deviceAppVersion", required = false) String deviceAppVersion,
+				@JsonProperty(value = "deviceAppVersionCode", required = false) Integer deviceAppVersionCode,
 				@JsonProperty("_links") Object ignored1, @JsonProperty("yonaPassword") Object ignored2)
 		{
 			this.firstName = firstName;
@@ -487,7 +489,7 @@ public class UserController extends ControllerBase
 			this.nickname = nickname;
 			this.deviceRegistration = deviceName == null ? Optional.empty()
 					: Optional.of(new DeviceRegistrationRequestDto(deviceName, deviceOperatingSystem, deviceAppVersion,
-							Optional.empty()));
+							deviceAppVersionCode, Optional.empty()));
 		}
 
 		Optional<UserDeviceDto> getDevice()

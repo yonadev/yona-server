@@ -4,16 +4,19 @@
  *******************************************************************************/
 package nu.yona.server.test.util;
 
+import static org.junit.Assume.assumeThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
+import org.exparity.hamcrest.date.ZonedDateTimeMatchers;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -120,5 +123,10 @@ public class JUnitUtil
 				.orElseThrow(() -> new IllegalStateException("Cannot find field '" + fieldName + "'"));
 		field.setAccessible(true);
 		return field;
+	}
+
+	public static void skipBefore(String description, ZonedDateTime now, int hour, int minute)
+	{
+		assumeThat(description, now, ZonedDateTimeMatchers.after(now.withHour(hour).withMinute(minute).withSecond(0)));
 	}
 }

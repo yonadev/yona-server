@@ -29,28 +29,32 @@ public class UserDeviceDto extends DeviceBaseDto
 	private final LocalDateTime registrationTime;
 	private final OperatingSystem operatingSystem;
 	private final String appVersion;
+	private final int appVersionCode;
 	private final Optional<String> firebaseInstanceId;
 	private final LocalDate appLastOpenedDate;
 	private final UUID deviceAnonymizedId;
 	private final VPNProfileDto vpnProfile;
 
-	public UserDeviceDto(String name, OperatingSystem operatingSystem, String appVersion)
+	public UserDeviceDto(String name, OperatingSystem operatingSystem, String appVersion, int appVersionCode)
 	{
-		this(name, operatingSystem, appVersion, Optional.empty());
+		this(name, operatingSystem, appVersion, appVersionCode, Optional.empty());
 	}
 
-	public UserDeviceDto(String name, OperatingSystem operatingSystem, String appVersion, Optional<String> firebaseInstanceId)
+	public UserDeviceDto(String name, OperatingSystem operatingSystem, String appVersion, int appVersionCode,
+			Optional<String> firebaseInstanceId)
 	{
-		this(null, name, operatingSystem, appVersion, firebaseInstanceId, true, LocalDateTime.now(), LocalDate.now(), null, null);
+		this(null, name, operatingSystem, appVersion, appVersionCode, firebaseInstanceId, true, LocalDateTime.now(),
+				LocalDate.now(), null, null);
 	}
 
-	private UserDeviceDto(UUID id, String name, OperatingSystem operatingSystem, String appVersion,
+	private UserDeviceDto(UUID id, String name, OperatingSystem operatingSystem, String appVersion, int appVersionCode,
 			Optional<String> firebaseInstanceId, boolean isVpnConnected, LocalDateTime registrationTime,
 			LocalDate appLastOpenedDate, UUID deviceAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		super(id, name, isVpnConnected);
 		this.operatingSystem = operatingSystem;
 		this.appVersion = appVersion;
+		this.appVersionCode = appVersionCode;
 		this.firebaseInstanceId = firebaseInstanceId;
 		this.registrationTime = registrationTime;
 		this.appLastOpenedDate = appLastOpenedDate;
@@ -67,6 +71,12 @@ public class UserDeviceDto extends DeviceBaseDto
 	public String getAppVersion()
 	{
 		return appVersion;
+	}
+
+	@JsonIgnore
+	public int getAppVersionCode()
+	{
+		return appVersionCode;
 	}
 
 	@JsonIgnore
@@ -98,16 +108,16 @@ public class UserDeviceDto extends DeviceBaseDto
 	{
 		DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
 		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(), deviceAnonymized.getOperatingSystem(),
-				deviceAnonymized.getAppVersion(), deviceAnonymized.getFirebaseInstanceId(), deviceEntity.isVpnConnected(),
-				deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(), deviceEntity.getDeviceAnonymizedId(),
-				VPNProfileDto.createInstance(deviceEntity));
+				deviceAnonymized.getAppVersion(), deviceAnonymized.getAppVersionCode(), deviceAnonymized.getFirebaseInstanceId(),
+				deviceEntity.isVpnConnected(), deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(),
+				deviceEntity.getDeviceAnonymizedId(), VPNProfileDto.createInstance(deviceEntity));
 	}
 
 	public static UserDeviceDto createDeviceRegistrationInstance(DeviceRegistrationRequestDto deviceRegistration)
 	{
 		return new UserDeviceDto(deviceRegistration.name,
 				parseOperatingSystemOfRegistrationRequest(deviceRegistration.operatingSystemStr), deviceRegistration.appVersion,
-				deviceRegistration.firebaseInstanceId);
+				deviceRegistration.appVersionCode, deviceRegistration.firebaseInstanceId);
 	}
 
 	public static OperatingSystem parseOperatingSystemOfRegistrationRequest(String operatingSystemStr)
