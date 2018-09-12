@@ -113,7 +113,6 @@ public class ActivityUpdateServiceTest
 
 	private Goal gamblingGoal;
 	private Goal newsGoal;
-	private Goal gamingGoal;
 	private Goal socialGoal;
 	private Goal shoppingGoal;
 	private MessageDestinationDto anonMessageDestination;
@@ -139,8 +138,6 @@ public class ActivityUpdateServiceTest
 						usString("Descr")));
 		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(), usString("news"),
 				false, new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
-		gamingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("gaming"), false, new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
 		socialGoal = TimeZoneGoal.createInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
 						new HashSet<>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
@@ -151,7 +148,6 @@ public class ActivityUpdateServiceTest
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
-		goalMap.put("gaming", gamingGoal);
 		goalMap.put("social", socialGoal);
 		goalMap.put("shopping", shoppingGoal);
 
@@ -160,7 +156,7 @@ public class ActivityUpdateServiceTest
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
+		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, socialGoal, shoppingGoal));
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown", 0, Optional.empty());
 		deviceAnonId = deviceAnonEntity.getId();
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);

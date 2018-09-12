@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
@@ -10,7 +10,7 @@ import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerF
 import org.springframework.stereotype.Component;
 
 @Component
-public class CustomContainer implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>
+public class MimeTypeConfigurer implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>
 {
 	@Override
 	public void customize(ConfigurableServletWebServerFactory factory)
