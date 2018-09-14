@@ -75,7 +75,7 @@ spec:
               mountPath: /opt/app/config
           livenessProbe:
             httpGet:
-              path: /health/
+              path: /actuator/health/
               port: 9080
             initialDelaySeconds: 60
             periodSeconds: 15

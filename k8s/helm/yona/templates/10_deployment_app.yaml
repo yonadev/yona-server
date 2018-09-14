@@ -85,7 +85,7 @@ spec:
               mountPath: /opt/app/apple
           livenessProbe:
             httpGet:
-              path: /health/
+              path: /actuator/health/
               port: 9080
             initialDelaySeconds: 120
             periodSeconds: 10

@@ -135,12 +135,12 @@ pipeline {
 			steps {
 				checkpoint 'Beta test server deployed'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh 'helm upgrade --install -f /config/values.yaml --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
 				failure {
-					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to beta"
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to load test"
 				}
 			}
 		}
