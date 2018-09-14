@@ -74,14 +74,14 @@ pipeline {
 				}
 			}
 		}
-		stage('Decide deploy to acceptance test server') {
+		stage('Decide deploy to test servers') {
 			agent none
 			steps {
 				checkpoint 'Build and tests done'
 				script {
-					env.DEPLOY_TO_ACC_TEST = input message: 'User input required',
+					env.DEPLOY_TO_TEST_SERVERS = input message: 'User input required',
 							submitter: 'authenticated',
-							parameters: [choice(name: 'Deploy to acceptance test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the acceptance test server')]
+							parameters: [choice(name: 'Deploy to the test servers', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the test servers')]
 				}
 			}
 		}
@@ -93,7 +93,7 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			when {
-				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
 				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
@@ -110,26 +110,30 @@ pipeline {
 				}
 			}
 		}
-		stage('Decide deploy to beta test server') {
-			agent none
-			when {
-				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
-			}
-			steps {
-				checkpoint 'Acceptance test server deployed'
-				script {
-					env.DEPLOY_TO_BETA = input message: 'User input required',
-					submitter: 'authenticated',
-					parameters: [choice(name: 'Deploy to beta test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the beta test server')]
-				}
-			}
-		}
 		stage('Deploy to beta test server') {
 			agent { label 'beta' }
 			when {
-				environment name: 'DEPLOY_TO_BETA', value: 'yes'
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
+				checkpoint 'Acceptance test server deployed'
+				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
+				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh 'scripts/wait-for-services.sh k8snew'
+			}
+			post {
+				failure {
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to beta"
+				}
+			}
+		}
+		stage('Deploy to load test server') {
+			agent { label 'load' }
+			when {
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
+			}
+			steps {
+				checkpoint 'Beta test server deployed'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
@@ -143,10 +147,10 @@ pipeline {
 		stage('Decide deploy to production server') {
 			agent none
 			when {
-				environment name: 'DEPLOY_TO_BETA', value: 'yes'
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				checkpoint 'Beta test server deployed'
+				checkpoint 'Load test server deployed'
 				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to deploy to production"
 				script {
 					env.DEPLOY_TO_PRD = input message: 'User input required',
