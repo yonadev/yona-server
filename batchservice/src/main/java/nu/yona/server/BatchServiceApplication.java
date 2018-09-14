@@ -9,7 +9,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.metrics.export.prometheus.EnablePrometheusMetrics;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
@@ -20,7 +19,6 @@ import nu.yona.server.properties.PropertyInitializer;
 @EnableBatchProcessing
 @EnableScheduling
 @SpringBootApplication(scanBasePackages = { "nu.yona.server" })
-@EnablePrometheusMetrics
 public class BatchServiceApplication
 {
 	public static void main(String[] args)

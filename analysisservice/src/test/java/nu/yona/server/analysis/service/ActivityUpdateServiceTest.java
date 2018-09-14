@@ -9,9 +9,10 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,7 +42,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.data.repository.Repository;
 
@@ -112,7 +113,6 @@ public class ActivityUpdateServiceTest
 
 	private Goal gamblingGoal;
 	private Goal newsGoal;
-	private Goal gamingGoal;
 	private Goal socialGoal;
 	private Goal shoppingGoal;
 	private MessageDestinationDto anonMessageDestination;
@@ -138,8 +138,6 @@ public class ActivityUpdateServiceTest
 						usString("Descr")));
 		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(), usString("news"),
 				false, new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
-		gamingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("gaming"), false, new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
 		socialGoal = TimeZoneGoal.createInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
 						new HashSet<>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
@@ -150,7 +148,6 @@ public class ActivityUpdateServiceTest
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
-		goalMap.put("gaming", gamingGoal);
 		goalMap.put("social", socialGoal);
 		goalMap.put("shopping", shoppingGoal);
 
@@ -159,7 +156,7 @@ public class ActivityUpdateServiceTest
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
+		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, socialGoal, shoppingGoal));
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown", 0, Optional.empty());
 		deviceAnonId = deviceAnonEntity.getId();
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
@@ -170,13 +167,8 @@ public class ActivityUpdateServiceTest
 		userAnonId = userAnonDto.getId();
 		userAnonZoneId = userAnonDto.getTimeZone();
 
-		// Stub the UserAnonymizedService to return our user.
-		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnonDto);
-		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(userAnonEntity);
-
 		// Stub the GoalService to return our goals.
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
 
@@ -186,15 +178,14 @@ public class ActivityUpdateServiceTest
 					@Override
 					public WeekActivity answer(InvocationOnMock invocation) throws Throwable
 					{
-						Optional<Goal> goal = goalMap.values().stream()
-								.filter(g -> g.getId() == invocation.getArgumentAt(1, UUID.class)).findAny();
+						Optional<Goal> goal = goalMap.values().stream().filter(g -> g.getId() == invocation.getArgument(1))
+								.findAny();
 						if (!goal.isPresent())
 						{
 							return null;
 						}
 						return goal.get().getWeekActivities().stream()
-								.filter(wa -> wa.getStartDate().equals(invocation.getArgumentAt(2, LocalDate.class))).findAny()
-								.orElse(null);
+								.filter(wa -> wa.getStartDate().equals(invocation.getArgument(2))).findAny().orElse(null);
 					}
 				});
 
@@ -553,7 +544,7 @@ public class ActivityUpdateServiceTest
 		Arrays.asList(activities).forEach(a -> dayActivity.addActivity(a));
 		ActivityDto existingActivity = ActivityDto.createInstance(activities[activities.length - 1]);
 		when(mockDayActivityRepository.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId())).thenReturn(dayActivity);
-		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, deviceAnonId, forGoal.getId()))
+		lenient().when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, deviceAnonId, forGoal.getId()))
 				.thenReturn(existingActivity);
 		WeekActivity weekActivity = WeekActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,
 				TimeUtil.getStartOfWeek(startTime.toLocalDate()));

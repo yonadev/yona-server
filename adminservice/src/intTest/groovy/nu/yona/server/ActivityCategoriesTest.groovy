@@ -7,9 +7,10 @@
 
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 import nu.yona.server.test.AppService
-import static nu.yona.server.test.CommonAssertions.*
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -31,6 +32,7 @@ class ActivityCategoriesTest extends Specification
 		then:
 		assertResponseStatusOk(response)
 		response.responseData._links.self.href == adminService.url + AdminService.ACTIVITY_CATEGORIES_PATH
+		response.responseData._embedded?."yona:activityCategories" != null
 		response.responseData._embedded."yona:activityCategories".size() > 0
 		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find
 		{

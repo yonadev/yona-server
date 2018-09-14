@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.entities;
 
@@ -18,9 +18,9 @@ public class UserRepositoryMock extends MockJpaRepositoryEntityWithUuid<User> im
 {
 
 	@Override
-	public User findOneForUpdate(UUID id)
+	public User findByIdForUpdate(UUID id)
 	{
-		return findOne(id);
+		return findById(id).get();
 	}
 
 	@Override

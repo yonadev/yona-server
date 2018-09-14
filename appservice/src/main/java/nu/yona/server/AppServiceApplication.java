@@ -30,12 +30,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.metrics.export.prometheus.EnablePrometheusMetrics;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.spring4.SpringTemplateEngine;
+import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 
 import nu.yona.server.exceptions.ConfigurationException;
@@ -45,8 +43,7 @@ import nu.yona.server.properties.YonaProperties;
 
 @SpringBootApplication
 @EnableCaching
-@EnablePrometheusMetrics
-public class AppServiceApplication
+public class AppServiceApplication implements WebMvcConfigurer
 {
 	private static final Logger logger = LoggerFactory.getLogger(AppServiceApplication.class);
 	@Autowired
@@ -64,21 +61,15 @@ public class AppServiceApplication
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
-	@Bean
-	public WebMvcConfigurer corsConfigurer()
+	@Override
+	public void addCorsMappings(CorsRegistry registry)
 	{
-		return new WebMvcConfigurerAdapter() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry)
-			{
-				registry.addMapping("/swagger/swagger-spec.yaml");
-				if (yonaProperties.getSecurity().isCorsAllowed())
-				{
-					// Enable CORS for the other resources, to allow testing the API through Swagger UI.
-					registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
-				}
-			}
-		};
+		registry.addMapping("/swagger/swagger-spec.yaml");
+		if (yonaProperties.getSecurity().isCorsAllowed())
+		{
+			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
+			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
+		}
 	}
 
 	@Bean

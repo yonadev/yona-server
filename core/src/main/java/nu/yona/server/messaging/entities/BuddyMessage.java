@@ -61,7 +61,7 @@ public abstract class BuddyMessage extends Message
 	 */
 	public Optional<User> getSenderUser()
 	{
-		return (senderUserId == null) ? Optional.empty() : Optional.ofNullable(User.getRepository().findOne(senderUserId));
+		return (senderUserId == null) ? Optional.empty() : User.getRepository().findById(senderUserId);
 	}
 
 	/**

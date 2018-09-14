@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.test.util;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -52,15 +54,26 @@ public abstract class BaseSpringIntegrationTest
 		repositoriesMap.put(User.class, userRepository);
 		repositoriesMap.put(UserAnonymized.class, userAnonymizedRepository);
 		repositoriesMap.putAll(getRepositories());
-		Set<CrudRepository<?, ?>> crudRepositories = filterForCrudRepositories(repositoriesMap.values());
+		Set<CrudRepository<?, ? extends Serializable>> crudRepositories = filterForCrudRepositories(repositoriesMap.values());
 		crudRepositories.forEach(CrudRepository::deleteAll);
 		crudRepositories.stream().filter(this::isMock).forEach(r -> JUnitUtil.setUpRepositoryMock(r));
+
+		Set<JpaRepository<?, ?>> jpaRepositories = filterForJpaRepositories(repositoriesMap.values());
+		jpaRepositories.forEach(JpaRepository::deleteAllInBatch);
+
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 	}
 
-	private Set<CrudRepository<?, ?>> filterForCrudRepositories(Collection<Repository<?, ?>> values)
+	@SuppressWarnings("unchecked")
+	private Set<CrudRepository<?, ? extends Serializable>> filterForCrudRepositories(Collection<Repository<?, ?>> values)
 	{
-		return values.stream().filter(r -> r instanceof CrudRepository).map(r -> (CrudRepository<?, ?>) r)
+		return values.stream().filter(r -> r instanceof CrudRepository).filter(r -> r instanceof Serializable)
+				.map(r -> (CrudRepository<?, ? extends Serializable>) r).collect(Collectors.toSet());
+	}
+
+	private Set<JpaRepository<?, ?>> filterForJpaRepositories(Collection<Repository<?, ?>> values)
+	{
+		return values.stream().filter(r -> r instanceof JpaRepository).map(r -> (JpaRepository<?, ?>) r)
 				.collect(Collectors.toSet());
 	}
 

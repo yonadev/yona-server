@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -86,8 +87,8 @@ public class ActivityCategoryServiceTest
 
 		JUnitUtil.setUpRepositoryMock(mockRepository);
 		when(mockRepository.findAll()).thenReturn(Collections.unmodifiableList(mockRepositoryFindAllResult));
-		when(mockRepository.findOne(gambling.getId())).thenReturn(gambling);
-		when(mockRepository.findOne(news.getId())).thenReturn(news);
+		when(mockRepository.findById(gambling.getId())).thenReturn(Optional.of(gambling));
+		when(mockRepository.findById(news.getId())).thenReturn(Optional.of(news));
 
 		ActivityCategoryServiceTestConfiguration.mockActivityCategorySetCache.clear();
 	}
@@ -155,7 +156,7 @@ public class ActivityCategoryServiceTest
 		// Add to collection, so it appears as if it is in the database
 		// It hasn't been loaded, so should not be in the cache
 		mockRepositoryFindAllResult.add(gaming);
-		when(mockRepository.findOne(gaming.getId())).thenReturn(gaming);
+		when(mockRepository.findById(gaming.getId())).thenReturn(Optional.of(gaming));
 
 		assertGetAllActivityCategoriesResult("gambling", "news");
 	}
@@ -165,7 +166,7 @@ public class ActivityCategoryServiceTest
 	{
 		ActivityCategory gaming = ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
 				new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
-		when(mockRepository.findOne(gaming.getId())).thenReturn(gaming);
+		when(mockRepository.findById(gaming.getId())).thenReturn(Optional.of(gaming));
 
 		service.addActivityCategory(ActivityCategoryDto.createInstance(gaming));
 

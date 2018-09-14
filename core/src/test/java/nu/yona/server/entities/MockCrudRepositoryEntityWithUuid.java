@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.entities;
 
@@ -11,11 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.repository.CrudRepository;
-
-import nu.yona.server.entities.EntityWithUuid;
 
 public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implements CrudRepository<T, UUID>
 {
@@ -29,7 +25,7 @@ public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implemen
 	}
 
 	@Override
-	public <S extends T> Iterable<S> save(Iterable<S> entities)
+	public <S extends T> Iterable<S> saveAll(Iterable<S> entities)
 	{
 		for (S entity : entities)
 		{
@@ -39,13 +35,13 @@ public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implemen
 	}
 
 	@Override
-	public T findOne(UUID id)
+	public Optional<T> findById(UUID id)
 	{
-		return entities.get(id);
+		return Optional.ofNullable(entities.get(id));
 	}
 
 	@Override
-	public boolean exists(UUID id)
+	public boolean existsById(UUID id)
 	{
 		return entities.containsKey(id);
 	}
@@ -57,7 +53,7 @@ public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implemen
 	}
 
 	@Override
-	public Iterable<T> findAll(Iterable<UUID> ids)
+	public Iterable<T> findAllById(Iterable<UUID> ids)
 	{
 		List<T> matchingEntities = new ArrayList<>();
 		for (UUID id : ids)
@@ -78,7 +74,7 @@ public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implemen
 	}
 
 	@Override
-	public void delete(UUID id)
+	public void deleteById(UUID id)
 	{
 		entities.remove(id);
 	}
@@ -86,11 +82,11 @@ public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implemen
 	@Override
 	public void delete(T entity)
 	{
-		delete(entity.getId());
+		deleteById(entity.getId());
 	}
 
 	@Override
-	public void delete(Iterable<? extends T> entities)
+	public void deleteAll(Iterable<? extends T> entities)
 	{
 		for (T entity : entities)
 		{

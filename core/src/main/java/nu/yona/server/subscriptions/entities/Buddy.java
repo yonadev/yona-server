@@ -30,7 +30,9 @@ import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.device.entities.BuddyDevice;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
+import nu.yona.server.subscriptions.service.UserServiceException;
 import nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName;
 import nu.yona.server.util.TimeUtil;
 
@@ -96,11 +98,8 @@ public class Buddy extends PrivateUserProperties
 
 	public BuddyAnonymized getBuddyAnonymized()
 	{
-		BuddyAnonymized buddyAnonymized = BuddyAnonymized.getRepository().findOne(buddyAnonymizedId);
-		assert buddyAnonymized != null : "Buddy with ID " + getId() + " cannot find buddy anonymized with ID "
-				+ buddyAnonymizedId;
-
-		return buddyAnonymized;
+		return BuddyAnonymized.getRepository().findById(buddyAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.missingEntity(BuddyAnonymized.class, buddyAnonymizedId));
 	}
 
 	public UUID getUserId()
@@ -110,7 +109,12 @@ public class Buddy extends PrivateUserProperties
 
 	public User getUser()
 	{
-		return User.getRepository().findOne(userId);
+		return getUserIfExists().orElseThrow(() -> UserServiceException.notFoundById(userId));
+	}
+
+	public Optional<User> getUserIfExists()
+	{
+		return User.getRepository().findById(userId);
 	}
 
 	public Optional<UUID> getUserAnonymizedId()

@@ -10,14 +10,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.metrics.export.prometheus.EnablePrometheusMetrics;
 
 import nu.yona.server.properties.PropertyInitializer;
 import nu.yona.server.util.LockPool;
 
 @SpringBootApplication
 @EnableCaching
-@EnablePrometheusMetrics
 public class AnalysisServiceApplication
 {
 	public static void main(String[] args)

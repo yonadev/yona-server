@@ -29,7 +29,7 @@ public class ActivityCacheService
 	public ActivityDto fetchLastActivityForUser(UUID userAnonymizedId, UUID deviceAnonymizedId, UUID goalId)
 	{
 		List<DayActivity> lastDayActivityList = DayActivity.getRepository()
-				.findLast(userAnonymizedId, goalId, new PageRequest(0, 1)).getContent();
+				.findLast(userAnonymizedId, goalId, PageRequest.of(0, 1)).getContent();
 		if (lastDayActivityList.isEmpty())
 		{
 			return null;

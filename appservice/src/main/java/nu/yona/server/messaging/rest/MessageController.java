@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.rest;
@@ -434,10 +434,10 @@ public class MessageController extends ControllerBase
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDto message)
 		{
-			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findOne(message.getIntervalActivityId());
-			Objects.requireNonNull(activity,
-					String.format("Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
-							message.getSenderNickname(), message.getIntervalActivityId()));
+			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findById(message.getIntervalActivityId())
+					.orElseThrow(() -> new IllegalStateException(String.format(
+							"Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
+							message.getSenderNickname(), message.getIntervalActivityId())));
 			Goal goal = Objects.requireNonNull(activity.getGoal(),
 					String.format("Activity getGoal() returns null for '%s' instance with id '%s' and start time '%s'",
 							activity.getClass().getSimpleName(), activity.getId(), activity.getStartDate()));
