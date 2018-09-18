@@ -56,6 +56,8 @@ public class YonaProperties
 
 	private boolean isEnableHibernateStatsAllowed;
 
+	private String firebaseDatabaseUrl;
+
 	public AnalysisServiceProperties getAnalysisService()
 	{
 		return analysisService;
@@ -170,5 +172,15 @@ public class YonaProperties
 	public void setEnableHibernateStatsAllowed(boolean isEnableHibernateStatsAllowed)
 	{
 		this.isEnableHibernateStatsAllowed = isEnableHibernateStatsAllowed;
+	}
+
+	public String getFirebaseDatabaseUrl()
+	{
+		return firebaseDatabaseUrl;
+	}
+
+	public void setFirebaseDatabaseUrl(String firebaseDatabaseUrl)
+	{
+		this.firebaseDatabaseUrl = firebaseDatabaseUrl;
 	}
 }

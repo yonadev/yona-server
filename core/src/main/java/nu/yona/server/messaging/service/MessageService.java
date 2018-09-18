@@ -28,12 +28,14 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.util.Require;
@@ -41,20 +43,29 @@ import nu.yona.server.util.Require;
 @Service
 public class MessageService
 {
-	@Autowired
+	@Autowired(required = false)
 	private UserService userService;
 
-	@Autowired
+	@Autowired(required = false)
+	private UserAnonymizedService userAnonymizedService;
+
+	@Autowired(required = false)
 	private BuddyService buddyService;
 
-	@Autowired
+	@Autowired(required = false)
 	private TheDtoManager dtoManager;
 
-	@Autowired
+	@Autowired(required = false)
 	private MessageSourceRepository messageSourceRepository;
 
 	@Autowired(required = false)
+	private MessageDestinationRepository messageDestinationRepository;
+
+	@Autowired(required = false)
 	private MessageRepository messageRepository;
+
+	@Autowired(required = false)
+	private FirebaseService firebaseService;
 
 	@Transactional
 	public Page<MessageDto> getReceivedMessages(UserDto user, boolean onlyUnreadMessages, Pageable pageable)
@@ -113,13 +124,16 @@ public class MessageService
 		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
 		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
 		MessageDestination directMessageDestination = directMessageSource.getDestination();
+		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId());
 		for (Message directMessage : directMessages)
 		{
 			directMessageDestination.remove(directMessage);
 			anonymousMessageDestination.send(directMessage);
+
+			sendFirebaseNotification(directMessage, userAnonymized);
 		}
-		MessageDestination.getRepository().save(directMessageDestination);
-		MessageDestination.getRepository().save(anonymousMessageDestination);
+		messageDestinationRepository.save(directMessageDestination);
+		messageDestinationRepository.save(anonymousMessageDestination);
 	}
 
 	private boolean mustProcessUnprocessedMessages(User user)
@@ -130,7 +144,7 @@ public class MessageService
 	private List<Long> getUnprocessedMessages(User user)
 	{
 		MessageDestination anonymousMessageDestination = getAnonymousMessageSource(user).getDestination();
-		return Message.getRepository().findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
+		return messageRepository.findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
 	}
 
 	@Transactional
@@ -188,10 +202,10 @@ public class MessageService
 				.collect(Collectors.toSet());
 
 		messagesToBeDeleted.forEach(Message::prepareForDelete);
-		involvedMessageDestinations.forEach(d -> MessageDestination.getRepository().saveAndFlush(d));
+		involvedMessageDestinations.forEach(d -> messageDestinationRepository.saveAndFlush(d));
 
 		messagesToBeDeleted.forEach(m -> m.getMessageDestination().remove(m));
-		involvedMessageDestinations.forEach(d -> MessageDestination.getRepository().save(d));
+		involvedMessageDestinations.forEach(d -> messageDestinationRepository.save(d));
 	}
 
 	private MessageSource getNamedMessageSource(User user)
@@ -271,16 +285,45 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendMessageAndFlushToDatabase(Message message, MessageDestinationDto destination)
+	public void sendMessageAndFlushToDatabase(Message message, UserAnonymizedDto toUser)
 	{
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
-		destinationEntity.send(message);
-		MessageDestination.getRepository().saveAndFlush(destinationEntity);
+		sendMessage(message, toUser);
+
+		MessageDestination destinationEntity = messageDestinationRepository.findOne(toUser.getAnonymousDestination().getId());
+		messageDestinationRepository.saveAndFlush(destinationEntity);
 	}
 
 	@Transactional
-	public void sendMessage(Message message, MessageDestination destinationEntity)
+	public void sendMessageAndFlushToDatabase(Message message, User toUser)
 	{
+		sendMessage(message, toUser);
+
+		MessageDestination destinationEntity = toUser.getNamedMessageDestination();
+		messageDestinationRepository.saveAndFlush(destinationEntity);
+	}
+
+	@Transactional
+	public void sendMessage(Message message, UserAnonymizedDto toUser)
+	{
+		MessageDestination destinationEntity = messageDestinationRepository.findOne(toUser.getAnonymousDestination().getId());
+
+		destinationEntity.send(message);
+
+		sendFirebaseNotification(message, toUser);
+	}
+
+	private void sendFirebaseNotification(Message message, UserAnonymizedDto toUser)
+	{
+		toUser.getDevicesAnonymized().stream().map(deviceAnonymized -> deviceAnonymized.getFirebaseInstanceId())
+				.filter(firebaseInstanceId -> firebaseInstanceId.isPresent())
+				.forEach(firebaseInstanceId -> firebaseService.sendMessage(firebaseInstanceId.get(), message));
+	}
+
+	@Transactional
+	public void sendMessage(Message message, User toUser)
+	{
+		MessageDestination destinationEntity = toUser.getNamedMessageDestination();
+
 		destinationEntity.send(message);
 	}
 
@@ -292,21 +335,15 @@ public class MessageService
 			throw new IllegalArgumentException("sentByUserAnonymizedId cannot be null");
 		}
 
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
+		MessageDestination destinationEntity = messageDestinationRepository.findOne(destination.getId());
 		deleteMessages(destinationEntity.getMessagesFromUser(sentByUserAnonymizedId));
 	}
 
 	@Transactional
 	public void broadcastMessageToBuddies(UserAnonymizedDto userAnonymized, Supplier<Message> messageSupplier)
 	{
-		buddyService.getBuddyDestinations(userAnonymized)
-				.forEach(destination -> sendMessageAndFlushToDatabase(messageSupplier.get(), destination));
-	}
-
-	@Transactional
-	public void sendMessageToUserAnonymized(UserAnonymizedDto userAnonymized, Message message)
-	{
-		sendMessageAndFlushToDatabase(message, userAnonymized.getAnonymousDestination());
+		buddyService.getBuddyUsersAnonymized(userAnonymized)
+				.forEach(buddyUserAnonymized -> sendMessage(messageSupplier.get(), buddyUserAnonymized));
 	}
 
 	@Transactional

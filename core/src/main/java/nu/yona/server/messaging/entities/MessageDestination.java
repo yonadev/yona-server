@@ -35,6 +35,11 @@ import nu.yona.server.goals.entities.Goal;
 @Table(name = "MESSAGE_DESTINATIONS")
 public class MessageDestination extends EntityWithUuid
 {
+	public enum TypeOfDestination
+	{
+		Named, Anonymous
+	}
+
 	@Column(length = 1024)
 	private byte[] publicKeyBytes;
 

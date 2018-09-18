@@ -27,11 +27,11 @@ import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.MessageActionDto;
-import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
@@ -181,12 +181,11 @@ public class GoalConflictMessageDto extends MessageDto
 		{
 			messageEntity = updateMessageStatusAsDisclosureRequested(messageEntity);
 
-			MessageDestinationDto messageDestination = userAnonymizedService
-					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
+			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get());
 			messageService.sendMessageAndFlushToDatabase(
 					DisclosureRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(actingUser),
 							requestPayload.getProperty("message"), messageEntity),
-					messageDestination);
+					toUser);
 
 			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
 		}

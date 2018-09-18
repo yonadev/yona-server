@@ -96,6 +96,7 @@ public class JUnitUtil
 
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource namedMessageSource = MessageSource.createInstance();
+		MessageSource.getRepository().save(namedMessageSource);
 		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, johnAnonymized.getId(),
 				anonymousMessageSource.getId(), namedMessageSource);
 		User user = new User(UUID.randomUUID(), initializationVector, mobileNumber, userPrivate,
