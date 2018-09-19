@@ -85,38 +85,12 @@ pipeline {
 				}
 			}
 		}
-		stage('Deploy to acceptance test server') {
-			agent { label 'acc-test' }
-			environment {
-				YONA_DB = credentials('test-db')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
-				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
-			}
-			when {
-				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
-			}
-			steps {
-				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
-				sh 'chmod +x refresh-build.sh'
-				sh 'wget -O copy-resources.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/copy-resources.sh'
-				sh 'chmod +x copy-resources.sh'
-				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
-				sh 'chmod +x wait-for-services.sh'
-				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
-			}
-			post {
-				failure {
-					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to acceptance"
-				}
-			}
-		}
 		stage('Deploy to beta test server') {
 			agent { label 'beta' }
 			when {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				checkpoint 'Acceptance test server deployed'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
