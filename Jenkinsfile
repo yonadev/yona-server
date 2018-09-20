@@ -5,7 +5,7 @@ pipeline {
 			agent { label 'yona' }
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
-				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
+				GIT = credentials('github-yonabuild')
 				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
 			}
 			steps {
