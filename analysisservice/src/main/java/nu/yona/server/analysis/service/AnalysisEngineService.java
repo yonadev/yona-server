@@ -30,6 +30,7 @@ import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.exceptions.AnalysisException;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalDto;
@@ -440,7 +441,7 @@ public class AnalysisEngineService
 			{
 				entity = userAnonymizedService.getUserAnonymizedEntity(id);
 			}
-			return entity.get();
+			return entity.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(id));
 		}
 
 		boolean isEntityFetched()
