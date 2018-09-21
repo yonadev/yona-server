@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz.jobs;
 
@@ -19,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
 
+import nu.yona.server.rest.RestUtil;
 import nu.yona.server.subscriptions.service.PinResetRequestService;
 
 @Service
@@ -45,7 +43,7 @@ public class PinResetConfirmationCodeSenderQuartzJob implements org.quartz.Job
 
 	private static UUID getUserId(Map<String, Object> parameterMap)
 	{
-		return UUID.fromString((String) parameterMap.get(USER_ID_KEY));
+		return RestUtil.parseUuid((String) parameterMap.get(USER_ID_KEY));
 	}
 
 	private static Locale getLocale(Map<String, Object> parameterMap)

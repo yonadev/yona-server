@@ -129,4 +129,9 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.missing.entity", clazz.getName(), id);
 	}
+
+	public static InvalidDataException invalidUuid(String uuid)
+	{
+		return new InvalidDataException("error.invalid.uuid", uuid);
+	}
 }

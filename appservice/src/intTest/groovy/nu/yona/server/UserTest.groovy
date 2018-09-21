@@ -302,6 +302,22 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(john)
 	}
 
+	def 'Try get user with invalid ID'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		def response = appService.getUser(richard.url.replaceFirst(/requestingUserId=..../, "requestingUserId=QQQQ"), false)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.invalid.uuid"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Retrieve OVPN profile and SSL root certificate (YD-541, YD-544)'()
 	{
 		given:

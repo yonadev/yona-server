@@ -73,6 +73,7 @@ import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.RestUtil;
 import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -143,7 +144,7 @@ public class UserController extends ControllerBase
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		Optional<String> passwordToUse = getPasswordToUse(password, tempPassword);
 		return Optional.ofNullable(determineRequestingUserId(userId, requestingUserIdStr, includePrivateDataStr))
-				.map(UUID::fromString)
+				.map(RestUtil::parseUuid)
 				.map(ruid -> getUser(ruid, requestingDeviceIdStr, userId, tempPassword.isPresent(), passwordToUse))
 				.orElseGet(() -> getPublicUser(userId));
 	}
@@ -202,7 +203,7 @@ public class UserController extends ControllerBase
 			return Optional.empty();
 		}
 		return requestingDeviceIdStr == null ? Optional.of(deviceService.getDefaultDeviceId(user))
-				: Optional.of(UUID.fromString(requestingDeviceIdStr));
+				: Optional.of(RestUtil.parseUuid(requestingDeviceIdStr));
 	}
 
 	private HttpEntity<UserResource> getPublicUser(UUID userId)
@@ -246,7 +247,7 @@ public class UserController extends ControllerBase
 		}
 		else
 		{
-			return updateUser(password, userId, UUID.fromString(requestingDeviceIdStr), user, request);
+			return updateUser(password, userId, RestUtil.parseUuid(requestingDeviceIdStr), user, request);
 		}
 	}
 
