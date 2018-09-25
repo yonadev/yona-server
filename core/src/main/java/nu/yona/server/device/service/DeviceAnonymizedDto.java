@@ -19,7 +19,7 @@ public class DeviceAnonymizedDto implements Serializable
 	private final int deviceIndex;
 	private final OperatingSystem operatingSystem;
 	private final String vpnLoginId;
-	private final Optional<String> firebaseInstanceId;
+	private final String firebaseInstanceId;
 
 	public DeviceAnonymizedDto(UUID id, int deviceIndex, OperatingSystem operatingSystem, String vpnLoginId,
 			Optional<String> firebaseInstanceId)
@@ -28,7 +28,7 @@ public class DeviceAnonymizedDto implements Serializable
 		this.deviceIndex = deviceIndex;
 		this.operatingSystem = operatingSystem;
 		this.vpnLoginId = vpnLoginId;
-		this.firebaseInstanceId = firebaseInstanceId;
+		this.firebaseInstanceId = firebaseInstanceId.orElse(null);
 	}
 
 	public static DeviceAnonymizedDto createInstance(DeviceAnonymized entity)
@@ -59,6 +59,6 @@ public class DeviceAnonymizedDto implements Serializable
 
 	public Optional<String> getFirebaseInstanceId()
 	{
-		return firebaseInstanceId;
+		return Optional.ofNullable(firebaseInstanceId);
 	}
 }
