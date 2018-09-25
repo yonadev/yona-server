@@ -37,6 +37,7 @@ import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
@@ -246,12 +247,7 @@ public class BuddyService
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyId)
 	{
 		userService.assertValidatedUser(userService.getUserEntityById(idOfRequestingUser));
-		Buddy buddy = buddyRepository.findOne(buddyId);
-
-		if (buddy != null)
-		{
-			removeBuddy(idOfRequestingUser, buddy);
-		}
+		buddyRepository.findById(buddyId).ifPresent(buddy -> removeBuddy(idOfRequestingUser, buddy));
 		// else: buddy already removed, probably in response to removing the user
 	}
 
@@ -312,7 +308,7 @@ public class BuddyService
 		do
 		{
 			messagePage = messageService.getReceivedMessageEntitiesSinceDate(user.getId(), buddy.getLastStatusChangeTime(),
-					new PageRequest(page++, pageSize));
+					PageRequest.of(page++, pageSize));
 
 			messageFound = processPossiblePendingBuddyResponseMessage(user, buddy, messagePage);
 		}
@@ -423,8 +419,9 @@ public class BuddyService
 		buddy.setLastName(connectResponseMessageEntity.getLastName());
 		createBuddyDevices(connectResponseMessageEntity).forEach(buddy::addDevice);
 		buddyRepository.save(buddy);
-		userAnonymizedService.updateUserAnonymized(
-				userAnonymizedService.getUserAnonymizedEntity(actingUser.getOwnPrivateData().getUserAnonymizedId()));
+		UUID userAnonymizedId = actingUser.getOwnPrivateData().getUserAnonymizedId();
+		userAnonymizedService.updateUserAnonymized(userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId)));
 	}
 
 	Set<BuddyDto> getBuddyDtos(Set<Buddy> buddyEntities)
@@ -436,13 +433,14 @@ public class BuddyService
 
 	private void loadAllUsersAnonymizedAtOnce(Set<Buddy> buddyEntities)
 	{
-		UserAnonymized.getRepository().findAll(buddyEntities.stream().map(Buddy::getUserAnonymizedId).filter(Optional::isPresent)
-				.map(Optional::get).collect(Collectors.toList()));
+		UserAnonymized.getRepository().findAllById(buddyEntities.stream().map(Buddy::getUserAnonymizedId)
+				.filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList()));
 	}
 
 	private void loadAllBuddiesAnonymizedAtOnce(Set<Buddy> buddyEntities)
 	{
-		buddyAnonymizedRepository.findAll(buddyEntities.stream().map(Buddy::getBuddyAnonymizedId).collect(Collectors.toList()));
+		buddyAnonymizedRepository
+				.findAllById(buddyEntities.stream().map(Buddy::getBuddyAnonymizedId).collect(Collectors.toList()));
 	}
 
 	public Set<UserAnonymizedDto> getBuddyUsersAnonymized(UserAnonymizedDto user)
@@ -517,7 +515,7 @@ public class BuddyService
 	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
 	{
 		Optional<BuddyAnonymizedDto> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymized(userAnonymizedId);
-		buddyAnonymized.map(ba -> buddyAnonymizedRepository.findOne(ba.getId())).ifPresent(bae -> {
+		buddyAnonymized.map(ba -> buddyAnonymizedRepository.findById(ba.getId()).get()).ifPresent(bae -> {
 			bae.setDisconnected();
 			userAnonymizedService.updateUserAnonymized(buddyUserAnonymized.getId());
 			// Notice: last status change time will not be set, as we are not able to reach the Buddy entity from here
@@ -628,12 +626,7 @@ public class BuddyService
 
 	private Buddy getEntityById(UUID id)
 	{
-		Buddy entity = buddyRepository.findOne(id);
-		if (entity == null)
-		{
-			throw BuddyNotFoundException.notFound(id);
-		}
-		return entity;
+		return buddyRepository.findById(id).orElseThrow(() -> BuddyNotFoundException.notFound(id));
 	}
 
 	private boolean buddyUserExists(BuddyDto buddy)

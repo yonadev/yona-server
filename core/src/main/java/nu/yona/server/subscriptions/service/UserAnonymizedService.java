@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -37,20 +38,17 @@ public class UserAnonymizedService
 	@Transactional
 	public UserAnonymizedDto getUserAnonymized(UUID userAnonymizedId)
 	{
-		UserAnonymized entity = userAnonymizedRepository.findOne(userAnonymizedId);
-		if (entity == null)
-		{
-			throw InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId);
-		}
+		UserAnonymized entity = userAnonymizedRepository.findById(userAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId));
 		return UserAnonymizedDto.createInstance(entity);
 	}
 
 	/*
 	 * Prefer to use other method, because this one is not cached.
 	 */
-	public UserAnonymized getUserAnonymizedEntity(UUID userAnonymizedId)
+	public Optional<UserAnonymized> getUserAnonymizedEntity(UUID userAnonymizedId)
 	{
-		return userAnonymizedRepository.findOne(userAnonymizedId);
+		return userAnonymizedRepository.findById(userAnonymizedId);
 	}
 
 	@CachePut(key = "#userAnonymized.id")
@@ -63,14 +61,14 @@ public class UserAnonymizedService
 	@CachePut(key = "#userAnonymizedId")
 	public UserAnonymizedDto updateUserAnonymized(UUID userAnonymizedId)
 	{
-		UserAnonymized savedEntity = userAnonymizedRepository.save(userAnonymizedRepository.findOne(userAnonymizedId));
+		UserAnonymized savedEntity = userAnonymizedRepository.save(userAnonymizedRepository.findById(userAnonymizedId).get());
 		return UserAnonymizedDto.createInstance(savedEntity);
 	}
 
 	@CacheEvict(key = "#userAnonymizedId")
 	public void deleteUserAnonymized(UUID userAnonymizedId)
 	{
-		userAnonymizedRepository.delete(userAnonymizedId);
+		userAnonymizedRepository.deleteById(userAnonymizedId);
 	}
 
 	@CacheEvict(allEntries = true)

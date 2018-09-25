@@ -34,11 +34,8 @@ public class UserPhotoService
 	@Transactional
 	public UserPhotoDto getUserPhoto(UUID userPhotoId)
 	{
-		UserPhoto userPhoto = userPhotoRepository.findOne(userPhotoId);
-		if (userPhoto == null)
-		{
-			throw UserPhotoServiceException.notFoundById(userPhotoId);
-		}
+		UserPhoto userPhoto = userPhotoRepository.findById(userPhotoId)
+				.orElseThrow(() -> UserPhotoServiceException.notFoundById(userPhotoId));
 		return UserPhotoDto.createInstance(userPhoto);
 	}
 

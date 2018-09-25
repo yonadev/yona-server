@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
@@ -118,5 +118,20 @@ public class InvalidDataException extends YonaException
 	public static InvalidDataException extraProperty(String name, String hint)
 	{
 		return new InvalidDataException("error.request.extra.property", name, hint);
+	}
+
+	public static InvalidDataException missingEntity(Class<?> clazz, UUID id)
+	{
+		return new InvalidDataException("error.missing.entity", clazz.getName(), id);
+	}
+
+	public static InvalidDataException missingEntity(Class<?> clazz, long id)
+	{
+		return new InvalidDataException("error.missing.entity", clazz.getName(), id);
+	}
+
+	public static InvalidDataException invalidUuid(String uuid)
+	{
+		return new InvalidDataException("error.invalid.uuid", uuid);
 	}
 }

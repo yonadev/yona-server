@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.rest.RestUtil;
 
 @Entity
 public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
@@ -95,7 +96,7 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 
 	public List<UUID> getDeviceAnonymizedIds()
 	{
-		return splitString(deviceAnonymizedIds).map(UUID::fromString).collect(Collectors.toList());
+		return splitString(deviceAnonymizedIds).map(RestUtil::parseUuid).collect(Collectors.toList());
 	}
 
 	public List<Boolean> getDeviceVpnConnectionStatuses()

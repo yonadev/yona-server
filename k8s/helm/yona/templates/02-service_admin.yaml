@@ -11,7 +11,7 @@ spec:
   - name: "http"
     port: 8080
     protocol: TCP
-    nodePort: 31000
+    nodePort: {{ .Values.nodePorts.admin | default "31000" }}
   selector:
     app: admin
     stage: {{ .Values.global.stage | default "develop" }}

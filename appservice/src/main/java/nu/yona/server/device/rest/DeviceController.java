@@ -75,6 +75,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.RestUtil;
 import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.AppleMobileConfigSigner;
 import nu.yona.server.subscriptions.rest.UserController;
@@ -406,7 +407,7 @@ public class DeviceController extends ControllerBase
 
 	private static Optional<UUID> nullableStringToOptionalUuid(String uuidStr)
 	{
-		return Optional.ofNullable(uuidStr).map(UUID::fromString);
+		return Optional.ofNullable(uuidStr).map(RestUtil::parseUuid);
 	}
 
 	public static ControllerLinkBuilder getDeviceLinkBuilder(UUID userId, UUID deviceId, Optional<UUID> requestingDeviceId)

@@ -5,7 +5,7 @@
 package nu.yona.server.test.util;
 
 import static org.junit.Assume.assumeThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
@@ -14,10 +14,11 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.exparity.hamcrest.date.ZonedDateTimeMatchers;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -46,7 +47,7 @@ public class JUnitUtil
 	public static <T, ID extends Serializable> void setUpRepositoryMock(CrudRepository<T, ID> mockRepository)
 	{
 		// save should not return null but the saved entity
-		when(mockRepository.save(Matchers.<T> any())).thenAnswer(new Answer<T>() {
+		Mockito.lenient().when(mockRepository.save(ArgumentMatchers.<T> any())).thenAnswer(new Answer<T>() {
 			@Override
 			public T answer(InvocationOnMock invocation) throws Throwable
 			{
@@ -70,7 +71,7 @@ public class JUnitUtil
 				{
 					throw new IllegalArgumentException("Unsupported class: " + entityClass.getName());
 				}
-				return repository;
+				return Optional.of(repository);
 			}
 		});
 		RepositoryProvider.setRepositories(mockRepositories);

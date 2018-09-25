@@ -7,9 +7,10 @@ package nu.yona.server.analysis.service;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anySetOf;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -17,7 +18,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.text.MessageFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -42,7 +42,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.Repository;
@@ -181,7 +181,7 @@ public class AnalysisEngineServiceTest
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
 		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
-		when(mockActivityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(anySetOf(String.class)))
+		when(mockActivityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(anySet()))
 				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
 					@Override
 					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
@@ -222,46 +222,21 @@ public class AnalysisEngineServiceTest
 
 		// Stub the UserAnonymizedService to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnonDto);
-		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(userAnonEntity);
-
-		// Stub the GoalService to return our goals.
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
+		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(Optional.of(userAnonEntity));
 
 		// Mock the transaction helper
 		doAnswer(new Answer<Void>() {
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable
 			{
-				invocation.getArgumentAt(0, Runnable.class).run();
+				((Runnable) invocation.getArgument(0)).run();
 				return null;
 			}
 		}).when(transactionHelper).executeInNewTransaction(any(Runnable.class));
 
-		// Mock the week activity repository
-		when(mockWeekActivityRepository.findOne(any(UUID.class), any(UUID.class), any(LocalDate.class)))
-				.thenAnswer(new Answer<WeekActivity>() {
-					@Override
-					public WeekActivity answer(InvocationOnMock invocation) throws Throwable
-					{
-						Optional<Goal> goal = goalMap.values().stream()
-								.filter(g -> g.getId() == invocation.getArgumentAt(1, UUID.class)).findAny();
-						if (!goal.isPresent())
-						{
-							return null;
-						}
-						return goal.get().getWeekActivities().stream()
-								.filter(wa -> wa.getStartDate().equals(invocation.getArgumentAt(2, LocalDate.class))).findAny()
-								.orElse(null);
-					}
-				});
-
 		// Mock device service and repo
 		when(mockDeviceService.getDeviceAnonymized(userAnonDto, -1)).thenReturn(deviceAnonDto);
 		when(mockDeviceService.getDeviceAnonymized(userAnonDto, deviceAnonId)).thenReturn(deviceAnonDto);
-		when(mockDeviceAnonymizedRepository.getOne(deviceAnonId)).thenReturn(deviceAnonEntity);
 	}
 
 	private void setUpRepositoryMocks()
@@ -506,8 +481,8 @@ public class AnalysisEngineServiceTest
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
 		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
 				createActivity(now.minusMinutes(10), now.minusMinutes(8)), createActivity(now.minusMinutes(1), now));
-		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class),
-				any(String.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
+		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class), isNull(),
+				any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
 					@Override
 					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
 					{

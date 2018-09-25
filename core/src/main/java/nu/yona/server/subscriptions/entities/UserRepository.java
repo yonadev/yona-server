@@ -20,7 +20,7 @@ public interface UserRepository extends JpaRepository<User, UUID>
 {
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select u from User u where u.id = :id")
-	User findOneForUpdate(@Param("id") UUID id);
+	User findByIdForUpdate(@Param("id") UUID id);
 
 	User findByMobileNumber(String mobileNumber);
 

@@ -121,11 +121,8 @@ public class MessageSource extends EntityWithUuid
 
 	public Message getMessage(long idToFetch)
 	{
-		Message message = Message.getRepository().findOne(idToFetch);
-		if (message == null)
-		{
-			throw MessageNotFoundException.messageNotFound(idToFetch);
-		}
+		Message message = Message.getRepository().findById(idToFetch)
+				.orElseThrow(() -> MessageNotFoundException.messageNotFound(idToFetch));
 
 		message.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey()));
 		return message;

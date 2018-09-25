@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -7,14 +7,17 @@
 
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 import nu.yona.server.test.AppService
-import static nu.yona.server.test.CommonAssertions.*
 import spock.lang.Shared
 import spock.lang.Specification
 
 class ActivityCategoriesTest extends Specification
 {
+	static final def cachePropagationTimeoutSeconds = 10
+
 	@Shared
 	def AdminService adminService = new AdminService()
 
@@ -31,6 +34,7 @@ class ActivityCategoriesTest extends Specification
 		then:
 		assertResponseStatusOk(response)
 		response.responseData._links.self.href == adminService.url + AdminService.ACTIVITY_CATEGORIES_PATH
+		response.responseData._embedded?."yona:activityCategories" != null
 		response.responseData._embedded."yona:activityCategories".size() > 0
 		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find
 		{
@@ -84,6 +88,7 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.localizableDescription["en-US"] == englishDescription
 		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
 
+		waitForCachePropagation(numOfCategoriesInAppServiceBeforeAdd)
 		def appServiceGetResponse = appService.getAllActivityCategories()
 		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numOfCategoriesInAppServiceBeforeAdd + 1
 		def programmingCategory = findActivityCategoryByName(appServiceGetResponse, englishName)
@@ -138,6 +143,7 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.localizableDescription["en-US"] == englishDescription
 		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
 
+		waitForCachePropagation(englishName, englishDescription)
 		def chessCategory = findActivityCategoryByName(appService.getAllActivityCategories(), englishName)
 		chessCategory._links.self.href == programmingCategory._links.self.href
 		chessCategory.applications as Set == apps
@@ -166,6 +172,7 @@ class ActivityCategoriesTest extends Specification
 		assertResponseStatusOk(response)
 		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategories - 1
 
+		waitForCachePropagation(numOfCategoriesInAppServiceBeforeDelete)
 		def appServiceGetResponse = appService.getAllActivityCategories()
 		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numOfCategoriesInAppServiceBeforeDelete - 1
 		findActivityCategoryByName(appServiceGetResponse, "Programming") == null
@@ -229,5 +236,34 @@ class ActivityCategoriesTest extends Specification
 	private findActivityCategoryByName(response, name)
 	{
 		response.responseData._embedded."yona:activityCategories".find{ it.name == name }
+	}
+
+	private void waitForCachePropagation(originalCount)
+	{
+		for (int i = 0; i < cachePropagationTimeoutSeconds; i++)
+		{
+			def response = appService.getAllActivityCategories()
+			assertResponseStatusOk(response)
+			if (response.responseData._embedded."yona:activityCategories".size() != originalCount)
+			{
+				return
+			}
+			sleep(1000)
+		}
+	}
+
+	private void waitForCachePropagation(englishName, englishDescription)
+	{
+		for (int i = 0; i < cachePropagationTimeoutSeconds; i++)
+		{
+			def response = appService.getAllActivityCategories()
+			assertResponseStatusOk(response)
+			def category = findActivityCategoryByName(response, englishName)
+			if (category != null && category.description == englishDescription)
+			{
+				return
+			}
+			sleep(1000)
+		}
 	}
 }

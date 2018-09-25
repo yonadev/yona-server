@@ -28,7 +28,7 @@ function waitTillK8SInstanceWorks() {
 	sleepTime=${4:-5}
 	iterations=$[$duration / $sleepTime]
 	n=0
-	echo "Waiting for ${1}-${BUILD_NUMBER_TO_DEPLOY} to become ${2}"
+	echo "Waiting for ${1}-${BUILD_NUMBER_TO_DEPLOY} in namespace ${_NAMESPACE} to become ${2}"
 	until [ $n -ge $iterations ]
 	do
 	if [ "$2" == "Succeeded" ]; then  #Hack to deal with Job differently

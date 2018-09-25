@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -57,6 +58,9 @@ public class MessageService
 
 	@Autowired(required = false)
 	private MessageSourceRepository messageSourceRepository;
+
+	@Autowired
+	private MessageDestinationRepository messageDestinationRepository;
 
 	@Autowired(required = false)
 	private MessageDestinationRepository messageDestinationRepository;
@@ -223,9 +227,18 @@ public class MessageService
 		return getMessageSource(user.getAnonymousMessageSourceId());
 	}
 
-	private MessageSource getMessageSource(UUID id)
+	@Transactional
+	public MessageSource getMessageSource(UUID id)
 	{
-		return messageSourceRepository.findOne(id);
+		return messageSourceRepository.findById(id)
+				.orElseThrow(() -> InvalidDataException.missingEntity(MessageSource.class, id));
+	}
+
+	@Transactional
+	public MessageDestination getMessageDestination(UUID id)
+	{
+		return messageDestinationRepository.findById(id)
+				.orElseThrow(() -> InvalidDataException.missingEntity(MessageDestination.class, id));
 	}
 
 	private Page<MessageDto> wrapMessagesAsDtos(UserDto user, Page<? extends Message> messageEntities, Pageable pageable)

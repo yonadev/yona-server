@@ -91,12 +91,7 @@ public class DeviceService
 
 	private UserDevice getDeviceEntity(UUID deviceId)
 	{
-		UserDevice deviceEntity = userDeviceRepository.findOne(deviceId);
-		if (deviceEntity == null)
-		{
-			throw DeviceServiceException.notFoundById(deviceId);
-		}
-		return deviceEntity;
+		return userDeviceRepository.findById(deviceId).orElseThrow(() -> DeviceServiceException.notFoundById(deviceId));
 	}
 
 	@Transactional

@@ -5,7 +5,7 @@ pipeline {
 			agent { label 'yona' }
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
-				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
+				GIT = credentials('github-yonabuild')
 				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
 			}
 			steps {
@@ -43,7 +43,6 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			steps {
-				checkpoint 'Build done'
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
 				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
@@ -74,60 +73,20 @@ pipeline {
 				}
 			}
 		}
-		stage('Decide deploy to acceptance test server') {
+		stage('Decide deploy to test servers') {
 			agent none
 			steps {
-				checkpoint 'Build and tests done'
 				script {
-					env.DEPLOY_TO_ACC_TEST = input message: 'User input required',
+					env.DEPLOY_TO_TEST_SERVERS = input message: 'User input required',
 							submitter: 'authenticated',
-							parameters: [choice(name: 'Deploy to acceptance test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the acceptance test server')]
-				}
-			}
-		}
-		stage('Deploy to acceptance test server') {
-			agent { label 'acc-test' }
-			environment {
-				YONA_DB = credentials('test-db')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
-				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
-			}
-			when {
-				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
-			}
-			steps {
-				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
-				sh 'chmod +x refresh-build.sh'
-				sh 'wget -O copy-resources.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/copy-resources.sh'
-				sh 'chmod +x copy-resources.sh'
-				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
-				sh 'chmod +x wait-for-services.sh'
-				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
-			}
-			post {
-				failure {
-					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to acceptance"
-				}
-			}
-		}
-		stage('Decide deploy to beta test server') {
-			agent none
-			when {
-				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
-			}
-			steps {
-				checkpoint 'Acceptance test server deployed'
-				script {
-					env.DEPLOY_TO_BETA = input message: 'User input required',
-					submitter: 'authenticated',
-					parameters: [choice(name: 'Deploy to beta test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the beta test server')]
+							parameters: [choice(name: 'Deploy to the test servers', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the test servers')]
 				}
 			}
 		}
 		stage('Deploy to beta test server') {
 			agent { label 'beta' }
 			when {
-				environment name: 'DEPLOY_TO_BETA', value: 'yes'
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
@@ -140,13 +99,28 @@ pipeline {
 				}
 			}
 		}
+		stage('Deploy to load test server') {
+			agent { label 'load' }
+			when {
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
+			}
+			steps {
+				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
+				sh 'helm upgrade --install -f /config/values.yaml --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
+				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
+			}
+			post {
+				failure {
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to load test"
+				}
+			}
+		}
 		stage('Decide deploy to production server') {
 			agent none
 			when {
-				environment name: 'DEPLOY_TO_BETA', value: 'yes'
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				checkpoint 'Beta test server deployed'
 				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to deploy to production"
 				script {
 					env.DEPLOY_TO_PRD = input message: 'User input required',

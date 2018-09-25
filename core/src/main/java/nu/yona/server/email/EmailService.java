@@ -59,7 +59,7 @@ public class EmailService
 		}
 	}
 
-	public void prepareMimeMessage(MimeMessage mimeMessage, String senderName, InternetAddress receiverAddress,
+	private void prepareMimeMessage(MimeMessage mimeMessage, String senderName, InternetAddress receiverAddress,
 			String subjectTemplateName, String bodyTemplateName, Map<String, Object> templateParameters)
 			throws MessagingException, UnsupportedEncodingException
 	{

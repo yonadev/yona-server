@@ -62,7 +62,7 @@ spec:
               value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: YONA_BATCH_SERVICE_SERVICE_URL
-            {{- if .Values.batch.url_override }}
+            {{- if hasKey .Values.batch "url_override" }}
               value: {{ .Values.batch.url_override | quote }}
             {{- else }}
               value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local:8080"
@@ -75,7 +75,7 @@ spec:
               mountPath: /opt/app/config
           livenessProbe:
             httpGet:
-              path: /health/
+              path: /actuator/health/
               port: 9080
             initialDelaySeconds: 60
             periodSeconds: 15

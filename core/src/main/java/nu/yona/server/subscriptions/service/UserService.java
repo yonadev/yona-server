@@ -364,8 +364,8 @@ public class UserService
 
 	private void addNoGoGoal(User userEntity, ActivityCategoryDto category)
 	{
-		userEntity.getAnonymized()
-				.addGoal(BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), activityCategoryRepository.findOne(category.getId())));
+		userEntity.getAnonymized().addGoal(
+				BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), activityCategoryRepository.findById(category.getId()).get()));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
@@ -632,8 +632,8 @@ public class UserService
 
 	private EncryptedUserData retrieveUserEncryptedDataInNewCryptoSession(User originalUserEntity)
 	{
-		MessageSource namedMessageSource = messageSourceRepository.findOne(originalUserEntity.getNamedMessageSourceId());
-		MessageSource anonymousMessageSource = messageSourceRepository.findOne(originalUserEntity.getAnonymousMessageSourceId());
+		MessageSource namedMessageSource = messageService.getMessageSource(originalUserEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageService.getMessageSource(originalUserEntity.getAnonymousMessageSourceId());
 		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
 				anonymousMessageSource);
 		userEncryptedData.loadLazyEncryptedData();
@@ -657,7 +657,8 @@ public class UserService
 		deleteBuddyInfo(userEntity, message);
 
 		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
-		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId));
 		deleteGoals(userAnonymizedEntity);
 		User updatedUserEntity = deleteMessageSources(userEntity, userAnonymizedEntity);
 
@@ -696,8 +697,8 @@ public class UserService
 
 	private User deleteMessageSources(User userEntity, UserAnonymized userAnonymizedEntity)
 	{
-		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
-		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
+		MessageSource namedMessageSource = messageService.getMessageSource(userEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageService.getMessageSource(userEntity.getAnonymousMessageSourceId());
 		userAnonymizedEntity.clearAnonymousDestination();
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 		userEntity.clearNamedMessageDestination();
@@ -718,7 +719,8 @@ public class UserService
 		updateUser(user.getId(), userEntity -> {
 			assertValidatedUser(userEntity);
 
-			Buddy buddyEntity = buddyRepository.findOne(buddy.getId());
+			Buddy buddyEntity = buddyRepository.findById(buddy.getId())
+					.orElseThrow(() -> InvalidDataException.missingEntity(Buddy.class, buddy.getId()));
 			userEntity.addBuddy(buddyEntity);
 
 			UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
@@ -778,10 +780,10 @@ public class UserService
 		switch (lockModeType)
 		{
 			case NONE:
-				entity = userRepository.findOne(id);
+				entity = userRepository.findById(id).orElseThrow(() -> UserServiceException.notFoundById(id));
 				break;
 			case PESSIMISTIC_WRITE:
-				entity = userRepository.findOneForUpdate(id);
+				entity = userRepository.findByIdForUpdate(id);
 				break;
 			default:
 				throw new IllegalArgumentException("Lock mode type " + lockModeType + " is unsupported");

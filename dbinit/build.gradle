@@ -58,6 +58,6 @@ bootRun {
 	enableAssertions = true
 }
 
-bootRepackage {
+bootJar {
 	classifier = "full"
 }

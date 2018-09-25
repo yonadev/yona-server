@@ -40,6 +40,7 @@ import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.RestUtil;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -63,7 +64,8 @@ public class GoalController extends ControllerBase
 	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(createAllGoalsCollectionResource(userId, goalService.getGoalsOfUser(userId)),
 					HttpStatus.OK);
@@ -75,7 +77,8 @@ public class GoalController extends ControllerBase
 	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(goalService.getGoalForUserId(userId, goalId), createResourceAssembler(userId));
 		}
@@ -87,7 +90,8 @@ public class GoalController extends ControllerBase
 			@PathVariable UUID userId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			setActivityCategoryId(goal);
 			return createResponse(goalService.addGoal(userId, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED,
@@ -101,7 +105,8 @@ public class GoalController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID goalId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			setActivityCategoryId(goal);
 			return createOkResponse(goalService.updateGoal(userId, goalId, goal, Optional.ofNullable(messageStr)),
@@ -115,7 +120,8 @@ public class GoalController extends ControllerBase
 	public void removeGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID goalId, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			goalService.deleteGoalAndInformBuddies(userId, goalId, Optional.ofNullable(messageStr));
 		}
@@ -151,7 +157,7 @@ public class GoalController extends ControllerBase
 
 	private static UUID determineActivityCategoryId(String activityCategoryUrl)
 	{
-		return UUID.fromString(activityCategoryUrl.substring(activityCategoryUrl.lastIndexOf('/') + 1));
+		return RestUtil.parseUuid(activityCategoryUrl.substring(activityCategoryUrl.lastIndexOf('/') + 1));
 	}
 
 	public static ControllerLinkBuilder getGoalLinkBuilder(UUID userId, UUID goalId)

@@ -74,6 +74,6 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 
 	private Optional<DeviceAnonymized> getDeviceAnonymizedIfExisting()
 	{
-		return Optional.ofNullable(DeviceAnonymized.getRepository().findOne(deviceAnonymizedId));
+		return DeviceAnonymized.getRepository().findById(deviceAnonymizedId);
 	}
 }

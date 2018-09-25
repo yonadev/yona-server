@@ -22,10 +22,10 @@ echo.
 call gradlew :dbinit:bootRun
 if ERRORLEVEL 1 goto error
 
-call gradlew adminservice:build && start "Admin service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8840,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar adminservice\build\libs\adminservice-0.0.8-SNAPSHOT-full.jar --server.port=8080 --management.port=9080 --spring.jpa.hibernate.ddl-auto=none
-call gradlew analysisservice:build && start "Analysis service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8841,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar analysisservice\build\libs\analysisservice-0.0.8-SNAPSHOT-full.jar --server.port=8081 --management.port=9081 --spring.jpa.hibernate.ddl-auto=none
-call gradlew appservice:build && start "App service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8842,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar appservice\build\libs\appservice-0.0.8-SNAPSHOT-full.jar --server.port=8082 --management.port=9082 --spring.jpa.hibernate.ddl-auto=none
-call gradlew batchservice:build && start "Batch service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8843,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar batchservice\build\libs\batchservice-0.0.8-SNAPSHOT-full.jar --server.port=8083 --management.port=9083 --spring.jpa.hibernate.ddl-auto=none
+call gradlew adminservice:build && start "Admin service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8840,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar adminservice\build\libs\adminservice-0.0.8-SNAPSHOT-full.jar --server.port=8080 --management.server.port=9080 --spring.jpa.hibernate.ddl-auto=none
+call gradlew analysisservice:build && start "Analysis service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8841,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar analysisservice\build\libs\analysisservice-0.0.8-SNAPSHOT-full.jar --server.port=8081 --management.server.port=9081 --spring.jpa.hibernate.ddl-auto=none
+call gradlew appservice:build && start "App service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8842,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar appservice\build\libs\appservice-0.0.8-SNAPSHOT-full.jar --server.port=8082 --management.server.port=9082 --spring.jpa.hibernate.ddl-auto=none
+call gradlew batchservice:build && start "Batch service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8843,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar batchservice\build\libs\batchservice-0.0.8-SNAPSHOT-full.jar --server.port=8083 --management.server.port=9083 --spring.jpa.hibernate.ddl-auto=none
 
 echo.
 echo Wait until all services are started.

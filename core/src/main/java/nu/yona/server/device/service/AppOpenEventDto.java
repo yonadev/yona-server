@@ -14,7 +14,7 @@ import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 public class AppOpenEventDto
 {
 	public final String operatingSystemStr;
-	public String appVersion;
+	public final String appVersion;
 	public final int appVersionCode;
 
 	@JsonCreator
