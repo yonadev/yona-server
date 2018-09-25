@@ -174,7 +174,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 		User user = Mockito.mock(User.class);
 		when(user.getNamedMessageDestination()).thenReturn(namedMessageDestination);
 
-		service.sendMessage(message, user);
+		service.sendNamedMessage(message, user);
 
 		verify(mockFirebaseService, never()).sendMessage("Firebase-12345", message);
 	}

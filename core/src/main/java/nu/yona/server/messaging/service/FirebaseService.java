@@ -12,8 +12,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.google.auth.oauth2.GoogleCredentials;
@@ -31,16 +30,14 @@ public class FirebaseService
 {
 	private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
 
-	@Value("/api.json")
-	Resource apiKey;
-
 	@Autowired
 	private YonaProperties yonaProperties;
 
 	@PostConstruct
 	private void init()
 	{
-		try (InputStream serviceAccount = apiKey.getInputStream())
+		try (InputStream serviceAccount = new ClassPathResource(
+				yonaProperties.getSecurity().getFirebaseAdminServiceAccountKeyFile()).getInputStream())
 		{
 			FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
 					.setDatabaseUrl(yonaProperties.getFirebaseDatabaseUrl()).build();
@@ -49,6 +46,7 @@ public class FirebaseService
 		}
 		catch (IOException e)
 		{
+			logger.error("Error initializing Firebase client", e);
 			throw YonaException.unexpected(e);
 		}
 	}

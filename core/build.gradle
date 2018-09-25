@@ -40,7 +40,7 @@ dependencies {
 	compile "com.google.guava:guava:18.0"
 	compile "com.hazelcast:hazelcast-spring"
 	compile "com.googlecode.libphonenumber:libphonenumber:8.9.1"
-	compile "com.google.firebase:firebase-admin:6.2.0"
+	compile "com.google.firebase:firebase-admin:6.4.0"
 
 	compile "org.codehaus.groovy:groovy-all:2.4.7"
 	compile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"

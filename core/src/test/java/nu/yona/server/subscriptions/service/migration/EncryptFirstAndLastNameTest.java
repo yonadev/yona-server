@@ -40,10 +40,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import nu.yona.server.CoreConfiguration;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
+import nu.yona.server.entities.MessageSourceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
@@ -129,6 +131,7 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(Goal.class, mockGoalRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);
+		repositoriesMap.put(MessageSource.class, new MessageSourceRepositoryMock());
 		return repositoriesMap;
 	}
 

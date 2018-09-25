@@ -36,8 +36,10 @@ import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
 import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
+import nu.yona.server.entities.MessageSourceRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
+import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserPrivate;
@@ -111,6 +113,7 @@ public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
+		repositoriesMap.put(MessageSource.class, new MessageSourceRepositoryMock());
 		return repositoriesMap;
 	}
 

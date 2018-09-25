@@ -294,9 +294,9 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendMessageAndFlushToDatabase(Message message, User toUser)
+	public void sendNamedMessageAndFlushToDatabase(Message message, User toUser)
 	{
-		sendMessage(message, toUser);
+		sendNamedMessage(message, toUser);
 
 		MessageDestination destinationEntity = toUser.getNamedMessageDestination();
 		messageDestinationRepository.saveAndFlush(destinationEntity);
@@ -320,7 +320,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendMessage(Message message, User toUser)
+	public void sendNamedMessage(Message message, User toUser)
 	{
 		MessageDestination destinationEntity = toUser.getNamedMessageDestination();
 

@@ -500,7 +500,7 @@ public class BuddyService
 	private void sendDropBuddyMessage(BuddyInfoParameters buddyInfoParameters, Optional<String> message, DropBuddyReason reason,
 			User toUser)
 	{
-		messageService.sendMessageAndFlushToDatabase(
+		messageService.sendNamedMessageAndFlushToDatabase(
 				BuddyDisconnectMessage.createInstance(buddyInfoParameters, getDropBuddyMessage(reason, message), reason), toUser);
 	}
 
@@ -617,7 +617,7 @@ public class BuddyService
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		User requestingUserEntity = userService.getUserEntityById(idOfRequestingUser);
-		messageService.sendMessageAndFlushToDatabase(
+		messageService.sendNamedMessageAndFlushToDatabase(
 				BuddyConnectRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUser),
 						buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), requestingUserEntity.getDevices(),
 						isRequestingSending, isRequestingReceiving),
