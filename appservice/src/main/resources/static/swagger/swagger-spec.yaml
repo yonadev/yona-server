@@ -1901,6 +1901,7 @@ definitions:
           firebaseInstanceId:
             type: string
             description: The Instance ID provided by Firebase to the app
+            example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
     required:
       - name
       - operatingSystem
@@ -1916,6 +1917,7 @@ definitions:
       firebaseInstanceId:
         type: string
         description: The Instance ID provided by Firebase to the app
+        example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
     required:
       - name
   DeviceBase:
@@ -1958,6 +1960,7 @@ definitions:
           firebaseInstanceId:
             type: string
             description: The Instance ID provided by Firebase to the app, if known to the server.
+            example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
           _links:
             allOf:
               - $ref: '#/definitions/Curies'
