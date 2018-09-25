@@ -137,8 +137,8 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonId))
 				.thenReturn(UserAnonymizedDto.createInstance(userAnonEntity));
 
-		when(mockMessageDestinationRepository.findOne(anonMessageDestinationEntity.getId()))
-				.thenReturn(anonMessageDestinationEntity);
+		when(mockMessageDestinationRepository.findById(anonMessageDestinationEntity.getId()))
+				.thenReturn(Optional.of(anonMessageDestinationEntity));
 	}
 
 	@Override
@@ -200,8 +200,8 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 		when(namedMessageSource.getMessages(null)).thenReturn(new PageImpl<Message>(Arrays.asList(message)));
 		when(namedMessageSource.getDestination()).thenReturn(namedMessageDestination);
 
-		when(mockMessageSourceRepository.findOne(namedMessageSourceId)).thenReturn(namedMessageSource);
-		when(mockMessageSourceRepository.findOne(anonymousMessageSourceId)).thenReturn(anonymousMessageSource);
+		when(mockMessageSourceRepository.findById(namedMessageSourceId)).thenReturn(Optional.of(namedMessageSource));
+		when(mockMessageSourceRepository.findById(anonymousMessageSourceId)).thenReturn(Optional.of(anonymousMessageSource));
 
 		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{

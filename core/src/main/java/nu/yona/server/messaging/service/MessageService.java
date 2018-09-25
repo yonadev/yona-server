@@ -59,9 +59,6 @@ public class MessageService
 	@Autowired(required = false)
 	private MessageSourceRepository messageSourceRepository;
 
-	@Autowired
-	private MessageDestinationRepository messageDestinationRepository;
-
 	@Autowired(required = false)
 	private MessageDestinationRepository messageDestinationRepository;
 
@@ -302,7 +299,7 @@ public class MessageService
 	{
 		sendMessage(message, toUser);
 
-		MessageDestination destinationEntity = messageDestinationRepository.findOne(toUser.getAnonymousDestination().getId());
+		MessageDestination destinationEntity = getMessageDestination(toUser.getAnonymousDestination().getId());
 		messageDestinationRepository.saveAndFlush(destinationEntity);
 	}
 
@@ -318,7 +315,7 @@ public class MessageService
 	@Transactional
 	public void sendMessage(Message message, UserAnonymizedDto toUser)
 	{
-		MessageDestination destinationEntity = messageDestinationRepository.findOne(toUser.getAnonymousDestination().getId());
+		MessageDestination destinationEntity = getMessageDestination(toUser.getAnonymousDestination().getId());
 
 		destinationEntity.send(message);
 
@@ -348,7 +345,7 @@ public class MessageService
 			throw new IllegalArgumentException("sentByUserAnonymizedId cannot be null");
 		}
 
-		MessageDestination destinationEntity = messageDestinationRepository.findOne(destination.getId());
+		MessageDestination destinationEntity = getMessageDestination(destination.getId());
 		deleteMessages(destinationEntity.getMessagesFromUser(sentByUserAnonymizedId));
 	}
 
