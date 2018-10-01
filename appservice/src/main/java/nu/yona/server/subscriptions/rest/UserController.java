@@ -218,6 +218,7 @@ public class UserController extends ControllerBase
 			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
 			@RequestBody PostPutUserDto postPutUser, HttpServletRequest request)
 	{
+		assertValidDeviceData(postPutUser);
 		UserDto user = convertToUser(postPutUser);
 		// use DOS protection to prevent overwrite user confirmation code brute forcing,
 		// and to prevent enumeration of all occupied mobile numbers
@@ -226,10 +227,35 @@ public class UserController extends ControllerBase
 				() -> addUser(Optional.ofNullable(overwriteUserConfirmationCode), user));
 	}
 
+	private static void assertValidDeviceData(PostPutUserDto postPutUser)
+	{
+		if (postPutUser.deviceName == null)
+		{
+			String hint = "If the device name is not provided, the other properties should not be provided either";
+			Require.isNull(postPutUser.deviceOperatingSystemStr,
+					() -> InvalidDataException.extraProperty("deviceOperatingSystem", hint));
+			Require.isNull(postPutUser.deviceAppVersion, () -> InvalidDataException.extraProperty("deviceAppVersion", hint));
+			Require.isNull(postPutUser.deviceAppVersionCode,
+					() -> InvalidDataException.extraProperty("deviceAppVersionCode", hint));
+		}
+		else
+		{
+			String hint = "If the device name is provided, the other properties must be present too";
+			Require.isNonNull(postPutUser.deviceOperatingSystemStr,
+					() -> InvalidDataException.extraProperty("deviceOperatingSystem", hint));
+			Require.isNonNull(postPutUser.deviceAppVersion, () -> InvalidDataException.extraProperty("deviceAppVersion", hint));
+			Require.isNonNull(postPutUser.deviceAppVersionCode,
+					() -> InvalidDataException.extraProperty("deviceAppVersionCode", hint));
+		}
+	}
+
 	private UserDto convertToUser(PostPutUserDto postPutUser)
 	{
+		Optional<DeviceRegistrationRequestDto> deviceRegistration = postPutUser.deviceName == null ? Optional.empty()
+				: Optional.of(new DeviceRegistrationRequestDto(postPutUser.deviceName, postPutUser.deviceOperatingSystemStr,
+						postPutUser.deviceAppVersion, postPutUser.deviceAppVersionCode, Optional.empty()));
 		return UserDto.createInstance(postPutUser.firstName, postPutUser.lastName, postPutUser.mobileNumber, postPutUser.nickname,
-				postPutUser.getDevice());
+				deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance));
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.PUT)
@@ -473,7 +499,10 @@ public class UserController extends ControllerBase
 		private final String lastName;
 		private final String mobileNumber;
 		private final String nickname;
-		private final Optional<DeviceRegistrationRequestDto> deviceRegistration;
+		private String deviceName;
+		private String deviceOperatingSystemStr;
+		private String deviceAppVersion;
+		private Integer deviceAppVersionCode;
 
 		@JsonCreator
 		public PostPutUserDto(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
@@ -488,14 +517,10 @@ public class UserController extends ControllerBase
 			this.lastName = lastName;
 			this.mobileNumber = mobileNumber;
 			this.nickname = nickname;
-			this.deviceRegistration = deviceName == null ? Optional.empty()
-					: Optional.of(new DeviceRegistrationRequestDto(deviceName, deviceOperatingSystem, deviceAppVersion,
-							deviceAppVersionCode, Optional.empty()));
-		}
-
-		Optional<UserDeviceDto> getDevice()
-		{
-			return deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance);
+			this.deviceName = deviceName;
+			this.deviceOperatingSystemStr = deviceOperatingSystem;
+			this.deviceAppVersion = deviceAppVersion;
+			this.deviceAppVersionCode = deviceAppVersionCode;
 		}
 	}
 
