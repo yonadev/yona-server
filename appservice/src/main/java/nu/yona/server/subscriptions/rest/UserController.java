@@ -242,10 +242,10 @@ public class UserController extends ControllerBase
 		{
 			String hint = "If the device name is provided, the other properties must be present too";
 			Require.isNonNull(postPutUser.deviceOperatingSystemStr,
-					() -> InvalidDataException.extraProperty("deviceOperatingSystem", hint));
-			Require.isNonNull(postPutUser.deviceAppVersion, () -> InvalidDataException.extraProperty("deviceAppVersion", hint));
+					() -> InvalidDataException.missingProperty("deviceOperatingSystem", hint));
+			Require.isNonNull(postPutUser.deviceAppVersion, () -> InvalidDataException.missingProperty("deviceAppVersion", hint));
 			Require.isNonNull(postPutUser.deviceAppVersionCode,
-					() -> InvalidDataException.extraProperty("deviceAppVersionCode", hint));
+					() -> InvalidDataException.missingProperty("deviceAppVersionCode", hint));
 		}
 	}
 
