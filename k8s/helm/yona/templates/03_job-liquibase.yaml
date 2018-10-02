@@ -88,4 +88,6 @@ spec:
             {{- end }}
             - name: ACT_CATEGORIES_JSON_FILE
               value: {{ .Values.admin.act_categories_json_file | default "productionActivityCategories.json" | quote }}
+            - name: SERVICE_NAMESPACE
+              value: {{ .Release.Namespace }}
       restartPolicy: Never
