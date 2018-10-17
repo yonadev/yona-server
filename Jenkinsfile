@@ -23,7 +23,7 @@ pipeline {
 			}
 			environment {
 				JM_PATH_IN_CONT = "/mnt/jmeter"
-				JM_LOCAL_PATH = "jmeter"
+				JM_LOCAL_PATH = "${WORKSPACE}/jmeter"
 				JM_THREADS = "100"
 				JM_LOAD_DURATION = "600"
 			}
