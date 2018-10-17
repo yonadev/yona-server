@@ -33,7 +33,7 @@ pipeline {
 				sh 'mkdir ${JM_LOCAL_PATH}'
 				sh 'cp scripts/load-test.jmx ${JM_LOCAL_PATH}'
 				sh 'docker run --volume ${WORKSPACE}/${JM_LOCAL_PATH}:${JM_PATH_IN_CONT} yonadev/jmeter:JMeter3.3 -n -t ${JM_PATH_IN_CONT}/load-test.jmx -l ${JM_PATH_IN_CONT}/out/result.jtl -j ${JM_PATH_IN_CONT}/out/jmeter.log -Jthreads=${JM_THREADS} -JloadDuration=${JM_LOAD_DURATION}'
-				perfReport "${env.JM_LOCAL_PATH}/result.jtl"
+				perfReport "${env.JM_LOCAL_PATH}/out/result.jtl"
 			}
 			post {
 				failure {
