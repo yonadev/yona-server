@@ -3,9 +3,10 @@ pipeline {
 	stages {
 		stage('Decide run load test') {
 			agent none
-			when {
-				environment name: 'RUN_LOAD_TEST', value: 'yes'
-			}
+			//TODO: uncomment
+			//when {
+			//	environment name: 'RUN_LOAD_TEST', value: 'yes'
+			//}
 			steps {
 				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to deploy to production"
 				script {
