@@ -5,14 +5,14 @@ pipeline {
 			agent none
 			//TODO: uncomment
 			//when {
-			//	environment name: 'RUN_LOAD_TEST', value: 'yes'
+			//	environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			//}
 			steps {
-				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to deploy to production"
+				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to start load test"
 				script {
-					env.DEPLOY_TO_PRD = input message: 'User input required',
+					env.RUN_LOAD_TEST = input message: 'User input required',
 					submitter: 'authenticated',
-					parameters: [choice(name: 'Deploy to production server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the production server')]
+					parameters: [choice(name: 'Run load test', choices: 'no\nyes', description: 'Choose "yes" if you want to run the load test')]
 				}
 			}
 		}
