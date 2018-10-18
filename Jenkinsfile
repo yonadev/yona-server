@@ -1,7 +1,6 @@
 pipeline {
 	agent none
 	stages {
-	stages {
 		stage('Build') {
 			agent { label 'yona' }
 			environment {
