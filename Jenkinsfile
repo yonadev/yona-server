@@ -138,7 +138,7 @@ pipeline {
 				JM_PATH_IN_CONT = "/mnt/jmeter"
 				JM_LOCAL_PATH = "jmeter"
 				JM_THREADS = "100"
-				JM_LOAD_DURATION = "600"
+				JM_LOAD_DURATION = "1200"
 			}
 			steps {
 				checkout scm
