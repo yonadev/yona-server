@@ -101,10 +101,15 @@ pipeline {
 		}
 		stage('Deploy to load test server') {
 			agent { label 'load' }
+			environment {
+				BETA_DB = credentials('beta-db-jenkins')
+				BETA_DB_IP = credentials('beta-db-ip')
+			}
 			when {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
+				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
@@ -138,7 +143,7 @@ pipeline {
 				JM_PATH_IN_CONT = "/mnt/jmeter"
 				JM_LOCAL_PATH = "jmeter"
 				JM_THREADS = "100"
-				JM_LOAD_DURATION = "600"
+				JM_LOAD_DURATION = "1200"
 			}
 			steps {
 				checkout scm
