@@ -68,9 +68,10 @@ public class Buddy extends PrivateUserProperties
 		super();
 	}
 
-	private Buddy(UUID id, UUID userId, String firstName, String lastName, String nickname, UUID buddyAnonymizedId)
+	private Buddy(UUID id, UUID userId, String firstName, String lastName, String nickname, Optional<UUID> userPhotoId,
+			UUID buddyAnonymizedId)
 	{
-		super(id, firstName, lastName, Objects.requireNonNull(nickname));
+		super(id, firstName, lastName, Objects.requireNonNull(nickname), userPhotoId);
 		this.userId = Objects.requireNonNull(userId);
 		this.buddyAnonymizedId = Objects.requireNonNull(buddyAnonymizedId);
 		this.devices = new HashSet<>();
@@ -83,12 +84,12 @@ public class Buddy extends PrivateUserProperties
 		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
 	}
 
-	public static Buddy createInstance(UUID buddyUserId, String firstName, String lastName, String nickname, Status sendingStatus,
-			Status receivingStatus)
+	public static Buddy createInstance(UUID buddyUserId, String firstName, String lastName, String nickname,
+			Optional<UUID> userPhotoId, Status sendingStatus, Status receivingStatus)
 	{
 		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance(sendingStatus, receivingStatus);
 		buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
-		return new Buddy(UUID.randomUUID(), buddyUserId, firstName, lastName, nickname, buddyAnonymized.getId());
+		return new Buddy(UUID.randomUUID(), buddyUserId, firstName, lastName, nickname, userPhotoId, buddyAnonymized.getId());
 	}
 
 	public UUID getBuddyAnonymizedId()

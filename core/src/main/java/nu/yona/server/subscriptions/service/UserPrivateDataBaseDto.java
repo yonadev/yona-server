@@ -19,7 +19,7 @@ public class UserPrivateDataBaseDto
 	private final String firstName;
 	private final String lastName;
 	private final String nickname;
-	protected final Optional<UUID> userPhotoId;
+	private final Optional<UUID> userPhotoId;
 	private final Optional<Set<GoalDto>> goals;
 	private final Optional<Set<DeviceBaseDto>> devices;
 

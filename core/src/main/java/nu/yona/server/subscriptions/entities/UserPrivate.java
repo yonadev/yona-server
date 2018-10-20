@@ -72,7 +72,7 @@ public class UserPrivate extends PrivateUserProperties
 	private UserPrivate(UUID id, String firstName, String lastName, String nickname, UUID userAnonymizedId,
 			UUID anonymousMessageSourceId, UUID namedMessageSourceId)
 	{
-		super(id, firstName, lastName, nickname);
+		super(id, firstName, lastName, nickname, Optional.empty());
 		this.decryptionCheck = buildDecryptionCheck();
 		this.userAnonymizedId = userAnonymizedId;
 		this.buddies = new HashSet<>();
