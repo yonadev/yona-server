@@ -469,6 +469,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData.date =~ /\d{4}\-W\d{2}/
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
 		assert response.responseData._links?."yona:goal"
+		boolean isForBuddy = weekActivityDetailUrl.startsWith(YonaServer.stripQueryString(user.url) + "/buddies/")
+		assert (response.responseData._links?."yona:buddy" != null) == isForBuddy
 		def activeDays = 0
 		expectedValues.each { activeDays += it.value.findAll{it.goal.activityCategoryUrl == goal.activityCategoryUrl}.size()}
 		assert response.responseData.dayActivities?.size() == activeDays
@@ -509,6 +511,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData.date =~ /\d{4}\-\d{2}\-\d{2}/
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
 		assert response.responseData._links."yona:goal"
+		boolean isForBuddy = dayActivityDetailUrl.startsWith(YonaServer.stripQueryString(user.url) + "/buddies/")
+		assert (response.responseData._links?."yona:buddy" != null) == isForBuddy
 	}
 
 	void assertDayOverviewWithBuddiesBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
