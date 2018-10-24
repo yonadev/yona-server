@@ -130,7 +130,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDto newMessage)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return messageController.createOkResponse(userService.getPrivateUser(userId), activityService
 					.addMessageToWeekActivity(userId, buddyId, WeekActivityDto.parseDate(dateStr), goalId, newMessage));
@@ -171,7 +172,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDto newMessage)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return messageController.createOkResponse(userService.getPrivateUser(userId), activityService
 					.addMessageToDayActivity(userId, buddyId, DayActivityDto.parseDate(dateStr), goalId, newMessage));
@@ -289,6 +291,12 @@ public class BuddyActivityController extends ActivityControllerBase
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 			return Optional.of(
 					linkTo(methodOn.addBuddyWeekActivityDetailMessage(Optional.empty(), userId, buddyId, dateStr, goalId, null)));
+		}
+
+		@Override
+		public Optional<ControllerLinkBuilder> getBuddyLinkBuilder()
+		{
+			return Optional.of(BuddyController.getBuddyLinkBuilder(userId, buddyId));
 		}
 	}
 }
