@@ -221,7 +221,7 @@ public class BuddyService
 		Optional<User> senderUser = connectRequestMessageEntity.getSenderUser();
 		Buddy buddy = Buddy.createInstance(senderUser.get().getId(), connectRequestMessageEntity.determineFirstName(senderUser),
 				connectRequestMessageEntity.determineLastName(senderUser), connectRequestMessageEntity.getSenderNickname(),
-				connectRequestMessageEntity.getUserPhotoId(),
+				connectRequestMessageEntity.getSenderUserPhotoId(),
 				connectRequestMessageEntity.requestingSending() ? Status.ACCEPTED : Status.NOT_REQUESTED,
 				connectRequestMessageEntity.requestingReceiving() ? Status.ACCEPTED : Status.NOT_REQUESTED);
 		buddy.setUserAnonymizedId(connectRequestMessageEntity.getRelatedUserAnonymizedId().get());
@@ -418,7 +418,7 @@ public class BuddyService
 		buddy.setNickname(connectResponseMessageEntity.getSenderNickname());
 		buddy.setFirstName(connectResponseMessageEntity.getFirstName());
 		buddy.setLastName(connectResponseMessageEntity.getLastName());
-		buddy.setUserPhotoId(connectResponseMessageEntity.getUserPhotoId());
+		buddy.setUserPhotoId(connectResponseMessageEntity.getSenderUserPhotoId());
 		createBuddyDevices(connectResponseMessageEntity).forEach(buddy::addDevice);
 		buddyRepository.save(buddy);
 		UUID userAnonymizedId = actingUser.getOwnPrivateData().getUserAnonymizedId();
