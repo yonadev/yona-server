@@ -186,18 +186,20 @@ public class DayActivity extends IntervalActivity
 
 	private int getSpreadIndex(ZonedDateTime atTime)
 	{
-		int dstCorrection = determineDstCorrection(atTime);
+		int dstCorrection = determineDstCorrectionMinutes(atTime);
 		return (int) ((Duration.between(getStartTime(), atTime).toMinutes() - dstCorrection) / 15);
 	}
 
-	private static int determineDstCorrection(ZonedDateTime time)
+	private static int determineDstCorrectionMinutes(ZonedDateTime time)
 	{
 		ZoneOffsetTransition previousTransition = time.getZone().getRules().previousTransition(time.toInstant());
 		ZonedDateTime transitionDateTime = previousTransition.getInstant().atZone(time.getZone());
 		if (transitionDateTime.toLocalDate().equals(time.toLocalDate()) && transitionDateTime.isBefore(time))
 		{
 			// Transition happened earlier today
-			return previousTransition.isOverlap() ? 60 : -60;
+			ZoneOffset offsetBefore = previousTransition.getOffsetBefore();
+			ZoneOffset offsetAfter = previousTransition.getOffsetAfter();
+			return (offsetBefore.getTotalSeconds() - offsetAfter.getTotalSeconds()) / 60;
 		}
 		return 0;
 	}
