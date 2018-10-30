@@ -12,6 +12,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
+import java.time.zone.ZoneOffsetTransition;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -185,7 +186,20 @@ public class DayActivity extends IntervalActivity
 
 	private int getSpreadIndex(ZonedDateTime atTime)
 	{
-		return (int) (Duration.between(getStartTime(), atTime).toMinutes() / 15);
+		int dstCorrection = determineDstCorrection(atTime);
+		return (int) ((Duration.between(getStartTime(), atTime).toMinutes() - dstCorrection) / 15);
+	}
+
+	private static int determineDstCorrection(ZonedDateTime time)
+	{
+		ZoneOffsetTransition previousTransition = time.getZone().getRules().previousTransition(time.toInstant());
+		ZonedDateTime transitionDateTime = previousTransition.getInstant().atZone(time.getZone());
+		if (transitionDateTime.toLocalDate().equals(time.toLocalDate()) && transitionDateTime.isBefore(time))
+		{
+			// Transition happened earlier today
+			return previousTransition.isOverlap() ? 60 : -60;
+		}
+		return 0;
 	}
 
 	@Override
