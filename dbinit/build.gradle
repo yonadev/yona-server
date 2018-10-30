@@ -54,7 +54,23 @@ task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 	tag = project.ext.docker_tag
 }
 
+task pathingJar(type: Jar) {
+	dependsOn configurations.runtime
+	appendix = 'pathing'
+	doFirst {
+		manifest {
+			attributes "Class-Path": configurations.runtime.files.collect {
+				it.toURL().toString().replaceFirst(/file:\/+/, '/')
+			}.join(' ')
+		}
+	}
+}
+
 bootRun {
+	dependsOn pathingJar
+	doFirst {
+		classpath = files(sourceSets.main.output.files, pathingJar.archivePath)
+	}
 	enableAssertions = true
 }
 
