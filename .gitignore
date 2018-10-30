@@ -63,3 +63,6 @@ atlassian-ide-plugin.xml
 
 # Include the smoothwall parser bin directory (package convention for Smoothwall OEM code) 
 !/scripts/smoothwall/modules/yona/bin
+
+# Exclude Firebase config that may be added for test purposes
+core/src/main/resources/firebase-adminsdk-serviceAccountKey.json
