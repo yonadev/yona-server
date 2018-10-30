@@ -193,6 +193,11 @@ public class DayActivity extends IntervalActivity
 	private static int determineDstCorrectionMinutes(ZonedDateTime time)
 	{
 		ZoneOffsetTransition previousTransition = time.getZone().getRules().previousTransition(time.toInstant());
+		if (previousTransition == null)
+		{
+			// Never did a transition in this zone.
+			return 0;
+		}
 		ZonedDateTime transitionDateTime = previousTransition.getInstant().atZone(time.getZone());
 		if (transitionDateTime.toLocalDate().equals(time.toLocalDate()) && transitionDateTime.isBefore(time))
 		{
