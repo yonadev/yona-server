@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,10 +39,6 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 	private byte[] buddyIdCiphertext;
 
 	@Transient
-	private UUID userPhotoId;
-	private byte[] userPhotoIdCiphertext;
-
-	@Transient
 	private String deviceNames;
 	@Column(length = (int) ((DeviceBase.MAX_NAME_LENGTH + 1) * MAX_NUM_OF_DEVICES * ENCRYPTION_OVERHEAD_FACTOR))
 	private byte[] deviceNamesCiphertext;
@@ -68,7 +63,6 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 	{
 		super(buddyInfoParameters, message);
 		this.buddyId = buddyId;
-		this.userPhotoId = buddyInfoParameters.userPhotoId.orElse(null);
 		List<UserDevice> orderedDevices = new ArrayList<>(devices);
 		this.deviceNames = buildDeviceNamesString(orderedDevices);
 		this.deviceAnonymizedIds = buildDeviceAnonymizedIdsString(orderedDevices);
@@ -93,11 +87,6 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 	public UUID getBuddyId()
 	{
 		return buddyId;
-	}
-
-	public Optional<UUID> getUserPhotoId()
-	{
-		return Optional.ofNullable(userPhotoId);
 	}
 
 	public List<String> getDeviceNames()
@@ -125,7 +114,6 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 	{
 		super.encrypt();
 		buddyIdCiphertext = SecretKeyUtil.encryptUuid(buddyId);
-		userPhotoIdCiphertext = SecretKeyUtil.encryptUuid(userPhotoId);
 		deviceNamesCiphertext = SecretKeyUtil.encryptString(deviceNames);
 		deviceAnonymizedIdsCiphertext = SecretKeyUtil.encryptString(deviceAnonymizedIds);
 		deviceVpnConnectionStatusesCiphertext = SecretKeyUtil.encryptString(deviceVpnConnectionStatuses);
@@ -136,7 +124,6 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 	{
 		super.decrypt();
 		buddyId = SecretKeyUtil.decryptUuid(buddyIdCiphertext);
-		userPhotoId = SecretKeyUtil.decryptUuid(userPhotoIdCiphertext);
 		deviceNames = SecretKeyUtil.decryptString(deviceNamesCiphertext);
 		deviceAnonymizedIds = SecretKeyUtil.decryptString(deviceAnonymizedIdsCiphertext);
 		deviceVpnConnectionStatuses = SecretKeyUtil.decryptString(deviceVpnConnectionStatusesCiphertext);
