@@ -2903,6 +2903,7 @@ definitions:
           - $ref: '#/definitions/MessagesLink'
           - $ref: '#/definitions/PrevLink'
           - $ref: '#/definitions/NextLink'
+          - $ref: '#/definitions/BuddyLink'
     required:
       - date
       - timeZoneId
@@ -3036,6 +3037,7 @@ definitions:
               - $ref: '#/definitions/MessagesLink'
               - $ref: '#/definitions/PrevLink'
               - $ref: '#/definitions/NextLink'
+              - $ref: '#/definitions/BuddyLink'
             required:
               - self
               - "yona:goal"

@@ -185,6 +185,29 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Richard and Bob can see each other\'s photos after becoming buddies'()
+	{
+		given:
+		User richard = addRichard(false)
+		def richardUserPhotoUrl = uploadUserPhoto(richard)
+		User bob = addBob(false)
+		def bobUserPhotoUrl = uploadUserPhoto(bob)
+
+		when:
+		bob.emailAddress = "bob@dunn.com"
+		appService.makeBuddies(richard, bob)
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+
+		then:
+		richard.buddies[0].user.userPhotoUrl == bobUserPhotoUrl
+		bob.buddies[0].user.userPhotoUrl == richardUserPhotoUrl
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def 'Bob can see the photo of Richard on the messages of Richard'()
 	{
 		given:
@@ -290,7 +313,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Richard updates his photo which causes buddy info change message to Bob and user photo update on process'()
+	def 'Richard adds a photo, which causes buddy info change message to Bob and user photo linkage on process'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -321,7 +344,42 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Richard deletes his photo which causes buddy info change message to Bob and user photo delete on process'()
+	def 'Richard updates his photo, which causes buddy info change message to Bob and user photo update on process'()
+	{
+		given:
+		User richard = addRichard(false)
+		uploadUserPhoto(richard) // Add photo before adding buddy
+		User bob = addBob(false)
+		bob.emailAddress = "bob@dunn.com"
+		appService.makeBuddies(richard, bob)
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+
+		when:
+		def newUserPhotoUrl = uploadUserPhoto(richard)
+
+		then:
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesAfterUpdate)
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		buddyInfoUpdateMessages.size() == 1
+		buddyInfoUpdateMessages[0]._links.self != null
+		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		buddyInfoUpdateMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(richard.url))
+		buddyInfoUpdateMessages[0]._links."yona:buddy".href == bob.buddies[0].url
+		buddyInfoUpdateMessages[0]._links."yona:userPhoto".href == newUserPhotoUrl
+		buddyInfoUpdateMessages[0].nickname == "RQ"
+		buddyInfoUpdateMessages[0].message == "User changed personal info"
+
+		User bobAfterProcess = appService.reloadUser(bob)
+		bobAfterProcess.buddies[0].user.userPhotoUrl == newUserPhotoUrl
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard deletes his photo, which causes buddy info change message to Bob and user photo delete on process'()
 	{
 		given:
 		User richard = addRichard()

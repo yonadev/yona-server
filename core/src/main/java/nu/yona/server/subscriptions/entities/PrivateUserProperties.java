@@ -36,12 +36,13 @@ public abstract class PrivateUserProperties extends EntityWithUuidAndTouchVersio
 		super(null);
 	}
 
-	public PrivateUserProperties(UUID id, String firstName, String lastName, String nickname)
+	public PrivateUserProperties(UUID id, String firstName, String lastName, String nickname, Optional<UUID> userPhotoId)
 	{
 		super(id);
 		this.firstName = Objects.requireNonNull(firstName);
 		this.lastName = Objects.requireNonNull(lastName);
 		this.nickname = nickname;
+		this.userPhotoId = userPhotoId.orElse(null);
 	}
 
 	public String getFirstName()

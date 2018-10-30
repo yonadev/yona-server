@@ -52,7 +52,7 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to integration test server"
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to integration test server"
 				}
 			}
 		}
@@ -66,10 +66,10 @@ pipeline {
 					junit '**/build/test-results/*/*.xml'
 				}
 				success {
-					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} passed all tests"
+					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} passed all tests on build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 				failure {
-					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed in integration test"
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed integration test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 			}
 		}
@@ -95,23 +95,67 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to beta"
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to beta"
 				}
 			}
 		}
 		stage('Deploy to load test server') {
 			agent { label 'load' }
+			environment {
+				BETA_DB = credentials('beta-db-jenkins')
+				BETA_DB_IP = credentials('beta-db-ip')
+			}
 			when {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
+				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
 				failure {
-					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to load test"
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to load test"
+				}
+			}
+		}
+		stage('Decide run load test') {
+			agent none
+			when {
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
+			}
+			steps {
+				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to start load test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
+				script {
+					env.RUN_LOAD_TEST = input message: 'User input required',
+					submitter: 'authenticated',
+					parameters: [choice(name: 'Run load test', choices: 'no\nyes', description: 'Choose "yes" if you want to run the load test')]
+				}
+			}
+		}
+		stage('Run load test') {
+			agent { label 'yona' }
+			when {
+				environment name: 'RUN_LOAD_TEST', value: 'yes'
+			}
+			environment {
+				JM_PATH_IN_CONT = "/mnt/jmeter"
+				JM_LOCAL_PATH = "jmeter"
+				JM_THREADS = "100"
+				JM_LOAD_DURATION = "1200"
+			}
+			steps {
+				checkout scm
+				sh 'rm -rf ${JM_LOCAL_PATH}'
+				sh 'mkdir ${JM_LOCAL_PATH}'
+				sh 'cp scripts/load-test.jmx ${JM_LOCAL_PATH}'
+				sh 'docker run --volume ${WORKSPACE}/${JM_LOCAL_PATH}:${JM_PATH_IN_CONT} yonadev/jmeter:JMeter3.3 -n -t ${JM_PATH_IN_CONT}/load-test.jmx -l ${JM_PATH_IN_CONT}/out/result.jtl -j ${JM_PATH_IN_CONT}/out/jmeter.log -Jthreads=${JM_THREADS} -JloadDuration=${JM_LOAD_DURATION}'
+				perfReport "${env.JM_LOCAL_PATH}/out/result.jtl"
+			}
+			post {
+				failure {
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed in load test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 			}
 		}
@@ -121,7 +165,7 @@ pipeline {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to deploy to production"
+				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
 				script {
 					env.DEPLOY_TO_PRD = input message: 'User input required',
 					submitter: 'authenticated',
@@ -141,10 +185,10 @@ pipeline {
 			}
 			post {
 				success {
-					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} successfully deployed to production"
+					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
 				}
 				failure {
-					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy to production"
+					slackSend color: 'bad', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
 				}
 			}
 		}

@@ -107,7 +107,7 @@ public class BuddyDto
 	Buddy createBuddyEntity()
 	{
 		return Buddy.createInstance(user.getId(), user.getPrivateData().getFirstName(), user.getPrivateData().getLastName(),
-				determineTempNickname(), getSendingStatus(), getReceivingStatus());
+				determineTempNickname(), user.getPrivateData().getUserPhotoId(), getSendingStatus(), getReceivingStatus());
 	}
 
 	private String determineTempNickname()

@@ -114,7 +114,7 @@ public class JUnitUtil
 	private static void addAsBuddy(User user, User buddyToBe)
 	{
 		Buddy buddy = Buddy.createInstance(buddyToBe.getId(), buddyToBe.getFirstName(), buddyToBe.getLastName(),
-				buddyToBe.getNickname(), Status.ACCEPTED, Status.ACCEPTED);
+				buddyToBe.getNickname(), Optional.empty(), Status.ACCEPTED, Status.ACCEPTED);
 		buddy.setUserAnonymizedId(buddyToBe.getAnonymized().getId());
 		user.addBuddy(buddy);
 	}

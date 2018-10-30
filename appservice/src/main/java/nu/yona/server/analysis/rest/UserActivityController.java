@@ -159,7 +159,8 @@ public class UserActivityController extends ActivityControllerBase
 			@PathVariable UUID userId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			Map<UUID, String> deviceAnonymizedIdToDeviceName = buildDeviceAnonymizedIdToDeviceNameMap(userId);
 			return createOkResponse(activityService.getRawActivities(userId, DayActivityDto.parseDate(dateStr), goalId),
@@ -196,7 +197,8 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return getDayActivityOverviewsWithBuddies(userId, requestingDeviceId, pagedResourcesAssembler, activitySupplier);
 		}
@@ -246,7 +248,8 @@ public class UserActivityController extends ActivityControllerBase
 			UUID userId, UUID requestingDeviceId, String dateStr,
 			Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return getDayActivityOverviewWithBuddies(userId, requestingDeviceId, dateStr, activitySupplier);
 		}
@@ -379,6 +382,12 @@ public class UserActivityController extends ActivityControllerBase
 
 		@Override
 		public Optional<ControllerLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId)
+		{
+			return Optional.empty();
+		}
+
+		@Override
+		public Optional<ControllerLinkBuilder> getBuddyLinkBuilder()
 		{
 			return Optional.empty();
 		}

@@ -437,6 +437,38 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Try to post incorrect device information'(deviceName, operatingSystem, appVersion, appVersionCode, responseStatus)
+	{
+		given:
+		def ts = timestamp
+
+		when:
+		def jsonStr = User.makeUserJsonStringWithDeviceInfo(firstName, lastName, nickname, makeMobileNumber(ts), deviceName, operatingSystem, appVersion, appVersionCode)
+		def response = appService.addUser(jsonStr)
+
+		then:
+		assertResponseStatus(response, responseStatus)
+
+		where:
+		deviceName | operatingSystem | appVersion | appVersionCode | responseStatus
+		"some name" | "IOS" | "1.1" | 50 | 201
+		"some name" | null | null | null | 400
+		"some name" | "IOS" | null | null | 400
+		"some name" | null | "1.1" | null | 400
+		"some name" | null | null | 50 | 400
+		"some name" | null | "1.1" | 50 | 400
+		"some name" | "IOS" | "1.1" | null | 400
+		"some name" | "IOS" | null | 50 | 400
+		null | "IOS" | "1.1" | 50 | 400
+		null | null | null | null | 201
+		null | "IOS" | null | null | 400
+		null | null | "1.1" | null | 400
+		null | null | null | 50 | 400
+		null | null | "1.1" | 50 | 400
+		null | "IOS" | "1.1" | null | 400
+		null | "IOS" | null | 50 | 400
+	}
+
 	private def confirmMobileNumber(User user, code)
 	{
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)

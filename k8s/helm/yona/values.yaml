@@ -199,7 +199,7 @@ analysis:
   update_skip_window: PT1M
 
 app:
-  max_users: 100
+  max_users: "1000000"
   enable_hibernate_stats_allowed: false
   whitelist:
     active_free_signup: false
