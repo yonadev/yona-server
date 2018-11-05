@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,20 +19,37 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.CacheConfiguration;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 
-@CacheConfig(cacheNames = "usersAnonymized")
+@CacheConfig(cacheNames = UserAnonymizedService.CACHE_NAME)
 @Service
 public class UserAnonymizedService
 {
+	static final String CACHE_NAME = "usersAnonymized";
+
 	@Autowired(required = false)
 	private UserAnonymizedRepository userAnonymizedRepository;
+
+	@Autowired(required = false)
+	private CacheConfiguration cacheConfiguration;
 
 	public Set<UserAnonymizedDto> getAllUsersAnonymized()
 	{
 		return userAnonymizedRepository.findAll().stream().map(UserAnonymizedDto::createInstance).collect(Collectors.toSet());
+	}
+
+	@PostConstruct
+	public void register()
+	{
+		if (cacheConfiguration == null)
+		{
+			// Apparently running in a unit test that does not have all dependencies
+			return;
+		}
+		cacheConfiguration.registerCacheForMetrics(CACHE_NAME);
 	}
 
 	@Cacheable
