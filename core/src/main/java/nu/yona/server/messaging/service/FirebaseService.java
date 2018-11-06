@@ -62,8 +62,8 @@ public class FirebaseService
 			return;
 		}
 
-		// It is hard to build the message URL here, as this is done by the app service,
-		// and not known to other services that also send messages
+		// It is hard to add a message URL here, as only the app service is able to build it, and messages are sent from other
+		// services as well
 		Message firebaseMessage = Message.builder().putData("messageId", Long.toString(message.getId()))
 				.setToken(registrationToken).build();
 

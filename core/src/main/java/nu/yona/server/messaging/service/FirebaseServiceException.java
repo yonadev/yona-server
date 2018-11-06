@@ -12,11 +12,6 @@ public class FirebaseServiceException extends YonaException
 {
 	private static final long serialVersionUID = 8840294619248574727L;
 
-	private FirebaseServiceException(String messageId, Serializable... parameters)
-	{
-		super(messageId, parameters);
-	}
-
 	private FirebaseServiceException(Throwable t, String messageId, Serializable... parameters)
 	{
 		super(t, messageId, parameters);
