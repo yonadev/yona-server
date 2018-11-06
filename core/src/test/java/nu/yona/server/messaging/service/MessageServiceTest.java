@@ -81,6 +81,8 @@ class MessageServiceTestConfiguration extends UserRepositoriesConfiguration
 @ContextConfiguration(classes = { MessageServiceTestConfiguration.class })
 public class MessageServiceTest extends BaseSpringIntegrationTest
 {
+	private static final String FIREBASE_REGISTRATION_TOKEN = "Firebase-12345";
+
 	@Autowired
 	private UserDeviceRepository userDeviceRepository;
 
@@ -127,7 +129,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>();
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 5,
-				Optional.of("Firebase-12345"));
+				Optional.of(FIREBASE_REGISTRATION_TOKEN));
 		deviceAnonymizedRepository.save(deviceAnonEntity);
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
@@ -161,7 +163,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 
 		service.sendMessage(message, UserAnonymizedDto.createInstance(userAnonEntity));
 
-		verify(mockFirebaseService, times(1)).sendMessage("Firebase-12345", message);
+		verify(mockFirebaseService, times(1)).sendMessage(FIREBASE_REGISTRATION_TOKEN, message);
 	}
 
 	@Test
@@ -174,9 +176,9 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 		User user = Mockito.mock(User.class);
 		when(user.getNamedMessageDestination()).thenReturn(namedMessageDestination);
 
-		service.sendNamedMessage(message, user);
+		service.sendDirectMessage(message, user);
 
-		verify(mockFirebaseService, never()).sendMessage("Firebase-12345", message);
+		verify(mockFirebaseService, never()).sendMessage(FIREBASE_REGISTRATION_TOKEN, message);
 	}
 
 	@Test
@@ -208,6 +210,6 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 			service.prepareMessageCollection(user);
 		}
 
-		verify(mockFirebaseService, times(1)).sendMessage("Firebase-12345", message);
+		verify(mockFirebaseService, times(1)).sendMessage(FIREBASE_REGISTRATION_TOKEN, message);
 	}
 }

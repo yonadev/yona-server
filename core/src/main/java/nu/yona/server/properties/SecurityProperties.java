@@ -20,7 +20,6 @@ public class SecurityProperties
 	private int maxUpdateUserAttemptsPerTimeWindow = 1;
 	private String sslRootCertFile;
 	private String ovpnProfileFile;
-	private String firebaseAdminServiceAccountKeyFile;
 
 	/**
 	 * If true, Cross Origin Resource Sharing is allowed. This is necessary for Swagger UI.
@@ -155,15 +154,5 @@ public class SecurityProperties
 	public void setOvpnProfileFile(String ovpnProfileFile)
 	{
 		this.ovpnProfileFile = ovpnProfileFile;
-	}
-
-	public String getFirebaseAdminServiceAccountKeyFile()
-	{
-		return firebaseAdminServiceAccountKeyFile;
-	}
-
-	public void setFirebaseAdminServiceAccountKeyFile(String firebaseAdminServiceAccountKeyFile)
-	{
-		this.firebaseAdminServiceAccountKeyFile = firebaseAdminServiceAccountKeyFile;
 	}
 }

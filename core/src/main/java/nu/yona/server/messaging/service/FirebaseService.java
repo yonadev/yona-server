@@ -35,24 +35,35 @@ public class FirebaseService
 	@PostConstruct
 	private void init()
 	{
-		try (InputStream serviceAccount = new ClassPathResource(
-				yonaProperties.getSecurity().getFirebaseAdminServiceAccountKeyFile()).getInputStream())
+		if (!yonaProperties.getFirebase().isEnabled())
+		{
+			logger.info("Firebase is disabled");
+			return;
+		}
+
+		try (InputStream serviceAccount = new ClassPathResource(yonaProperties.getFirebase().getAdminServiceAccountKeyFile())
+				.getInputStream())
 		{
 			FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
-					.setDatabaseUrl(yonaProperties.getFirebaseDatabaseUrl()).build();
+					.setDatabaseUrl(yonaProperties.getFirebase().getDatabaseUrl()).build();
 
 			FirebaseApp.initializeApp(options);
 		}
 		catch (IOException e)
 		{
-			logger.error("Error initializing Firebase client", e);
+			throw FirebaseServiceException.initializationError(e);
 		}
 	}
 
 	public void sendMessage(String registrationToken, nu.yona.server.messaging.entities.Message message)
 	{
+		if (!yonaProperties.getFirebase().isEnabled())
+		{
+			return;
+		}
+
 		// It is hard to build the message URL here, as this is done by the app service,
-		// and not known to other services which also do message sending
+		// and not known to other services that also send messages
 		Message firebaseMessage = Message.builder().putData("messageId", Long.toString(message.getId()))
 				.setToken(registrationToken).build();
 
@@ -62,7 +73,7 @@ public class FirebaseService
 		}
 		catch (FirebaseMessagingException e)
 		{
-			logger.error("Error sending message to Firebase server", e);
+			throw FirebaseServiceException.couldNotSendMessage(e);
 		}
 	}
 }

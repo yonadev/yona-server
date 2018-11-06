@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
@@ -304,9 +306,9 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendNamedMessageAndFlushToDatabase(Message message, User toUser)
+	public void sendDirectMessageAndFlushToDatabase(Message message, User toUser)
 	{
-		sendNamedMessage(message, toUser);
+		sendDirectMessage(message, toUser);
 
 		MessageDestination destinationEntity = toUser.getNamedMessageDestination();
 		messageDestinationRepository.saveAndFlush(destinationEntity);
@@ -324,13 +326,12 @@ public class MessageService
 
 	private void sendFirebaseNotification(Message message, UserAnonymizedDto toUser)
 	{
-		toUser.getDevicesAnonymized().stream().map(deviceAnonymized -> deviceAnonymized.getFirebaseInstanceId())
-				.filter(firebaseInstanceId -> firebaseInstanceId.isPresent())
+		toUser.getDevicesAnonymized().stream().map(DeviceAnonymizedDto::getFirebaseInstanceId).filter(Optional::isPresent)
 				.forEach(firebaseInstanceId -> firebaseService.sendMessage(firebaseInstanceId.get(), message));
 	}
 
 	@Transactional
-	public void sendNamedMessage(Message message, User toUser)
+	public void sendDirectMessage(Message message, User toUser)
 	{
 		MessageDestination destinationEntity = toUser.getNamedMessageDestination();
 
