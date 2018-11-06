@@ -76,7 +76,7 @@ public class ActivityCategoryService
 	private static final Logger logger = LoggerFactory.getLogger(ActivityCategoryService.class);
 
 	@PostConstruct
-	public void register()
+	public void registerCacheForMetrics()
 	{
 		if (cacheConfiguration == null)
 		{
