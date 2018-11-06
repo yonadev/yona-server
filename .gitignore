@@ -65,4 +65,4 @@ atlassian-ide-plugin.xml
 !/scripts/smoothwall/modules/yona/bin
 
 # Exclude Firebase config that may be added for test purposes
-core/src/main/resources/firebase-adminsdk-serviceAccountKey.json
+firebase-adminsdk-serviceAccountKey.json
