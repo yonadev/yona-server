@@ -1,17 +1,13 @@
-package nu.yona.server;
 /*******************************************************************************
  * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
+package nu.yona.server;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -29,15 +25,8 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.XmlClientConfigBuilder;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.spring.cache.HazelcastCacheManager;
 
 import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.rest.RestClientErrorHandler;
@@ -45,7 +34,7 @@ import nu.yona.server.rest.RestClientErrorHandler;
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
 @Configuration
-public class CoreConfiguration extends CachingConfigurerSupport
+public class CoreConfiguration
 {
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -120,41 +109,5 @@ public class CoreConfiguration extends CachingConfigurerSupport
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setErrorHandler(new RestClientErrorHandler(objectMapper));
 		return restTemplate;
-	}
-
-	@Override
-	@Bean
-	public CacheManager cacheManager()
-	{
-		return new HazelcastCacheManager(hazelcastInstance());
-	}
-
-	@Bean
-	public HazelcastInstance hazelcastInstance()
-	{
-		String hazelcastConfigFilePath = yonaProperties.getHazelcastConfigFilePath();
-		if (hazelcastConfigFilePath == null)
-		{
-			return Hazelcast.newHazelcastInstance(new Config());
-		}
-		return getHazelcastClientInstance(hazelcastConfigFilePath);
-	}
-
-	private HazelcastInstance getHazelcastClientInstance(String hazelcastConfigFilePath)
-	{
-		try
-		{
-			return HazelcastClient.newHazelcastClient(new XmlClientConfigBuilder(hazelcastConfigFilePath).build());
-		}
-		catch (IOException e)
-		{
-			throw YonaException.unexpected(e);
-		}
-	}
-
-	@Bean
-	public CacheManager localCache()
-	{
-		return new ConcurrentMapCacheManager();
 	}
 }
