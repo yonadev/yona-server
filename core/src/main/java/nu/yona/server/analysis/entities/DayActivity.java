@@ -12,7 +12,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.time.zone.ZoneOffsetTransition;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -186,27 +185,10 @@ public class DayActivity extends IntervalActivity
 
 	private int getSpreadIndex(ZonedDateTime atTime)
 	{
-		int dstCorrection = determineDstCorrectionMinutes(atTime);
-		return (int) ((Duration.between(getStartTime(), atTime).toMinutes() - dstCorrection) / 15);
-	}
-
-	private static int determineDstCorrectionMinutes(ZonedDateTime time)
-	{
-		ZoneOffsetTransition previousTransition = time.getZone().getRules().previousTransition(time.toInstant());
-		if (previousTransition == null)
-		{
-			// Never did a transition in this zone.
-			return 0;
-		}
-		ZonedDateTime transitionDateTime = previousTransition.getInstant().atZone(time.getZone());
-		if (transitionDateTime.toLocalDate().equals(time.toLocalDate()) && transitionDateTime.isBefore(time))
-		{
-			// Transition happened earlier today
-			ZoneOffset offsetBefore = previousTransition.getOffsetBefore();
-			ZoneOffset offsetAfter = previousTransition.getOffsetAfter();
-			return (offsetBefore.getTotalSeconds() - offsetAfter.getTotalSeconds()) / 60;
-		}
-		return 0;
+		// Convert to local date/time first, to ensure we always have exactly 24 hours in a day
+		// Otherwise, the days we move in or out of daylight saving time would have 23 or 25 hours
+		LocalDateTime atLocalTime = atTime.toLocalDateTime();
+		return (int) (Duration.between(getStartTime().toLocalDateTime(), atLocalTime).toMinutes() / 15);
 	}
 
 	@Override
