@@ -17,11 +17,6 @@ public class FirebaseServiceException extends YonaException
 		super(t, messageId, parameters);
 	}
 
-	public static FirebaseServiceException initializationError(Throwable t)
-	{
-		return new FirebaseServiceException(t, "error.firebase.initialization.error");
-	}
-
 	public static FirebaseServiceException couldNotSendMessage(Throwable t)
 	{
 		return new FirebaseServiceException(t, "error.firebase.could.not.send.message");

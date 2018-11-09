@@ -22,6 +22,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 
 @Service
@@ -51,7 +52,7 @@ public class FirebaseService
 		}
 		catch (IOException e)
 		{
-			throw FirebaseServiceException.initializationError(e);
+			throw YonaException.unexpected(e);
 		}
 	}
 
