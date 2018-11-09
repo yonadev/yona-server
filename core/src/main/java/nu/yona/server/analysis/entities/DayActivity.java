@@ -185,7 +185,10 @@ public class DayActivity extends IntervalActivity
 
 	private int getSpreadIndex(ZonedDateTime atTime)
 	{
-		return (int) (Duration.between(getStartTime(), atTime).toMinutes() / 15);
+		// Convert to local date/time first, to ensure we always have exactly 24 hours in a day
+		// Otherwise, the days we move in or out of daylight saving time would have 23 or 25 hours
+		LocalDateTime atLocalTime = atTime.toLocalDateTime();
+		return (int) (Duration.between(getStartTime().toLocalDateTime(), atLocalTime).toMinutes() / 15);
 	}
 
 	@Override
