@@ -46,7 +46,11 @@ spec:
             - name: PASSWORD
               value: {{ .Values.ldap.user_password | default "ldappassword" | quote }}
             - name: LDAPHOST
-              value: "{{ .Values.ldap.hostname }}"
+              {{- if .Values.ldap.hostname }}
+              value: {{ .Values.ldap.hostname | quote }}
+              {{- else }}
+              value: ldap.{{ .Release.Namespace }}.svc.cluster.local
+              {{- end }}
             - name: LDAPPORT
               value: "{{ .Values.ldap.port | default 389 }}"
       containers:
@@ -77,7 +81,7 @@ spec:
               {{- if .Values.ldap.url_override}}
               value: {{ .Values.ldap.url_override | quote }}
               {{- else }}
-              value: "ldap://{{ .Values.ldap.hostname }}:{{ .Values.ldap.port }}"
+              value: "ldap://ldap.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.ldap.port | default 389 }}"
               {{- end }}
             - name: LDAP_DN
               value: {{ .Values.ldap.dn | default "DC=example,DC=local" | quote }}
