@@ -63,6 +63,7 @@ public class FirebaseService
 			return;
 		}
 
+		// TODO: YD-604: Add message URL to push notification
 		// It is hard to add a message URL here, as only the app service is able to build it, and messages are sent from other
 		// services as well
 		Message firebaseMessage = Message.builder().putData("messageId", Long.toString(message.getId()))
