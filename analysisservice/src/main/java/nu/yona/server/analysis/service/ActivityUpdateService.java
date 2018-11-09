@@ -82,7 +82,7 @@ class ActivityUpdateService
 		if (matchingGoal.isNoGoGoal()
 				&& shouldSendNewGoalConflictMessageForNewConflictingActivity(payload, lastRegisteredActivity))
 		{
-			sendConflictMessageToAllDestinationsOfUser(userAnonymizedEntity, payload, addedActivity, matchingGoalEntity);
+			sendConflictMessageToAllDestinationsOfUser(payload, addedActivity, matchingGoalEntity);
 		}
 	}
 
@@ -104,14 +104,11 @@ class ActivityUpdateService
 		return payload.startTime.isAfter(intervalEndTime);
 	}
 
-	private void sendConflictMessageToAllDestinationsOfUser(UserAnonymized userAnonymized, ActivityPayload payload,
-			Activity activity, Goal matchingGoal)
+	private void sendConflictMessageToAllDestinationsOfUser(ActivityPayload payload, Activity activity, Goal matchingGoal)
 	{
 		GoalConflictMessage selfGoalConflictMessage = messageRepository
 				.save(GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity, matchingGoal, payload.url));
-		messageService.sendMessage(selfGoalConflictMessage, userAnonymized.getAnonymousDestination());
-		// Save the messages, so the other messages can reference it
-		userAnonymizedService.updateUserAnonymized(userAnonymized);
+		messageService.sendMessage(selfGoalConflictMessage, payload.userAnonymized);
 
 		messageService.broadcastMessageToBuddies(payload.userAnonymized,
 				() -> createAndSaveBuddyGoalConflictMessage(payload, selfGoalConflictMessage));

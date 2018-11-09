@@ -40,6 +40,9 @@ public class YonaProperties
 	@NestedConfigurationProperty
 	private final AppleMobileConfigProperties appleMobileConfig = new AppleMobileConfigProperties();
 
+	@NestedConfigurationProperty
+	private final FirebaseProperties firebase = new FirebaseProperties();
+
 	private final Set<Locale> supportedLocales = new HashSet<>();
 
 	private Locale defaultLocale;
@@ -89,6 +92,11 @@ public class YonaProperties
 	public AppleMobileConfigProperties getAppleMobileConfig()
 	{
 		return appleMobileConfig;
+	}
+
+	public FirebaseProperties getFirebase()
+	{
+		return firebase;
 	}
 
 	public void setDefaultLocale(String defaultLocale)

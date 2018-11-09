@@ -45,11 +45,13 @@ import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
+import nu.yona.server.entities.MessageSourceRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageRepository;
+import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.sms.SmsService;
@@ -165,6 +167,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);
 		repositoriesMap.put(Message.class, mockMessageRepository);
+		repositoriesMap.put(MessageSource.class, new MessageSourceRepositoryMock());
 		return repositoriesMap;
 	}
 

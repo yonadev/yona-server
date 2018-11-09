@@ -24,6 +24,7 @@ import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 
@@ -177,16 +178,13 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		private void sendResponseMessageToRequestingUser(UserDto respondingUser, DisclosureRequestMessage requestMessageEntity,
 				String message)
 		{
-			MessageDestinationDto messageDestination = userAnonymizedService.getUserAnonymized(requestMessageEntity
-					.getRelatedUserAnonymizedId()
-					.orElseThrow(() -> new IllegalStateException(
-							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")))
-					.getAnonymousDestination();
-			assert messageDestination != null;
+			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(
+					requestMessageEntity.getRelatedUserAnonymizedId().orElseThrow(() -> new IllegalStateException(
+							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")));
 			messageService.sendMessageAndFlushToDatabase(
 					DisclosureResponseMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
 							requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
-					messageDestination);
+					toUser);
 		}
 	}
 }

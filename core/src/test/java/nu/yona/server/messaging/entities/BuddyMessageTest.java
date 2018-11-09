@@ -24,6 +24,7 @@ import org.springframework.data.repository.Repository;
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
+import nu.yona.server.entities.MessageSourceRepositoryMock;
 import nu.yona.server.entities.UserAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserRepositoryMock;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
@@ -66,6 +67,7 @@ public class BuddyMessageTest
 			repositoriesMap.put(User.class, new UserRepositoryMock());
 			repositoriesMap.put(UserAnonymized.class, new UserAnonymizedRepositoryMock());
 			repositoriesMap.put(BuddyAnonymized.class, new BuddyAnonymizedRepositoryMock());
+			repositoriesMap.put(MessageSource.class, new MessageSourceRepositoryMock());
 			JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 
 			try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
