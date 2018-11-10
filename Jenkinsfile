@@ -13,7 +13,6 @@ pipeline {
 			}
 			steps {
 				checkout scm
-				/*
 				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 				script {
 					def scannerHome = tool 'SonarQube scanner 3.0';
@@ -29,22 +28,15 @@ pipeline {
 				script {
 					env.BUILD_NUMBER_TO_DEPLOY = env.BUILD_NUMBER
 				}
-				*/
 			}
 			post {
-				//always {
-				//	junit '**/build/test-results/*/*.xml'
-				//}
+				always {
+					junit '**/build/test-results/*/*.xml'
+				}
 				success {
 					step([$class: 'hudson.plugins.jira.JiraIssueUpdater', 
 						issueSelector: [$class: 'hudson.plugins.jira.selector.DefaultIssueSelector'], 
 						scm: scm])
-					script {
-						jiraIssueSelector(issueSelector: [$class: 'DefaultIssueSelector']).each {
-							id -> jiraComment(issueKey: id,
-								body: "Build [${env.BUILD_NUMBER}|${currentBuild.absoluteUrl}] deployed this to beta")
-						}
-					}
 				}
 				failure {
 					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed"
@@ -113,6 +105,14 @@ pipeline {
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
+				success {
+					script {
+						jiraIssueSelector(issueSelector: [$class: 'DefaultIssueSelector']).each {
+							id -> jiraComment(issueKey: id,
+								body: "Build [#${env.BUILD_NUMBER}|${currentBuild.absoluteUrl}] deployed this to beta")
+						}
+					}
+				}
 				failure {
 					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to beta"
 				}
@@ -208,6 +208,12 @@ pipeline {
 			post {
 				success {
 					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
+					script {
+						jiraIssueSelector(issueSelector: [$class: 'DefaultIssueSelector']).each {
+							id -> jiraComment(issueKey: id,
+								body: "Build [#${env.BUILD_NUMBER}|${currentBuild.absoluteUrl}] deployed this to production")
+						}
+					}
 				}
 				failure {
 					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
