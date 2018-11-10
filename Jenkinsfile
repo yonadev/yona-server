@@ -38,7 +38,7 @@ pipeline {
 				success {
 					step([$class: 'hudson.plugins.jira.JiraIssueUpdater', 
 						issueSelector: [$class: 'hudson.plugins.jira.selector.DefaultIssueSelector'], 
-						comment: "Build ${env.BUILD_NUMBER}) deployed this to beta, as part of build ${env.BUILD_NUMBER_TO_DEPLOY}."
+						comment: "Build ${env.BUILD_NUMBER}) deployed this to beta, as part of build ${env.BUILD_NUMBER_TO_DEPLOY}.",
 						scm: scm])
 				}
 				failure {
