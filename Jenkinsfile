@@ -32,9 +32,9 @@ pipeline {
 				*/
 			}
 			post {
-				always {
-					junit '**/build/test-results/*/*.xml'
-				}
+				//always {
+				//	junit '**/build/test-results/*/*.xml'
+				//}
 				success {
 					step([$class: 'hudson.plugins.jira.JiraIssueUpdater', 
 						issueSelector: [$class: 'hudson.plugins.jira.selector.DefaultIssueSelector'], 
