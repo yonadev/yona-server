@@ -55,6 +55,16 @@ public class ActivityCategoryController extends ControllerBase
 				getAllActivityCategoriesLinkBuilder());
 	}
 
+	// Added to analyse randomly failing ActivityCategoriesTest
+	@RequestMapping(value = "/skip-cache/", method = RequestMethod.GET)
+	@ResponseBody
+	@JsonView(ActivityCategoryDto.AppView.class)
+	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategoriesSkipCache()
+	{
+		return createOkResponse(activityCategoryService.getAllActivityCategoriesSkipCache(), createResourceAssembler(),
+				getAllActivityCategoriesLinkBuilder());
+	}
+
 	private ActivityCategoryResourceAssembler createResourceAssembler()
 	{
 		return new ActivityCategoryResourceAssembler();

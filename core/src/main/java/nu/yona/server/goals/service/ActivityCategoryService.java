@@ -97,6 +97,17 @@ public class ActivityCategoryService
 	@Transactional
 	public Set<ActivityCategoryDto> getAllActivityCategories()
 	{
+		logger.info("Getting all activity categories (apparently not cached)");
+		// Sort the collection to make it simpler to compare the activity categories
+		return StreamSupport.stream(repository.findAll().spliterator(), false).map(ActivityCategoryDto::createInstance)
+				.collect(Collectors.toCollection(() -> new TreeSet<>(
+						(Comparator<ActivityCategoryDto> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
+	}
+
+	// Added to analyse randomly failing ActivityCategoriesTest
+	@Transactional
+	public Set<ActivityCategoryDto> getAllActivityCategoriesSkipCache()
+	{
 		// Sort the collection to make it simpler to compare the activity categories
 		return StreamSupport.stream(repository.findAll().spliterator(), false).map(ActivityCategoryDto::createInstance)
 				.collect(Collectors.toCollection(() -> new TreeSet<>(
