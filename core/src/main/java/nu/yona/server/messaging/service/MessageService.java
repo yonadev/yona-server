@@ -35,6 +35,8 @@ import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
+import nu.yona.server.sms.SmsService;
+import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -69,6 +71,9 @@ public class MessageService
 
 	@Autowired(required = false)
 	private FirebaseService firebaseService;
+
+	@Autowired(required = false)
+	private SmsService smsService;
 
 	@Transactional
 	public Page<MessageDto> getReceivedMessages(UserDto user, boolean onlyUnreadMessages, Pageable pageable)
@@ -336,6 +341,8 @@ public class MessageService
 		MessageDestination destinationEntity = toUser.getNamedMessageDestination();
 
 		destinationEntity.send(message);
+
+		smsService.send(toUser.getMobileNumber(), SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, new HashMap<>());
 	}
 
 	@Transactional

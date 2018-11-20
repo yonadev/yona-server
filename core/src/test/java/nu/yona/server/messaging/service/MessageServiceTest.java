@@ -50,6 +50,8 @@ import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
+import nu.yona.server.sms.SmsService;
+import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -110,6 +112,9 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	@MockBean
 	private FirebaseService mockFirebaseService;
 
+	@MockBean
+	private SmsService mockSmsService;
+
 	@Autowired
 	private MessageService service;
 
@@ -167,18 +172,19 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendMessage_namedDestination_doesNotSendFirebaseMessage()
+	public void sendDirectMessage_namedDestination_doesNotSendFirebaseMessageButSendsSms()
 	{
 		Message message = Mockito.mock(Message.class);
-
 		MessageDestination namedMessageDestination = Mockito.mock(MessageDestination.class);
-
+		String mobileNumber = "+316123456789";
 		User user = Mockito.mock(User.class);
 		when(user.getNamedMessageDestination()).thenReturn(namedMessageDestination);
+		when(user.getMobileNumber()).thenReturn(mobileNumber);
 
 		service.sendDirectMessage(message, user);
 
 		verify(mockFirebaseService, never()).sendMessage(FIREBASE_REGISTRATION_TOKEN, message);
+		verify(mockSmsService, times(1)).send(mobileNumber, SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, new HashMap<>());
 	}
 
 	@Test
