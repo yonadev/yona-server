@@ -103,8 +103,8 @@ public class DeviceService
 				deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode(),
 				deviceDto.getFirebaseInstanceId());
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice deviceEntity = userDeviceRepository
-				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId(), userService.generatePassword()));
+		UserDevice deviceEntity = userDeviceRepository.save(UserDevice.createInstance(userEntity, deviceDto.getName(),
+				deviceAnonymized.getId(), userService.generatePassword()));
 		userEntity.addDevice(deviceEntity);
 
 		ldapUserService.createVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), deviceEntity),

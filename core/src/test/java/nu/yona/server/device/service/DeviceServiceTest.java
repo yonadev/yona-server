@@ -906,7 +906,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	{
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion,
 				appVersionCode, Optional.empty());
-		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
+		UserDevice device = UserDevice.createInstance(richard, deviceName, deviceAnonymized.getId(), "topSecret");
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		userDeviceRepository.save(device);
 		return device;

@@ -19,6 +19,7 @@ import org.hibernate.annotations.Type;
 import nu.yona.server.crypto.seckey.DateFieldEncryptor;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -45,17 +46,21 @@ public class UserDevice extends DeviceBase
 	{
 	}
 
-	private UserDevice(UUID id, String name, UUID deviceAnonymizedId, String vpnPassword)
+	private UserDevice(UUID id, String name, UUID deviceAnonymizedId, String vpnPassword, LocalDateTime registrationTime,
+			LocalDate appLastOpenedDate)
 	{
 		super(id, name, deviceAnonymizedId);
+		this.registrationTime = registrationTime;
+		this.appLastOpenedDate = appLastOpenedDate;
 		this.vpnPassword = Objects.requireNonNull(vpnPassword);
-		this.registrationTime = TimeUtil.utcNow();
-		this.appLastOpenedDate = TimeUtil.utcNow().toLocalDate(); // The user registers this device, so the app is open now
 	}
 
-	public static UserDevice createInstance(String name, UUID deviceAnonymizedId, String vpnPassword)
+	public static UserDevice createInstance(User userEntity, String name, UUID deviceAnonymizedId, String vpnPassword)
 	{
-		return new UserDevice(UUID.randomUUID(), name, deviceAnonymizedId, vpnPassword);
+		LocalDateTime registrationTime = TimeUtil.utcNow();
+		// The user registers this device, so the app is open now
+		LocalDate appLastOpenedDate = registrationTime.atZone(userEntity.getAnonymized().getTimeZone()).toLocalDate();
+		return new UserDevice(UUID.randomUUID(), name, deviceAnonymizedId, vpnPassword, registrationTime, appLastOpenedDate);
 	}
 
 	public UUID getUserPrivateId()

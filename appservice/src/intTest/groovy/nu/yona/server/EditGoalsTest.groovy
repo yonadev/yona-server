@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -460,9 +460,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		BudgetGoal addedGoal = addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, 60, "W-1 Thu 18:00")
+		BudgetGoal addedGoal = addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, 60, "W-2 Thu 18:00")
 		postFacebookActivityPastHour(richard)
-		BudgetGoal updatedGoal = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 120)
+		def goalUpdateTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
+		BudgetGoal updatedGoal = BudgetGoal.createInstance(goalUpdateTime, SOCIAL_ACT_CAT_URL, 120)
 		bob = appService.reloadUser(bob)
 		def buddyRichardUrl = bob.buddies[0].url
 
@@ -478,7 +479,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(responseGoalsAfterUpdate)
 		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
 		findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 120
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, goalUpdateTime)
 
 		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		allSocialGoals.size() == 2
@@ -508,7 +509,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		// Change 2
 		when:
-		BudgetGoal updatedGoal2 = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 180)
+		def goalUpdateTime2 = goalUpdateTime.plusMinutes(15)
+		BudgetGoal updatedGoal2 = BudgetGoal.createInstance(goalUpdateTime2, SOCIAL_ACT_CAT_URL, 180)
 		def response2 = appService.updateGoal(richard, addedGoal.url, updatedGoal2, "Want to become even more social :)")
 
 		then:
@@ -519,7 +521,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(responseGoalsAfterUpdate2)
 		responseGoalsAfterUpdate2.responseData._embedded."yona:goals".size() == 5
 		findActiveGoal(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 180
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL).creationTime, goalUpdateTime2)
 
 		def allSocialGoals2 = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL)
 		allSocialGoals2.size() == 3
@@ -549,7 +551,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		// Change 3
 		when:
-		BudgetGoal updatedGoal3 = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 240)
+		def goalUpdateTime3 = goalUpdateTime2.plusMinutes(20)
+		BudgetGoal updatedGoal3 = BudgetGoal.createInstance(goalUpdateTime3, SOCIAL_ACT_CAT_URL, 240)
 		def response3 = appService.updateGoal(richard, addedGoal.url, updatedGoal3, "Want to become extremely social :)")
 
 		then:
@@ -560,7 +563,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(responseGoalsAfterUpdate3)
 		responseGoalsAfterUpdate3.responseData._embedded."yona:goals".size() == 6
 		findActiveGoal(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 240
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL).creationTime, goalUpdateTime3)
 
 		def allSocialGoals3 = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL)
 		allSocialGoals3.size() == 4

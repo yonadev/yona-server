@@ -305,7 +305,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	{
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, "Unknown", 0, Optional.empty());
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
+		UserDevice device = UserDevice.createInstance(user, deviceName, deviceAnonymized.getId(), "topSecret");
 		user.addDevice(device);
 
 		return device;
