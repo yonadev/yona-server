@@ -174,7 +174,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, SOME_APP_VERSION,
 				SUPPORTED_APP_VERSION_CODE, Optional.empty());
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
+		UserDevice device = UserDevice.createInstance(richard, deviceName, deviceAnonymized.getId(), "topSecret");
 		richard.addDevice(device);
 
 		// Verify device is present

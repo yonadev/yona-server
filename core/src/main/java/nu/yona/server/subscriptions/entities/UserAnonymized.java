@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.entities;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -33,6 +34,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 @Table(name = "USERS_ANONYMIZED")
 public class UserAnonymized extends EntityWithUuid
 {
+	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 	private LocalDate lastMonitoredActivityDate;
 
 	@OneToOne(fetch = FetchType.LAZY)
@@ -154,6 +156,11 @@ public class UserAnonymized extends EntityWithUuid
 	public Set<DeviceAnonymized> getDevicesAnonymized()
 	{
 		return devicesAnonymized;
+	}
+
+	public ZoneId getTimeZone()
+	{
+		return DEFAULT_TIME_ZONE;
 	}
 
 	public void preloadGoals()

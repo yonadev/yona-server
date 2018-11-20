@@ -25,22 +25,23 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 public class UserAnonymizedDto implements Serializable
 {
 	private static final long serialVersionUID = 5569303515806259326L;
-	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 
 	private final UUID id;
 
 	private final LocalDate lastMonitoredActivityDate;
+	private ZoneId timeZone;
 	private final Set<GoalDto> goals;
 	private final MessageDestinationDto anonymousMessageDestination;
 	private final Set<BuddyAnonymizedDto> buddiesAnonymized;
 	private final Set<DeviceAnonymizedDto> devicesAnonymized;
 
-	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, Set<GoalDto> goals,
+	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, ZoneId timeZone, Set<GoalDto> goals,
 			MessageDestinationDto anonymousMessageDestination, Set<BuddyAnonymizedDto> buddiesAnonymized,
 			Set<DeviceAnonymizedDto> devicesAnonymized)
 	{
 		this.id = id;
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate.orElse(null);
+		this.timeZone = timeZone;
 		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
 		this.buddiesAnonymized = buddiesAnonymized;
@@ -49,7 +50,8 @@ public class UserAnonymizedDto implements Serializable
 
 	public static UserAnonymizedDto createInstance(UserAnonymized entity)
 	{
-		return new UserAnonymizedDto(entity.getId(), entity.getLastMonitoredActivityDate(), getGoalsIncludingHistoryItems(entity),
+		return new UserAnonymizedDto(entity.getId(), entity.getLastMonitoredActivityDate(), entity.getTimeZone(),
+				getGoalsIncludingHistoryItems(entity),
 				(entity.getAnonymousDestination() == null) ? null
 						: MessageDestinationDto.createInstance(entity.getAnonymousDestination()),
 				entity.getBuddiesAnonymized().stream().map(BuddyAnonymizedDto::createInstance).collect(Collectors.toSet()),
@@ -79,7 +81,7 @@ public class UserAnonymizedDto implements Serializable
 
 	public ZoneId getTimeZone()
 	{
-		return DEFAULT_TIME_ZONE;
+		return timeZone;
 	}
 
 	public MessageDestinationDto getAnonymousDestination()

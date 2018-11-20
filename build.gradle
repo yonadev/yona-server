@@ -1,3 +1,6 @@
+import org.gradle.internal.util.PropertiesUtils
+import java.nio.charset.StandardCharsets 
+
 buildscript {
 	repositories {
 		jcenter()
@@ -71,9 +74,18 @@ subprojects {
 	springBoot {
 		buildInfo {
 			properties {
+				time = null
 				additional = [
 					buildNumber : project.ext.build_number
 				]
+			}
+			doLast {
+				File propertiesFile = new File(destinationDir, 'build-info.properties')
+				Properties props = new Properties()
+				propertiesFile.withInputStream { props.load(it)}
+				OutputStream out = new BufferedOutputStream(new FileOutputStream(propertiesFile))
+				PropertiesUtils.store(props, out, "Custom generated to ensure repeatability", StandardCharsets.UTF_8, "\n");
+				out.close()
 			}
 		}
 	}

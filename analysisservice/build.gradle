@@ -97,6 +97,7 @@ task intTest(type:Test){
 	classpath = project.sourceSets.intTest.runtimeClasspath
 
 	systemProperties = [
+		"java.util.logging.config.file": "../core/src/testUtils/logging.properties",
 		"yona.adminservice.url": project.ext.yona_adminservice_url,
 		"yona.analysisservice.url": project.ext.yona_analysisservice_url,
 		"yona.appservice.url": project.ext.yona_appservice_url,
