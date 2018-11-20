@@ -342,7 +342,10 @@ public class MessageService
 
 		destinationEntity.send(message);
 
-		smsService.send(toUser.getMobileNumber(), SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, new HashMap<>());
+		if (!toUser.isCreatedOnBuddyRequest()) // Do not send SMS before buddy invitation via email/SMS has been accepted
+		{
+			smsService.send(toUser.getMobileNumber(), SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, new HashMap<>());
+		}
 	}
 
 	@Transactional

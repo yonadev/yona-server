@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -172,7 +173,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendDirectMessage_namedDestination_doesNotSendFirebaseMessageButSendsSms()
+	public void sendDirectMessage_default_doesNotSendFirebaseMessageButSendsSms()
 	{
 		Message message = Mockito.mock(Message.class);
 		MessageDestination namedMessageDestination = Mockito.mock(MessageDestination.class);
@@ -183,8 +184,23 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 
 		service.sendDirectMessage(message, user);
 
-		verify(mockFirebaseService, never()).sendMessage(FIREBASE_REGISTRATION_TOKEN, message);
+		verify(mockFirebaseService, never()).sendMessage(any(), any());
 		verify(mockSmsService, times(1)).send(mobileNumber, SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, new HashMap<>());
+	}
+
+	@Test
+	public void sendDirectMessage_userCreatedOnBuddyRequest_doesNotSendSms()
+	{
+		Message message = Mockito.mock(Message.class);
+		MessageDestination namedMessageDestination = Mockito.mock(MessageDestination.class);
+		User user = Mockito.mock(User.class);
+		when(user.getNamedMessageDestination()).thenReturn(namedMessageDestination);
+		when(user.isCreatedOnBuddyRequest()).thenReturn(true);
+
+		service.sendDirectMessage(message, user);
+
+		verify(mockFirebaseService, never()).sendMessage(any(), any());
+		verify(mockSmsService, never()).send(any(), any(), any());
 	}
 
 	@Test
