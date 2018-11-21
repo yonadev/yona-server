@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.UUID;
 
 import nu.yona.server.device.entities.DeviceAnonymized;
@@ -18,19 +19,22 @@ public class DeviceAnonymizedDto implements Serializable
 	private final int deviceIndex;
 	private final OperatingSystem operatingSystem;
 	private final String vpnLoginId;
+	private final String firebaseInstanceId;
 
-	public DeviceAnonymizedDto(UUID id, int deviceIndex, OperatingSystem operatingSystem, String vpnLoginId)
+	public DeviceAnonymizedDto(UUID id, int deviceIndex, OperatingSystem operatingSystem, String vpnLoginId,
+			Optional<String> firebaseInstanceId)
 	{
 		this.id = id;
 		this.deviceIndex = deviceIndex;
 		this.operatingSystem = operatingSystem;
 		this.vpnLoginId = vpnLoginId;
+		this.firebaseInstanceId = firebaseInstanceId.orElse(null);
 	}
 
 	public static DeviceAnonymizedDto createInstance(DeviceAnonymized entity)
 	{
 		return new DeviceAnonymizedDto(entity.getId(), entity.getDeviceIndex(), entity.getOperatingSystem(),
-				entity.getVpnLoginId());
+				entity.getVpnLoginId(), entity.getFirebaseInstanceId());
 	}
 
 	public UUID getId()
@@ -51,5 +55,10 @@ public class DeviceAnonymizedDto implements Serializable
 	public String getVpnLoginId()
 	{
 		return vpnLoginId;
+	}
+
+	public Optional<String> getFirebaseInstanceId()
+	{
+		return Optional.ofNullable(firebaseInstanceId);
 	}
 }

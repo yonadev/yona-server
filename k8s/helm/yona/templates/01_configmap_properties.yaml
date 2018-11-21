@@ -52,7 +52,7 @@ data:
     {{- if .Values.ldap.url_override}}
     yona.ldap.url={{ .Values.ldap.url_override }}
     {{- else }}
-    yona.ldap.url=ldap://{{ .Values.ldap.hostname }}:{{ .Values.ldap.port }}
+    yona.ldap.url=ldap://ldap.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.ldap.port | default 389 }}
     {{- end }}
     yona.ldap.baseDn={{ .Values.ldap.dn | default "DC=example,DC=local" }}
     yona.ldap.accessUserDn={{ .Values.ldap.user_dn | default "cn=admin,dc=example,dc=local" }}

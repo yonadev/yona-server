@@ -33,6 +33,11 @@ pipeline {
 				always {
 					junit '**/build/test-results/*/*.xml'
 				}
+				success {
+					step([$class: 'hudson.plugins.jira.JiraIssueUpdater', 
+						issueSelector: [$class: 'hudson.plugins.jira.selector.DefaultIssueSelector'], 
+						scm: scm])
+				}
 				failure {
 					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed"
 				}
@@ -100,6 +105,14 @@ pipeline {
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
+				success {
+					script {
+						jiraIssueSelector(issueSelector: [$class: 'DefaultIssueSelector']).each {
+							id -> jiraComment(issueKey: id,
+								body: "Build [#${env.BUILD_NUMBER}|${currentBuild.absoluteUrl}] deployed this to beta")
+						}
+					}
+				}
 				failure {
 					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to beta"
 				}
@@ -157,7 +170,8 @@ pipeline {
 				sh 'mkdir ${JM_LOCAL_PATH}'
 				sh 'cp scripts/load-test.jmx ${JM_LOCAL_PATH}'
 				sh 'docker run --volume ${WORKSPACE}/${JM_LOCAL_PATH}:${JM_PATH_IN_CONT} yonadev/jmeter:JMeter3.3 -n -t ${JM_PATH_IN_CONT}/load-test.jmx -l ${JM_PATH_IN_CONT}/out/result.jtl -j ${JM_PATH_IN_CONT}/out/jmeter.log -Jthreads=${JM_THREADS} -JloadDuration=${JM_LOAD_DURATION}'
-				perfReport "${env.JM_LOCAL_PATH}/out/result.jtl"
+				sh 'docker run --volume ${WORKSPACE}/${JM_LOCAL_PATH}:${JM_PATH_IN_CONT} --entrypoint /opt/apache-jmeter-3.3/bin/FilterResults.sh yonadev/jmeter:JMeter3.3 --input-file ${JM_PATH_IN_CONT}/out/result.jtl --output-file ${JM_PATH_IN_CONT}/out/filtered-result.jtl --exclude-label-regex true --exclude-labels .*Batch.*'
+				perfReport "${env.JM_LOCAL_PATH}/out/filtered-result.jtl"
 			}
 			post {
 				failure {
@@ -195,6 +209,12 @@ pipeline {
 			post {
 				success {
 					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
+					script {
+						jiraIssueSelector(issueSelector: [$class: 'DefaultIssueSelector']).each {
+							id -> jiraComment(issueKey: id,
+								body: "Build [#${env.BUILD_NUMBER}|${currentBuild.absoluteUrl}] deployed this to production")
+						}
+					}
 				}
 				failure {
 					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"

@@ -375,7 +375,7 @@ public class BuddyService
 			// Send message to "self", to notify the user about the removed buddy user
 			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddy);
 			sendDropBuddyMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId), Optional.empty(),
-					DropBuddyReason.USER_ACCOUNT_DELETED, user.getNamedMessageDestination());
+					DropBuddyReason.USER_ACCOUNT_DELETED, user);
 		}
 		else if (buddy.getSendingStatus() != Status.REJECTED && buddy.getReceivingStatus() != Status.REJECTED)
 		{
@@ -445,12 +445,11 @@ public class BuddyService
 				.findAllById(buddyEntities.stream().map(Buddy::getBuddyAnonymizedId).collect(Collectors.toList()));
 	}
 
-	public Set<MessageDestinationDto> getBuddyDestinations(UserAnonymizedDto user)
+	public Set<UserAnonymizedDto> getBuddyUsersAnonymized(UserAnonymizedDto user)
 	{
 		return user.getBuddiesAnonymized().stream().filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
 				.map(BuddyAnonymizedDto::getUserAnonymizedId).filter(Optional::isPresent).map(Optional::get)
-				.map(buaid -> userAnonymizedService.getUserAnonymized(buaid).getAnonymousDestination())
-				.collect(Collectors.toSet()).stream().collect(Collectors.toSet());
+				.map(buaid -> userAnonymizedService.getUserAnonymized(buaid)).collect(Collectors.toSet());
 	}
 
 	public Set<MessageDestination> getBuddyDestinations(UserAnonymized user)
@@ -495,28 +494,24 @@ public class BuddyService
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		sendDropBuddyMessage(BuddyInfoParameters.createInstance(requestingUser), message, reason,
-				requestingUserBuddy.getUser().getNamedMessageDestination());
+		sendDropBuddyMessage(BuddyInfoParameters.createInstance(requestingUser), message, reason, requestingUserBuddy.getUser());
 	}
 
 	private void sendDropBuddyMessage(BuddyInfoParameters buddyInfoParameters, Optional<String> message, DropBuddyReason reason,
-			MessageDestination messageDestination)
+			User toUser)
 	{
-		MessageDestinationDto messageDestinationDto = MessageDestinationDto.createInstance(messageDestination);
-		messageService.sendMessageAndFlushToDatabase(
-				BuddyDisconnectMessage.createInstance(buddyInfoParameters, getDropBuddyMessage(reason, message), reason),
-				messageDestinationDto);
+		messageService.sendDirectMessageAndFlushToDatabase(
+				BuddyDisconnectMessage.createInstance(buddyInfoParameters, getDropBuddyMessage(reason, message), reason), toUser);
 	}
 
 	void sendBuddyConnectResponseMessage(BuddyInfoParameters buddyInfoParameters, UUID receiverUserAnonymizedId, UUID buddyId,
 			Set<UserDevice> devices, Status status, String responseMessage)
 	{
-		MessageDestinationDto messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedId)
-				.getAnonymousDestination();
-		assert messageDestination != null;
+		UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedId);
+		assert toUser != null;
 		messageService.sendMessageAndFlushToDatabase(
 				BuddyConnectResponseMessage.createInstance(buddyInfoParameters, responseMessage, buddyId, devices, status),
-				messageDestination);
+				toUser);
 	}
 
 	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
@@ -621,13 +616,12 @@ public class BuddyService
 
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
-		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		User requestingUserEntity = userService.getUserEntityById(idOfRequestingUser);
-		messageService.sendMessageAndFlushToDatabase(
+		messageService.sendDirectMessageAndFlushToDatabase(
 				BuddyConnectRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUser),
 						buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), requestingUserEntity.getDevices(),
 						isRequestingSending, isRequestingReceiving),
-				MessageDestinationDto.createInstance(messageDestination));
+				buddyUserEntity);
 
 		return savedBuddy;
 	}

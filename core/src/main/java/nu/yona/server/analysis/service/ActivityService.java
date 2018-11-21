@@ -38,7 +38,6 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.analysis.service.IntervalActivityDto.LevelOfDetail;
-import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
@@ -49,7 +48,6 @@ import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -213,8 +211,7 @@ public class ActivityService
 		long activityMemoryDays = yonaProperties.getAnalysisService().getActivityMemory().toDays();
 		Optional<LocalDateTime> oldestGoalCreationTime = userAnonymized.getOldestGoalCreationTime();
 		long activityRecordedDays = oldestGoalCreationTime.isPresent()
-				? (Duration.between(oldestGoalCreationTime.get(), TimeUtil.utcNow()).toDays() + 1)
-				: 0;
+				? (Duration.between(oldestGoalCreationTime.get(), TimeUtil.utcNow()).toDays() + 1) : 0;
 		long totalDays = Math.min(activityRecordedDays, activityMemoryDays);
 		switch (timeUnit)
 		{
@@ -696,10 +693,8 @@ public class ActivityService
 
 	private void sendMessage(UUID targetUserAnonymizedId, ActivityCommentMessage messageEntity)
 	{
-		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(targetUserAnonymizedId)
-				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(targetUserAnonymizedId));
-		messageService.sendMessage(messageEntity, userAnonymizedEntity.getAnonymousDestination());
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(targetUserAnonymizedId);
+		messageService.sendMessage(messageEntity, userAnonymized);
 	}
 
 	private ActivityCommentMessage createMessage(UserDto sendingUser, UUID relatedUserAnonymizedId,

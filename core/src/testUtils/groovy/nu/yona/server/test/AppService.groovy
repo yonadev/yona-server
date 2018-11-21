@@ -315,6 +315,12 @@ class AppService extends Service
 		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH)
 	}
 
+	// Added to analyse randomly failing ActivityCategoriesTest
+	def getAllActivityCategoriesSkipCache()
+	{
+		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH + "skip-cache/")
+	}
+
 	List<Buddy> getBuddies(User user)
 	{
 		def response = yonaServer.getResourceWithPassword(user.buddiesUrl, user.password)

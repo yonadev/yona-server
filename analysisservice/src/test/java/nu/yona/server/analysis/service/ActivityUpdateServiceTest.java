@@ -70,7 +70,6 @@ import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageRepository;
-import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.AnalysisServiceProperties;
 import nu.yona.server.properties.YonaProperties;
@@ -115,7 +114,6 @@ public class ActivityUpdateServiceTest
 	private Goal newsGoal;
 	private Goal socialGoal;
 	private Goal shoppingGoal;
-	private MessageDestinationDto anonMessageDestination;
 	private UUID userAnonId;
 	private UUID deviceAnonId;
 	private DeviceAnonymized deviceAnonEntity;
@@ -163,7 +161,6 @@ public class ActivityUpdateServiceTest
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);
 		deviceAnonDto = DeviceAnonymizedDto.createInstance(deviceAnonEntity);
-		anonMessageDestination = userAnonDto.getAnonymousDestination();
 		userAnonId = userAnonDto.getId();
 		userAnonZoneId = userAnonDto.getTimeZone();
 
@@ -509,11 +506,9 @@ public class ActivityUpdateServiceTest
 	private void verifyGoalConflictMessageCreated(Goal... forGoals)
 	{
 		ArgumentCaptor<GoalConflictMessage> messageCaptor = ArgumentCaptor.forClass(GoalConflictMessage.class);
-		ArgumentCaptor<MessageDestination> messageDestinationCaptor = ArgumentCaptor.forClass(MessageDestination.class);
-		verify(mockMessageService, times(forGoals.length)).sendMessage(messageCaptor.capture(),
-				messageDestinationCaptor.capture());
-		assertThat("Expect right message destination", messageDestinationCaptor.getValue().getId(),
-				equalTo(anonMessageDestination.getId()));
+		ArgumentCaptor<UserAnonymizedDto> userAnonymizedCaptor = ArgumentCaptor.forClass(UserAnonymizedDto.class);
+		verify(mockMessageService, times(forGoals.length)).sendMessage(messageCaptor.capture(), userAnonymizedCaptor.capture());
+		assertThat("Expect right message destination", userAnonymizedCaptor.getValue().getId(), equalTo(userAnonId));
 		assertThat("Expected right related user set to goal conflict message",
 				messageCaptor.getValue().getRelatedUserAnonymizedId().get(), equalTo(userAnonId));
 		assertThat("Expected right goal set to goal conflict message",

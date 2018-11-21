@@ -51,11 +51,13 @@ import nu.yona.server.device.entities.UserDeviceRepository;
 import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
+import nu.yona.server.entities.MessageSourceRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
@@ -159,6 +161,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		repositoriesMap.put(Goal.class, mockGoalRepository);
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);
+		repositoriesMap.put(MessageSource.class, new MessageSourceRepositoryMock());
 		return repositoriesMap;
 	}
 
