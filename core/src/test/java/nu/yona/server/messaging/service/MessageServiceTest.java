@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -173,7 +174,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendDirectMessage_default_doesNotSendFirebaseMessageButSendsSms()
+	public void sendDirectMessage_default_sendsSms()
 	{
 		Message message = Mockito.mock(Message.class);
 		MessageDestination namedMessageDestination = Mockito.mock(MessageDestination.class);
@@ -184,8 +185,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 
 		service.sendDirectMessage(message, user);
 
-		verify(mockFirebaseService, never()).sendMessage(any(), any());
-		verify(mockSmsService, times(1)).send(mobileNumber, SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, new HashMap<>());
+		verify(mockSmsService, times(1)).send(mobileNumber, SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, Collections.emptyMap());
 	}
 
 	@Test
@@ -199,7 +199,6 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 
 		service.sendDirectMessage(message, user);
 
-		verify(mockFirebaseService, never()).sendMessage(any(), any());
 		verify(mockSmsService, never()).send(any(), any(), any());
 	}
 

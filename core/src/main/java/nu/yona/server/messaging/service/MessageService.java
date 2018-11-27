@@ -344,7 +344,7 @@ public class MessageService
 
 		if (!toUser.isCreatedOnBuddyRequest()) // Do not send SMS before buddy invitation via email/SMS has been accepted
 		{
-			smsService.send(toUser.getMobileNumber(), SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, new HashMap<>());
+			smsService.send(toUser.getMobileNumber(), SmsTemplate.DIRECT_MESSAGE_NOTIFICATION, Collections.emptyMap());
 		}
 	}
 
