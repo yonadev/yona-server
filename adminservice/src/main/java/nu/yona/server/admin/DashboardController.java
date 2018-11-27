@@ -60,8 +60,12 @@ public class DashboardController
 				userRepository.countByMobileNumberConfirmationCodeIsNotNullAndIsCreatedOnBuddyRequest(false));
 		model.addAttribute("appOpenedCounts", appOpenedCounts);
 		model.addAttribute("appOpenedPercentages", absoluteValuesToPercentages(appOpenedCounts));
+		model.addAttribute("appOpenedSumLast30Days",
+				userRepository.countByAppLastOpenedDateBetween(LocalDate.now().minusDays(29), LocalDate.now()));
 		model.addAttribute("lastMonitoredActivityCounts", lastMonitoredActivityCounts);
 		model.addAttribute("lastMonitoredActivityPercentages", absoluteValuesToPercentages(lastMonitoredActivityCounts));
+		model.addAttribute("lastMonitoredActivitySumLast30Days",
+				userAnonymizedRepository.countByLastMonitoredActivityDateBetween(LocalDate.now().minusDays(29), LocalDate.now()));
 		model.addAttribute("buildNumber", buildProperties.get("buildNumber"));
 
 		return "dashboard";
@@ -100,7 +104,13 @@ public class DashboardController
 	private List<Integer> absoluteValuesToPercentages(List<Integer> values)
 	{
 		int sum = values.stream().reduce(0, (a, b) -> a + b);
-		return values.stream().map(v -> Math.round(((float) v) / sum * 100)).collect(Collectors.toList());
+		return values.stream().map(v -> absoluteValueToPercentage(sum, v)).collect(Collectors.toList());
+	}
+
+	private int absoluteValueToPercentage(int sum, Integer value)
+	{
+		int percentage = Math.round(((float) value) / sum * 100);
+		return value > 0 ? Math.max(percentage, 1) : percentage;
 	}
 
 	@FunctionalInterface
