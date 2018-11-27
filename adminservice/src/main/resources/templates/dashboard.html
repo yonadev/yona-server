@@ -163,6 +163,8 @@
 				<li>Other users: <span th:text="${numOfUsersWithUnconfirmedNumbersFreeSignUp}">1</span></li>
 			</ul>
 		</li>
+		<li>Users that opened the app at least once in the last 30 days: <span th:text="${appOpenedSumLast30Days}">1</span></li>
+		<li>Users that had activity monitored in the last 30 days: <span th:text="${lastMonitoredActivitySumLast30Days}">1</span></li>
 	</ul></p>
 	<div id="chart" style="width: 320px; height: 600px"></div>
 	<p>Build number: <span th:text="${buildNumber}">123</span><br/>
