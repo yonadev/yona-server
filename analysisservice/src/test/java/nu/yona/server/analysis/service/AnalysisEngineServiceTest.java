@@ -757,6 +757,8 @@ public class AnalysisEngineServiceTest
 				startTime.truncatedTo(ChronoUnit.DAYS).toLocalDate());
 		Arrays.asList(activities).forEach(a -> dayActivity.addActivity(a));
 		ActivityDto existingActivity = ActivityDto.createInstance(activities[activities.length - 1]);
+		// The following mock is lenient because several tests are skipped around midnight
+		// If these are skipped, the below mock isn't used, causing the other tests to fail if strictness isn't set to lenient
 		lenient().when(mockDayActivityRepository.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId()))
 				.thenReturn(dayActivity);
 		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, deviceAnonId, forGoal.getId()))
