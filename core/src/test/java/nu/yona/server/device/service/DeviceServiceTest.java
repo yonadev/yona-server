@@ -21,6 +21,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -128,6 +129,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 {
 	private static final String SOME_APP_VERSION = "9.9.9";
 	private static final int SUPPORTED_APP_VERSION_CODE = 999;
+	private static final Field appLastOpenedDateField = JUnitUtil.getAccessibleField(UserDevice.class, "appLastOpenedDate");
 
 	@Autowired
 	private UserDeviceRepository userDeviceRepository;
@@ -748,11 +750,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	@Test
 	public void postOpenAppEvent_appLastOpenedDateOnEarlierDay_appLastOpenedDateUpdated()
+			throws IllegalArgumentException, IllegalAccessException
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
-		device.setAppLastOpenedDate(originalDate);
+		appLastOpenedDateField.set(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
 				SUPPORTED_APP_VERSION_CODE);
@@ -763,12 +766,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
+	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated() throws IllegalArgumentException, IllegalAccessException
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate();
 		richard.setAppLastOpenedDate(originalDate);
-		device.setAppLastOpenedDate(originalDate);
+		appLastOpenedDateField.set(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
 				SUPPORTED_APP_VERSION_CODE);
@@ -778,7 +781,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_unsupportedVersionCode_exception()
+	public void postOpenAppEvent_unsupportedVersionCode_exception() throws IllegalArgumentException, IllegalAccessException
 	{
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.app.version.not.supported"));
@@ -787,13 +790,13 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
-		device.setAppLastOpenedDate(originalDate);
+		appLastOpenedDateField.set(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("0.0.1"), 1);
 	}
 
 	@Test
-	public void postOpenAppEvent_invalidVersionCode_exception()
+	public void postOpenAppEvent_invalidVersionCode_exception() throws IllegalArgumentException, IllegalAccessException
 	{
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.invalid.version.code"));
@@ -802,13 +805,13 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
-		device.setAppLastOpenedDate(originalDate);
+		appLastOpenedDateField.set(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"), -1);
 	}
 
 	@Test
-	public void postOpenAppEvent_differentOperatingSystem_exception()
+	public void postOpenAppEvent_differentOperatingSystem_exception() throws IllegalArgumentException, IllegalAccessException
 	{
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.cannot.switch.operating.system"));
@@ -816,7 +819,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
-		device.setAppLastOpenedDate(originalDate);
+		appLastOpenedDateField.set(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS), Optional.of(SOME_APP_VERSION),
 				SUPPORTED_APP_VERSION_CODE);

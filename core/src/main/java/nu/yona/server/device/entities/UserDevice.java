@@ -46,21 +46,19 @@ public class UserDevice extends DeviceBase
 	{
 	}
 
-	private UserDevice(UUID id, String name, UUID deviceAnonymizedId, String vpnPassword, LocalDateTime registrationTime,
-			LocalDate appLastOpenedDate)
+	private UserDevice(UUID id, String name, UUID deviceAnonymizedId, String vpnPassword, LocalDateTime registrationTime)
 	{
 		super(id, name, deviceAnonymizedId);
 		this.registrationTime = registrationTime;
-		this.appLastOpenedDate = appLastOpenedDate;
 		this.vpnPassword = Objects.requireNonNull(vpnPassword);
 	}
 
 	public static UserDevice createInstance(User userEntity, String name, UUID deviceAnonymizedId, String vpnPassword)
 	{
-		LocalDateTime registrationTime = TimeUtil.utcNow();
+		UserDevice newDevice = new UserDevice(UUID.randomUUID(), name, deviceAnonymizedId, vpnPassword, TimeUtil.utcNow());
 		// The user registers this device, so the app is open now
-		LocalDate appLastOpenedDate = registrationTime.atZone(userEntity.getAnonymized().getTimeZone()).toLocalDate();
-		return new UserDevice(UUID.randomUUID(), name, deviceAnonymizedId, vpnPassword, registrationTime, appLastOpenedDate);
+		newDevice.setAppLastOpenedDateToNow(userEntity);
+		return newDevice;
 	}
 
 	public UUID getUserPrivateId()
@@ -109,8 +107,11 @@ public class UserDevice extends DeviceBase
 		return appLastOpenedDate;
 	}
 
-	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
+	public void setAppLastOpenedDateToNow(User userEntity)
 	{
-		this.appLastOpenedDate = Objects.requireNonNull(appLastOpenedDate);
+		LocalDate currentDate = userEntity.getDateInUserTimezone(registrationTime);
+
+		this.appLastOpenedDate = Objects.requireNonNull(currentDate);
+		userEntity.setAppLastOpenedDate(currentDate);
 	}
 }

@@ -29,7 +29,7 @@ public class UserAnonymizedDto implements Serializable
 	private final UUID id;
 
 	private final LocalDate lastMonitoredActivityDate;
-	private ZoneId timeZone;
+	private final ZoneId timeZone;
 	private final Set<GoalDto> goals;
 	private final MessageDestinationDto anonymousMessageDestination;
 	private final Set<BuddyAnonymizedDto> buddiesAnonymized;

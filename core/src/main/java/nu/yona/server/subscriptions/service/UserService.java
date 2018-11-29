@@ -306,11 +306,6 @@ public class UserService
 		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getMobileNumber(), userPrivate,
 				namedMessageSource.getDestination());
 		addMandatoryGoals(userEntity);
-		if (signUp == UserSignUp.FREE)
-		{
-			// The user signs up through the app, so they apparently opened it now
-			userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
-		}
 		return userEntity;
 	}
 
@@ -880,7 +875,6 @@ public class UserService
 			messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
 			user.updateUser(userEntity);
 			userEntity.unsetIsCreatedOnBuddyRequest();
-			userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
 			addDevicesToEntity(user, userEntity);
 			userEntity.touch();
 		});
