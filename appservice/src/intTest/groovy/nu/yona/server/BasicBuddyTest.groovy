@@ -397,6 +397,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(dayActivityDetailRichard)
 		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDateString(goalConflictTime)
 		dayActivityDetailRichard.responseData._links."yona:goal".href == goalBuddyBob.url
+		dayActivityDetailRichard.responseData.totalMinutesBeyondGoal == 1
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
@@ -412,6 +413,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(dayActivityDetailBob)
 		dayActivityDetailBob.responseData.date == YonaServer.toIsoDateString(goalConflictTime)
 		dayActivityDetailBob.responseData._links."yona:goal".href == goalBob.url
+		dayActivityDetailBob.responseData.totalMinutesBeyondGoal == 1
 
 		cleanup:
 		appService.deleteUser(richard)

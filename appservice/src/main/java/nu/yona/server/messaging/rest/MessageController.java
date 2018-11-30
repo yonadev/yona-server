@@ -388,7 +388,7 @@ public class MessageController extends ControllerBase
 
 		private void addDayActivityDetailLink(GoalConflictMessageDto message)
 		{
-			String dateStr = DayActivityDto.formatDate(message.getActivityStartTime().toLocalDate());
+			String dateStr = DayActivityDto.formatDate(message.getStartDate());
 			if (message.isSentFromBuddy())
 			{
 				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(),
