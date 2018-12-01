@@ -5,9 +5,7 @@
 package nu.yona.server.analysis.service;
 
 import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -209,9 +207,12 @@ public class ActivityService
 	private long getTotalPageableItems(UserAnonymizedDto userAnonymized, ChronoUnit timeUnit)
 	{
 		long activityMemoryDays = yonaProperties.getAnalysisService().getActivityMemory().toDays();
-		Optional<LocalDateTime> oldestGoalCreationTime = userAnonymized.getOldestGoalCreationTime();
-		long activityRecordedDays = oldestGoalCreationTime.isPresent()
-				? (Duration.between(oldestGoalCreationTime.get(), TimeUtil.utcNow()).toDays() + 1) : 0;
+		Optional<LocalDate> oldestGoalCreationDate = userAnonymized.getOldestGoalCreationTime()
+				.map(dt -> TimeUtil.toLocalDateTimeInZone(dt, userAnonymized.getTimeZone()).toLocalDate());
+		LocalDate today = TimeUtil.toLocalDateTimeInZone(TimeUtil.utcNow(), userAnonymized.getTimeZone()).toLocalDate();
+		long activityRecordedDays = oldestGoalCreationDate.isPresent()
+				? (ChronoUnit.DAYS.between(oldestGoalCreationDate.get(), today) + 1)
+				: 0;
 		long totalDays = Math.min(activityRecordedDays, activityMemoryDays);
 		switch (timeUnit)
 		{

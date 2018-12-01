@@ -381,7 +381,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 			OperatingSystem expectedOperatingSystem, int expectedDeviceIndex)
 	{
 		assertThat(device.getName(), equalTo(expectedDeviceName));
-		assertThat(device.getAppLastOpenedDate(), equalTo(TimeUtil.utcNow().toLocalDate()));
+		assertThat(device.getAppLastOpenedDate(), equalTo(currentDateInAmsterdam()));
 		assertThat(device.getRegistrationTime(), is(between(startTime, TimeUtil.utcNow())));
 		assertThat(device.isVpnConnected(), equalTo(false));
 
@@ -760,8 +760,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
 				SUPPORTED_APP_VERSION_CODE);
 
-		assertThat(richard.getAppLastOpenedDate().get(), equalTo(TimeUtil.utcNow().toLocalDate()));
-		assertThat(device.getAppLastOpenedDate(), equalTo(TimeUtil.utcNow().toLocalDate()));
+		assertThat(richard.getAppLastOpenedDate().get(), equalTo(currentDateInAmsterdam()));
+		assertThat(device.getAppLastOpenedDate(), equalTo(currentDateInAmsterdam()));
 		verify(userRepository, times(1)).save(any(User.class));
 	}
 
@@ -769,7 +769,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated() throws IllegalArgumentException, IllegalAccessException
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
-		LocalDate originalDate = TimeUtil.utcNow().toLocalDate();
+		LocalDate originalDate = currentDateInAmsterdam();
 		richard.setAppLastOpenedDate(originalDate);
 		appLastOpenedDateField.set(device, originalDate);
 
@@ -778,6 +778,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertThat(richard.getAppLastOpenedDate().get(), sameInstance(originalDate));
 		assertThat(device.getAppLastOpenedDate(), sameInstance(originalDate));
+	}
+
+	private LocalDate currentDateInAmsterdam()
+	{
+		return TimeUtil.toLocalDateTimeInZone(TimeUtil.utcNow(), ZoneId.of("Europe/Amsterdam")).toLocalDate();
 	}
 
 	@Test
