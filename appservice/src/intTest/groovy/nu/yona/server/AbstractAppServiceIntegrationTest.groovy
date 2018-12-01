@@ -31,6 +31,9 @@ import spock.lang.Specification
 abstract class AbstractAppServiceIntegrationTest extends Specification
 {
 	@Shared
+	def printErr = System.err.&println
+
+	@Shared
 	def AnalysisService analysisService = new AnalysisService()
 
 	@Shared
