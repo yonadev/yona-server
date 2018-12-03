@@ -137,7 +137,7 @@ public class GoalConflictMessageDto extends MessageDto
 		return new GoalConflictMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getGoal().getId(), messageEntity.getActivity().getActivityCategory().getId(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getUrl() : Optional.empty(), messageEntity.getStatus(),
-				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getStartTimeAsZonedDateTime()), // TODO: Here it's wrong
+				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getStartTimeAsZonedDateTime()),
 				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getEndTimeAsZonedDateTime()),
 				messageEntity.getActivity().getStartTimeAsZonedDateTime().toLocalDate());
 	}
