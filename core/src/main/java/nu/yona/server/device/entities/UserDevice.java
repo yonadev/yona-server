@@ -109,9 +109,9 @@ public class UserDevice extends DeviceBase
 
 	public void setAppLastOpenedDateToNow(User userEntity)
 	{
-		LocalDate currentDate = userEntity.getDateInUserTimezone(registrationTime);
+		LocalDate today = userEntity.getDateInUserTimezone(TimeUtil.utcNow());
 
-		this.appLastOpenedDate = Objects.requireNonNull(currentDate);
-		userEntity.setAppLastOpenedDate(currentDate);
+		this.appLastOpenedDate = Objects.requireNonNull(today);
+		userEntity.setAppLastOpenedDate(today);
 	}
 }

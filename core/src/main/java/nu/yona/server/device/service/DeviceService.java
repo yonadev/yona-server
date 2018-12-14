@@ -347,9 +347,9 @@ public class DeviceService
 
 	private void setAppLastOpenedDateIfNewer(User userEntity, UserDevice deviceEntity)
 	{
-		LocalDate currentDate = userEntity.getDateInUserTimezone(TimeUtil.utcNow());
+		LocalDate today = userEntity.getDateInUserTimezone(TimeUtil.utcNow());
 		LocalDate appLastOpenedDate = deviceEntity.getAppLastOpenedDate();
-		if (appLastOpenedDate.isBefore(currentDate))
+		if (appLastOpenedDate.isBefore(today))
 		{
 			deviceEntity.setAppLastOpenedDateToNow(userEntity);
 		}

@@ -72,6 +72,7 @@ import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
 import nu.yona.server.entities.MessageSourceRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.messaging.entities.Message;
@@ -750,12 +751,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	@Test
 	public void postOpenAppEvent_appLastOpenedDateOnEarlierDay_appLastOpenedDateUpdated()
-			throws IllegalArgumentException, IllegalAccessException
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
-		appLastOpenedDateField.set(device, originalDate);
+		setAppLastOpenedDateField(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
 				SUPPORTED_APP_VERSION_CODE);
@@ -766,12 +766,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated() throws IllegalArgumentException, IllegalAccessException
+	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = currentDateInAmsterdam();
 		richard.setAppLastOpenedDate(originalDate);
-		appLastOpenedDateField.set(device, originalDate);
+		setAppLastOpenedDateField(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
 				SUPPORTED_APP_VERSION_CODE);
@@ -780,13 +780,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		assertThat(device.getAppLastOpenedDate(), sameInstance(originalDate));
 	}
 
-	private LocalDate currentDateInAmsterdam()
-	{
-		return TimeUtil.toLocalDateTimeInZone(TimeUtil.utcNow(), ZoneId.of("Europe/Amsterdam")).toLocalDate();
-	}
-
 	@Test
-	public void postOpenAppEvent_unsupportedVersionCode_exception() throws IllegalArgumentException, IllegalAccessException
+	public void postOpenAppEvent_unsupportedVersionCode_exception()
 	{
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.app.version.not.supported"));
@@ -795,13 +790,13 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
-		appLastOpenedDateField.set(device, originalDate);
+		setAppLastOpenedDateField(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("0.0.1"), 1);
 	}
 
 	@Test
-	public void postOpenAppEvent_invalidVersionCode_exception() throws IllegalArgumentException, IllegalAccessException
+	public void postOpenAppEvent_invalidVersionCode_exception()
 	{
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.invalid.version.code"));
@@ -810,13 +805,13 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
-		appLastOpenedDateField.set(device, originalDate);
+		setAppLastOpenedDateField(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"), -1);
 	}
 
 	@Test
-	public void postOpenAppEvent_differentOperatingSystem_exception() throws IllegalArgumentException, IllegalAccessException
+	public void postOpenAppEvent_differentOperatingSystem_exception()
 	{
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.cannot.switch.operating.system"));
@@ -824,7 +819,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
-		appLastOpenedDateField.set(device, originalDate);
+		setAppLastOpenedDateField(device, originalDate);
 
 		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS), Optional.of(SOME_APP_VERSION),
 				SUPPORTED_APP_VERSION_CODE);
@@ -858,6 +853,23 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	public void removeDuplicateDefaultDevices_twoDevicesUseSecond_duplicateRemovedActivitiesMoved()
 	{
 		removeDuplicateDefaultDevicesFirstOrSecond(1);
+	}
+
+	private void setAppLastOpenedDateField(UserDevice device, LocalDate originalDate)
+	{
+		try
+		{
+			appLastOpenedDateField.set(device, originalDate);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	private LocalDate currentDateInAmsterdam()
+	{
+		return TimeUtil.toLocalDateTimeInZone(TimeUtil.utcNow(), ZoneId.of("Europe/Amsterdam")).toLocalDate();
 	}
 
 	private void assertVpnAccountCreated(UserDevice device)

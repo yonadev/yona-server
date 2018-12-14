@@ -47,11 +47,11 @@ public class GoalConflictMessageDto extends MessageDto
 	private final LocalDateTime activityEndTime;
 	private final UUID goalId;
 	private final UUID activityCategoryId;
-	private final LocalDate startDate; // In the user's time zone
+	private final LocalDate activityStartDate; // In the user's time zone
 
 	private GoalConflictMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalId,
 			UUID activityCategoryId, Optional<String> url, Status status, LocalDateTime activityStartTime,
-			LocalDateTime activityEndTime, LocalDate startDate)
+			LocalDateTime activityEndTime, LocalDate activityStartDate)
 	{
 		super(id, creationTime, isRead, senderInfo);
 		this.goalId = goalId;
@@ -60,7 +60,7 @@ public class GoalConflictMessageDto extends MessageDto
 		this.status = status;
 		this.activityStartTime = activityStartTime;
 		this.activityEndTime = activityEndTime;
-		this.startDate = startDate;
+		this.activityStartDate = activityStartDate;
 	}
 
 	@Override
@@ -143,9 +143,9 @@ public class GoalConflictMessageDto extends MessageDto
 	}
 
 	@JsonIgnore
-	public LocalDate getStartDate()
+	public LocalDate getActivityStartDate()
 	{
-		return startDate;
+		return activityStartDate;
 	}
 
 	@Component
