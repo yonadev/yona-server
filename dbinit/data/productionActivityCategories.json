@@ -587,6 +587,11 @@
          "Netflix"
       ],
       "applications": [
+         "com.google.android.youtube",
+         "com.google.android.youtube.tv",
+         "com.google.android.youtube.googletv",
+         "com.google.android.apps.youtube.gaming",
+         "com.google.android.apps.youtube.vr",
          "nl.rtl.videoland",
          "com.netflix.mediaclient",
          "nl.rtl.kroongetuige",
