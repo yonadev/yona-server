@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -46,10 +47,11 @@ public class GoalConflictMessageDto extends MessageDto
 	private final LocalDateTime activityEndTime;
 	private final UUID goalId;
 	private final UUID activityCategoryId;
+	private final LocalDate activityStartDate; // In the user's time zone
 
 	private GoalConflictMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalId,
 			UUID activityCategoryId, Optional<String> url, Status status, LocalDateTime activityStartTime,
-			LocalDateTime activityEndTime)
+			LocalDateTime activityEndTime, LocalDate activityStartDate)
 	{
 		super(id, creationTime, isRead, senderInfo);
 		this.goalId = goalId;
@@ -58,6 +60,7 @@ public class GoalConflictMessageDto extends MessageDto
 		this.status = status;
 		this.activityStartTime = activityStartTime;
 		this.activityEndTime = activityEndTime;
+		this.activityStartDate = activityStartDate;
 	}
 
 	@Override
@@ -135,7 +138,14 @@ public class GoalConflictMessageDto extends MessageDto
 				senderInfo, messageEntity.getGoal().getId(), messageEntity.getActivity().getActivityCategory().getId(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getUrl() : Optional.empty(), messageEntity.getStatus(),
 				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getStartTimeAsZonedDateTime()),
-				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getEndTimeAsZonedDateTime()));
+				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getEndTimeAsZonedDateTime()),
+				messageEntity.getActivity().getStartTimeAsZonedDateTime().toLocalDate());
+	}
+
+	@JsonIgnore
+	public LocalDate getActivityStartDate()
+	{
+		return activityStartDate;
 	}
 
 	@Component

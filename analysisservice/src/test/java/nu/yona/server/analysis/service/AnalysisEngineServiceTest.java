@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -756,7 +757,10 @@ public class AnalysisEngineServiceTest
 				startTime.truncatedTo(ChronoUnit.DAYS).toLocalDate());
 		Arrays.asList(activities).forEach(a -> dayActivity.addActivity(a));
 		ActivityDto existingActivity = ActivityDto.createInstance(activities[activities.length - 1]);
-		when(mockDayActivityRepository.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId())).thenReturn(dayActivity);
+		// The following mock is lenient because several tests are skipped around midnight
+		// If these are skipped, the below mock isn't used, causing the other tests to fail if strictness isn't set to lenient
+		lenient().when(mockDayActivityRepository.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId()))
+				.thenReturn(dayActivity);
 		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, deviceAnonId, forGoal.getId()))
 				.thenReturn(existingActivity);
 		WeekActivity weekActivity = WeekActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,

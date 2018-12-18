@@ -114,6 +114,11 @@ public class User extends EntityWithUuid
 		return Optional.ofNullable(appLastOpenedDate);
 	}
 
+	/**
+	 * Don't call this, except from from UserDevice.
+	 * 
+	 * @param appLastOpenedDate The date the app was opened last by this user. The date must be in the user's timezone.
+	 */
 	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
 	{
 		this.appLastOpenedDate = Objects.requireNonNull(appLastOpenedDate);
@@ -403,5 +408,10 @@ public class User extends EntityWithUuid
 		userPrivate.setLastName(lastName);
 		firstName = null;
 		lastName = null;
+	}
+
+	public LocalDate getDateInUserTimezone(LocalDateTime utcDateTime)
+	{
+		return TimeUtil.toUtcZonedDateTime(utcDateTime).withZoneSameInstant(getAnonymized().getTimeZone()).toLocalDate();
 	}
 }

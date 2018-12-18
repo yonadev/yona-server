@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -337,25 +336,22 @@ public class DeviceService
 		userService.updateUser(userId, userEntity -> {
 			operatingSystem.ifPresent(os -> assertValidAppVersion(os, appVersion.get(), appVersionCode));
 
-			LocalDate now = TimeUtil.utcNow().toLocalDate();
 			UserDevice deviceEntity = getDeviceEntity(deviceId);
 			DeviceAnonymized deviceAnonymizedEntity = deviceEntity.getDeviceAnonymized();
 
-			setAppLastOpenedDateIfNewer(now, userEntity::getAppLastOpenedDate, () -> userEntity.setAppLastOpenedDate(now));
-			setAppLastOpenedDateIfNewer(now, () -> Optional.of(deviceEntity.getAppLastOpenedDate()),
-					() -> deviceEntity.setAppLastOpenedDate(now));
+			setAppLastOpenedDateIfNewer(userEntity, deviceEntity);
 			operatingSystem.ifPresent(os -> setOperatingSystemIfWasUnknown(deviceEntity, os));
 			setAppVersionIfDifferent(deviceAnonymizedEntity, appVersion, appVersionCode);
 		});
 	}
 
-	private void setAppLastOpenedDateIfNewer(LocalDate now, Supplier<Optional<LocalDate>> currentDateSupplier,
-			Runnable dateSetter)
+	private void setAppLastOpenedDateIfNewer(User userEntity, UserDevice deviceEntity)
 	{
-		Optional<LocalDate> appLastOpenedDate = currentDateSupplier.get();
-		if (!appLastOpenedDate.isPresent() || appLastOpenedDate.get().isBefore(now))
+		LocalDate today = userEntity.getDateInUserTimezone(TimeUtil.utcNow());
+		LocalDate appLastOpenedDate = deviceEntity.getAppLastOpenedDate();
+		if (appLastOpenedDate.isBefore(today))
 		{
-			dateSetter.run();
+			deviceEntity.setAppLastOpenedDateToNow(userEntity);
 		}
 	}
 

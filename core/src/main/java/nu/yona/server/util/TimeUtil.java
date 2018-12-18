@@ -45,6 +45,11 @@ public class TimeUtil
 		return Date.from(localDateTime.toInstant(ZoneOffset.UTC));
 	}
 
+	public static LocalDateTime toLocalDateTimeInZone(LocalDateTime utcDateTime, ZoneId zoneId)
+	{
+		return ZonedDateTime.ofInstant(utcDateTime.toInstant(java.time.ZoneOffset.UTC), zoneId).toLocalDateTime();
+	}
+
 	public static ZonedDateTime getStartOfDay(ZoneId zoneId, ZonedDateTime time)
 	{
 		return time.withZoneSameInstant(zoneId).truncatedTo(ChronoUnit.DAYS);
