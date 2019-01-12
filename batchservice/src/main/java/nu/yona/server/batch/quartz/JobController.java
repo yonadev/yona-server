@@ -19,10 +19,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -36,14 +38,14 @@ public class JobController extends ControllerBase
 	@Autowired
 	private JobManagementService jobManagementService;
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<Resources<JobResource>> getAllJobs()
 	{
 		return createOkResponse(jobManagementService.getAllJobs(), createResourceAssembler(), getAllJobsLinkBuilder());
 	}
 
-	@RequestMapping(value = "/{group}/", method = RequestMethod.GET)
+	@GetMapping(value = "/{group}/")
 	@ResponseBody
 	public HttpEntity<Resources<JobResource>> getJobsInGroup(@PathVariable String group)
 	{
@@ -51,7 +53,7 @@ public class JobController extends ControllerBase
 				getJobsInGroupLinkBuilder(group));
 	}
 
-	@RequestMapping(value = "/{group}/", method = RequestMethod.PUT)
+	@PutMapping(value = "/{group}/")
 	@ResponseBody
 	public HttpEntity<Resources<JobResource>> updateJobGroup(@PathVariable String group, @RequestBody Set<JobDto> jobs)
 	{
@@ -59,7 +61,7 @@ public class JobController extends ControllerBase
 				getJobsInGroupLinkBuilder(group));
 	}
 
-	@RequestMapping(value = "/{group}/{name}", method = RequestMethod.GET)
+	@GetMapping(value = "/{group}/{name}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public JobResource getJob(@PathVariable String group, @PathVariable String name)
@@ -67,7 +69,7 @@ public class JobController extends ControllerBase
 		return new JobResourceAssembler().toResource(jobManagementService.getJob(name, group));
 	}
 
-	@RequestMapping(value = "/{group}/", method = RequestMethod.POST)
+	@PostMapping(value = "/{group}/")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public JobResource addJob(@PathVariable String group, @RequestBody JobDto job)

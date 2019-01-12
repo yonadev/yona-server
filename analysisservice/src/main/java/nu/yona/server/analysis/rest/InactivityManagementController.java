@@ -12,9 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.analysis.service.InactivityManagementService;
@@ -27,7 +27,7 @@ public class InactivityManagementController
 	@Autowired
 	private InactivityManagementService inactivityManagementService;
 
-	@RequestMapping(value = "/{userAnonymizedId}/inactivity/", method = RequestMethod.POST)
+	@PostMapping(value = "/{userAnonymizedId}/inactivity/")
 	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void createInactivityEntities(@PathVariable UUID userAnonymizedId,
 			@RequestBody Set<IntervalInactivityDto> intervalInactivities)

@@ -18,9 +18,9 @@ import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -38,7 +38,7 @@ public class ActivityCategoryController extends ControllerBase
 	@Autowired
 	private ActivityCategoryService activityCategoryService;
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	@GetMapping(value = "/{id}")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AppView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
@@ -46,7 +46,7 @@ public class ActivityCategoryController extends ControllerBase
 		return createOkResponse(activityCategoryService.getActivityCategory(id), createResourceAssembler());
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AppView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
@@ -56,7 +56,7 @@ public class ActivityCategoryController extends ControllerBase
 	}
 
 	// Added to analyse randomly failing ActivityCategoriesTest
-	@RequestMapping(value = "/skip-cache/", method = RequestMethod.GET)
+	@GetMapping(value = "/skip-cache/")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AppView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategoriesSkipCache()

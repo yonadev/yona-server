@@ -22,10 +22,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -58,12 +58,13 @@ public class PinResetRequestController
 	@Autowired
 	private GlobalExceptionMapping globalExceptionMapping;
 
-	@RequestMapping(value = "/request", method = RequestMethod.POST)
+	@PostMapping(value = "/request")
 	@ResponseBody
 	public ResponseEntity<ConfirmationCodeDelayDto> requestPinReset(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.requestPinReset(userId);
 			return new ResponseEntity<>(
@@ -72,13 +73,14 @@ public class PinResetRequestController
 		}
 	}
 
-	@RequestMapping(value = "/verify", method = RequestMethod.POST)
+	@PostMapping(value = "/verify")
 	@ResponseBody
 	public ResponseEntity<Void> verifyPinResetConfirmationCode(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestBody ConfirmationCodeDto confirmationCode)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 
 			pinResetRequestService.verifyPinResetConfirmationCode(userId, confirmationCode.getCode());
@@ -86,24 +88,26 @@ public class PinResetRequestController
 		}
 	}
 
-	@RequestMapping(value = "/resend", method = RequestMethod.POST)
+	@PostMapping(value = "/resend")
 	@ResponseBody
 	public ResponseEntity<Void> resendPinResetConfirmationCode(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.resendPinResetConfirmationCode(userId);
 			return new ResponseEntity<>(HttpStatus.OK);
 		}
 	}
 
-	@RequestMapping(value = "/clear", method = RequestMethod.POST)
+	@PostMapping(value = "/clear")
 	@ResponseBody
 	public ResponseEntity<Void> clearPinResetRequest(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.clearPinResetRequest(userId);
 			return new ResponseEntity<>(HttpStatus.OK);

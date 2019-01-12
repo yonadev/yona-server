@@ -28,11 +28,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -45,7 +47,6 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.rest.GoalController.GoalResourceAssembler;
 import nu.yona.server.goals.service.GoalDto;
-import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -80,7 +81,7 @@ public class BuddyController extends ControllerBase
 	 * @param userId The ID of the user. This is part of the URL.
 	 * @return the list of buddies for the current user
 	 */
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
@@ -94,7 +95,7 @@ public class BuddyController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{buddyId}", method = RequestMethod.GET)
+	@GetMapping(value = "/{buddyId}")
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID buddyId)
@@ -107,7 +108,7 @@ public class BuddyController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@PostMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody PostPutBuddyDto postPutBuddy)
@@ -120,7 +121,7 @@ public class BuddyController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{buddyId}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/{buddyId}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -131,40 +132,6 @@ public class BuddyController extends ControllerBase
 		{
 			buddyService.removeBuddy(userId, buddyId, Optional.ofNullable(messageStr));
 		}
-	}
-
-	@RequestMapping(value = "/{buddyId}/goals/{goalId}", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID buddyId, @PathVariable UUID goalId)
-	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
-		{
-			return createOkResponse(getGoal(userId, buddyId, goalId), new GoalResourceAssembler(userId, userId));
-		}
-	}
-
-	@RequestMapping(value = "/{buddyId}/goals/", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID buddyId)
-	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
-		{
-			BuddyDto buddy = buddyService.getBuddy(buddyId);
-			Set<GoalDto> goals = buddy.getGoals().orElse(Collections.emptySet());
-			return new ResponseEntity<>(createAllGoalsCollectionResource(userId, buddy.getUser().getId(), goals), HttpStatus.OK);
-		}
-	}
-
-	private GoalDto getGoal(UUID userId, UUID buddyId, UUID goalId)
-	{
-		BuddyDto buddy = buddyService.getBuddy(buddyId);
-		Optional<GoalDto> goal = buddy.getGoals().orElse(Collections.emptySet()).stream()
-				.filter(g -> g.getGoalId().equals(goalId)).findAny();
-		return goal.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForBuddy(userId, buddyId, goalId));
 	}
 
 	private BuddyDto convertToBuddy(PostPutBuddyDto postPutBuddy)

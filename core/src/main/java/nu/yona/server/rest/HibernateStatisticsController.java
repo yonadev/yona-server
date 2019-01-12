@@ -11,8 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -29,7 +30,7 @@ public class HibernateStatisticsController extends ControllerBase
 	@Autowired
 	private HibernateStatisticsService hibernateStatisticsService;
 
-	@RequestMapping(value = "/enable/", params = { "enable" }, method = RequestMethod.POST)
+	@PostMapping(value = "/enable/", params = { "enable" })
 	@ResponseBody
 	public ResponseEntity<Void> enable(@RequestParam(value = "enable", defaultValue = "false") String enableStr)
 	{
@@ -43,7 +44,7 @@ public class HibernateStatisticsController extends ControllerBase
 		return createOkResponse();
 	}
 
-	@RequestMapping(value = "/", params = { "reset" }, method = RequestMethod.GET)
+	@GetMapping(value = "/", params = { "reset" })
 	@ResponseBody
 	public ResponseEntity<StatisticsResource> getStatistics(
 			@RequestParam(value = "reset", defaultValue = "false") String resetStr)
@@ -62,7 +63,7 @@ public class HibernateStatisticsController extends ControllerBase
 		return responseEntity;
 	}
 
-	@RequestMapping(value = "/clearCaches/", method = RequestMethod.POST)
+	@PostMapping(value = "/clearCaches/")
 	@ResponseBody
 	public ResponseEntity<Void> clearCaches()
 	{

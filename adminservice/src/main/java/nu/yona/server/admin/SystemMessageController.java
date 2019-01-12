@@ -6,8 +6,9 @@ package nu.yona.server.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -20,13 +21,13 @@ public class SystemMessageController
 	@Autowired
 	private BatchProxyService batchProxyService;
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	public String getIndexPage()
 	{
 		return "system-messages";
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@PostMapping(value = "/")
 	public String addSystemMessage(@RequestParam String message, RedirectAttributes redirectAttributes)
 	{
 		batchProxyService.sendSystemMessage(message);

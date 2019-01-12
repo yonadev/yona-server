@@ -30,10 +30,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -65,7 +65,7 @@ import nu.yona.server.subscriptions.service.GoalIdMapping;
 @RequestMapping(value = "/users/{userId}/activity", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class UserActivityController extends ActivityControllerBase
 {
-	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getUserWeekActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -76,7 +76,7 @@ public class UserActivityController extends ActivityControllerBase
 				() -> activityService.getUserWeekActivityOverviews(userId, pageable), new UserActivityLinkProvider(userId));
 	}
 
-	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEW_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = WEEK_ACTIVITY_OVERVIEW_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<WeekActivityOverviewResource> getUserWeekActivityOverview(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -86,7 +86,7 @@ public class UserActivityController extends ActivityControllerBase
 				date -> activityService.getUserWeekActivityOverview(userId, date), new UserActivityLinkProvider(userId));
 	}
 
-	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = DAY_OVERVIEWS_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getUserDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -97,7 +97,7 @@ public class UserActivityController extends ActivityControllerBase
 				() -> activityService.getUserDayActivityOverviews(userId, pageable), new UserActivityLinkProvider(userId));
 	}
 
-	@RequestMapping(value = DAY_OVERVIEW_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = DAY_OVERVIEW_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<DayActivityOverviewResource> getUserDayActivityOverview(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -107,7 +107,7 @@ public class UserActivityController extends ActivityControllerBase
 				new UserActivityLinkProvider(userId));
 	}
 
-	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<WeekActivityResource> getUserWeekActivityDetail(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -117,7 +117,7 @@ public class UserActivityController extends ActivityControllerBase
 				date -> activityService.getUserWeekActivityDetail(userId, date, goalId), new UserActivityLinkProvider(userId));
 	}
 
-	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDto>> getUserWeekActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -130,7 +130,7 @@ public class UserActivityController extends ActivityControllerBase
 				new UserActivityLinkProvider(userId));
 	}
 
-	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<DayActivityResource> getUserDayActivityDetail(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -140,7 +140,7 @@ public class UserActivityController extends ActivityControllerBase
 				date -> activityService.getUserDayActivityDetail(userId, date, goalId), new UserActivityLinkProvider(userId));
 	}
 
-	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDto>> getUserDayActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -153,7 +153,7 @@ public class UserActivityController extends ActivityControllerBase
 				new UserActivityLinkProvider(userId));
 	}
 
-	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT + "/raw/", method = RequestMethod.GET)
+	@GetMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT + "/raw/")
 	@ResponseBody
 	public HttpEntity<ActivitiesResource> getRawActivities(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
@@ -180,7 +180,7 @@ public class UserActivityController extends ActivityControllerBase
 	 * suggests that the user activities are supplemented with the buddy activities, while in reality, the buddy activities are
 	 * supplemented with the user activities. The name is retained because it reflects the external API (URL).
 	 */
-	@RequestMapping(value = "/withBuddies/days/", method = RequestMethod.GET)
+	@GetMapping(value = "/withBuddies/days/")
 	@ResponseBody
 	public HttpEntity<PagedResources<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -233,7 +233,7 @@ public class UserActivityController extends ActivityControllerBase
 	 * supplemented with the buddy activities, while in reality, the buddy activities are supplemented with the user activities.
 	 * The name is retained because it reflects the external API (URL).
 	 */
-	@RequestMapping(value = "/withBuddies/days/{date}", method = RequestMethod.GET)
+	@GetMapping(value = "/withBuddies/days/{date}")
 	@ResponseBody
 	public HttpEntity<DayActivityOverviewWithBuddiesResource> getDayActivityOverviewWithBuddies(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -550,7 +550,6 @@ public class UserActivityController extends ActivityControllerBase
 			ActivityForOneUserResource dayActivityResource = instantiateResource(dayActivity);
 
 			UUID goalId = dayActivity.getGoalId();
-			UUID requestingUserId = goalIdMapping.getUserId();
 			if (goalIdMapping.isUserGoal(goalId))
 			{
 				addGoalLinkForUser(requestingUserId, goalId, dayActivityResource);

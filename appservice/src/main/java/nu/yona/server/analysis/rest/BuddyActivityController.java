@@ -20,11 +20,12 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
@@ -55,7 +56,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	@Autowired
 	private BuddyService buddyService;
 
-	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getBuddyWeekActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -72,7 +73,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEW_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = WEEK_ACTIVITY_OVERVIEW_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<WeekActivityOverviewResource> getBuddyWeekActivityOverview(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -88,7 +89,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = DAY_OVERVIEWS_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getBuddyDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -105,7 +106,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = DAY_OVERVIEW_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = DAY_OVERVIEW_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<DayActivityOverviewResource> getBuddyDayActivityOverview(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -121,7 +122,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<WeekActivityResource> getBuddyWeekActivityDetail(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -138,7 +139,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDto>> getBuddyWeekActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -158,7 +159,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
+	@PostMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<MessageDto> addBuddyWeekActivityDetailMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -173,7 +174,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<DayActivityResource> getBuddyDayActivityDetail(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -190,7 +191,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@GetMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDto>> getBuddyDayActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -210,7 +211,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 	}
 
-	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
+	@PostMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT)
 	@ResponseBody
 	public HttpEntity<MessageDto> addBuddyDayActivityDetailMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,

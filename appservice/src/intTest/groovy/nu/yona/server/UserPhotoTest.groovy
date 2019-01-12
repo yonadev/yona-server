@@ -488,6 +488,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode(EXAMPLE_PNG_DATA_BASE64)), "image/png", "MyPhoto.png"))
 				.build()
 		def response = appService.yonaServer.restClient.put(path: user.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": user.password], body: multipartEntity)
+		assertResponseStatusOk(response)
 		response.responseData?._links?."yona:userPhoto"?.href
 	}
 

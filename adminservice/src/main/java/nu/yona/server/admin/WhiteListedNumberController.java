@@ -7,8 +7,9 @@ package nu.yona.server.admin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import nu.yona.server.subscriptions.service.WhiteListedNumberService;
@@ -20,7 +21,7 @@ public class WhiteListedNumberController
 	@Autowired
 	private WhiteListedNumberService whiteListedNumberService;
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	public String getIndexPage(Model model)
 	{
 		model.addAttribute("whiteListedNumbers", whiteListedNumberService.getAllWhiteListedNumbers());
@@ -28,7 +29,7 @@ public class WhiteListedNumberController
 		return "white-listed-numbers";
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@PostMapping(value = "/")
 	public String addWhiteListedNumber(@RequestParam String mobileNumber)
 	{
 		whiteListedNumberService.addWhiteListedNumber(mobileNumber);

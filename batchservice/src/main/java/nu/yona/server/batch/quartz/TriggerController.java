@@ -19,10 +19,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -36,7 +38,7 @@ public class TriggerController extends ControllerBase
 	@Autowired
 	private TriggerManagementService triggerManagementService;
 
-	@RequestMapping(value = "/cron/", method = RequestMethod.GET)
+	@GetMapping(value = "/cron/")
 	@ResponseBody
 	public HttpEntity<Resources<TriggerResource>> getAllTriggers()
 	{
@@ -44,7 +46,7 @@ public class TriggerController extends ControllerBase
 				getAllTriggersLinkBuilder());
 	}
 
-	@RequestMapping(value = "/cron/{group}/", method = RequestMethod.GET)
+	@GetMapping(value = "/cron/{group}/")
 	@ResponseBody
 	public HttpEntity<Resources<TriggerResource>> getTriggersInGroup(@PathVariable String group)
 	{
@@ -52,7 +54,7 @@ public class TriggerController extends ControllerBase
 				getTriggersInGroupLinkBuilder(group));
 	}
 
-	@RequestMapping(value = "/cron/{group}/", method = RequestMethod.PUT)
+	@PutMapping(value = "/cron/{group}/")
 	@ResponseBody
 	public HttpEntity<Resources<TriggerResource>> updateTriggerGroup(@PathVariable String group,
 			@RequestBody Set<CronTriggerDto> triggers)
@@ -61,7 +63,7 @@ public class TriggerController extends ControllerBase
 				getTriggersInGroupLinkBuilder(group));
 	}
 
-	@RequestMapping(value = "/cron/{group}/{name}", method = RequestMethod.GET)
+	@GetMapping(value = "/cron/{group}/{name}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public TriggerResource getTrigger(@PathVariable String group, @PathVariable String name)
@@ -69,7 +71,7 @@ public class TriggerController extends ControllerBase
 		return new TriggerResourceAssembler().toResource(triggerManagementService.getTrigger(name, group));
 	}
 
-	@RequestMapping(value = "/cron/{group}/", method = RequestMethod.POST)
+	@PostMapping(value = "/cron/{group}/")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public TriggerResource addTrigger(@PathVariable String group, @RequestBody CronTriggerDto trigger)

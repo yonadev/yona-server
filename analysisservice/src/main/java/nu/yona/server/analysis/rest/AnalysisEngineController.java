@@ -13,10 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -32,7 +33,7 @@ public class AnalysisEngineController
 	@Autowired
 	private AnalysisEngineService analysisEngineService;
 
-	@RequestMapping(value = "/userAnonymized/{userAnonymizedId}/networkActivity/", method = RequestMethod.POST)
+	@PostMapping(value = "/userAnonymized/{userAnonymizedId}/networkActivity/")
 	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void analyzeNetworkActivity(@PathVariable UUID userAnonymizedId,
 			@RequestParam(value = "preventParallelism", required = false, defaultValue = "false") String preventParallelismStr,
@@ -60,7 +61,7 @@ public class AnalysisEngineController
 	 * The app service receives the app activity monitored by the Yona app and sends that to the analysis engine through this
 	 * method.
 	 */
-	@RequestMapping(value = "/userAnonymized/{userAnonymizedId}/{deviceAnonymizedId}/appActivity/", method = RequestMethod.POST)
+	@PostMapping(value = "/userAnonymized/{userAnonymizedId}/{deviceAnonymizedId}/appActivity/")
 	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void analyzeAppActivity(@PathVariable UUID userAnonymizedId, @PathVariable UUID deviceAnonymizedId,
 			@RequestBody AppActivitiesDto appActivities)
@@ -68,7 +69,7 @@ public class AnalysisEngineController
 		analysisEngineService.analyze(userAnonymizedId, deviceAnonymizedId, appActivities);
 	}
 
-	@RequestMapping(value = "/relevantSmoothwallCategories/", method = RequestMethod.GET)
+	@GetMapping(value = "/relevantSmoothwallCategories/")
 	@ResponseBody
 	public HttpEntity<CategoriesResource> getRelevantSmoothwallCategories()
 	{

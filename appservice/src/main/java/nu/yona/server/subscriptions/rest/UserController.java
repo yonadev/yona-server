@@ -37,12 +37,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -132,7 +135,7 @@ public class UserController extends ControllerBase
 	@Qualifier("sslRootCertificate")
 	private X509Certificate sslRootCertificate; // YD-544
 
-	@RequestMapping(value = "/{userId}", method = RequestMethod.GET)
+	@GetMapping(value = "/{userId}")
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = TEMP_PASSWORD_PARAM, required = false) String tempPasswordStr,
@@ -211,7 +214,7 @@ public class UserController extends ControllerBase
 		return createOkResponse(userService.getPublicUser(userId), createResourceAssemblerForPublicUser());
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@PostMapping(value = "/")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(
@@ -258,7 +261,7 @@ public class UserController extends ControllerBase
 				deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance));
 	}
 
-	@RequestMapping(value = "/{userId}", method = RequestMethod.PUT)
+	@PutMapping(value = "/{userId}")
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = TEMP_PASSWORD_PARAM, required = false) String tempPasswordStr, @PathVariable UUID userId,
@@ -321,7 +324,7 @@ public class UserController extends ControllerBase
 				createResourceAssemblerForOwnUser(userId, Optional.of(requestingDeviceId)));
 	}
 
-	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/{userId}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -334,7 +337,7 @@ public class UserController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{userId}/confirmMobileNumber", method = RequestMethod.POST)
+	@PostMapping(value = "/{userId}/confirmMobileNumber")
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -349,7 +352,7 @@ public class UserController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{userId}/resendMobileNumberConfirmationCode", method = RequestMethod.POST)
+	@PostMapping(value = "/{userId}/resendMobileNumberConfirmationCode")
 	@ResponseBody
 	public ResponseEntity<Void> resendMobileNumberConfirmationCode(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
