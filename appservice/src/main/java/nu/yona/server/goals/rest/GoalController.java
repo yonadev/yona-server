@@ -38,9 +38,12 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.rest.RestUtil;
+import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -54,6 +57,9 @@ public class GoalController extends ControllerBase
 	private UserService userService;
 
 	@Autowired
+	private BuddyService buddyService;
+
+	@Autowired
 	private GoalService goalService;
 
 	@Autowired
@@ -62,26 +68,50 @@ public class GoalController extends ControllerBase
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = false) String requestingUserIdStr,
 			@PathVariable UUID userId)
 	{
+		UUID requestingUserId = determineRequestingUserId(userId, requestingUserIdStr);
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
-			return new ResponseEntity<>(createAllGoalsCollectionResource(userId, goalService.getGoalsOfUser(userId)),
-					HttpStatus.OK);
+			Set<GoalDto> goals = (requestingUserId.equals(userId)) ? goalService.getGoalsOfUser(userId)
+					: getGoalsOfBuddyUser(requestingUserId, userId);
+			return new ResponseEntity<>(createAllGoalsCollectionResource(requestingUserId, userId, goals), HttpStatus.OK);
 		}
+	}
+
+	private Set<GoalDto> getGoalsOfBuddyUser(UUID requestingUserId, UUID userId)
+	{
+		return buddyService.getUserOfBuddy(requestingUserId, userId).getPrivateData().getGoals()
+				.orElseThrow(() -> new IllegalStateException("Goals of user " + userId + " are not available"));
 	}
 
 	@RequestMapping(value = "/{goalId}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = false) String requestingUserIdStr,
 			@PathVariable UUID userId, @PathVariable UUID goalId)
 	{
+		UUID requestingUserId = determineRequestingUserId(userId, requestingUserIdStr);
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
-			return createOkResponse(goalService.getGoalForUserId(userId, goalId), createResourceAssembler(userId));
+			GoalDto goal = (requestingUserId.equals(userId)) ? goalService.getGoalForUserId(userId, goalId)
+					: getGoalOfBuddyUser(requestingUserId, userId, goalId);
+			return createOkResponse(goal, createResourceAssembler(requestingUserId, userId));
 		}
+	}
+
+	private GoalDto getGoalOfBuddyUser(UUID requestingUserId, UUID userId, UUID goalId)
+	{
+		return getGoalsOfBuddyUser(requestingUserId, userId).stream().filter(g -> g.getGoalId().equals(goalId)).findFirst()
+				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUser(userId, goalId));
+	}
+
+	private UUID determineRequestingUserId(UUID userId, String requestingUserIdStr)
+	{
+		return (requestingUserIdStr == null) ? userId : UUID.fromString(requestingUserIdStr);
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -129,19 +159,25 @@ public class GoalController extends ControllerBase
 
 	private GoalResourceAssembler createResourceAssembler(UUID userId)
 	{
-		return new GoalResourceAssembler(userId);
+		return createResourceAssembler(userId, userId);
 	}
 
-	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID userId, Set<GoalDto> allGoalsOfUser)
+	private GoalResourceAssembler createResourceAssembler(UUID requestingUserId, UUID userId)
 	{
-		return new Resources<>(new GoalResourceAssembler(userId).toResources(allGoalsOfUser),
-				getAllGoalsLinkBuilder(userId).withSelfRel());
+		return new GoalResourceAssembler(requestingUserId, userId);
 	}
 
-	private static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID userId)
+	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
+			Set<GoalDto> allGoalsOfUser)
+	{
+		return new Resources<>(new GoalResourceAssembler(requestingUserId, userId).toResources(allGoalsOfUser),
+				getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
+	}
+
+	public static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID requestingUserId, UUID userId)
 	{
 		GoalController methodOn = methodOn(GoalController.class);
-		return linkTo(methodOn.getAllGoals(null, userId));
+		return linkTo(methodOn.getAllGoals(null, requestingUserId.toString(), userId));
 	}
 
 	private void setActivityCategoryId(GoalDto goal)
@@ -160,10 +196,10 @@ public class GoalController extends ControllerBase
 		return RestUtil.parseUuid(activityCategoryUrl.substring(activityCategoryUrl.lastIndexOf('/') + 1));
 	}
 
-	public static ControllerLinkBuilder getGoalLinkBuilder(UUID userId, UUID goalId)
+	public static ControllerLinkBuilder getGoalLinkBuilder(UUID requestingUserId, UUID userId, UUID goalId)
 	{
 		GoalController methodOn = methodOn(GoalController.class);
-		return linkTo(methodOn.getGoal(Optional.empty(), userId, goalId));
+		return linkTo(methodOn.getGoal(Optional.empty(), requestingUserId.toString(), userId, goalId));
 	}
 
 	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDto, GoalDto>
@@ -171,9 +207,9 @@ public class GoalController extends ControllerBase
 		private final boolean canBeEditable;
 		private final Function<UUID, ControllerLinkBuilder> selfLinkBuilderSupplier;
 
-		public GoalResourceAssembler(UUID userId)
+		public GoalResourceAssembler(UUID requestingUserId, UUID userId)
 		{
-			this(true, goalId -> getGoalLinkBuilder(userId, goalId));
+			this(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId));
 		}
 
 		public GoalResourceAssembler(boolean canBeEditable, Function<UUID, ControllerLinkBuilder> selfLinkBuilderSupplier)

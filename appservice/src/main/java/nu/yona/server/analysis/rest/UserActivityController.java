@@ -357,7 +357,7 @@ public class UserActivityController extends ActivityControllerBase
 		@Override
 		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalId)
 		{
-			return GoalController.getGoalLinkBuilder(userId, goalId);
+			return GoalController.getGoalLinkBuilder(userId, userId, goalId);
 		}
 
 		@Override
@@ -395,21 +395,23 @@ public class UserActivityController extends ActivityControllerBase
 
 	static class DayActivityOverviewWithBuddiesResource extends Resource<DayActivityOverviewDto<DayActivityWithBuddiesDto>>
 	{
+		private UUID requestingUserId;
 		private UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 
-		public DayActivityOverviewWithBuddiesResource(UUID requestingDeviceId, GoalIdMapping goalIdMapping,
+		public DayActivityOverviewWithBuddiesResource(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
 				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
 			super(dayActivityOverview);
+			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
 			this.goalIdMapping = goalIdMapping;
 		}
 
 		public List<DayActivityWithBuddiesResource> getDayActivities()
 		{
-			return new DayActivityWithBuddiesResourceAssembler(requestingDeviceId, goalIdMapping, getContent().getDateStr())
-					.toResources(getContent().getDayActivities());
+			return new DayActivityWithBuddiesResourceAssembler(requestingUserId, requestingDeviceId, goalIdMapping,
+					getContent().getDateStr()).toResources(getContent().getDayActivities());
 		}
 	}
 
@@ -441,7 +443,7 @@ public class UserActivityController extends ActivityControllerBase
 		protected DayActivityOverviewWithBuddiesResource instantiateResource(
 				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
-			return new DayActivityOverviewWithBuddiesResource(requestingDeviceId, goalIdMapping, dayActivityOverview);
+			return new DayActivityOverviewWithBuddiesResource(userId, requestingDeviceId, goalIdMapping, dayActivityOverview);
 		}
 
 		private void addSelfLink(Resource<DayActivityOverviewDto<DayActivityWithBuddiesDto>> resource)
@@ -454,14 +456,16 @@ public class UserActivityController extends ActivityControllerBase
 
 	static class DayActivityWithBuddiesResource extends Resource<DayActivityWithBuddiesDto>
 	{
+		private UUID requestingUserId;
 		private UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
 
-		public DayActivityWithBuddiesResource(UUID requestingDeviceId, GoalIdMapping goalIdMapping, String dateStr,
-				DayActivityWithBuddiesDto dayActivity)
+		public DayActivityWithBuddiesResource(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
+				String dateStr, DayActivityWithBuddiesDto dayActivity)
 		{
 			super(dayActivity);
+			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
 			this.goalIdMapping = goalIdMapping;
 			this.dateStr = dateStr;
@@ -469,7 +473,7 @@ public class UserActivityController extends ActivityControllerBase
 
 		public List<ActivityForOneUserResource> getDayActivitiesForUsers()
 		{
-			return new ActivityForOneUserResourceAssembler(requestingDeviceId, goalIdMapping, dateStr)
+			return new ActivityForOneUserResourceAssembler(requestingUserId, requestingDeviceId, goalIdMapping, dateStr)
 					.toResources(getContent().getDayActivitiesForUsers());
 		}
 	}
@@ -477,13 +481,16 @@ public class UserActivityController extends ActivityControllerBase
 	static class DayActivityWithBuddiesResourceAssembler
 			extends ResourceAssemblerSupport<DayActivityWithBuddiesDto, DayActivityWithBuddiesResource>
 	{
+		private UUID requestingUserId;
 		private UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
 
-		public DayActivityWithBuddiesResourceAssembler(UUID requestingDeviceId, GoalIdMapping goalIdMapping, String dateStr)
+		public DayActivityWithBuddiesResourceAssembler(UUID requestingUserId, UUID requestingDeviceId,
+				GoalIdMapping goalIdMapping, String dateStr)
 		{
 			super(ActivityControllerBase.class, DayActivityWithBuddiesResource.class);
+			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
 			this.goalIdMapping = goalIdMapping;
 			this.dateStr = dateStr;
@@ -500,7 +507,7 @@ public class UserActivityController extends ActivityControllerBase
 		@Override
 		protected DayActivityWithBuddiesResource instantiateResource(DayActivityWithBuddiesDto dayActivity)
 		{
-			return new DayActivityWithBuddiesResource(requestingDeviceId, goalIdMapping, dateStr, dayActivity);
+			return new DayActivityWithBuddiesResource(requestingUserId, requestingDeviceId, goalIdMapping, dateStr, dayActivity);
 		}
 
 		private void addActivityCategoryLink(DayActivityWithBuddiesResource dayActivityResource)
@@ -524,11 +531,14 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
+		private UUID requestingUserId;
 		private UUID requestingDeviceId;
 
-		public ActivityForOneUserResourceAssembler(UUID requestingDeviceId, GoalIdMapping goalIdMapping, String dateStr)
+		public ActivityForOneUserResourceAssembler(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
+				String dateStr)
 		{
 			super(ActivityControllerBase.class, ActivityForOneUserResource.class);
+			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
 			this.goalIdMapping = goalIdMapping;
 			this.dateStr = dateStr;
@@ -540,19 +550,20 @@ public class UserActivityController extends ActivityControllerBase
 			ActivityForOneUserResource dayActivityResource = instantiateResource(dayActivity);
 
 			UUID goalId = dayActivity.getGoalId();
-			UUID userId = goalIdMapping.getUserId();
+			UUID requestingUserId = goalIdMapping.getUserId();
 			if (goalIdMapping.isUserGoal(goalId))
 			{
-				addGoalLinkForUser(userId, goalId, dayActivityResource);
-				addDayDetailsLinkForUser(userId, goalId, dayActivityResource);
-				addUserLink(userId, requestingDeviceId, dayActivityResource);
+				addGoalLinkForUser(requestingUserId, goalId, dayActivityResource);
+				addDayDetailsLinkForUser(requestingUserId, goalId, dayActivityResource);
+				addUserLink(requestingUserId, requestingDeviceId, dayActivityResource);
 			}
 			else
 			{
 				UUID buddyId = goalIdMapping.getBuddyId(goalId);
-				addGoalLinkForBuddy(userId, buddyId, goalId, dayActivityResource);
-				addDayDetailsLinkForBuddy(userId, buddyId, goalId, dayActivityResource);
-				addBuddyLink(userId, buddyId, dayActivityResource);
+				UUID userId = goalIdMapping.getBuddyUserId(buddyId);
+				addGoalLinkForBuddy(requestingUserId, userId, goalId, dayActivityResource);
+				addDayDetailsLinkForBuddy(requestingUserId, buddyId, goalId, dayActivityResource);
+				addBuddyLink(requestingUserId, buddyId, dayActivityResource);
 			}
 			return dayActivityResource;
 		}
@@ -565,7 +576,7 @@ public class UserActivityController extends ActivityControllerBase
 
 		private void addGoalLinkForUser(UUID userId, UUID goalId, ActivityForOneUserResource dayActivityResource)
 		{
-			dayActivityResource.add(GoalController.getGoalLinkBuilder(userId, goalId).withRel("goal"));
+			dayActivityResource.add(GoalController.getGoalLinkBuilder(requestingUserId, userId, goalId).withRel("goal"));
 		}
 
 		private void addDayDetailsLinkForUser(UUID userId, UUID goalId, ActivityForOneUserResource dayActivityResource)

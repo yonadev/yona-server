@@ -18,12 +18,15 @@ public class GoalIdMapping
 	private final UserDto user;
 	private final Set<UUID> userGoalIds;
 	private final Map<UUID, UUID> goalIdToBuddyIdmapping;
+	private final Map<UUID, UUID> buddyIdToUserIdmapping;
 
-	private GoalIdMapping(UserDto user, Set<UUID> userGoalIds, Map<UUID, UUID> goalIdToBuddyIdmapping)
+	private GoalIdMapping(UserDto user, Set<UUID> userGoalIds, Map<UUID, UUID> goalIdToBuddyIdmapping,
+			Map<UUID, UUID> buddyIdToUserIdmapping)
 	{
 		this.user = user;
 		this.userGoalIds = userGoalIds;
 		this.goalIdToBuddyIdmapping = goalIdToBuddyIdmapping;
+		this.buddyIdToUserIdmapping = buddyIdToUserIdmapping;
 	}
 
 	public UserDto getUser()
@@ -34,6 +37,16 @@ public class GoalIdMapping
 	public UUID getUserId()
 	{
 		return user.getId();
+	}
+
+	public UUID getBuddyUserId(UUID buddyId)
+	{
+		UUID uuid = buddyIdToUserIdmapping.get(buddyId);
+		if (uuid == null)
+		{
+			throw new IllegalArgumentException("Buddy " + buddyId + " not found");
+		}
+		return uuid;
 	}
 
 	public boolean isUserGoal(UUID goalId)
@@ -58,6 +71,8 @@ public class GoalIdMapping
 		Map<UUID, UUID> goalIdToBuddyIdmapping = new HashMap<>();
 		user.getOwnPrivateData().getBuddies().forEach(b -> b.getGoals().orElse(Collections.emptySet())
 				.forEach(g -> goalIdToBuddyIdmapping.put(g.getGoalId(), b.getId())));
-		return new GoalIdMapping(user, userGoalIds, goalIdToBuddyIdmapping);
+		Map<UUID, UUID> buddyIdToUserIdmapping = new HashMap<>();
+		user.getOwnPrivateData().getBuddies().forEach(b -> buddyIdToUserIdmapping.put(b.getId(), b.getUser().getId()));
+		return new GoalIdMapping(user, userGoalIds, goalIdToBuddyIdmapping, buddyIdToUserIdmapping);
 	}
 }

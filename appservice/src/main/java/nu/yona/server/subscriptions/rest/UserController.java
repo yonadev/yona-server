@@ -89,7 +89,7 @@ import nu.yona.server.util.Require;
 @RequestMapping(value = "/users", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class UserController extends ControllerBase
 {
-	private static final String REQUESTING_USER_ID_PARAM = "requestingUserId";
+	public static final String REQUESTING_USER_ID_PARAM = "requestingUserId";
 	public static final String REQUESTING_DEVICE_ID_PARAM = "requestingDeviceId";
 	private static final String INCLUDE_PRIVATE_DATA_PARAM = "includePrivateData";
 	private static final String TEMP_PASSWORD_PARAM = "tempPassword";
@@ -548,14 +548,16 @@ public class UserController extends ControllerBase
 		private final CurieProvider curieProvider;
 		private static String sslRootCertificateCn; // YD-544
 		private UserResourceRepresentation representation;
+		private Optional<UUID> requestingUserId;
 		private Optional<UUID> requestingDeviceId;
 
 		public UserResource(CurieProvider curieProvider, UserResourceRepresentation representation, UserDto user,
-				Optional<UUID> requestingDeviceId)
+				Optional<UUID> requestingUserId, Optional<UUID> requestingDeviceId)
 		{
 			super(user);
 			this.curieProvider = curieProvider;
 			this.representation = representation;
+			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
 		}
 
@@ -590,7 +592,7 @@ public class UserController extends ControllerBase
 
 				Optional<Set<GoalDto>> goals = getContent().getPrivateData().getGoals();
 				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
-						GoalController.createAllGoalsCollectionResource(userId, g)));
+						GoalController.createAllGoalsCollectionResource(requestingUserId.orElse(userId), userId, g)));
 			}
 			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{
@@ -743,7 +745,7 @@ public class UserController extends ControllerBase
 		@Override
 		protected UserResource instantiateResource(UserDto user)
 		{
-			return new UserResource(curieProvider, representation, user, requestingDeviceId);
+			return new UserResource(curieProvider, representation, user, requestingUserId, requestingDeviceId);
 		}
 
 		private void addSelfLink(Resource<UserDto> userResource)
