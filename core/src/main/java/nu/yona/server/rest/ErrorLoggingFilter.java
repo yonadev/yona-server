@@ -113,7 +113,8 @@ public class ErrorLoggingFilter implements Filter
 		{
 			throw new IllegalStateException("Status " + responseStatus + " is not supported");
 		}
-		logMethod.log("Status {} returned from {}", response.getStatus(), GlobalExceptionMapping.buildRequestInfo(request));
+		logMethod.log("Status {} returned from {} (request content length: {})", response.getStatus(),
+				GlobalExceptionMapping.buildRequestInfo(request), request.getContentLength());
 	}
 
 	@Override
