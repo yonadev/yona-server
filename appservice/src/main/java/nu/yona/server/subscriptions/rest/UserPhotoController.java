@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -26,11 +26,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -63,20 +65,21 @@ public class UserPhotoController extends ControllerBase
 	@Autowired
 	private GlobalExceptionMapping globalExceptionMapping;
 
-	@RequestMapping(value = "/userPhotos/{userPhotoId}", method = RequestMethod.GET, produces = { MediaType.IMAGE_PNG_VALUE })
+	@GetMapping(value = "/userPhotos/{userPhotoId}", produces = { MediaType.IMAGE_PNG_VALUE })
 	@ResponseBody
 	public ResponseEntity<byte[]> getUserPhoto(@PathVariable UUID userPhotoId)
 	{
 		return new ResponseEntity<>(userPhotoService.getUserPhoto(userPhotoId).getPngBytes(), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/users/{userId}/photo", method = RequestMethod.PUT, consumes = "multipart/form-data")
+	@PutMapping(value = "/users/{userId}/photo", consumes = "multipart/form-data")
 	@ResponseBody
 	public ResponseEntity<UserPhotoResource> uploadUserPhoto(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "file", required = false) MultipartFile userPhoto, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(userPhotoService.addUserPhoto(userId, UserPhotoDto.createInstance(getPngBytes(userPhoto))),
 					new UserPhotoResourceAssembler());
@@ -91,12 +94,13 @@ public class UserPhotoController extends ControllerBase
 		return globalExceptionMapping.handleOtherException(exception, request);
 	}
 
-	@RequestMapping(value = "/users/{userId}/photo", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/users/{userId}/photo")
 	@ResponseStatus(HttpStatus.OK)
 	public void removeUserPhoto(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userPhotoService.removeUserPhoto(userId);
 		}

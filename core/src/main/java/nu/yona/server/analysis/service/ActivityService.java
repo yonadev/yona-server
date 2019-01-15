@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -102,16 +102,15 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<WeekActivityOverviewDto> getBuddyWeekActivityOverviews(UUID buddyId, Pageable pageable)
+	public Page<WeekActivityOverviewDto> getBuddyWeekActivityOverviews(BuddyDto buddy, Pageable pageable)
 	{
-		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityOverviews(getBuddyUserAnonymizedId(buddyId), pageable, mia));
+		return executeAndCreateInactivityEntries(mia -> getWeekActivityOverviews(getBuddyUserAnonymizedId(buddy), pageable, mia));
 	}
 
 	@Transactional
-	public WeekActivityOverviewDto getBuddyWeekActivityOverview(UUID buddyId, LocalDate date)
+	public WeekActivityOverviewDto getBuddyWeekActivityOverview(BuddyDto buddy, LocalDate date)
 	{
-		return executeAndCreateInactivityEntries(mia -> getWeekActivityOverview(getBuddyUserAnonymizedId(buddyId), date, mia));
+		return executeAndCreateInactivityEntries(mia -> getWeekActivityOverview(getBuddyUserAnonymizedId(buddy), date, mia));
 	}
 
 	private <T> T executeAndCreateInactivityEntries(Function<Set<IntervalInactivityDto>, T> executor)
@@ -319,21 +318,15 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<DayActivityOverviewDto<DayActivityDto>> getBuddyDayActivityOverviews(UUID buddyId, Pageable pageable)
+	public Page<DayActivityOverviewDto<DayActivityDto>> getBuddyDayActivityOverviews(BuddyDto buddy, Pageable pageable)
 	{
-		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityOverviews(getBuddyUserAnonymizedId(buddyId), pageable, mia));
+		return executeAndCreateInactivityEntries(mia -> getDayActivityOverviews(getBuddyUserAnonymizedId(buddy), pageable, mia));
 	}
 
 	@Transactional
-	public DayActivityOverviewDto<DayActivityDto> getBuddyDayActivityOverview(UUID buddyId, LocalDate date)
+	public DayActivityOverviewDto<DayActivityDto> getBuddyDayActivityOverview(BuddyDto buddy, LocalDate date)
 	{
-		return executeAndCreateInactivityEntries(mia -> getDayActivityOverview(getBuddyUserAnonymizedId(buddyId), date, mia));
-	}
-
-	private UUID getBuddyUserAnonymizedId(UUID buddyId)
-	{
-		return getBuddyUserAnonymizedId(buddyService.getBuddy(buddyId));
+		return executeAndCreateInactivityEntries(mia -> getDayActivityOverview(getBuddyUserAnonymizedId(buddy), date, mia));
 	}
 
 	private UUID getBuddyUserAnonymizedId(BuddyDto buddy)
@@ -538,9 +531,8 @@ public class ActivityService
 	}
 
 	@Transactional
-	public WeekActivityDto getBuddyWeekActivityDetail(UUID buddyId, LocalDate date, UUID goalId)
+	public WeekActivityDto getBuddyWeekActivityDetail(BuddyDto buddy, LocalDate date, UUID goalId)
 	{
-		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		return executeAndCreateInactivityEntries(
 				mia -> getWeekActivityDetail(buddy.getUser().getId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
 	}
@@ -572,10 +564,9 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<MessageDto> getBuddyWeekActivityDetailMessages(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
+	public Page<MessageDto> getBuddyWeekActivityDetailMessages(UUID userId, BuddyDto buddy, LocalDate date, UUID goalId,
 			Pageable pageable)
 	{
-		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		Supplier<IntervalActivity> activitySupplier = () -> weekActivityRepository.findOne(getBuddyUserAnonymizedId(buddy), date,
 				goalId);
 		return getActivityDetailMessages(userId, activitySupplier, pageable);
@@ -589,9 +580,8 @@ public class ActivityService
 	}
 
 	@Transactional
-	public DayActivityDto getBuddyDayActivityDetail(UUID buddyId, LocalDate date, UUID goalId)
+	public DayActivityDto getBuddyDayActivityDetail(BuddyDto buddy, LocalDate date, UUID goalId)
 	{
-		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		return executeAndCreateInactivityEntries(
 				mia -> getDayActivityDetail(buddy.getUser().getId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
 	}
@@ -619,10 +609,9 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<MessageDto> getBuddyDayActivityDetailMessages(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
+	public Page<MessageDto> getBuddyDayActivityDetailMessages(UUID userId, BuddyDto buddy, LocalDate date, UUID goalId,
 			Pageable pageable)
 	{
-		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(getBuddyUserAnonymizedId(buddy), date,
 				goalId);
 		return getActivityDetailMessages(userId, activitySupplier, pageable);

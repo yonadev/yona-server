@@ -236,23 +236,40 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
-		def buddiesRichard = appService.getBuddies(richard)
-		def buddiesBob = appService.getBuddies(bob)
+		Buddy[] buddiesRichard = appService.getBuddies(richard)
+		Buddy[] buddiesBob = appService.getBuddies(bob)
 
 		then:
-		buddiesRichard[0].goals.size() == 2
+		buddiesRichard[0].goals.size() == 2 // YD-505
 		buddiesRichard[0].user.goals.size() == 2
 		buddiesRichard[0].user.devices.size() == 1
-		buddiesBob[0].goals.size() == 2
+		buddiesBob[0].goals.size() == 2 // YD-505
 		buddiesBob[0].user.goals.size() == 2
 		buddiesBob[0].user.devices.size() == 1
 
-		buddiesRichard[0].goals.each
+		def bobGoalUrls = bob.goals.collect { YonaServer.stripQueryString(it.url) }
+		def richardBuddyGoalUrls = buddiesRichard[0].goals.collect { YonaServer.stripQueryString(it.url) } // YD-505
+		def richardBuddyUserGoalUrls = buddiesRichard[0].user.goals.collect { YonaServer.stripQueryString(it.url) }
+
+		assert bobGoalUrls == richardBuddyGoalUrls // YD-505
+		assert bobGoalUrls == richardBuddyUserGoalUrls
+
+		buddiesRichard[0].goals.each // YD-505
 		{
 			assertResponseStatusOk(appService.yonaServer.getResource(it.url, ["Yona-Password": richard.password]))
 		}
 
-		buddiesBob[0].goals.each
+		buddiesRichard[0].user.goals.each
+		{
+			assertResponseStatusOk(appService.yonaServer.getResource(it.url, ["Yona-Password": richard.password]))
+		}
+
+		buddiesBob[0].goals.each // YD-505
+		{
+			assertResponseStatusOk(appService.yonaServer.getResource(it.url, ["Yona-Password": bob.password]))
+		}
+
+		buddiesBob[0].user.goals.each
 		{
 			assertResponseStatusOk(appService.yonaServer.getResource(it.url, ["Yona-Password": bob.password]))
 		}

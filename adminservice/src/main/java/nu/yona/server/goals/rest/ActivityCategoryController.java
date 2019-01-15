@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.rest;
@@ -20,10 +20,13 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -42,7 +45,7 @@ public class ActivityCategoryController extends ControllerBase
 	@Autowired
 	private ActivityCategoryService activityCategoryService;
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	@GetMapping(value = "/{id}")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
@@ -50,7 +53,7 @@ public class ActivityCategoryController extends ControllerBase
 		return createOkResponse(activityCategoryService.getActivityCategory(id), createResourceAssembler());
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
@@ -59,7 +62,7 @@ public class ActivityCategoryController extends ControllerBase
 				getAllActivityCategoriesLinkBuilder());
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@PostMapping(value = "/")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<ActivityCategoryResource> addActivityCategory(@RequestBody ActivityCategoryDto activityCategory)
@@ -68,7 +71,7 @@ public class ActivityCategoryController extends ControllerBase
 		return createOkResponse(activityCategoryService.addActivityCategory(activityCategory), createResourceAssembler());
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	@PutMapping(value = "/{id}")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<ActivityCategoryResource> updateActivityCategory(@PathVariable UUID id,
@@ -77,7 +80,7 @@ public class ActivityCategoryController extends ControllerBase
 		return createOkResponse(activityCategoryService.updateActivityCategory(id, activityCategory), createResourceAssembler());
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.PUT)
+	@PutMapping(value = "/")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> updateActivityCategorySet(
@@ -88,7 +91,7 @@ public class ActivityCategoryController extends ControllerBase
 				getAllActivityCategoriesLinkBuilder());
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/{id}")
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteActivityCategory(@PathVariable UUID id)
 	{

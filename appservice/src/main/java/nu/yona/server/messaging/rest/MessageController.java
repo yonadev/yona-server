@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.rest;
@@ -32,11 +32,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -93,7 +95,7 @@ public class MessageController extends ControllerBase
 	@Autowired
 	private BuddyActivityController buddyActivityController;
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDto>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
@@ -116,7 +118,7 @@ public class MessageController extends ControllerBase
 		return createOkResponse(user, messages, pagedResourcesAssembler);
 	}
 
-	@RequestMapping(value = "/{messageId}", method = RequestMethod.GET)
+	@GetMapping(value = "/{messageId}")
 	@ResponseBody
 	public HttpEntity<MessageDto> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable long messageId)
@@ -145,7 +147,7 @@ public class MessageController extends ControllerBase
 		return createOkResponse(messages, pagedResourcesAssembler, createResourceAssembler(createGoalIdMapping(user)));
 	}
 
-	@RequestMapping(value = "/{id}/{action}", method = RequestMethod.POST)
+	@PostMapping(value = "/{id}/{action}")
 	@ResponseBody
 	public HttpEntity<MessageActionResource> handleAnonymousMessageAction(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable long id,
@@ -161,7 +163,7 @@ public class MessageController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{messageId}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/{messageId}")
 	@ResponseBody
 	public HttpEntity<MessageActionResource> deleteAnonymousMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,

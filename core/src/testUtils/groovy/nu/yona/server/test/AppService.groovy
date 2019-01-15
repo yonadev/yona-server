@@ -381,7 +381,7 @@ class AppService extends Service
 	}
 
 	def getDayDetails(User user, String activityCategoryUrl, ZonedDateTime date) {
-		def goal = user.findActiveGoal(activityCategoryUrl)
+		Goal goal = user.findActiveGoal(activityCategoryUrl)
 		def url = YonaServer.stripQueryString(user.url) + "/activity/days/" + YonaServer.toIsoDateString(date) + "/details/" + goal.getId()
 		getResourceWithPassword(url, user.password)
 	}

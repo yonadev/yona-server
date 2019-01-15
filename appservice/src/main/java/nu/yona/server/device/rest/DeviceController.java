@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.rest;
@@ -39,11 +39,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -129,7 +132,7 @@ public class DeviceController extends ControllerBase
 		ERROR, WARNING
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<Resources<DeviceResource>> getAllDevices(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId,
@@ -144,7 +147,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{deviceId}", method = RequestMethod.GET)
+	@GetMapping(value = "/{deviceId}")
 	@ResponseBody
 	public HttpEntity<DeviceResource> getDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId,
@@ -158,7 +161,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@PostMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<UserResource> registerDevice(
 			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) String newDeviceRequestPassword,
@@ -176,7 +179,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{deviceId}/openApp", method = RequestMethod.POST)
+	@PostMapping(value = "/{deviceId}/openApp")
 	@ResponseBody
 	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppOpenEventDto request)
@@ -209,7 +212,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{deviceId}/apple.mobileconfig", method = RequestMethod.GET)
+	@GetMapping(value = "/{deviceId}/apple.mobileconfig")
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleMobileConfig(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -243,7 +246,7 @@ public class DeviceController extends ControllerBase
 		return unsignedMobileconfig;
 	}
 
-	@RequestMapping(value = "/{deviceId}", method = RequestMethod.PUT)
+	@PutMapping(value = "/{deviceId}")
 	@ResponseBody
 	public HttpEntity<DeviceResource> updateDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId,
@@ -258,7 +261,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{deviceId}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/{deviceId}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
@@ -278,7 +281,7 @@ public class DeviceController extends ControllerBase
 	 * @param appActivities Because it may be that multiple app activities may have taken place during the time the network is
 	 * down, accept an array of activities.
 	 */
-	@RequestMapping(value = "/{deviceId}/appActivity/", method = RequestMethod.POST)
+	@PostMapping(value = "/{deviceId}/appActivity/")
 	@ResponseBody
 	public ResponseEntity<Void> addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppActivitiesDto appActivities)
@@ -348,7 +351,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{deviceId}/vpnStatus/", method = RequestMethod.POST)
+	@PostMapping(value = "/{deviceId}/vpnStatus/")
 	@ResponseBody
 	public ResponseEntity<Void> postVpnStatusChangeEvent(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody VpnStatusDto vpnStatus)

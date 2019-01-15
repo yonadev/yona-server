@@ -158,7 +158,7 @@ class User
 		return url[queryStringStart-36..queryStringStart-1]
 	}
 
-	def findActiveGoal(def activityCategoryUrl)
+	Goal findActiveGoal(def activityCategoryUrl)
 	{
 		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
