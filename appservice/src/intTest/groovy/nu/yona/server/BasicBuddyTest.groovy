@@ -429,7 +429,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def dayActivityDetailBob = appService.getResourceWithPassword(dayActivityDetailUrlBob, bob.password)
 		assertResponseStatusOk(dayActivityDetailBob)
 		dayActivityDetailBob.responseData.date == YonaServer.toIsoDateString(goalConflictTime)
-		dayActivityDetailBob.responseData._links."yona:goal".href.startsWith(goalBob.url)
+		dayActivityDetailBob.responseData._links."yona:goal".href == goalBob.url
 		dayActivityDetailBob.responseData.totalMinutesBeyondGoal == 1
 
 		cleanup:
