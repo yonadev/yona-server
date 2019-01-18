@@ -240,6 +240,12 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		Buddy[] buddiesBob = appService.getBuddies(bob)
 
 		then:
+		def getBuddyUserGoalsResponse = appService.yonaServer.getResource(richard.buddies[0].user.goalsUrl, ["Yona-Password": richard.password])
+		assertResponseStatusOk(getBuddyUserGoalsResponse)
+		getBuddyUserGoalsResponse.responseData._embedded."yona:goals".size() == 2
+
+		richard.buddies[0].user.goalsUrl == richard.buddies[0].goalsUrl // YD-505
+
 		buddiesRichard[0].goals.size() == 2 // YD-505
 		buddiesRichard[0].user.goals.size() == 2
 		buddiesRichard[0].user.devices.size() == 1
