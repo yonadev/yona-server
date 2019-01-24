@@ -989,47 +989,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/buddies/{buddyID}/goals/':
-    get:
-      summary: Get all goals
-      description: Fetches all goals of the buddy with the given ID
-      parameters:
-        - $ref: "#/parameters/yonaPassword"
-        - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/buddyID"
-      tags:
-        - Buddy
-      responses:
-        '200':
-          description: All goals of this user.
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Goal'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  '/users/{userID}/buddies/{buddyID}/goals/{goalID}':
-    get:
-      summary: Get a goal
-      description: Fetches the goal identified by the given ID
-      parameters:
-        - $ref: "#/parameters/yonaPassword"
-        - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/buddyID"
-        - $ref: "#/parameters/goalID"
-      tags:
-        - Buddy
-      responses:
-        '200':
-          description: The requested goal.
-          schema:
-            $ref: '#/definitions/Goal'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
   '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}':
     get:
       summary: Get day activity detail
