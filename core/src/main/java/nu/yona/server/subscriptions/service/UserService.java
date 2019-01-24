@@ -402,7 +402,7 @@ public class UserService
 		int maxUsers = yonaProperties.getMaxUsers();
 		long currentNumberOfUsers = userRepository.count();
 		Require.that(currentNumberOfUsers < maxUsers, UserServiceException::maximumNumberOfUsersReached);
-		if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
+		if (currentNumberOfUsers >= maxUsers - 100)
 		{
 			logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers, maxUsers);
 		}
