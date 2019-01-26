@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -114,7 +114,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
-		assertResponseStatus(response, 400)
+		assertResponseStatus(response, 413)
 		response.responseData.code == null // As the app should take care for uploading a resized photo, this is not a user error, so it does not need to have a code
 
 		cleanup:
