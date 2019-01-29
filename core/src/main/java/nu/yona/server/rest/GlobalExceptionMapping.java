@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
@@ -129,6 +130,21 @@ public class GlobalExceptionMapping
 			HttpServletRequest request)
 	{
 		return logUnhandledExceptionAndCreateErrorDto("does not accept our supported media types", exception, request);
+	}
+
+	/**
+	 * Maximum upload size exceeded. Such requests result in a 413 (Payload Too Large).
+	 * 
+	 * @param exception The exception.
+	 * @return The response object to return.
+	 */
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	@ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+	@ResponseBody
+	public ErrorResponseDto handleMaxUploadSizeExceededException(MaxUploadSizeExceededException exception,
+			HttpServletRequest request)
+	{
+		return logUnhandledExceptionAndCreateErrorDto("exceeds the maximum request size", exception, request);
 	}
 
 	private ErrorResponseDto logUnhandledExceptionAndCreateErrorDto(String message, Exception exception,
