@@ -7,10 +7,6 @@ import com.bmuschko.gradle.docker.tasks.image.*
 
 def dockerImageName = "${project.group}/yona-mariadb-liquibase-update"
 
-jar {
-	baseName = "dbinit"
-}
-
 release {
 	failOnCommitNeeded = true
 	tagTemplate = "adminservice-${version}"
@@ -54,28 +50,4 @@ task buildDockerImage(type: DockerBuildImage) {
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 	imageName = dockerImageName
 	tag = project.ext.docker_tag
-}
-
-task pathingJar(type: Jar) {
-	dependsOn configurations.runtime
-	appendix = 'pathing'
-	doFirst {
-		manifest {
-			attributes "Class-Path": configurations.runtime.files.collect {
-				it.toURL().toString().replaceFirst(/file:\/+/, '/')
-			}.join(' ')
-		}
-	}
-}
-
-bootRun {
-	dependsOn pathingJar
-	doFirst {
-		classpath = files(sourceSets.main.output.files, pathingJar.archivePath)
-	}
-	enableAssertions = true
-}
-
-bootJar {
-	classifier = "full"
 }
