@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -29,6 +29,9 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		then:
 		testUser(john, true, false, ts)
 		def baseUserUrl = YonaServer.stripQueryString(john.url)
+		// The below asserts checks returned URLs match the request URL. This is important when going through a proxy
+		baseUserUrl.startsWith(appService.url)
+
 		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
 		john.mobileNumberConfirmationUrl == baseUserUrl + "/confirmMobileNumber?requestingDeviceId=" + john.getRequestingDeviceId()
 		john.resendMobileNumberConfirmationCodeUrl == baseUserUrl + "/resendMobileNumberConfirmationCode"
