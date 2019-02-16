@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -75,7 +76,7 @@ public class BuddyDto
 			LocalDateTime lastStatusChangeTime, Optional<Set<GoalDto>> goals)
 	{
 		this.id = id;
-		this.user = user;
+		this.user = Objects.requireNonNull(user);
 		this.personalInvitationMessage = personalInvitationMessage;
 		this.nickname = nickname;
 		this.userAnonymizedId = userAnonymizedId;

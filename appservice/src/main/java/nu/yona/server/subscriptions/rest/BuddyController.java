@@ -8,7 +8,6 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -239,11 +238,6 @@ public class BuddyController extends ControllerBase
 		@JsonProperty("_embedded")
 		public Map<String, Object> getEmbeddedResources()
 		{
-			if (getContent().getUser() == null)
-			{
-				return Collections.emptyMap();
-			}
-
 			HashMap<String, Object> result = new HashMap<>();
 			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), UserController.UserResourceAssembler
 					.createInstanceForBuddy(curieProvider, userId).toResource(getContent().getUser()));

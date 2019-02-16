@@ -67,7 +67,7 @@ pipeline {
 		stage('Run integration tests') {
 			agent { label 'yona' }
 			steps {
-				sh './gradlew -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=http://build.dev.yona.nu:31002 -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest'
+				sh './gradlew -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest'
 			}
 			post {
 				always {
