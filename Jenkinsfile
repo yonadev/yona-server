@@ -71,7 +71,7 @@ pipeline {
 			}
 			post {
 				always {
-					junit '**/build/test-results/*/*.xml'
+					junit testResults: '**/build/test-results/*/*.xml', keepLongStdio: true
 				}
 				success {
 					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} passed all tests on build ${env.BUILD_NUMBER_TO_DEPLOY}"
