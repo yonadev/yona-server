@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -24,6 +24,7 @@ import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 
@@ -99,7 +100,7 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@Component
-	private static class Manager extends BuddyMessageDto.Manager
+	static class Manager extends BuddyMessageDto.Manager
 	{
 		@Autowired
 		private TheDtoManager theDtoFactory;
@@ -177,16 +178,13 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		private void sendResponseMessageToRequestingUser(UserDto respondingUser, DisclosureRequestMessage requestMessageEntity,
 				String message)
 		{
-			MessageDestinationDto messageDestination = userAnonymizedService.getUserAnonymized(requestMessageEntity
-					.getRelatedUserAnonymizedId()
-					.orElseThrow(() -> new IllegalStateException(
-							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")))
-					.getAnonymousDestination();
-			assert messageDestination != null;
-			messageService.sendMessageAndFlushToDatabase(DisclosureResponseMessage.createInstance(respondingUser.getId(),
-					respondingUser.getPrivateData().getUserAnonymizedId(), requestMessageEntity.getTargetGoalConflictMessage(),
-					requestMessageEntity.getStatus(), respondingUser.getPrivateData().getNickname(), message),
-					messageDestination);
+			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(
+					requestMessageEntity.getRelatedUserAnonymizedId().orElseThrow(() -> new IllegalStateException(
+							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")));
+			messageService.sendMessageAndFlushToDatabase(
+					DisclosureResponseMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
+							requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
+					toUser);
 		}
 	}
 }

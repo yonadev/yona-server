@@ -155,7 +155,7 @@ data:
             <string>DEFAULT</string>
           </dict>
           <key>VPNSubType</key>
-          <string>net.openvpn.OpenVPN-Connect.vpnplugin</string>
+          <string>net.openvpn.connect.app</string>
           <key>VPNType</key>
           <string>VPN</string>
           <key>VendorConfig</key>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -21,6 +21,11 @@ public class DayActivityTest extends IntervalActivityTestBase
 		return createDayActivity(budgetGoal);
 	}
 
+	private DayActivity createDayActivity(ZonedDateTime dateTime)
+	{
+		return createDayActivity(dateTime, budgetGoal);
+	}
+
 	private DayActivity createDayActivityTimeZoneGoal()
 	{
 		return createDayActivity(timeZoneGoal);
@@ -29,8 +34,12 @@ public class DayActivityTest extends IntervalActivityTestBase
 	private DayActivity createDayActivity(Goal goal)
 	{
 		// pick a fixed test date 28 Feb 2017
-		return DayActivity.createInstance(userAnonEntity, goal, testZone,
-				ZonedDateTime.of(2017, 2, 28, 0, 0, 0, 0, testZone).toLocalDate());
+		return createDayActivity(ZonedDateTime.of(2017, 2, 28, 0, 0, 0, 0, testZone), goal);
+	}
+
+	private DayActivity createDayActivity(ZonedDateTime dateTime, Goal goal)
+	{
+		return DayActivity.createInstance(userAnonEntity, goal, testZone, dateTime.toLocalDate());
 	}
 
 	private WeekActivity createWeekActivity()
@@ -47,6 +56,52 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
+	public void getSpread_beforeTransitionIntoDst_noCorrectionApplied()
+	{
+		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, testZone));
+		addActivity(d, "01:05:00", "01:07:00");
+
+		assertSpreadItems(d.getSpread(), "3=0,4=2,5=0");
+	}
+
+	@Test
+	public void getSpread_duringTransitionIntoDst_negativeCorrectionApplied()
+	{
+		// This is a hypothetical situation, as the clock jumps from 2:00 to 3:00
+		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, testZone));
+		addActivity(d, "02:05:00", "02:07:00");
+
+		assertSpreadItems(d.getSpread(), "11=0,12=2,13=0");
+	}
+
+	@Test
+	public void getSpread_afterTransitionIntoDst_negativeCorrectionApplied()
+	{
+		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, testZone));
+		addActivity(d, "03:05:00", "03:07:00");
+
+		assertSpreadItems(d.getSpread(), "11=0,12=2,13=0");
+	}
+
+	@Test
+	public void getSpread_beforeTransitionOutOfDst_noCorrectionApplied()
+	{
+		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 10, 28, 0, 0, 0, 0, testZone));
+		addActivity(d, "01:05:00", "01:07:00");
+
+		assertSpreadItems(d.getSpread(), "3=0,4=2,5=0");
+	}
+
+	@Test
+	public void getSpread_afterTransitionOutOfDst_positiveCorrectionApplied()
+	{
+		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 10, 28, 0, 0, 0, 0, testZone));
+		addActivity(d, "04:05:00", "04:07:00");
+
+		assertSpreadItems(d.getSpread(), "15=0,16=2,17=0");
+	}
+
+	@Test
 	public void getSpreadGetTotalActivityDurationMinutes_lessThanAMinute_ignored()
 	{
 		DayActivity d = createDayActivity();
@@ -59,7 +114,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	public void getSpreadGetTotalActivityDurationMinutes_endOfDayIncluded_includesEndOfDay()
 	{
 		DayActivity d = createDayActivity();
-		d.addActivity(Activity.createInstance(testZone, getTimeOnDay(d, "23:50").toLocalDateTime(),
+		d.addActivity(Activity.createInstance(deviceAnonEntity, testZone, getTimeOnDay(d, "23:50").toLocalDateTime(),
 				d.getStartTime().plusDays(1).toLocalDateTime(), Optional.empty()));
 
 		assertSpreadItemsAndTotal(d, "95=10", 10);

@@ -15,10 +15,9 @@ import org.springframework.ldap.odm.annotations.Attribute;
 import org.springframework.ldap.odm.annotations.DnAttribute;
 import org.springframework.ldap.odm.annotations.Entry;
 import org.springframework.ldap.odm.annotations.Id;
-import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import nu.yona.server.crypto.CryptoUtil;
 
 @Service
 public class LDAPUserService
@@ -82,6 +81,8 @@ public class LDAPUserService
 	@Entry(objectClasses = { "top", "account", "shadowAccount", "posixAccount" }, base = "ou=SSL")
 	private static final class User
 	{
+		private static LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder(KeyGenerators.secureRandom());
+
 		@Id
 		private Name dn;
 
@@ -119,8 +120,7 @@ public class LDAPUserService
 
 		private static String generateSaltedPassword(String vpnPassword)
 		{
-			LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
-			return ldapShaPasswordEncoder.encodePassword(vpnPassword, CryptoUtil.getRandomBytes(64));
+			return ldapShaPasswordEncoder.encode(vpnPassword);
 		}
 	}
 }

@@ -4,6 +4,10 @@ dependencies:
     repository:  "https://kubernetes-charts.storage.googleapis.com"
     condition: support_infrastructure.enabled
   - name: ldap
-    version: 0.1.0
-    repository:  "https://yonadev.github.io/helm-charts"
+    version: 0.1.1
+    repository:  "https://jump.ops.yona.nu/helm-charts"
+    condition: support_infrastructure.enabled
+  - name: hazelcast
+    version: 0.1.1
+    repository:  "https://jump.ops.yona.nu/helm-charts"
     condition: support_infrastructure.enabled

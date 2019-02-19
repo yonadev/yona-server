@@ -23,11 +23,23 @@ String jdbcDriver = liquibaseProps.getProperty("liquibase.jdbc.driver")
 
 String changeLogPath = liquibaseProps.getProperty("liquibase.changelog.path")
 
+task liquibasePathingJar(type: Jar) {
+	dependsOn configurations.liquibase
+	appendix = 'pathing'
+	doFirst {
+		manifest {
+			attributes "Class-Path": configurations.runtime.files.collect {
+				it.toURL().toString().replaceFirst(/file:\/+/, '/')
+			}.join(' ')
+		}
+	}
+}
+
 task liquibaseGenerateChangeLogFromCode(type: JavaExec) {
 	group = "liquibase"
+	dependsOn liquibasePathingJar
 
-	classpath sourceSets.main.runtimeClasspath
-	classpath configurations.liquibase
+	classpath = files(liquibasePathingJar.archivePath)
 	main = "liquibase.integration.commandline.Main"
 
 	args "--changeLogFile=${changeLogPath}/base/entity.yml"
@@ -38,9 +50,9 @@ task liquibaseGenerateChangeLogFromCode(type: JavaExec) {
 
 task liquibaseGenerateChangeLogFromDB(type: JavaExec) {
 	group = "liquibase"
+	dependsOn liquibasePathingJar
 
-	classpath sourceSets.main.runtimeClasspath
-	classpath configurations.liquibase
+	classpath = files(liquibasePathingJar.archivePath)
 	main = "liquibase.integration.commandline.Main"
 
 	args "--changeLogFile=${changeLogPath}/base/batch.yml"
@@ -54,9 +66,9 @@ task liquibaseGenerateChangeLogFromDB(type: JavaExec) {
 
 task liquibaseDiffChangelog(type: JavaExec) {
 	group = "liquibase"
+	dependsOn liquibasePathingJar
 
-	classpath sourceSets.main.runtimeClasspath
-	classpath configurations.liquibase
+	classpath = files(liquibasePathingJar.archivePath)
 	main = "liquibase.integration.commandline.Main"
 
 	args "--changeLogFile=${changeLogPath}/updates/changelog-0000-yd-000.yml"
@@ -72,11 +84,11 @@ task liquibaseDiffChangelog(type: JavaExec) {
 
 task liquibaseUpdate(type: JavaExec) {
 	group = "liquibase"
+	dependsOn liquibasePathingJar
 
 	workingDir = "${changeLogPath}"
 
-	classpath sourceSets.main.runtimeClasspath
-	classpath configurations.liquibase
+	classpath = files(liquibasePathingJar.archivePath)
 	main = "liquibase.integration.commandline.Main"
 
 	args "--changeLogFile=changelog.yml"

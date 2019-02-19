@@ -1,0 +1,63 @@
+databaseChangeLog:
+- changeSet:
+    id: 1510773473625-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: owning_buddy_id
+            type: varchar(255)
+        tableName: buddy_devices
+- changeSet:
+    id: 1510773473625-2
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: owning_buddy_id
+        baseTableName: buddy_devices
+        constraintName: FKhue14dflrmi0xfot2jojcgiiv
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: buddies
+- changeSet:
+    id: 1511015869727-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: operating_system
+            type: integer
+        tableName: devices_anonymized
+- changeSet:
+    id: 1511605336931-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: device_anonymized_ids_ciphertext
+            type: blob
+        tableName: messages
+- changeSet:
+    id: 1511605336931-2
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: device_names_ciphertext
+            type: tinyblob
+        tableName: messages
+- changeSet:
+    id: 1511605336931-3
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: device_vpn_connection_statuses_ciphertext
+            type: tinyblob
+        tableName: messages

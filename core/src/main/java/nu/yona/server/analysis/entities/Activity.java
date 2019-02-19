@@ -1,14 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -17,6 +20,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.BatchSize;
 
+import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.ActivityCategory;
@@ -33,6 +37,9 @@ public class Activity extends EntityWithId
 	private String app;
 
 	@ManyToOne
+	private DeviceAnonymized deviceAnonymized;
+
+	@ManyToOne
 	private DayActivity dayActivity;
 
 	@ManyToOne
@@ -43,17 +50,20 @@ public class Activity extends EntityWithId
 	{
 	}
 
-	public Activity(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime, Optional<String> app)
+	private Activity(DeviceAnonymized deviceAnonymized, ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime,
+			Optional<String> app)
 	{
+		this.deviceAnonymized = Objects.requireNonNull(deviceAnonymized);
 		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.app = app.orElse(null);
 	}
 
-	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime, Optional<String> app)
+	public static Activity createInstance(DeviceAnonymized deviceAnonymized, ZoneId timeZone, LocalDateTime startTime,
+			LocalDateTime endTime, Optional<String> app)
 	{
-		return new Activity(timeZone, startTime, endTime, app);
+		return new Activity(deviceAnonymized, timeZone, startTime, endTime, app);
 	}
 
 	public DayActivity getDayActivity()
@@ -123,5 +133,25 @@ public class Activity extends EntityWithId
 	public Optional<String> getApp()
 	{
 		return Optional.ofNullable(app);
+	}
+
+	public Optional<DeviceAnonymized> getDeviceAnonymized()
+	{
+		// Old activities do not have an associated device
+		return Optional.ofNullable(deviceAnonymized);
+	}
+
+	public void setDeviceAnonymized(DeviceAnonymized deviceAnonymized)
+	{
+		this.deviceAnonymized = Objects.requireNonNull(deviceAnonymized);
+	}
+
+	@Override
+	public String toString()
+	{
+		UUID deviceAnonymizedId = deviceAnonymized != null ? deviceAnonymized.getId() : null;
+		return MessageFormat.format(
+				"activity from {0} to {1} (timezone {2}) of activity category with id {3} and app ''{4}'' and device anonymized with id {5} (activity id {6})",
+				startTime, endTime, timeZone, activityCategory.getId(), app, deviceAnonymizedId, getId());
 	}
 }

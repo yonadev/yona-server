@@ -2,12 +2,10 @@ description = "AppService"
 
 apply plugin: "application"
 
+mainClassName = "nu.yona.server.AppServiceApplication"
+
 import com.bmuschko.gradle.docker.tasks.container.*
 import com.bmuschko.gradle.docker.tasks.image.*
-
-jar {
-	baseName = "appservice"
-}
 
 release {
 	failOnCommitNeeded = true
@@ -31,6 +29,8 @@ dependencies {
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
 	testCompile project(path: ":core", configuration: "testUtils")
+	testCompile "org.apache.httpcomponents:httpmime:4.5.3"
+	testCompile "org.mockito:mockito-core:2.21.0"
 }
 
 test {
@@ -58,14 +58,14 @@ docker {
 	url = project.hasProperty("dockerUrl")? project.dockerUrl : "http://localhost:2375"
 }
 
-task buildDockerImage(type: DockerBuildImage, dependsOn: bootRepackage) {
+task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 	inputDir = mkdir("build/docker")
 	tag = "${project.group}/${jar.baseName}:${project.ext.docker_tag}"
 	doFirst {
 		copy {
-			from bootRepackage
+			from bootJar
 			into inputDir
-			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
+			rename "${jar.baseName}-${jar.version}-${bootJar.classifier}", "${jar.baseName}"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
@@ -101,6 +101,7 @@ task intTest(type:Test){
 	systemProperties = System.getProperties()
 
 	systemProperties = [
+		"java.util.logging.config.file": "../core/src/testUtils/logging.properties",
 		"yona.adminservice.url": project.ext.yona_adminservice_url,
 		"yona.analysisservice.url": project.ext.yona_analysisservice_url,
 		"yona.appservice.url": project.ext.yona_appservice_url,
@@ -109,6 +110,7 @@ task intTest(type:Test){
 	]
 }
 
-bootRepackage {
+bootJar {
+	baseName = "appservice"
 	classifier = "full"
 }

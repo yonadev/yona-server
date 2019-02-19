@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
@@ -14,7 +11,6 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -22,49 +18,50 @@ import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import nu.yona.server.rest.ControllerBase;
 
 @Controller
 @ExposesResourceFor(JobDto.class)
 @RequestMapping(value = "/scheduler/jobs", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class JobController
+public class JobController extends ControllerBase
 {
 	@Autowired
 	private JobManagementService jobManagementService;
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<Resources<JobResource>> getAllJobs()
 	{
-		return new ResponseEntity<>(
-				createJobsCollectionResource(jobManagementService.getAllJobs(), getAllJobsLinkBuilder().withSelfRel()),
-				HttpStatus.OK);
+		return createOkResponse(jobManagementService.getAllJobs(), createResourceAssembler(), getAllJobsLinkBuilder());
 	}
 
-	@RequestMapping(value = "/{group}/", method = RequestMethod.GET)
+	@GetMapping(value = "/{group}/")
 	@ResponseBody
 	public HttpEntity<Resources<JobResource>> getJobsInGroup(@PathVariable String group)
 	{
-		return new ResponseEntity<>(createJobsCollectionResource(jobManagementService.getJobsInGroup(group),
-				getJobsInGroupLinkBuilder(group).withSelfRel()), HttpStatus.OK);
+		return createOkResponse(jobManagementService.getJobsInGroup(group), createResourceAssembler(),
+				getJobsInGroupLinkBuilder(group));
 	}
 
-	@RequestMapping(value = "/{group}/", method = RequestMethod.PUT)
+	@PutMapping(value = "/{group}/")
 	@ResponseBody
 	public HttpEntity<Resources<JobResource>> updateJobGroup(@PathVariable String group, @RequestBody Set<JobDto> jobs)
 	{
-		return new ResponseEntity<>(createJobsCollectionResource(jobManagementService.updateJobGroup(group, jobs),
-				getJobsInGroupLinkBuilder(group).withSelfRel()), HttpStatus.OK);
+		return createOkResponse(jobManagementService.updateJobGroup(group, jobs), createResourceAssembler(),
+				getJobsInGroupLinkBuilder(group));
 	}
 
-	@RequestMapping(value = "/{group}/{name}", method = RequestMethod.GET)
+	@GetMapping(value = "/{group}/{name}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public JobResource getJob(@PathVariable String group, @PathVariable String name)
@@ -72,7 +69,7 @@ public class JobController
 		return new JobResourceAssembler().toResource(jobManagementService.getJob(name, group));
 	}
 
-	@RequestMapping(value = "/{group}/", method = RequestMethod.POST)
+	@PostMapping(value = "/{group}/")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public JobResource addJob(@PathVariable String group, @RequestBody JobDto job)
@@ -81,9 +78,9 @@ public class JobController
 		return new JobResourceAssembler().toResource(jobManagementService.addJob(group, job));
 	}
 
-	private static Resources<JobResource> createJobsCollectionResource(Set<JobDto> allJobs, Link link)
+	private JobResourceAssembler createResourceAssembler()
 	{
-		return new Resources<>(new JobResourceAssembler().toResources(allJobs), link);
+		return new JobResourceAssembler();
 	}
 
 	private static ControllerLinkBuilder getAllJobsLinkBuilder()

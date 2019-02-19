@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -29,6 +29,11 @@ import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.rest.PolymorphicDto;
 import nu.yona.server.util.TimeUtil;
 
+/**
+ * The base goal DTO class.<br/>
+ * NOTE: The ID is always available except when a new goal is POSTed. To keep the API simple, the DTO always has an ID. In case of
+ * a freshly posted goal, it is an all-zeros UUID.
+ */
 @JsonRootName("goal")
 @JsonSubTypes({ @Type(value = BudgetGoalDto.class, name = "BudgetGoal"),
 		@Type(value = TimeZoneGoalDto.class, name = "TimeZoneGoal") })
@@ -45,21 +50,47 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	protected GoalDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime, UUID activityCategoryId,
 			boolean mandatory)
 	{
-		Objects.requireNonNull(creationTime);
-		this.id = id;
+		this.id = (id == null) ? new UUID(0, 0) : id;
 		this.setActivityCategoryId(activityCategoryId);
 		this.mandatory = mandatory;
 
 		// not using Optional as field here because of implementing Serializable
 		// see
 		// http://stackoverflow.com/questions/24547673/why-java-util-optional-is-not-serializable-how-to-serialize-the-object-with-suc
-		this.creationTime = creationTime.orElse(null);
+		this.creationTime = Objects.requireNonNull(creationTime).orElse(null);
 		this.endTime = endTime.orElse(null);
 	}
 
 	protected GoalDto(Optional<LocalDateTime> creationTime)
 	{
 		this(null, creationTime, Optional.empty(), null, false /* ignored */);
+	}
+
+	@Override
+	public final int hashCode()
+	{
+		return id.hashCode();
+	}
+
+	@Override
+	public final boolean equals(Object obj)
+	{
+		if (this == obj)
+		{
+			return true;
+		}
+		if (!(obj instanceof GoalDto))
+		{
+			return false;
+		}
+		GoalDto that = (GoalDto) obj;
+		return this.id.equals(that.id);
+	}
+
+	@Override
+	public String toString()
+	{
+		return this.getClass().getSimpleName() + " with ID " + id + " for activity category " + activityCategoryId;
 	}
 
 	public abstract void validate();

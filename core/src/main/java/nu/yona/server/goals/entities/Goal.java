@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
@@ -161,8 +161,8 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 
 	public void addWeekActivity(WeekActivity weekActivity)
 	{
-		Objects.requireNonNull(weekActivity);
-		weekActivities.add(weekActivity);
+
+		weekActivities.add(Objects.requireNonNull(weekActivity));
 	}
 
 	public void setWeekActivities(List<WeekActivity> weekActivities)
@@ -197,7 +197,7 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 	public void removeAllWeekActivities()
 	{
 		WeekActivityRepository repository = WeekActivity.getRepository();
-		repository.delete(weekActivities);
+		repository.deleteAll(weekActivities);
 		weekActivities.clear();
 	}
 

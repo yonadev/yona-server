@@ -17,3 +17,45 @@ databaseChangeLog:
   - include:
       relativeToChangelogFile: true
       file: changelog-0005-yd-403.yml      
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0006-yd-484.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0007-yd-495.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0008-yd-326.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0009-yd-495.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0010-yd-499.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0011-yd-510.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0012-yd-520.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0013-yd-500.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0014-yd-514.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0015-yd-513.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0016-yd-549.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0017-yd-584.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0018-yd-597.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0019-yd-597.yml

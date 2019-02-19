@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -30,16 +30,23 @@ public class NetworkActivityDto
 	private final Set<String> categories;
 	private final String url;
 	private final Optional<ZonedDateTime> eventTime;
+	private int deviceIndex;
 
 	@JsonCreator
-	public NetworkActivityDto(
+	public NetworkActivityDto(@JsonProperty("deviceIndex") int deviceIndex,
 			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
 			@JsonProperty("url") String url,
 			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("eventTime") Optional<ZonedDateTime> eventTime)
 	{
+		this.deviceIndex = deviceIndex;
 		this.categories = categories;
 		this.url = (url.length() > MAX_SUPPORTED_URL_LENGTH) ? url.substring(0, MAX_SUPPORTED_URL_LENGTH) : url;
 		this.eventTime = eventTime;
+	}
+
+	public int getDeviceIndex()
+	{
+		return deviceIndex;
 	}
 
 	public Set<String> getCategories()

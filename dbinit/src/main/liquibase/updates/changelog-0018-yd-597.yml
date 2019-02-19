@@ -1,0 +1,11 @@
+databaseChangeLog:
+- changeSet:
+    id: 1539970427669-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: user_photo_id_ciphertext
+            type: TINYBLOB
+        tableName: messages

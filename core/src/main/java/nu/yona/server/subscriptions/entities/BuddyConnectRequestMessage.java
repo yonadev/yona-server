@@ -4,10 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.Entity;
 
+import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.service.BuddyServiceException;
 
@@ -25,12 +27,12 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
-			UUID buddyId, boolean isRequestingSending, boolean isRequestingReceiving)
+	private BuddyConnectRequestMessage(BuddyInfoParameters buddyInfoParameters, String message, UUID buddyId,
+			Set<UserDevice> devices, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		super(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId);
+		super(buddyInfoParameters, message, buddyId, devices);
 
-		if (senderUserId == null)
+		if (buddyInfoParameters.userId == null)
 		{
 			throw BuddyServiceException.requestingUserCannotBeNull();
 		}
@@ -40,11 +42,11 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		this.isRequestingReceiving = isRequestingReceiving;
 	}
 
-	public static BuddyConnectRequestMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			String message, UUID buddyId, boolean isRequestingSending, boolean isRequestingReceiving)
+	public static BuddyConnectRequestMessage createInstance(BuddyInfoParameters buddyInfoParameters, String message, UUID buddyId,
+			Set<UserDevice> devices, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		return new BuddyConnectRequestMessage(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId,
-				isRequestingSending, isRequestingReceiving);
+		return new BuddyConnectRequestMessage(buddyInfoParameters, message, buddyId, devices, isRequestingSending,
+				isRequestingReceiving);
 	}
 
 	public boolean requestingSending()

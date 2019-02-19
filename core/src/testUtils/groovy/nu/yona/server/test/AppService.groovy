@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server.test
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import java.time.ZonedDateTime
 
 import groovy.json.*
@@ -13,10 +15,11 @@ import nu.yona.server.YonaServer
 
 class AppService extends Service
 {
-	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
-	final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
-	final USERS_PATH = "/users/"
-	final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
+	static final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
+	static final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
+	static final USERS_PATH = "/users/"
+	static final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
+	static final LAST_EMAIL_PATH = "/emails/last"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -40,6 +43,22 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
+	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:]) // YD-544
+	{
+		def jsonStr = User.makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber)
+		def response = addUser(jsonStr, parameters)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, parameters = [:])
+	{
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode)
+		def response = addUser(jsonStr, parameters)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
 	def addUser(jsonString, parameters = [:])
 	{
 		yonaServer.createResource(USERS_PATH, jsonString, [:], parameters)
@@ -50,13 +69,14 @@ class AppService extends Service
 		def response
 		if (includePrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["includePrivateData": "true"])
+			response = yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
 			response = yonaServer.getResourceWithPassword(userUrl, password)
 		}
 		asserter(response)
+		assertBuddyUsers(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
@@ -64,7 +84,7 @@ class AppService extends Service
 	{
 		if (includePrivateData)
 		{
-			yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["includePrivateData": "true"])
+			yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
@@ -72,18 +92,47 @@ class AppService extends Service
 		}
 	}
 
-	def reloadUser(User user)
+	def getUser(Closure asserter, userUrl, password)
+	{
+		def response = yonaServer.getResourceWithPassword(userUrl, password)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
+	def getUser(Closure asserter, userUrl)
+	{
+		def response = yonaServer.getResource(userUrl)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
+	def reloadUser(User user, Closure asserter = null)
 	{
 		def response
 		if (user.hasPrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(user.url), user.password, yonaServer.getQueryParams(user.url) + ["includePrivateData": "true"])
-			assertUserGetResponseDetailsWithPrivateData(response)
+			response = yonaServer.getResourceWithPassword(user.url, user.password, ["requestingUserId": user.getId()])
+			if (asserter)
+			{
+				asserter(response)
+			}
+			else
+			{
+				assertUserGetResponseDetailsWithPrivateData(response)
+			}
+			assertBuddyUsers(response)
 		}
 		else
 		{
 			response = yonaServer.getResourceWithPassword(user.url, user.password)
-			assertUserGetResponseDetailsWithoutPrivateData(response)
+			if (asserter)
+			{
+				asserter(response)
+			}
+			else
+			{
+				assertUserGetResponseDetailsWithoutPrivateData(response)
+			}
 		}
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
@@ -92,6 +141,7 @@ class AppService extends Service
 	{
 		def response = updateUser(user.url, user.convertToJson(), user.password)
 		asserter(response)
+		assertBuddyUsers(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
@@ -104,12 +154,12 @@ class AppService extends Service
 
 	def updateUser(userUrl, jsonString, password)
 	{
-		yonaServer.updateResourceWithPassword(yonaServer.stripQueryString(userUrl), jsonString, password, yonaServer.getQueryParams(userUrl))
+		yonaServer.updateResourceWithPassword(userUrl, jsonString, password, [:])
 	}
 
 	def updateUser(userUrl, jsonString)
 	{
-		yonaServer.updateResource(yonaServer.stripQueryString(userUrl), jsonString, [:], yonaServer.getQueryParams(userUrl))
+		yonaServer.updateResource(userUrl, jsonString, [:], [:])
 	}
 
 	def deleteUser(User user, message = "")
@@ -119,7 +169,7 @@ class AppService extends Service
 			return null
 		}
 		def response = yonaServer.deleteResourceWithPassword(user.editUrl, user.password, ["message":message])
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		return response
 	}
 
@@ -128,152 +178,12 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword(userEditUrl, password, ["message":message])
 	}
 
-	def assertUserCreationResponseDetails(def response)
-	{
-		assertResponseStatusCreated(response)
-		assertUserWithPrivateData(response.responseData)
-	}
-
-	def assertUserUpdateResponseDetails(def response)
-	{
-		assert response.status == 200
-		assertUserWithPrivateData(response.responseData)
-	}
-
-	def assertUserGetResponseDetailsWithPrivateData(def response)
-	{
-		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData)
-	}
-
-	def assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest(def response)
-	{
-		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData, true)
-	}
-
-	def assertUserGetResponseDetailsWithoutPrivateData(def response)
-	{
-		assertResponseStatusSuccess(response)
-		assertUserWithoutPrivateData(response.responseData)
-	}
-
-	def assertUserWithPublicDataAndVpnProfile(user)
-	{
-		assertPublicUserData(user)
-		assertVpnProfile(user)
-	}
-
-	def assertUserWithPrivateData(user, boolean userCreatedOnBuddyRequest = false)
-	{
-		assertPublicUserData(user, userCreatedOnBuddyRequest)
-		assertPrivateUserData(user, userCreatedOnBuddyRequest)
-	}
-
-	def assertPublicUserData(def user, boolean userCreatedOnBuddyRequest)
-	{
-		if (user instanceof User)
-		{
-			assert user.url != null
-		}
-		else
-		{
-			assert user._links.self.href != null
-		}
-		assert user.creationTime != null
-		assert userCreatedOnBuddyRequest || user.appLastOpenedDate != null
-		assert user.firstName != null
-		assert user.lastName != null
-		assert user.mobileNumber ==~/^\+[0-9]+$/
-	}
-
-	def assertPrivateUserData(def user, boolean userCreatedOnBuddyRequest)
-	{
-		assert userCreatedOnBuddyRequest || user.nickname != null
-		boolean mobileNumberToBeConfirmed
-
-		/*
-		 * The below asserts use exclusive or operators. Either there should be a mobile number confirmation URL, or the other URL.
-		 * The URLs shouldn't be both missing or both present.
-		 */
-		if (user instanceof User)
-		{
-			mobileNumberToBeConfirmed = ((boolean) user.mobileNumberConfirmationUrl)
-			assert user.password.startsWith("AES:128:")
-			assert mobileNumberToBeConfirmed ^ ((boolean) user.buddiesUrl)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user.messagesUrl)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user.newDeviceRequestUrl)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user.appActivityUrl)
-		}
-		else
-		{
-			mobileNumberToBeConfirmed = ((boolean) user._links?."yona:confirmMobileNumber"?.href)
-			assert user.yonaPassword.startsWith("AES:128:")
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:buddies"?._links?.self?.href)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:appActivity")
-		}
-
-		if (!mobileNumberToBeConfirmed)
-		{
-			assertVpnProfile(user)
-		}
-	}
-
-	def assertVpnProfile(def user)
-	{
-		def vpnLoginIdPattern = '(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-		if (user instanceof User)
-		{
-			// The User Groovy object follows the new camel casing pattern: Id with lowercase d
-			assert user.vpnProfile.vpnLoginId ==~ /$vpnLoginIdPattern/
-		}
-		else
-		{
-			// For backward compatibility, the JSON still has the old camel casing pattern: ID with uppercase D
-			assert user.vpnProfile.vpnLoginID ==~ /$vpnLoginIdPattern/
-		}
-		assert user.vpnProfile.vpnPassword.length() == 32
-		if (user instanceof User)
-		{
-			assert user.vpnProfile.ovpnProfileUrl
-		}
-		else
-		{
-			assert user.vpnProfile._links."yona:ovpnProfile".href
-		}
-	}
-
-	def assertUserWithoutPrivateData(def user)
-	{
-		assertPublicUserData(user, false)
-		assert user.nickname == null
-		assert user.goals == null
-		assert user.vpnProfile == null
-	}
-
-	def assertResponseStatusCreated(def response)
-	{
-		assert response.status == 201
-	}
-
-	def assertResponseStatusSuccess(def response)
-	{
-		assert response.status >= 200 && response.status < 300
-	}
-
-	def isSuccess(def response)
-	{
-		response.status >= 200 && response.status < 300
-	}
-
 	void makeBuddies(User requestingUser, User respondingUser)
 	{
 		sendBuddyConnectRequest(requestingUser, respondingUser)
 		def acceptUrl = fetchBuddyConnectRequestMessage(respondingUser).acceptUrl
 		def acceptResponse = postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], respondingUser.password)
-		assert acceptResponse.status == 200
+		assertResponseStatusOk(acceptResponse)
 
 		def processUrl = fetchBuddyConnectResponseMessage(requestingUser).processUrl
 		assert processUrl == null // Processing happens automatically these days
@@ -296,7 +206,7 @@ class AppService extends Service
 			"receivingStatus":"REQUESTED"
 		}""", sendingUser.password)
 		if (assertSuccess) {
-			assert response.status == 201
+			assertResponseStatusCreated(response)
 		}
 		response
 	}
@@ -305,7 +215,7 @@ class AppService extends Service
 	{
 		// Have the other user fetch the buddy connect request
 		def response = getMessages(user)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assert response.responseData._embedded
 
 		def buddyConnectRequestMessages = response.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}
@@ -339,7 +249,7 @@ class AppService extends Service
 	{
 		// Have the requesting user fetch the buddy connect response
 		def response = getMessages(user)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assert response.responseData._embedded
 
 		def buddyConnectResponseMessages = response.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
@@ -349,6 +259,7 @@ class AppService extends Service
 		def status = buddyConnectResponseMessages[0]?.status ?: null
 		def processUrl = buddyConnectResponseMessages[0]?._links?."yona:process"?.href
 		def buddyUrl = buddyConnectResponseMessages[0]?._links?."yona:buddy"?.href
+
 		def result = [ : ]
 		if (selfUrl)
 		{
@@ -404,10 +315,16 @@ class AppService extends Service
 		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH)
 	}
 
+	// Added to analyse randomly failing ActivityCategoriesTest
+	def getAllActivityCategoriesSkipCache()
+	{
+		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH + "skip-cache/")
+	}
+
 	List<Buddy> getBuddies(User user)
 	{
 		def response = yonaServer.getResourceWithPassword(user.buddiesUrl, user.password)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assert response.responseData._links?.self?.href == user.buddiesUrl
 
 		if (!response.responseData._embedded?."yona:buddies")
@@ -445,14 +362,14 @@ class AppService extends Service
 	def getDayActivityDetails(User user, Goal goal, int weeksBack, String shortDay)
 	{
 		def responseDayOverviewsAll = getDayActivityOverviews(user, ["size": (weeksBack+1)*7])
-		assert responseDayOverviewsAll.status == 200
+		assertResponseStatusOk(responseDayOverviewsAll)
 		getDayDetailsFromOverview(responseDayOverviewsAll, user, goal, weeksBack, shortDay)
 	}
 
 	def getDayActivityDetails(User user, Buddy buddy, Goal goal, int weeksBack, String shortDay)
 	{
 		def responseDayOverviewsAll = getDayActivityOverviews(user, buddy, ["size": (weeksBack+1)*7])
-		assert responseDayOverviewsAll.status == 200
+		assertResponseStatusOk(responseDayOverviewsAll)
 		getDayDetailsFromOverview(responseDayOverviewsAll, user, goal, weeksBack, shortDay)
 	}
 
@@ -464,8 +381,8 @@ class AppService extends Service
 	}
 
 	def getDayDetails(User user, String activityCategoryUrl, ZonedDateTime date) {
-		def goal = user.findActiveGoal(activityCategoryUrl)
-		def url = user.url + "/activity/days/" + YonaServer.toIsoDateString(date) + "/details/" + goal.getId()
+		Goal goal = user.findActiveGoal(activityCategoryUrl)
+		def url = YonaServer.stripQueryString(user.url) + "/activity/days/" + YonaServer.toIsoDateString(date) + "/details/" + goal.getId()
 		getResourceWithPassword(url, user.password)
 	}
 
@@ -479,7 +396,7 @@ class AppService extends Service
 		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def response = getResourceWithPassword(dayActivityDetailUrl, user.password)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		return response
 	}
 
@@ -487,7 +404,7 @@ class AppService extends Service
 		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def weekActivityDetailUrl =  weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def response = getResourceWithPassword(weekActivityDetailUrl, user.password)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		return response
 	}
 
@@ -529,9 +446,36 @@ class AppService extends Service
 		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
 	}
 
+	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
+	{
+		def firebaseInstanceIdString = firebaseInstanceId ? "\"$firebaseInstanceId\"" : "null"
+		def json = """{
+				"name": "$name",
+				"operatingSystem": "$operatingSystem",
+				"appVersion": "$appVersion",
+				"appVersionCode": "$appVersionCode",
+				"firebaseInstanceId": $firebaseInstanceIdString
+				}"""
+		yonaServer.postJson(url, json, ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
+	}
+
 	def clearNewDeviceRequest(mobileNumber, password)
 	{
 		yonaServer.deleteResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", password)
+	}
+
+	User addDevice(User user, name, operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE)
+	{
+		def newDeviceRequestPassword = "Zomaar"
+		assertResponseStatusSuccess(setNewDeviceRequest(user.mobileNumber, user.password, newDeviceRequestPassword))
+
+		def getResponse = getNewDeviceRequest(user.mobileNumber, newDeviceRequestPassword)
+		assertResponseStatusSuccess(getResponse)
+
+		def registerResponse = registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion, appVersionCode)
+		assertResponseStatusSuccess(registerResponse)
+
+		new User(registerResponse.responseData)
 	}
 
 	Goal addGoal(Closure asserter, User user, Goal goal, message = "")
@@ -590,82 +534,15 @@ class AppService extends Service
 
 	def postAppActivityToAnalysisEngine(User user, def appActivity)
 	{
-		yonaServer.createResourceWithPassword(user.appActivityUrl, appActivity.getJson(), user.password)
-	}
-
-	void setEnableStatistics(def enable)
-	{
-		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
-		assert response.status == 200 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
-	}
-
-	void resetStatistics()
-	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "true"])
-		assert response.status == 200
-	}
-
-	void clearCaches()
-	{
-		def response = yonaServer.createResource("/hibernateStatistics/clearCaches/", "{}", [:], [:])
-		assert response.status == 200
-	}
-
-	def getStatistics()
-	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "false"])
-		assert response.status == 200
-		response.responseData
-	}
-
-	void storeStatistics(def statistics, def heading)
-	{
-		def file = new File("build/reports/tests/intTest/" + heading + ".md")
-		file << "# $heading\n\n"
-		def statNames = (statistics[statistics.keySet().first()].keySet().findAll{ it != "startTime" } as List).sort()
-		storeRow(file, ["Operation"]+ statNamesToHeadingNames(statNames))
-		storeRow(file, ["---"]* (statNames.size() + 1))
-		statistics.each{ k, v -> storeRow(file, [k]+ statNames.collect{v[it]}) }
-	}
-
-	def statNamesToHeadingNames(def statNames)
-	{
-		statNames = statNames*.minus("Count")
-		statNames*.uncapitalize()
-		statNames.collect{ it.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")*.uncapitalize().join(" ")}*.capitalize()
-	}
-	private storeRow(def file, def cells)
-	{
-		cells.each{ file << "| $it"}
-		file << "\n"
-	}
-
-	def createResourceWithPassword(path, jsonString, password, parameters = [:])
-	{
-		yonaServer.createResource(path, jsonString, ["Yona-Password": password], parameters)
-	}
-
-	def deleteResourceWithPassword(path, password, parameters = [:])
-	{
-		yonaServer.deleteResourceWithPassword(path, password, parameters)
-	}
-
-	def getResourceWithPassword(path, password, parameters = [:])
-	{
-		yonaServer.getResourceWithPassword(path, password, parameters)
-	}
-
-	def getResource(path, headers = [:], parameters = [:])
-	{
-		yonaServer.getResource(path, headers, parameters)
-	}
-
-	def updateResource(path, jsonString, headers = [:], parameters = [:])
-	{
-		yonaServer.updateResource(path, jsonString, headers, parameters)
+		yonaServer.createResourceWithPassword(user.devices.find{ it.requestingDevice }.appActivityUrl, appActivity.getJson(), user.password)
 	}
 
 	def composeActivityCategoryUrl(def activityCategoryId) {
 		"$yonaServer.restClient.uri$ACTIVITY_CATEGORIES_PATH$activityCategoryId"
+	}
+
+	def getLastEmail()
+	{
+		getResource(LAST_EMAIL_PATH)
 	}
 }

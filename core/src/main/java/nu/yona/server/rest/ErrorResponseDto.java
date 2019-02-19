@@ -1,76 +1,56 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
 
-/**
- * This DTO is used to communicate error messages or other type of messages to the client.
- */
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ErrorResponseDto
 {
-	/** Holds the actual message */
-	private String message;
+	private final String message;
 
-	/** Holds the message code. */
-	private String code;
+	private final String code;
 
-	/**
-	 * Default constructor
-	 */
-	public ErrorResponseDto()
+	private final String correlationId;
+
+	protected ErrorResponseDto(String code, String message)
 	{
+		this(code, message, null);
 	}
 
-	/**
-	 * Creates a new DTO based on the given message.
-	 * 
-	 * @param type The type of message.
-	 * @param message The actual message to display.
-	 */
-	public ErrorResponseDto(String code, String message)
+	@JsonCreator
+	public ErrorResponseDto(@JsonProperty("code") String code, @JsonProperty("message") String message,
+			@JsonProperty("correlationId") String correlationId)
 	{
 		this.code = code;
 		this.message = message;
+		this.correlationId = correlationId;
 	}
 
-	/**
-	 * This method gets the message code.
-	 * 
-	 * @return The message code.
-	 */
+	public static ErrorResponseDto createInstance(String code, String message)
+	{
+		return new ErrorResponseDto(code, message, ErrorLoggingFilter.LoggingContext.getCorrelationId());
+	}
+
+	public static ErrorResponseDto createInstance(String message)
+	{
+		return new ErrorResponseDto(null, message, ErrorLoggingFilter.LoggingContext.getCorrelationId());
+	}
+
 	public String getCode()
 	{
 		return code;
 	}
 
-	/**
-	 * This method sets the message code.
-	 * 
-	 * @param code The message code.
-	 */
-	public void setCode(String code)
-	{
-		this.code = code;
-	}
-
-	/**
-	 * This method gets the actual message.
-	 * 
-	 * @return The actual message.
-	 */
 	public String getMessage()
 	{
 		return message;
 	}
 
-	/**
-	 * This method sets the actual message.
-	 * 
-	 * @param message The actual message.
-	 */
-	public void setMessage(String message)
+	public String getCorrelationId()
 	{
-		this.message = message;
+		return correlationId;
 	}
 }

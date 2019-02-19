@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,6 +17,7 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.InvalidDataException;
 
 /**
  * This class captures the anonymized information of a buddy. <br/>
@@ -59,12 +59,6 @@ public class BuddyAnonymized extends EntityWithUuid
 	 */
 	private Status receivingStatus = Status.NOT_REQUESTED;
 
-	/**
-	 * @deprecated only for use by migration step.
-	 */
-	@Deprecated
-	private LocalDateTime lastStatusChangeTime;
-
 	// Default constructor is required for JPA
 	public BuddyAnonymized()
 	{
@@ -94,7 +88,8 @@ public class BuddyAnonymized extends EntityWithUuid
 		{
 			throw new IllegalStateException("UserAnonymized is not available in this state");
 		}
-		return UserAnonymized.getRepository().findOne(userAnonymizedId);
+		return UserAnonymized.getRepository().findById(userAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId));
 	}
 
 	public Status getSendingStatus()
@@ -144,8 +139,7 @@ public class BuddyAnonymized extends EntityWithUuid
 
 	public void setUserAnonymizedId(UUID userAnonymizedId)
 	{
-		Objects.requireNonNull(userAnonymizedId);
-		this.userAnonymizedId = userAnonymizedId;
+		this.userAnonymizedId = Objects.requireNonNull(userAnonymizedId);
 	}
 
 	public void setDisconnected()
@@ -153,23 +147,5 @@ public class BuddyAnonymized extends EntityWithUuid
 		this.sendingStatus = Status.REJECTED;
 		this.receivingStatus = Status.REJECTED;
 		this.userAnonymizedId = null;
-	}
-
-	/**
-	 * @deprecated only for use by migration step.
-	 */
-	@Deprecated
-	public LocalDateTime getLastStatusChangeTime()
-	{
-		return lastStatusChangeTime;
-	}
-
-	/**
-	 * @deprecated only for use by migration step.
-	 */
-	@Deprecated
-	public void clearLastStatusChangeTime()
-	{
-		lastStatusChangeTime = null;
 	}
 }

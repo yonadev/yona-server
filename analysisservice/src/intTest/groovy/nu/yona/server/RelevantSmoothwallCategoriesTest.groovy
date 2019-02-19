@@ -8,6 +8,7 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.AnalysisService
+import static nu.yona.server.test.CommonAssertions.*
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -24,7 +25,7 @@ class RelevantSmoothwallCategoriesTest extends Specification
 		def response = analysisService.getRelevantSmoothwallCategories()
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData.categories.size() > 10
 		response.responseData.categories.contains("Gambling")
 		response.responseData.categories.contains("lotto")

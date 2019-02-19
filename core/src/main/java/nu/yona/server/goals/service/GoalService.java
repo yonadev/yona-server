@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -15,9 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -37,6 +40,9 @@ public class GoalService
 	@Autowired
 	private BuddyService buddyService;
 
+	@Autowired(required = false)
+	private ActivityService activityService;
+
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
 
@@ -46,7 +52,7 @@ public class GoalService
 	public Set<GoalDto> getGoalsOfUser(UUID forUserId)
 	{
 		UserDto user = userService.getPrivateUser(forUserId);
-		return user.getPrivateData().getGoals();
+		return user.getOwnPrivateData().getGoals().orElse(Collections.emptySet());
 	}
 
 	public GoalDto getGoalForUserId(UUID userId, UUID goalId)
@@ -64,12 +70,8 @@ public class GoalService
 
 	public Goal getGoalEntityForUserAnonymizedId(UUID userAnonymizedId, UUID goalId)
 	{
-		Goal goal = Goal.getRepository().findOne(goalId);
-		if (goal == null)
-		{
-			throw GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymizedId, goalId);
-		}
-		return goal;
+		return Goal.getRepository().findById(goalId)
+				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymizedId, goalId));
 	}
 
 	private Goal getGoalEntity(User userEntity, UUID goalId)
@@ -196,7 +198,7 @@ public class GoalService
 	}
 
 	@Transactional
-	public void removeGoal(UUID userId, UUID goalId, Optional<String> message)
+	public void deleteGoalAndInformBuddies(UUID userId, UUID goalId, Optional<String> message)
 	{
 		User userEntity = userService.getUserEntityById(userId);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
@@ -208,22 +210,30 @@ public class GoalService
 		}
 
 		ActivityCategory activityCategoryOfChangedGoal = goalEntity.getActivityCategory();
-		userAnonymizedEntity.removeGoal(goalEntity);
-		deleteGoalAndRelatedEntities(userAnonymizedEntity, goalEntity);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		deleteGoal(userAnonymizedEntity, goalEntity);
 
 		broadcastGoalChangeMessage(userEntity, activityCategoryOfChangedGoal, GoalChangeMessage.Change.GOAL_DELETED, message);
 	}
 
-	private void deleteGoalAndRelatedEntities(UserAnonymized userAnonymizedEntity, Goal goalEntity)
+	@Transactional
+	public void deleteGoal(UserAnonymized userAnonymizedEntity, Goal goalEntity)
 	{
 		deleteGoalRelatedMessages(userAnonymizedEntity, goalEntity);
+		userAnonymizedEntity.removeGoal(goalEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}
 
 	private void deleteGoalRelatedMessages(UserAnonymized userAnonymizedEntity, Goal goalEntity)
 	{
+		deleteGoalRelatedConflictMessages(userAnonymizedEntity, goalEntity);
+		activityService.deleteAllDayActivityCommentMessages(goalEntity);
+		activityService.deleteAllWeekActivityCommentMessages(goalEntity);
+	}
+
+	private void deleteGoalRelatedConflictMessages(UserAnonymized userAnonymizedEntity, Goal goalEntity)
+	{
 		deleteGoalConflictMessagesForGoal(userAnonymizedEntity, goalEntity);
-		goalEntity.getPreviousVersionOfThisGoal().ifPresent(pg -> deleteGoalRelatedMessages(userAnonymizedEntity, pg));
+		goalEntity.getPreviousVersionOfThisGoal().ifPresent(pg -> deleteGoalRelatedConflictMessages(userAnonymizedEntity, pg));
 	}
 
 	private void deleteGoalConflictMessagesForGoal(UserAnonymized userAnonymizedEntity, Goal goalEntity)
@@ -236,7 +246,7 @@ public class GoalService
 			GoalChangeMessage.Change change, Optional<String> message)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> GoalChangeMessage.createInstance(userEntity.getId(), userEntity.getUserAnonymizedId(),
-						userEntity.getNickname(), activityCategoryOfChangedGoal, change, message.orElse(null)));
+				() -> GoalChangeMessage.createInstance(BuddyInfoParameters.createInstance(userEntity),
+						activityCategoryOfChangedGoal, change, message.orElse(null)));
 	}
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -7,10 +7,10 @@ package nu.yona.server.analysis.service;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -19,26 +19,34 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import nu.yona.server.Constants;
 import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.device.entities.DeviceAnonymized;
 
 @JsonRootName("activity")
 public class ActivityDto
 {
+	private final Optional<UUID> deviceAnonymizedId;
 	private final ZonedDateTime startTime;
 	private final ZonedDateTime endTime;
 	private final Optional<String> app;
 
-	@JsonCreator
-	public ActivityDto(@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
-			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
+	private ActivityDto(Optional<UUID> deviceAnonymizedId, ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> app)
 	{
-		this(startTime, endTime, Optional.empty());
-	}
-
-	private ActivityDto(ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> app)
-	{
+		this.deviceAnonymizedId = deviceAnonymizedId;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.app = app;
+	}
+
+	static ActivityDto createInstance(Activity activity)
+	{
+		return new ActivityDto(activity.getDeviceAnonymized().map(DeviceAnonymized::getId),
+				activity.getStartTimeAsZonedDateTime(), activity.getEndTimeAsZonedDateTime(), activity.getApp());
+	}
+
+	@JsonIgnore
+	public Optional<UUID> getDeviceAnonymizedId()
+	{
+		return deviceAnonymizedId;
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
@@ -51,11 +59,6 @@ public class ActivityDto
 	public ZonedDateTime getEndTime()
 	{
 		return endTime;
-	}
-
-	static ActivityDto createInstance(Activity activity)
-	{
-		return new ActivityDto(activity.getStartTimeAsZonedDateTime(), activity.getEndTimeAsZonedDateTime(), activity.getApp());
 	}
 
 	@JsonSerialize(using = EmptyOptionalAsEmptyStringSerializer.class)

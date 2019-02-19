@@ -145,7 +145,7 @@ public class ThymeleafConfigurationTest
 				containsString(MessageFormat.format(
 						"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
 						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
-		assertThat(result, containsString("Open the app and &ldquo;join&rdquo;."));
+		assertThat(result, containsString("Return to this mail and click <a href=\"http"));
 		assertThat(result, containsString("https://app.prd.yona.nu/media/img/en_US/header.jpg"));
 	}
 
@@ -170,6 +170,7 @@ public class ThymeleafConfigurationTest
 				containsString(MessageFormat.format(
 						"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
 						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
+		assertThat(result, containsString("Ga terug naar deze mail en klik op <a href=\"http"));
 		assertThat(result, containsString("https://app.prd.yona.nu/media/img/nl_NL/header.jpg"));
 	}
 

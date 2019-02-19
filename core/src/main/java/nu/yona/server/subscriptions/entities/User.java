@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -19,12 +19,12 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -66,29 +66,42 @@ public class User extends EntityWithUuid
 	@OneToOne(fetch = FetchType.LAZY)
 	private MessageDestination messageDestination;
 
+	private static int currentPrivateDataMigrationVersion;
+
 	// Default constructor is required for JPA
 	public User()
 	{
 		super(null);
 	}
 
-	public User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
-			UserPrivate userPrivate, MessageDestination messageDestination)
+	public User(UUID id, byte[] initializationVector, String mobileNumber, UserPrivate userPrivate,
+			MessageDestination messageDestination)
 	{
 		super(id);
 		this.initializationVector = initializationVector;
 		this.creationTime = TimeUtil.utcNow();
-		this.firstName = firstName;
-		this.lastName = lastName;
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
-		this.privateDataMigrationVersion = PrivateUserDataMigrationService.getCurrentVersion();
+		this.privateDataMigrationVersion = currentPrivateDataMigrationVersion;
 	}
 
 	public static UserRepository getRepository()
 	{
 		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
+	}
+
+	public static void setCurrentPrivateDataMigrationVersion(int currentPrivateDataMigrationVersion)
+	{
+		User.currentPrivateDataMigrationVersion = currentPrivateDataMigrationVersion;
+	}
+
+	/**
+	 * For testing purposes only.
+	 */
+	static int getCurrentPrivateDataMigrationVersion()
+	{
+		return currentPrivateDataMigrationVersion;
 	}
 
 	public LocalDateTime getCreationTime()
@@ -101,10 +114,14 @@ public class User extends EntityWithUuid
 		return Optional.ofNullable(appLastOpenedDate);
 	}
 
+	/**
+	 * Don't call this, except from from UserDevice.
+	 * 
+	 * @param appLastOpenedDate The date the app was opened last by this user. The date must be in the user's timezone.
+	 */
 	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
 	{
-		Objects.requireNonNull(appLastOpenedDate);
-		this.appLastOpenedDate = appLastOpenedDate;
+		this.appLastOpenedDate = Objects.requireNonNull(appLastOpenedDate);
 	}
 
 	public boolean isCreatedOnBuddyRequest()
@@ -119,22 +136,32 @@ public class User extends EntityWithUuid
 
 	public String getFirstName()
 	{
-		return firstName;
+		if (firstName != null)
+		{
+			// Name not moved to private user yet, so return it
+			return firstName;
+		}
+		return getUserPrivate().getFirstName();
 	}
 
 	public void setFirstName(String firstName)
 	{
-		this.firstName = firstName;
+		getUserPrivate().setFirstName(firstName);
 	}
 
 	public String getLastName()
 	{
-		return lastName;
+		if (lastName != null)
+		{
+			// Name not moved to private user yet, so return it
+			return lastName;
+		}
+		return getUserPrivate().getLastName();
 	}
 
 	public void setLastName(String lastName)
 	{
-		this.lastName = lastName;
+		getUserPrivate().setLastName(lastName);
 	}
 
 	public String getNickname()
@@ -164,8 +191,7 @@ public class User extends EntityWithUuid
 
 	public void setNewDeviceRequest(NewDeviceRequest newDeviceRequest)
 	{
-		Objects.requireNonNull(newDeviceRequest, "Use clearNewDeviceRequest to clear the request");
-		this.newDeviceRequest = newDeviceRequest;
+		this.newDeviceRequest = Objects.requireNonNull(newDeviceRequest, "Use clearNewDeviceRequest to clear the request");
 	}
 
 	public void clearNewDeviceRequest()
@@ -214,9 +240,9 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getUserAnonymizedId();
 	}
 
-	public String getVpnPassword()
+	public Optional<String> getAndClearVpnPassword()
 	{
-		return getUserPrivate().getVpnPassword();
+		return userPrivate.getAndClearVpnPassword();
 	}
 
 	public MessageDestination getNamedMessageDestination()
@@ -256,6 +282,10 @@ public class User extends EntityWithUuid
 
 	public boolean canAccessPrivateData()
 	{
+		if (!CryptoSession.isActive())
+		{
+			return false;
+		}
 		return getUserPrivate().isDecryptedProperly();
 	}
 
@@ -264,9 +294,10 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getUserAnonymized();
 	}
 
-	public void touch()
+	public User touch()
 	{
 		getUserPrivate().touch();
+		return this;
 	}
 
 	public void loadFully()
@@ -306,11 +337,6 @@ public class User extends EntityWithUuid
 		return overwriteUserConfirmationCode;
 	}
 
-	public UUID getVpnLoginId()
-	{
-		return getUserPrivate().getVpnLoginId();
-	}
-
 	public ConfirmationCode getPinResetConfirmationCode()
 	{
 		return pinResetConfirmationCode;
@@ -344,5 +370,48 @@ public class User extends EntityWithUuid
 	public void setPrivateDataMigrationVersion(int privateDataMigrationVersion)
 	{
 		this.privateDataMigrationVersion = privateDataMigrationVersion;
+	}
+
+	public Optional<UUID> getUserPhotoId()
+	{
+		return getUserPrivate().getUserPhotoId();
+	}
+
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
+	{
+		getUserPrivate().setUserPhotoId(userPhotoId);
+	}
+
+	public Set<UserDevice> getDevices()
+	{
+		return getUserPrivate().getDevices();
+	}
+
+	public void addDevice(UserDevice device)
+	{
+		getUserPrivate().addDevice(device);
+	}
+
+	public void removeDevice(UserDevice device)
+	{
+		getUserPrivate().removeDevice(device);
+	}
+
+	public void moveFirstAndLastNameToPrivate()
+	{
+		if (firstName == null)
+		{
+			// Apparently already moved
+			return;
+		}
+		userPrivate.setFirstName(firstName);
+		userPrivate.setLastName(lastName);
+		firstName = null;
+		lastName = null;
+	}
+
+	public LocalDate getDateInUserTimezone(LocalDateTime utcDateTime)
+	{
+		return TimeUtil.toUtcZonedDateTime(utcDateTime).withZoneSameInstant(getAnonymized().getTimeZone()).toLocalDate();
 	}
 }

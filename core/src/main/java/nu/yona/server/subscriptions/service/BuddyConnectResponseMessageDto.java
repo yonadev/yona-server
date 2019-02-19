@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDto;
@@ -27,6 +28,7 @@ import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
+import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("buddyConnectResponseMessage")
@@ -126,6 +128,13 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 			}
 		}
 
+		@Override
+		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
+		{
+			return createSenderInfoForBuddyConnectionChangeMessage(((BuddyMessage) messageEntity).getSenderUser(),
+					(BuddyConnectionChangeMessage) messageEntity);
+		}
+
 		MessageActionDto handleAction_Process(UserDto actingUser, BuddyConnectResponseMessage connectResponseMessageEntity,
 				MessageActionDto payload)
 		{
@@ -136,10 +145,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 			}
 			else
 			{
-				buddyService.setBuddyAcceptedWithSecretUserInfo(actingUser.getPrivateData().getUserAnonymizedId(),
-						connectResponseMessageEntity.getBuddyId(),
-						connectResponseMessageEntity.getRelatedUserAnonymizedId().get(),
-						connectResponseMessageEntity.getSenderNickname());
+				buddyService.setBuddyAcceptedWithSecretUserInfo(actingUser, connectResponseMessageEntity);
 			}
 			// refresh after actions
 			actingUser = userService.getPrivateUser(actingUser.getId());

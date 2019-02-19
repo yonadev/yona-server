@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -14,7 +14,6 @@ import org.junit.Test;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService;
 
 public class UserTest
 {
@@ -28,8 +27,8 @@ public class UserTest
 		{
 			byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 			MessageSource namedMessageSource = MessageSource.createInstance();
-			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", null, null, namedMessageSource);
-			john = new User(UUID.randomUUID(), initializationVector, "John", "Doe", "+31612345678", userPrivate,
+			UserPrivate userPrivate = UserPrivate.createInstance("John", "Doe", "jd", null, null, namedMessageSource);
+			john = new User(UUID.randomUUID(), initializationVector, "+31612345678", userPrivate,
 					namedMessageSource.getDestination());
 		}
 	}
@@ -37,6 +36,6 @@ public class UserTest
 	@Test
 	public void getPrivateDataMigrationVersion_newUser_returnsCurrentVersion()
 	{
-		assertThat(john.getPrivateDataMigrationVersion(), equalTo(PrivateUserDataMigrationService.getCurrentVersion()));
+		assertThat(john.getPrivateDataMigrationVersion(), equalTo(User.getCurrentPrivateDataMigrationVersion()));
 	}
 }

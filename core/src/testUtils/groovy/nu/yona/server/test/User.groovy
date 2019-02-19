@@ -24,14 +24,20 @@ class User
 	final String lastName
 	final String mobileNumber
 	String emailAddress
+	String deviceName
+	String deviceOperatingSystem
+	String deviceAppVersion
 	final String mobileNumberConfirmationUrl
 	final String resendMobileNumberConfirmationCodeUrl
-	final String postOpenAppEventUrl
+	final String postOpenAppEventUrl // YD-544
 	final boolean hasPrivateData
 	final String nickname
+	final String userPhotoUrl
+	final String editUserPhotoUrl
 	final List<Goal> goals
 	final List<Buddy> buddies
-	final VPNProfile vpnProfile
+	final List<Device> devices
+	final VPNProfile vpnProfile // YD-541
 	final String url
 	final String editUrl
 	final String buddiesUrl
@@ -41,14 +47,14 @@ class User
 	final String dailyActivityReportsWithBuddiesUrl
 	final String weeklyActivityReportsUrl
 	final String newDeviceRequestUrl
-	final String appActivityUrl
+	final String appActivityUrl // YD-544
 	final String pinResetRequestUrl
 	final String verifyPinResetUrl
 	final String resendPinResetConfirmationCodeUrl
 	final String clearPinResetUrl
-	final String sslRootCertUrl
-	final String appleMobileConfig
-	final String sslRootCertCn
+	final String sslRootCertUrl // YD-544
+	final String appleMobileConfig // YD-544
+	final String sslRootCertCn // YD-544
 	final String password
 
 	User(def json)
@@ -58,6 +64,9 @@ class User
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber
+		this.nickname = json.nickname
+		this.userPhotoUrl = json._links?."yona:userPhoto"?.href
+		this.editUserPhotoUrl = json._links?."yona:editUserPhoto"?.href
 		this.mobileNumberConfirmationUrl = json._links?."yona:confirmMobileNumber"?.href
 		this.resendMobileNumberConfirmationCodeUrl = json._links?."yona:resendMobileNumberConfirmationCode"?.href
 		this.postOpenAppEventUrl = json._links?."yona:postOpenAppEvent"?.href
@@ -67,13 +76,13 @@ class User
 			// Private data is available
 			this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 			this.password = json.yonaPassword
-			this.nickname = json.nickname
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
-			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : []
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
-		this.url = YonaServer.stripQueryString(json._links.self.href)
+		this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : null
+		this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect{new Device(this.password, it)} : null
+		this.url = json._links.self.href
 		this.editUrl = json._links?.edit?.href
 		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href
 		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
@@ -94,17 +103,21 @@ class User
 
 	def convertToJson()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion)
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
+	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, boolean forceDeviceInfo = false)
 	{
-		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
+		def devicePropertiesString = (deviceName || forceDeviceInfo) ? """"deviceName":"$deviceName", "deviceOperatingSystem":"$deviceOperatingSystem", "deviceAppVersion":"$deviceAppVersion", "deviceAppVersionCode":"$deviceAppVersionCode",""" : ""
+		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""
 		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{
-				$selfLinkString
+				"_links":{
+					$selfLinkString
+				},
+				$devicePropertiesString
 				"firstName":"${firstName}",
 				"lastName":"${lastName}",
 				$passwordString
@@ -114,14 +127,50 @@ class User
 		return json
 	}
 
-	def findActiveGoal(def activityCategoryUrl)
+	private static String makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber) // YD-544
+	{
+		def json = """{
+				"firstName":"${firstName}",
+				"lastName":"${lastName}",
+				"nickname":"${nickname}",
+				"mobileNumber":"${mobileNumber}"
+		}"""
+		return json
+	}
+
+	def getId()
+	{
+		getIdFromUrl(url)
+	}
+
+	def getRequestingDeviceId()
+	{
+		YonaServer.getQueryParams(url)["requestingDeviceId"]
+	}
+
+	static def getIdFromUrl(def url)
+	{
+		def queryStringStart = url.indexOf('?')
+		if (queryStringStart == -1)
+		{
+			return url[-36..-1]
+		}
+		return url[queryStringStart-36..queryStringStart-1]
+	}
+
+	Goal findActiveGoal(def activityCategoryUrl)
 	{
 		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
-	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
+	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE)
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber)
+		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode)
+	}
+
+	static String makeUserJsonStringWithDeviceInfo(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE)
+	{
+		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, true)
 	}
 }
 

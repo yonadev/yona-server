@@ -1,0 +1,22 @@
+databaseChangeLog:
+- changeSet:
+    id: 1518549954060-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: is_legacy_vpn_account
+            type: BOOLEAN
+            defaultValueBoolean: false
+        tableName: user_devices
+- changeSet:
+    id: 1518549954060-2
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: vpn_password
+            type: varchar(255)
+        tableName: user_devices

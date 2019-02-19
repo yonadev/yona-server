@@ -23,6 +23,7 @@ class Buddy
 	final User user
 	final List<Goal> goals
 	final String url
+	final String goalsUrl
 	final String dailyActivityReportsUrl
 	final String weeklyActivityReportsUrl
 	final String editUrl
@@ -37,6 +38,7 @@ class Buddy
 		{
 			this.user = new User(json._embedded."yona:user")
 		}
+		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
 		this.goals = (json._embedded?."yona:goals"?._embedded?."yona:goals") ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : null
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.dailyActivityReportsUrl = json._links?."yona:dailyActivityReports"?.href

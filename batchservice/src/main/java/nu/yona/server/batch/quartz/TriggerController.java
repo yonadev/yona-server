@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
@@ -14,7 +11,6 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -22,49 +18,52 @@ import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import nu.yona.server.rest.ControllerBase;
 
 @Controller
 @ExposesResourceFor(CronTriggerDto.class)
 @RequestMapping(value = "/scheduler/triggers", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class TriggerController
+public class TriggerController extends ControllerBase
 {
 	@Autowired
 	private TriggerManagementService triggerManagementService;
 
-	@RequestMapping(value = "/cron/", method = RequestMethod.GET)
+	@GetMapping(value = "/cron/")
 	@ResponseBody
 	public HttpEntity<Resources<TriggerResource>> getAllTriggers()
 	{
-		return new ResponseEntity<>(createTriggersCollectionResource(triggerManagementService.getAllTriggers(),
-				getAllTriggersLinkBuilder().withSelfRel()), HttpStatus.OK);
+		return createOkResponse(triggerManagementService.getAllTriggers(), createResourceAssembler(),
+				getAllTriggersLinkBuilder());
 	}
 
-	@RequestMapping(value = "/cron/{group}/", method = RequestMethod.GET)
+	@GetMapping(value = "/cron/{group}/")
 	@ResponseBody
 	public HttpEntity<Resources<TriggerResource>> getTriggersInGroup(@PathVariable String group)
 	{
-		return new ResponseEntity<>(createTriggersCollectionResource(triggerManagementService.getTriggersInGroup(group),
-				getTriggersInGroupLinkBuilder(group).withSelfRel()), HttpStatus.OK);
+		return createOkResponse(triggerManagementService.getTriggersInGroup(group), createResourceAssembler(),
+				getTriggersInGroupLinkBuilder(group));
 	}
 
-	@RequestMapping(value = "/cron/{group}/", method = RequestMethod.PUT)
+	@PutMapping(value = "/cron/{group}/")
 	@ResponseBody
 	public HttpEntity<Resources<TriggerResource>> updateTriggerGroup(@PathVariable String group,
 			@RequestBody Set<CronTriggerDto> triggers)
 	{
-		return new ResponseEntity<>(createTriggersCollectionResource(triggerManagementService.updateTriggerGroup(group, triggers),
-				getTriggersInGroupLinkBuilder(group).withSelfRel()), HttpStatus.OK);
+		return createOkResponse(triggerManagementService.updateTriggerGroup(group, triggers), createResourceAssembler(),
+				getTriggersInGroupLinkBuilder(group));
 	}
 
-	@RequestMapping(value = "/cron/{group}/{name}", method = RequestMethod.GET)
+	@GetMapping(value = "/cron/{group}/{name}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public TriggerResource getTrigger(@PathVariable String group, @PathVariable String name)
@@ -72,7 +71,7 @@ public class TriggerController
 		return new TriggerResourceAssembler().toResource(triggerManagementService.getTrigger(name, group));
 	}
 
-	@RequestMapping(value = "/cron/{group}/", method = RequestMethod.POST)
+	@PostMapping(value = "/cron/{group}/")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public TriggerResource addTrigger(@PathVariable String group, @RequestBody CronTriggerDto trigger)
@@ -81,9 +80,9 @@ public class TriggerController
 		return new TriggerResourceAssembler().toResource(triggerManagementService.addTrigger(group, trigger));
 	}
 
-	private static Resources<TriggerResource> createTriggersCollectionResource(Set<CronTriggerDto> allTriggers, Link link)
+	private TriggerResourceAssembler createResourceAssembler()
 	{
-		return new Resources<>(new TriggerResourceAssembler().toResources(allTriggers), link);
+		return new TriggerResourceAssembler();
 	}
 
 	private static ControllerLinkBuilder getAllTriggersLinkBuilder()

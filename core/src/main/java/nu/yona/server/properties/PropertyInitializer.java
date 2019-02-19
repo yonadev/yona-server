@@ -37,7 +37,7 @@ public class PropertyInitializer
 		{
 			return;
 		}
-		Objects.requireNonNull(value, "Value for property " + key);
-		System.setProperty(key, value);
+
+		System.setProperty(key, Objects.requireNonNull(value, "Value for property " + key));
 	}
 }

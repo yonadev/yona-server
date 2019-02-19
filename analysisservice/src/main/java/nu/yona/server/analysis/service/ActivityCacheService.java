@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -24,23 +24,24 @@ import nu.yona.server.analysis.entities.DayActivity;
 @CacheConfig(cacheManager = "localCache", cacheNames = "lastActivity")
 public class ActivityCacheService
 {
-	@Cacheable(key = "{#userAnonymizedId,#goalId}")
+	@Cacheable(key = "{#userAnonymizedId,#deviceAnonymizedId,#goalId}")
 	@Transactional
-	public ActivityDto fetchLastActivityForUser(UUID userAnonymizedId, UUID goalId)
+	public ActivityDto fetchLastActivityForUser(UUID userAnonymizedId, UUID deviceAnonymizedId, UUID goalId)
 	{
-		List<DayActivity> lastDayActivityList = DayActivity.getRepository().findLast(userAnonymizedId, goalId, new PageRequest(0, 1))
-				.getContent();
+		List<DayActivity> lastDayActivityList = DayActivity.getRepository()
+				.findLast(userAnonymizedId, goalId, PageRequest.of(0, 1)).getContent();
 		if (lastDayActivityList.isEmpty())
 		{
 			return null;
 		}
-		Activity lastActivity = lastDayActivityList.get(0).getLastActivity();
+		Activity lastActivity = lastDayActivityList.get(0).getLastActivity(deviceAnonymizedId);
 		// this can be the case when a DayActivity is created with inactivity
 		return lastActivity == null ? null : ActivityDto.createInstance(lastActivity);
 	}
 
-	@CachePut(key = "{#userAnonymizedId,#goalId}")
-	public ActivityDto updateLastActivityForUser(UUID userAnonymizedId, UUID goalId, ActivityDto activity)
+	@CachePut(key = "{#userAnonymizedId,#deviceAnonymizedId,#goalId}")
+	public ActivityDto updateLastActivityForUser(UUID userAnonymizedId, UUID deviceAnonymizedId, UUID goalId,
+			ActivityDto activity)
 	{
 		// Nothing else to do. Just let Spring cache this new value.
 		return activity;

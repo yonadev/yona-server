@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.jobs;
@@ -34,8 +34,9 @@ import org.springframework.stereotype.Component;
 
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.SystemMessage;
+import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.rest.RestUtil;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
@@ -70,7 +71,7 @@ public class SendSystemMessageBatchJob
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
-	private MessageDestinationRepository messageDestinationRepository;
+	private MessageService messageService;
 
 	@Bean("sendSystemMessageJob")
 	public Job sendSystemMessagesBatchJob()
@@ -106,8 +107,8 @@ public class SendSystemMessageBatchJob
 				logger.debug("Processing user anonymized with id {}", userAnonymizedId);
 				UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 
-				MessageDestination messageDestination = messageDestinationRepository
-						.findOne(userAnonymized.getAnonymousDestination().getId());
+				MessageDestination messageDestination = messageService
+						.getMessageDestination(userAnonymized.getAnonymousDestination().getId());
 				messageDestination.send(SystemMessage.createInstance(messageText));
 
 				return messageDestination;
@@ -125,21 +126,33 @@ public class SendSystemMessageBatchJob
 
 	private ItemReader<UUID> userAnonymizedIdReader()
 	{
+		final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = createQueryProviderFactory();
+		JdbcPagingItemReader<UUID> reader = createReader(sqlPagingQueryProviderFactoryBean);
+		logger.info("Reading users anonymized in chunks of {}", USERS_CHUNK_SIZE);
+		return reader;
+	}
+
+	private SqlPagingQueryProviderFactoryBean createQueryProviderFactory()
+	{
+		final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+		sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
+		sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
+		sqlPagingQueryProviderFactoryBean.setFromClause("from users_anonymized");
+		sqlPagingQueryProviderFactoryBean.setSortKey("id");
+		return sqlPagingQueryProviderFactoryBean;
+	}
+
+	private JdbcPagingItemReader<UUID> createReader(final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean)
+	{
 		try
 		{
 			JdbcPagingItemReader<UUID> reader = new JdbcPagingItemReader<>();
-			final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
-			sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
-			sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
-			sqlPagingQueryProviderFactoryBean.setFromClause("from users_anonymized");
-			sqlPagingQueryProviderFactoryBean.setSortKey("id");
 			reader.setQueryProvider(sqlPagingQueryProviderFactoryBean.getObject());
 			reader.setDataSource(dataSource);
 			reader.setPageSize(USERS_CHUNK_SIZE);
 			reader.setRowMapper(singleUUIDColumnRowMapper());
 			reader.afterPropertiesSet();
 			reader.setSaveState(true);
-			logger.info("Reading users anonymized in chunks of {}", USERS_CHUNK_SIZE);
 			return reader;
 		}
 		catch (Exception e)
@@ -155,7 +168,7 @@ public class SendSystemMessageBatchJob
 			@Override
 			public UUID mapRow(ResultSet rs, int rowNum) throws SQLException
 			{
-				return UUID.fromString(rs.getString(1));
+				return RestUtil.parseUuid(rs.getString(1));
 			}
 
 		};

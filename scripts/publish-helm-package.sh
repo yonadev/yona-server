@@ -19,14 +19,14 @@ mkdir build
 cp -r $CHART build
 pushd build
 sed --in-place s/_ReplaceWithBuildNumber_/$BUILD_NUMBER/ $CHART/Chart.yaml
-helm dependency update --verify $CHART
+helm dependency update $CHART
 helm package -d $PACKAGE_DIR --version $VERSION $CHART
 popd
 
 pushd $HELM_REPO_DIR
 git pull
 git add $PACKAGE_PATH
-helm repo index docs --url https://yonadev.github.io/$HELM_REPO
+helm repo index docs --url https://jump.ops.yona.nu/$HELM_REPO
 export GIT_AUTHOR_NAME="Yona build server"
 export GIT_AUTHOR_EMAIL=dev@yona.nu
 export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME

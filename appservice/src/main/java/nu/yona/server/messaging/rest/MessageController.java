@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.rest;
@@ -32,11 +32,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -60,19 +62,23 @@ import nu.yona.server.messaging.service.DisclosureResponseMessageDto;
 import nu.yona.server.messaging.service.MessageActionDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.rest.UserController.UserResourceAssembler;
+import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(MessageDto.class)
 @RequestMapping(value = "/users/{userId}/messages", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class MessageController
+public class MessageController extends ControllerBase
 {
 	@Autowired
 	private MessageService messageService;
@@ -89,13 +95,14 @@ public class MessageController
 	@Autowired
 	private BuddyActivityController buddyActivityController;
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDto>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
 			@PathVariable UUID userId, Pageable pageable, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
 
@@ -106,72 +113,79 @@ public class MessageController
 	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
-		messageService.prepareMessageCollection(userId);
-		Page<MessageDto> messages = messageService.getReceivedMessages(userId, onlyUnreadMessages, pageable);
-		return createOkResponse(pagedResourcesAssembler.toResource(messages,
-				new MessageResourceAssembler(curieProvider, createGoalIdMapping(userId), this)));
+		UserDto user = userService.getPrivateValidatedUser(userId);
+		Page<MessageDto> messages = messageService.getReceivedMessages(user, onlyUnreadMessages, pageable);
+		return createOkResponse(user, messages, pagedResourcesAssembler);
 	}
 
-	@RequestMapping(value = "/{messageId}", method = RequestMethod.GET)
+	@GetMapping(value = "/{messageId}")
 	@ResponseBody
 	public HttpEntity<MessageDto> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable long messageId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return createOkResponse(toMessageResource(createGoalIdMapping(userId), messageService.getMessage(userId, messageId)));
+			UserDto user = userService.getPrivateValidatedUser(userId);
+			return createOkResponse(user, messageService.getMessage(user, messageId));
 		}
 	}
 
-	private GoalIdMapping createGoalIdMapping(UUID userId)
+	private GoalIdMapping createGoalIdMapping(UserDto user)
 	{
-		return GoalIdMapping.createInstance(userService.getPrivateUser(userId));
+		return GoalIdMapping.createInstance(user);
 	}
 
-	public MessageDto toMessageResource(GoalIdMapping goalIdMapping, MessageDto message)
+	public HttpEntity<MessageDto> createOkResponse(UserDto user, MessageDto message)
 	{
-		return new MessageResourceAssembler(curieProvider, goalIdMapping, this).toResource(message);
+		return createOkResponse(message, createResourceAssembler(createGoalIdMapping(user)));
 	}
 
-	@RequestMapping(value = "/{id}/{action}", method = RequestMethod.POST)
+	public HttpEntity<PagedResources<MessageDto>> createOkResponse(UserDto user, Page<MessageDto> messages,
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
+	{
+		return createOkResponse(messages, pagedResourcesAssembler, createResourceAssembler(createGoalIdMapping(user)));
+	}
+
+	@PostMapping(value = "/{id}/{action}")
 	@ResponseBody
 	public HttpEntity<MessageActionResource> handleAnonymousMessageAction(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable long id,
 			@PathVariable String action, @RequestBody MessageActionDto requestPayload)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
+			UserDto user = userService.getPrivateValidatedUser(userId);
+
 			return createOkResponse(new MessageActionResource(curieProvider,
-					messageService.handleMessageAction(userId, id, action, requestPayload), createGoalIdMapping(userId), this));
+					messageService.handleMessageAction(user, id, action, requestPayload), createGoalIdMapping(user), this));
 		}
 	}
 
-	@RequestMapping(value = "/{messageId}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/{messageId}")
 	@ResponseBody
 	public HttpEntity<MessageActionResource> deleteAnonymousMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable long messageId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(userId, messageId),
-					createGoalIdMapping(userId), this));
+			UserDto user = userService.getPrivateValidatedUser(userId);
+			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(user, messageId),
+					createGoalIdMapping(user), this));
 		}
-	}
-
-	private HttpEntity<PagedResources<MessageDto>> createOkResponse(PagedResources<MessageDto> messages)
-	{
-		return new ResponseEntity<>(messages, HttpStatus.OK);
-	}
-
-	private HttpEntity<MessageDto> createOkResponse(MessageDto message)
-	{
-		return new ResponseEntity<>(message, HttpStatus.OK);
 	}
 
 	private HttpEntity<MessageActionResource> createOkResponse(MessageActionResource messageAction)
 	{
 		return new ResponseEntity<>(messageAction, HttpStatus.OK);
+	}
+
+	private MessageResourceAssembler createResourceAssembler(GoalIdMapping goalIdMapping)
+	{
+		return new MessageResourceAssembler(curieProvider, goalIdMapping, this);
 	}
 
 	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userId, long messageId)
@@ -221,7 +235,7 @@ public class MessageController
 		}
 	}
 
-	public static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDto, MessageDto>
+	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDto, MessageDto>
 	{
 		private final GoalIdMapping goalIdMapping;
 		private final CurieProvider curieProvider;
@@ -245,6 +259,7 @@ public class MessageController
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
 			addRelatedMessageLink(message, message);
+			addSenderUserPhotoLinkIfAvailable(message);
 			if (message.canBeDeleted())
 			{
 				addEditLink(selfLinkBuilder, message);
@@ -334,6 +349,12 @@ public class MessageController
 			}
 		}
 
+		private void addSenderUserPhotoLinkIfAvailable(MessageDto message)
+		{
+			message.getSenderUserPhotoId().ifPresent(
+					userPhotoId -> message.add(UserPhotoController.getUserPhotoLinkBuilder(userPhotoId).withRel("userPhoto")));
+		}
+
 		private void addRelatedActivityCategoryLink(GoalChangeMessageDto message)
 		{
 			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryIdOfChangedGoal())
@@ -369,7 +390,7 @@ public class MessageController
 
 		private void addDayActivityDetailLink(GoalConflictMessageDto message)
 		{
-			String dateStr = DayActivityDto.formatDate(message.getActivityStartTime().toLocalDate());
+			String dateStr = DayActivityDto.formatDate(message.getActivityStartDate());
 			if (message.isSentFromBuddy())
 			{
 				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(),
@@ -394,21 +415,31 @@ public class MessageController
 		{
 			buddyMessage.getSenderUser()
 					.ifPresent(user -> buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-							new UserController.UserResourceAssembler(curieProvider, false).toResource(user)));
+							createResourceAssembler(user).toResource(user)));
+		}
+
+		private UserResourceAssembler createResourceAssembler(UserDto user)
+		{
+			if (goalIdMapping.getUser().getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getId())
+					.anyMatch(id -> id.equals(user.getId())))
+			{
+				return UserController.UserResourceAssembler.createMinimalInstance(curieProvider, goalIdMapping.getUserId());
+			}
+			return UserController.UserResourceAssembler.createPublicUserInstance(curieProvider);
 		}
 
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDto buddyMessage)
 		{
-			buddyMessage.getSenderUser()
-					.ifPresent(user -> buddyMessage.add(UserController.getPublicUserLink(BuddyDto.USER_REL_NAME, user.getId())));
+			buddyMessage.getSenderUser().ifPresent(user -> buddyMessage
+					.add(UserController.getBuddyUserLink(BuddyDto.USER_REL_NAME, user.getId(), goalIdMapping.getUserId())));
 		}
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDto message)
 		{
-			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findOne(message.getIntervalActivityId());
-			Objects.requireNonNull(activity,
-					String.format("Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
-							message.getSenderNickname(), message.getIntervalActivityId()));
+			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findById(message.getIntervalActivityId())
+					.orElseThrow(() -> new IllegalStateException(String.format(
+							"Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
+							message.getSenderNickname(), message.getIntervalActivityId())));
 			Goal goal = Objects.requireNonNull(activity.getGoal(),
 					String.format("Activity getGoal() returns null for '%s' instance with id '%s' and start time '%s'",
 							activity.getClass().getSimpleName(), activity.getId(), activity.getStartDate()));

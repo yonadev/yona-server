@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -20,19 +20,22 @@ import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.rest.DeviceController;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -46,7 +49,7 @@ import nu.yona.server.subscriptions.service.UserServiceException;
 @Controller
 @ExposesResourceFor(NewDeviceRequestResource.class)
 @RequestMapping(value = "/newDeviceRequests", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class NewDeviceRequestController
+public class NewDeviceRequestController extends ControllerBase
 {
 	private static final Logger logger = LoggerFactory.getLogger(NewDeviceRequestController.class);
 
@@ -56,7 +59,7 @@ public class NewDeviceRequestController
 	@Autowired
 	private NewDeviceRequestService newDeviceRequestService;
 
-	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.PUT)
+	@PutMapping(value = "/{mobileNumber}")
 	@ResponseStatus(HttpStatus.OK)
 	public void setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) String password,
 			@PathVariable String mobileNumber, @RequestBody NewDeviceRequestCreationDto newDeviceRequestCreation)
@@ -65,9 +68,12 @@ public class NewDeviceRequestController
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			checkPassword(Optional.of(password), userId);
-			newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
-					newDeviceRequestCreation.getNewDeviceRequestPassword());
+			try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
+					() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+			{
+				newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
+						newDeviceRequestCreation.getNewDeviceRequestPassword());
+			}
 		}
 		catch (UserServiceException e)
 		{
@@ -77,19 +83,18 @@ public class NewDeviceRequestController
 		}
 	}
 
-	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.GET)
+	@GetMapping(value = "/{mobileNumber}")
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
-			@RequestHeader(value = "Yona-NewDeviceRequestPassword") Optional<String> newDeviceRequestPassword,
+			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
 			@PathVariable String mobileNumber)
 	{
 		try
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UserDto user = userService.getUserByMobileNumber(mobileNumber);
-			return createNewDeviceRequestResponse(user,
-					newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword), HttpStatus.OK);
+			return createOkResponse(newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword),
+					createResourceAssembler(user));
 		}
 		catch (UserServiceException e)
 		{
@@ -99,7 +104,7 @@ public class NewDeviceRequestController
 		}
 	}
 
-	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/{mobileNumber}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
@@ -109,8 +114,11 @@ public class NewDeviceRequestController
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			checkPassword(password, userId);
-			newDeviceRequestService.clearNewDeviceRequestForUser(userId);
+			try (CryptoSession cryptoSession = CryptoSession.start(password,
+					() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+			{
+				newDeviceRequestService.clearNewDeviceRequestForUser(userId);
+			}
 		}
 		catch (UserServiceException e)
 		{
@@ -120,18 +128,9 @@ public class NewDeviceRequestController
 		}
 	}
 
-	private void checkPassword(Optional<String> password, UUID userId)
+	private NewDeviceRequestResourceAssembler createResourceAssembler(UserDto user)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			// Nothing to do here. The check is done in the above statement.
-		}
-	}
-
-	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(UserDto user,
-			NewDeviceRequestDto newDeviceRequest, HttpStatus statusCode)
-	{
-		return new ResponseEntity<>(new NewDeviceRequestResourceAssembler(user).toResource(newDeviceRequest), statusCode);
+		return new NewDeviceRequestResourceAssembler(user);
 	}
 
 	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)
@@ -166,6 +165,7 @@ public class NewDeviceRequestController
 			addSelfLink(newDeviceRequestResource);
 			addEditLink(newDeviceRequestResource);/* always editable */
 			addUserLink(newDeviceRequestResource);
+			addRegisterDeviceLink(newDeviceRequestResource);
 			return newDeviceRequestResource;
 		}
 
@@ -189,7 +189,13 @@ public class NewDeviceRequestController
 
 		private void addUserLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getId()));
+			newDeviceRequestResource
+					.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getId(), Optional.empty()));
+		}
+
+		private void addRegisterDeviceLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
+		{
+			newDeviceRequestResource.add(DeviceController.getRegisterDeviceLinkBuilder(user.getId()).withRel("registerDevice"));
 		}
 	}
 }

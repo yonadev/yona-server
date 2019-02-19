@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
@@ -40,11 +40,16 @@ public class YonaProperties
 	@NestedConfigurationProperty
 	private final AppleMobileConfigProperties appleMobileConfig = new AppleMobileConfigProperties();
 
+	@NestedConfigurationProperty
+	private final FirebaseProperties firebase = new FirebaseProperties();
+
 	private final Set<Locale> supportedLocales = new HashSet<>();
 
 	private Locale defaultLocale;
 
 	private String appleAppId;
+
+	private String hazelcastConfigFilePath;
 
 	private int maxUsers;
 
@@ -89,6 +94,11 @@ public class YonaProperties
 		return appleMobileConfig;
 	}
 
+	public FirebaseProperties getFirebase()
+	{
+		return firebase;
+	}
+
 	public void setDefaultLocale(String defaultLocale)
 	{
 		this.defaultLocale = Locale.forLanguageTag(defaultLocale);
@@ -118,6 +128,16 @@ public class YonaProperties
 	public String getAppleAppId()
 	{
 		return appleAppId;
+	}
+
+	public String getHazelcastConfigFilePath()
+	{
+		return hazelcastConfigFilePath;
+	}
+
+	public void setHazelcastConfigFilePath(String hazelcastConfigFilePath)
+	{
+		this.hazelcastConfigFilePath = hazelcastConfigFilePath;
 	}
 
 	public int getMaxUsers()

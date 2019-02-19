@@ -4,25 +4,19 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service.migration;
 
-import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService;
 
+@Component
+@Order(0) // Never change the order or remove a migration step. If the step is obsolete, make it empty
 public class EncryptBuddyLastStatusChangeTime implements PrivateUserDataMigrationService.MigrationStep
 {
 	@Override
 	public void upgrade(User userEntity)
 	{
-		userEntity.getBuddies().forEach(this::upgradeBuddy);
-	}
-
-	@SuppressWarnings("deprecation")
-	private void upgradeBuddy(Buddy buddy)
-	{
-		BuddyAnonymized buddyAnonymized = buddy.getBuddyAnonymized();
-		buddy.setLastStatusChangeTime(buddyAnonymized.getLastStatusChangeTime());
-		buddyAnonymized.clearLastStatusChangeTime();
-		BuddyAnonymized.getRepository().save(buddyAnonymized);
+		// Nothing needed anymore. All users have been migrated, so the old code is removed.
 	}
 }

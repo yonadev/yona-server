@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 
 /**
@@ -20,7 +22,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 				"firstName":"John",
 				"lastName":"Doe",
 				"nickname":"JD",
-				"mobileNumber":"+${timestamp}"
+				"mobileNumber":"${makeMobileNumber(timestamp)}"
 				}"""
 
 	def 'AddUser - empty first name'()
@@ -31,7 +33,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.firstname"
 	}
 
@@ -43,7 +45,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.lastname"
 	}
 
@@ -55,7 +57,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.nickname"
 	}
 
@@ -67,11 +69,11 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.mobile.number"
 	}
 
-	def 'AddUser - invalid mobile number'()
+	def 'AddUser - invalid mobile number format'()
 	{
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
@@ -79,7 +81,19 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.mobile.number.invalid"
+	}
+
+	def 'AddUser - invalid mobile number (fixed line)'()
+	{
+		when:
+		def object = jsonSlurper.parseText(userCreationJson)
+		object.put('mobileNumber', '+31356474747')
+		def response = appService.addUser(object)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.user.mobile.number.not.mobile"
 	}
 }

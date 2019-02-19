@@ -1,0 +1,64 @@
+databaseChangeLog:
+- changeSet:
+    id: 1508867617816-1
+    author: avdijk (manual)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: png_bytes
+            type: MEDIUMBLOB
+        tableName: user_photo
+- changeSet:
+    id: 1508867617816-2
+    author: avdijk (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: new_user_photo_id_ciphertext
+            type: tinyblob
+        tableName: messages
+- changeSet:
+    id: 1508867617816-3
+    author: avdijk (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: sender_user_photo_id_ciphertext
+            type: tinyblob
+        tableName: messages
+- changeSet:
+    id: 1508867617816-4
+    author: avdijk (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: user_photo_id
+            type: varchar(255)
+        tableName: buddies
+- changeSet:
+    id: 1508867617816-5
+    author: avdijk (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: user_photo_id
+            type: varchar(255)
+        tableName: users_private
+- changeSet:
+    id: 1508867617816-6
+    author: avdijk (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: user_photoPK
+        tableName: user_photo

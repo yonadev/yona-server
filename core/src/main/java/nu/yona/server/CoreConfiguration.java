@@ -1,20 +1,17 @@
-package nu.yona.server;
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
+package nu.yona.server;
 
 import java.util.Properties;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.RelProvider;
@@ -23,20 +20,13 @@ import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.hal.DefaultCurieProvider;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.spring.cache.HazelcastCacheManager;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
@@ -46,7 +36,8 @@ import nu.yona.server.rest.RestClientErrorHandler;
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
 @Configuration
-public class CoreConfiguration extends CachingConfigurerSupport
+@EnableAutoConfiguration(exclude = { LdapAutoConfiguration.class })
+public class CoreConfiguration
 {
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -109,36 +100,6 @@ public class CoreConfiguration extends CachingConfigurerSupport
 		return mailSender;
 	}
 
-	private static final String SPRING_HATEOAS_OBJECT_MAPPER = "_halObjectMapper";
-
-	@Autowired
-	private BeanFactory beanFactory;
-
-	@Bean
-	@Primary
-	ObjectMapper objectMapper()
-	{
-		// HATEOAS disables the default Spring configuration options described at
-		// https://docs.spring.io/spring-boot/docs/current/reference/html/howto-spring-mvc.html#howto-customize-the-jackson-objectmapper
-		// See https://github.com/spring-projects/spring-hateoas/issues/333.
-		// We fix this by applying the Spring configurator on the HATEOAS object mapper
-		// See also
-		// https://github.com/spring-projects/spring-boot/blob/v1.3.2.RELEASE/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/hateoas/HypermediaAutoConfiguration.java
-		// which already seems to do this but does not work
-		ObjectMapper springHateoasObjectMapper = beanFactory.getBean(SPRING_HATEOAS_OBJECT_MAPPER, ObjectMapper.class);
-		Jackson2ObjectMapperBuilder builder = beanFactory.getBean(Jackson2ObjectMapperBuilder.class);
-		builder.configure(springHateoasObjectMapper);
-
-		// By default, Jackson converts dates to UTC. This causes issues when passing inactivity creation requests from the app
-		// service to the analysis engine service.
-		springHateoasObjectMapper.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
-
-		// This way, the JsonView annotations on the controlers work properly
-		springHateoasObjectMapper.enable(MapperFeature.DEFAULT_VIEW_INCLUSION);
-
-		return springHateoasObjectMapper;
-	}
-
 	@Bean
 	public CurieProvider curieProvider()
 	{
@@ -151,24 +112,5 @@ public class CoreConfiguration extends CachingConfigurerSupport
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setErrorHandler(new RestClientErrorHandler(objectMapper));
 		return restTemplate;
-	}
-
-	@Override
-	@Bean
-	public CacheManager cacheManager()
-	{
-		return new HazelcastCacheManager(hazelcastInstance());
-	}
-
-	@Bean // By making this a bean, Spring takes care of shutting down Hazelcast
-	public HazelcastInstance hazelcastInstance()
-	{
-		return Hazelcast.newHazelcastInstance(new Config());
-	}
-
-	@Bean
-	public CacheManager localCache()
-	{
-		return new ConcurrentMapCacheManager();
 	}
 }

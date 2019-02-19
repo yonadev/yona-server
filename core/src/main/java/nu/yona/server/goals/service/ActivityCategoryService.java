@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
@@ -18,6 +18,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -28,11 +29,12 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.CacheConfiguration;
 import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
-@CacheConfig(cacheNames = "activityCategories")
+@CacheConfig(cacheNames = ActivityCategoryService.CACHE_NAME)
 @Service
 public class ActivityCategoryService
 {
@@ -63,10 +65,26 @@ public class ActivityCategoryService
 		}
 	}
 
+	static final String CACHE_NAME = "activityCategories";
+
 	@Autowired
 	private ActivityCategoryRepository repository;
 
+	@Autowired(required = false)
+	private CacheConfiguration cacheConfiguration;
+
 	private static final Logger logger = LoggerFactory.getLogger(ActivityCategoryService.class);
+
+	@PostConstruct
+	public void registerCacheForMetrics()
+	{
+		if (cacheConfiguration == null)
+		{
+			// Apparently running in a unit test that does not have all dependencies
+			return;
+		}
+		cacheConfiguration.registerCacheForMetrics(CACHE_NAME);
+	}
 
 	@Transactional
 	public ActivityCategoryDto getActivityCategory(UUID id)
@@ -75,9 +93,20 @@ public class ActivityCategoryService
 		return ActivityCategoryDto.createInstance(activityCategoryEntity);
 	}
 
-	@Cacheable(value = "activityCategorySet", key = "'instance'")
+	@Cacheable(key = "'instance'")
 	@Transactional
 	public Set<ActivityCategoryDto> getAllActivityCategories()
+	{
+		logger.info("Getting all activity categories (apparently not cached)");
+		// Sort the collection to make it simpler to compare the activity categories
+		return StreamSupport.stream(repository.findAll().spliterator(), false).map(ActivityCategoryDto::createInstance)
+				.collect(Collectors.toCollection(() -> new TreeSet<>(
+						(Comparator<ActivityCategoryDto> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
+	}
+
+	// Added to analyse randomly failing ActivityCategoriesTest
+	@Transactional
+	public Set<ActivityCategoryDto> getAllActivityCategoriesSkipCache()
 	{
 		// Sort the collection to make it simpler to compare the activity categories
 		return StreamSupport.stream(repository.findAll().spliterator(), false).map(ActivityCategoryDto::createInstance)
@@ -85,7 +114,7 @@ public class ActivityCategoryService
 						(Comparator<ActivityCategoryDto> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
 	}
 
-	@CacheEvict(value = "activityCategorySet", key = "'instance'")
+	@CacheEvict(key = "'instance'")
 	@Transactional
 	public ActivityCategoryDto addActivityCategory(ActivityCategoryDto activityCategoryDto)
 	{
@@ -95,7 +124,7 @@ public class ActivityCategoryService
 		return ActivityCategoryDto.createInstance(repository.save(activityCategoryDto.createActivityCategoryEntity()));
 	}
 
-	@CacheEvict(value = "activityCategorySet", key = "'instance'")
+	@CacheEvict(key = "'instance'")
 	@Transactional
 	public ActivityCategoryDto updateActivityCategory(UUID id, ActivityCategoryDto activityCategoryDto)
 	{
@@ -105,7 +134,7 @@ public class ActivityCategoryService
 		return ActivityCategoryDto.createInstance(updateActivityCategory(originalEntity, activityCategoryDto));
 	}
 
-	@CacheEvict(value = "activityCategorySet", key = "'instance'")
+	@CacheEvict(key = "'instance'")
 	@Transactional
 	public void updateActivityCategorySet(Set<ActivityCategoryDto> activityCategoryDtos)
 	{
@@ -117,7 +146,7 @@ public class ActivityCategoryService
 		logger.info("Activity category set update completed");
 	}
 
-	@CacheEvict(value = "activityCategorySet", key = "'instance'")
+	@CacheEvict(key = "'instance'")
 	@Transactional
 	public void deleteActivityCategory(UUID id)
 	{
@@ -158,12 +187,7 @@ public class ActivityCategoryService
 
 	private ActivityCategory getEntityById(UUID id)
 	{
-		ActivityCategory entity = repository.findOne(id);
-		if (entity == null)
-		{
-			throw ActivityCategoryException.notFound(id);
-		}
-		return entity;
+		return repository.findById(id).orElseThrow(() -> ActivityCategoryException.notFound(id));
 	}
 
 	private Set<ActivityCategory> getAllActivityCategoryEntities()
@@ -182,21 +206,24 @@ public class ActivityCategoryService
 		Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap = activityCategoriesInRepository.stream()
 				.collect(Collectors.toMap(ActivityCategory::getId, ac -> ac));
 
-		for (ActivityCategoryDto activityCategoryDto : activityCategoryDtos)
+		activityCategoryDtos.stream().forEach(a -> addOrUpdateNewActivityCategory(a, activityCategoriesInRepositoryMap));
+	}
+
+	private void addOrUpdateNewActivityCategory(ActivityCategoryDto activityCategoryDto,
+			Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap)
+	{
+		ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDto.getId());
+		if (activityCategoryEntity == null)
 		{
-			ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDto.getId());
-			if (activityCategoryEntity == null)
+			addActivityCategory(activityCategoryDto);
+			explicitlyFlushUpdatesToDatabase();
+		}
+		else
+		{
+			if (!isUpToDate(activityCategoryEntity, activityCategoryDto))
 			{
-				addActivityCategory(activityCategoryDto);
+				updateActivityCategory(activityCategoryDto.getId(), activityCategoryDto);
 				explicitlyFlushUpdatesToDatabase();
-			}
-			else
-			{
-				if (!isUpToDate(activityCategoryEntity, activityCategoryDto))
-				{
-					updateActivityCategory(activityCategoryDto.getId(), activityCategoryDto);
-					explicitlyFlushUpdatesToDatabase();
-				}
 			}
 		}
 	}

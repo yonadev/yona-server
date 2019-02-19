@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.admin;
@@ -13,11 +13,13 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.UserRepository;
 
@@ -33,7 +35,13 @@ public class DashboardController
 	@Autowired
 	private UserAnonymizedRepository userAnonymizedRepository;
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@Autowired
+	private YonaProperties yonaProperties;
+
+	@Autowired
+	private BuildProperties buildProperties;
+
+	@GetMapping(value = "/")
 	@Transactional
 	public String getIndexPage(Model model)
 	{
@@ -42,11 +50,23 @@ public class DashboardController
 
 		List<Integer> appOpenedCounts = calculateAppOpenedCounts(intervals);
 		List<Integer> lastMonitoredActivityCounts = calculateLastMonitoredActivityCounts(intervals);
+		model.addAttribute("maxNumOfUsers", yonaProperties.getMaxUsers());
 		model.addAttribute("totalNumOfUsers", userRepository.count());
+		model.addAttribute("numOfUsersWithConfirmedNumbers", userRepository.countByMobileNumberConfirmationCodeIsNull());
+		model.addAttribute("numOfUsersWithUnconfirmedNumbers", userRepository.countByMobileNumberConfirmationCodeIsNotNull());
+		model.addAttribute("numOfUsersWithUnconfirmedNumbersInvitedOnBuddyRequest",
+				userRepository.countByMobileNumberConfirmationCodeIsNotNullAndIsCreatedOnBuddyRequest(true));
+		model.addAttribute("numOfUsersWithUnconfirmedNumbersFreeSignUp",
+				userRepository.countByMobileNumberConfirmationCodeIsNotNullAndIsCreatedOnBuddyRequest(false));
 		model.addAttribute("appOpenedCounts", appOpenedCounts);
 		model.addAttribute("appOpenedPercentages", absoluteValuesToPercentages(appOpenedCounts));
+		model.addAttribute("appOpenedSumLast30Days",
+				userRepository.countByAppLastOpenedDateBetween(LocalDate.now().minusDays(29), LocalDate.now()));
 		model.addAttribute("lastMonitoredActivityCounts", lastMonitoredActivityCounts);
 		model.addAttribute("lastMonitoredActivityPercentages", absoluteValuesToPercentages(lastMonitoredActivityCounts));
+		model.addAttribute("lastMonitoredActivitySumLast30Days",
+				userAnonymizedRepository.countByLastMonitoredActivityDateBetween(LocalDate.now().minusDays(29), LocalDate.now()));
+		model.addAttribute("buildNumber", buildProperties.get("buildNumber"));
 
 		return "dashboard";
 	}
@@ -84,7 +104,13 @@ public class DashboardController
 	private List<Integer> absoluteValuesToPercentages(List<Integer> values)
 	{
 		int sum = values.stream().reduce(0, (a, b) -> a + b);
-		return values.stream().map(v -> Math.round(((float) v) / sum * 100)).collect(Collectors.toList());
+		return values.stream().map(v -> absoluteValueToPercentage(sum, v)).collect(Collectors.toList());
+	}
+
+	private int absoluteValueToPercentage(int sum, Integer value)
+	{
+		int percentage = Math.round(((float) value) / sum * 100);
+		return value > 0 ? Math.max(percentage, 1) : percentage;
 	}
 
 	@FunctionalInterface

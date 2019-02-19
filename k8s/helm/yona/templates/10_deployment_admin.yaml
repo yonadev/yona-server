@@ -20,12 +20,36 @@ spec:
     metadata:
       labels:
         app: admin
-        stage: {{ .Values.global.stage | default "develop" }}
+        stage: {{.Values.global.stage | default "develop"}}
+      {{- if .Values.istio.enabled }}
+      annotations:
+        sidecar.istio.io/inject: "true"
+      {{- else }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+      {{- end }}
     spec:
+      initContainers:
+        - name: validatedb
+          image: craftypenguins/k8s-init-mysql:latest
+          env:
+            - name: DBUSER
+              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+            - name: DBPASSWORD
+              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+            - name: DBHOST
+              {{- if .Values.mariadb.hostname_override }}
+              value: {{ .Values.mariadb.hostname_override | quote }}
+              {{- else }}
+              value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
+              {{- end }}
+            - name: DBNAME
+              value: {{ .Values.mariadb.mariadbDatabase | quote }}
+            - name: TIMEOUT
+              value: "10s"
       containers:
         - name: admin
-          image: 'yonadev/adminservice:build-{{ .Chart.AppVersion }}'
-          imagePullPolicy: Always
+          image: '{{ .Values.global.imagebase | default "yonadev" }}/adminservice:build-{{ .Chart.AppVersion }}'
           env:       
             - name: YONA_DB_USER_NAME
               value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
@@ -38,7 +62,7 @@ spec:
               value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: YONA_BATCH_SERVICE_SERVICE_URL
-            {{- if .Values.batch.url_override }}
+            {{- if hasKey .Values.batch "url_override" }}
               value: {{ .Values.batch.url_override | quote }}
             {{- else }}
               value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local:8080"
@@ -49,6 +73,14 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /opt/app/config
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/
+              port: 9080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
       volumes:
         - name: config-volume
           configMap:

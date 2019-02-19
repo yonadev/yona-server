@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
@@ -111,12 +111,7 @@ public class TriggerManagementService
 	{
 		try
 		{
-			CronTrigger trigger = newTrigger().forJob(triggerDto.getJobName(), group).withIdentity(triggerDto.getName(), group)
-					.startNow()
-					.withSchedule(cronSchedule(triggerDto.getCronExpression())
-							.inTimeZone(TimeZone.getTimeZone(triggerDto.getTimeZone()))
-							.withMisfireHandlingInstructionFireAndProceed())
-					.build();
+			CronTrigger trigger = createTrigger(group, triggerDto);
 			if (changeType == ChangeType.ADD)
 			{
 				scheduler.scheduleJob(trigger);
@@ -133,6 +128,15 @@ public class TriggerManagementService
 		{
 			throw YonaException.unexpected(e);
 		}
+	}
+
+	private CronTrigger createTrigger(String group, CronTriggerDto triggerDto)
+	{
+		return newTrigger().forJob(triggerDto.getJobName(), group).withIdentity(triggerDto.getName(), group).startNow()
+				.withSchedule(
+						cronSchedule(triggerDto.getCronExpression()).inTimeZone(TimeZone.getTimeZone(triggerDto.getTimeZone()))
+								.withMisfireHandlingInstructionFireAndProceed())
+				.build();
 	}
 
 	private TriggerKey getTriggerKey(String group, CronTriggerDto trigger)

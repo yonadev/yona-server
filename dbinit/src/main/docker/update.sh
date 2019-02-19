@@ -1,6 +1,6 @@
 #!/bin/bash
 #*******************************************************************************
-# Copyright (c) 2017 Stichting Yona Foundation
+# Copyright (c) 2017, 2018 Stichting Yona Foundation
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -166,21 +166,21 @@ fi
 if [ -n "${RELEASE}" ]; then
   # Apply Quartz Jobs
   echo "Applying Quartz Jobs"
-  apply_external_json "QuartzOtherJobs.json" "http://batch.yona.svc.cluster.local:8080/scheduler/jobs/OTHER/"
+  apply_external_json "QuartzOtherJobs.json" "http://batch.${SERVICE_NAMESPACE}.svc.cluster.local:8080/scheduler/jobs/OTHER/"
   if [ $? -eq 1 ]; then
     exit $ERROR_EXIT_CODE
   fi
 
   # Apply Quartz Triggers (requires RELEASE env to be set)
   echo "Applying Quartz Triggers"
-  apply_external_json "QuartzOtherCronTriggers.json" "http://batch.yona.svc.cluster.local:8080/scheduler/triggers/cron/OTHER/"
+  apply_external_json "QuartzOtherCronTriggers.json" "http://batch.${SERVICE_NAMESPACE}.svc.cluster.local:8080/scheduler/triggers/cron/OTHER/"
   if [ $? -eq 1 ]; then
     exit $ERROR_EXIT_CODE
   fi
 
   # Apply Categories
   echo "Applying Categories"
-  apply_external_json ${ACT_CATEGORIES_JSON_FILE} "http://admin.yona.svc.cluster.local:8080/activityCategories/"
+  apply_external_json ${ACT_CATEGORIES_JSON_FILE} "http://admin.${SERVICE_NAMESPACE}.svc.cluster.local:8080/activityCategories/"
   if [ $? -eq 1 ]; then
     exit $ERROR_EXIT_CODE
   fi

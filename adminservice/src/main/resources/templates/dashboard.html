@@ -153,9 +153,20 @@
 </head>
 <body>
 	<h1>User statistics</h1>
-	<p>
+	<p>Maximum number of users: <span th:text="${maxNumOfUsers}">100</span><br/>
 		Total number of users: <span th:text="${totalNumOfUsers}">1</span>
-	</p>
+	<ul>
+		<li>Users that confirmed their mobile number: <span th:text="${numOfUsersWithConfirmedNumbers}">1</span></li>
+		<li>Users that did not confirm their mobile number: <span th:text="${numOfUsersWithUnconfirmedNumbers}">1</span>
+			<ul>
+				<li>Users invited on buddy request: <span th:text="${numOfUsersWithUnconfirmedNumbersInvitedOnBuddyRequest}">1</span></li>
+				<li>Other users: <span th:text="${numOfUsersWithUnconfirmedNumbersFreeSignUp}">1</span></li>
+			</ul>
+		</li>
+		<li>Users that opened the app at least once in the last 30 days: <span th:text="${appOpenedSumLast30Days}">1</span></li>
+		<li>Users that had activity monitored in the last 30 days: <span th:text="${lastMonitoredActivitySumLast30Days}">1</span></li>
+	</ul></p>
 	<div id="chart" style="width: 320px; height: 600px"></div>
+	<p>Build number: <span th:text="${buildNumber}">123</span><br/>
 </body>
 </html>

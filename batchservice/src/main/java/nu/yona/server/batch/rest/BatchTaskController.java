@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.rest;
@@ -11,9 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
@@ -28,7 +28,7 @@ public class BatchTaskController
 	@Autowired
 	private BatchTaskService batchTaskService;
 
-	@RequestMapping(value = "/sendPinResetConfirmationCode/", method = RequestMethod.POST)
+	@PostMapping(value = "/sendPinResetConfirmationCode/")
 	@ResponseStatus(HttpStatus.OK)
 	public void requestPinResetConfirmationCode(
 			@RequestBody PinResetConfirmationCodeSendRequestDto pinResetConfirmationCodeSendRequest)
@@ -36,7 +36,7 @@ public class BatchTaskController
 		batchTaskService.requestPinResetConfirmationCode(pinResetConfirmationCodeSendRequest);
 	}
 
-	@RequestMapping(value = "/sendSystemMessage/", method = RequestMethod.POST)
+	@PostMapping(value = "/sendSystemMessage/")
 	@ResponseStatus(HttpStatus.OK)
 	public void sendSystemMessage(@RequestBody SystemMessageSendRequestDto systemMessageSendRequest)
 	{
@@ -44,8 +44,7 @@ public class BatchTaskController
 	}
 
 	// NOTICE: For integration test purposes. It executes the job synchronously.
-	@RequestMapping(value = "/aggregateActivities/", method = RequestMethod.POST)
-	@ResponseStatus(HttpStatus.OK)
+	@PostMapping(value = "/aggregateActivities/")
 	public HttpEntity<Resource<BatchJobResultDto>> aggregateActivities()
 	{
 		return new ResponseEntity<>(new Resource<>(batchTaskService.aggregateActivities()), HttpStatus.OK);

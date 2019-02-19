@@ -1,0 +1,55 @@
+#! /bin/sh
+# Init script for Yona Log Parser on Smoothwall VPN servers
+# Create as /etc/init.d/yona-log-parser
+# To schedule at boot, also deploy the 9399yona-log-parser file to 
+# /etc/actions/secondboot/9399yona-log-parser
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/modules/yona/bin/HandleDansGuardianLog.pl
+NAME=HandleDansGuardianLog
+DESC="Yona DansGuardian Log Parser"
+
+#Default Options - Override in /modules/yona/settings/yona-log-parser.conf
+ACCESS_LOG=/var/log/dandguardian3/access.log
+ANALYSIS_URL=http://localhost:8081
+
+test -f $DAEMON || exit 0
+
+. /modules/yona/settings/yona-log-parser.conf
+
+set -e
+
+OPTIONS="--analysisEngineUrl ${ANALYSIS_URL} ${ACCESS_LOG}"
+
+case "$1" in
+  start)
+ echo -n "Starting $DESC: "
+ start-stop-daemon --start --quiet --pidfile /var/run/$NAME.pid \
+  --exec /usr/bin/perl --startas $DAEMON -- $OPTIONS
+ echo "$NAME."
+ ;;
+  stop)
+ echo -n "Stopping $DESC: "
+ # --quiet
+ start-stop-daemon --stop --signal 15 --pidfile /var/run/$NAME.pid \
+  --exec /usr/bin/perl --startas $DAEMON
+ echo "$NAME."
+ ;;
+  restart|force-reload)
+ echo -n "Restarting $DESC: "
+ start-stop-daemon --stop --quiet --pidfile \
+  /var/run/$NAME.pid --exec /usr/bin/perl --startas $DAEMON
+ sleep 1
+ start-stop-daemon --start --quiet --pidfile \
+  /var/run/$NAME.pid --exec /usr/bin/perl --startas $DAEMON -- $OPTIONS
+ echo "$NAME."
+ ;;
+  *)
+ N=/etc/init.d/$NAME
+ # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+ echo "Usage: $N {start|stop|restart|force-reload}" >&2
+ exit 1
+ ;;
+esac
+
+exit 0

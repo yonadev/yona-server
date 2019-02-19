@@ -6,7 +6,10 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
+import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
@@ -22,7 +25,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def response = appService.deleteUser(richard, "Goodbye friends! I deinstalled the Internet")
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 	}
 
 	def 'Delete and recreate account'()
@@ -32,7 +35,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard, "Goodbye friends! I deinstalled the Internet")
 
 		when:
-		def newRichard = appService.addUser(appService.&assertUserCreationResponseDetails, richard.firstName, richard.lastName,
+		def newRichard = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, richard.firstName, richard.lastName,
 				richard.nickname, richard.mobileNumber)
 
 		then:
@@ -48,8 +51,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		assert analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com").status == 200
-		assert analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl").status == 200
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"))
 
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"
@@ -60,7 +63,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		buddies.size() == 0
 
 		def getMessagesResponse = appService.getMessages(bob)
-		getMessagesResponse.status == 200
+		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded
 		getMessagesResponse.responseData._embedded."yona:messages".size() == 2
 
@@ -101,7 +104,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		buddies.size() == 0
 
 		def getMessagesResponse = appService.getMessages(bob)
-		getMessagesResponse.status == 200
+		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded
 		getMessagesResponse.responseData._embedded."yona:messages".size() == 1
 
@@ -120,7 +123,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		appService.makeBuddies(newRichard, bob)
 
 		then:
-		appService.deleteUser(newRichard, "Sorry, going again").status == 200
+		assertResponseStatusOk(appService.deleteUser(newRichard, "Sorry, going again"))
 
 		cleanup:
 		appService.deleteUser(bob)
@@ -140,7 +143,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		def getMessagesResponse = appService.getMessages(bob)
-		getMessagesResponse.status == 200
+		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded == null
 
 		def buddies = appService.getBuddies(bob)
@@ -164,9 +167,9 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		//insert some messages
 		//goal conflict
-		assert analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl").status == 200
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"))
 		//goal change
-		appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 		//activity comment at activity of Richard
 		def bobResponseDetailsRichard = appService.getDayActivityDetails(bob, bob.buddies[0], budgetGoalNewsBuddyRichard, 1, "Tue")
 		appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichard.responseData._links."yona:addComment".href, """{"message": "Hi Richard, everything OK?"}""", bob.password)
@@ -176,18 +179,18 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		//buddy info change
 		def updatedRichardJson = richard.convertToJson()
 		updatedRichardJson.nickname = "Richardo"
-		richard = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedRichardJson))
+		richard = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedRichardJson))
 
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 
 		then:
-		assert analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com").status == 200
-		assert analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl").status == 400 // User deleted
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com"))
+		assertResponseStatus(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"), 400) // User deleted
 
 		def getMessagesResponse = appService.getMessages(bob)
-		getMessagesResponse.status == 200
+		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded
 		getMessagesResponse.responseData._embedded."yona:messages".size() == 2 // User removal + own goal conflict
 
@@ -233,16 +236,16 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 		def getResponse = appService.getMessages(bob)
-		assert getResponse.status == 200
+		assertResponseStatusOk(getResponse)
 		assert getResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links."yona:process" == null // Processing happens automatically these days
 
 		when:
 		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 
 		then:
-		response.status == 200
+		assertResponseStatusNoContent(response)
 		def getMessagesResponse = appService.getMessages(bob)
-		getMessagesResponse.status == 200
+		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded
 		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
 		buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"

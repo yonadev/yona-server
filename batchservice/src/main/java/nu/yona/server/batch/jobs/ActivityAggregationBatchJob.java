@@ -36,6 +36,7 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.util.TimeUtil;
 
@@ -110,7 +111,8 @@ public class ActivityAggregationBatchJob
 			public DayActivity process(Long dayActivityId) throws Exception
 			{
 				logger.debug("Processing day activity with id {}", dayActivityId);
-				DayActivity dayActivity = dayActivityRepository.findOne(dayActivityId);
+				DayActivity dayActivity = dayActivityRepository.findById(dayActivityId)
+						.orElseThrow(() -> InvalidDataException.missingEntity(DayActivity.class, dayActivityId));
 
 				dayActivity.computeAggregates();
 				return dayActivity;
@@ -142,7 +144,8 @@ public class ActivityAggregationBatchJob
 			public WeekActivity process(Long weekActivityId) throws Exception
 			{
 				logger.debug("Processing week activity with id {}", weekActivityId);
-				WeekActivity weekActivity = weekActivityRepository.findOne(weekActivityId);
+				WeekActivity weekActivity = weekActivityRepository.findById(weekActivityId)
+						.orElseThrow(() -> InvalidDataException.missingEntity(WeekActivity.class, weekActivityId));
 
 				weekActivity.computeAggregates();
 				return weekActivity;
@@ -160,16 +163,31 @@ public class ActivityAggregationBatchJob
 
 	private ItemReader<Long> intervalActivityIdReader(Date cutOffDate, Class<?> activityClass, int chunkSize)
 	{
+		SqlPagingQueryProviderFactoryBean queryProviderFactory = createQueryProviderFactory(activityClass);
+		JdbcPagingItemReader<Long> reader = createReader(cutOffDate, chunkSize, queryProviderFactory);
+		logger.info("Reading nonaggregated {} entities with startDate <= {} in chunks of {}", activityClass.getSimpleName(),
+				cutOffDate, chunkSize);
+		return reader;
+	}
+
+	private SqlPagingQueryProviderFactoryBean createQueryProviderFactory(Class<?> activityClass)
+	{
+		SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+		sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
+		sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
+		sqlPagingQueryProviderFactoryBean.setFromClause("from interval_activities");
+		sqlPagingQueryProviderFactoryBean.setWhereClause("where dtype = '" + activityClass.getSimpleName()
+				+ "' and aggregates_computed = 0 and start_date <= :cutOffDate");
+		sqlPagingQueryProviderFactoryBean.setSortKey("id");
+		return sqlPagingQueryProviderFactoryBean;
+	}
+
+	private JdbcPagingItemReader<Long> createReader(Date cutOffDate, int chunkSize,
+			SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean)
+	{
 		try
 		{
 			JdbcPagingItemReader<Long> reader = new JdbcPagingItemReader<>();
-			final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
-			sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
-			sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
-			sqlPagingQueryProviderFactoryBean.setFromClause("from interval_activities");
-			sqlPagingQueryProviderFactoryBean.setWhereClause("where dtype = '" + activityClass.getSimpleName()
-					+ "' and aggregates_computed = 0 and start_date <= :cutOffDate");
-			sqlPagingQueryProviderFactoryBean.setSortKey("id");
 			reader.setQueryProvider(sqlPagingQueryProviderFactoryBean.getObject());
 			reader.setDataSource(dataSource);
 			reader.setPageSize(chunkSize);
@@ -177,14 +195,11 @@ public class ActivityAggregationBatchJob
 			reader.setParameterValues(Collections.singletonMap("cutOffDate", cutOffDate));
 			reader.afterPropertiesSet();
 			reader.setSaveState(true);
-			logger.info("Reading nonaggregated {} entities with startDate <= {} in chunks of {}", activityClass.getSimpleName(),
-					cutOffDate, chunkSize);
 			return reader;
 		}
 		catch (Exception e)
 		{
 			throw YonaException.unexpected(e);
 		}
-
 	}
 }

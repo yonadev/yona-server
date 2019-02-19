@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -21,6 +21,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserRepository;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -40,34 +41,29 @@ public class NewDeviceRequestService
 	@Transactional
 	public NewDeviceRequestDto setNewDeviceRequestForUser(UUID userId, String yonaPassword, String newDeviceRequestPassword)
 	{
-		User userEntity = userService.getValidatedUserbyId(userId);
+		userService.updateUser(userId, userEntity -> {
+			userService.assertValidatedUser(userEntity);
 
-		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(yonaPassword);
-		newDeviceRequestEntity.encryptYonaPassword(newDeviceRequestPassword);
+			NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(yonaPassword);
+			newDeviceRequestEntity.encryptYonaPassword(newDeviceRequestPassword);
 
-		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
+			userEntity.setNewDeviceRequest(newDeviceRequestEntity);
 
-		logger.info("User with mobile number '{}' and ID '{}' set a new device request", userEntity.getMobileNumber(),
-				userEntity.getId());
-		User.getRepository().save(userEntity);
+			logger.info("User with mobile number '{}' and ID '{}' set a new device request", userEntity.getMobileNumber(),
+					userEntity.getId());
+		});
 		return NewDeviceRequestDto.createInstanceWithoutPassword();
 	}
 
 	@Transactional
 	public NewDeviceRequestDto getNewDeviceRequestForUser(UUID userId, Optional<String> newDeviceRequestPassword)
 	{
-		User userEntity = userService.getValidatedUserbyId(userId);
+		User userEntity = userService.getValidatedUserById(userId);
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 
-		if (newDeviceRequestEntity == null)
-		{
-			throw DeviceRequestException.noDeviceRequestPresent(userEntity.getMobileNumber());
-		}
-
-		if (isExpired(newDeviceRequestEntity))
-		{
-			throw DeviceRequestException.deviceRequestExpired(userEntity.getMobileNumber());
-		}
+		Require.isNonNull(newDeviceRequestEntity,
+				() -> DeviceRequestException.noDeviceRequestPresent(userEntity.getMobileNumber()));
+		Require.that(!isExpired(newDeviceRequestEntity), () -> DeviceRequestException.deviceRequestExpired(userEntity.getMobileNumber()));
 
 		if (newDeviceRequestPassword.isPresent())
 		{
@@ -87,12 +83,12 @@ public class NewDeviceRequestService
 	@Transactional
 	public void clearNewDeviceRequestForUser(UUID userId)
 	{
-		User user = userService.getValidatedUserbyId(userId);
+		User user = userService.getValidatedUserById(userId);
 
 		NewDeviceRequest existingNewDeviceRequestEntity = user.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{
-			removeNewDeviceRequest(user, "User with mobile number '{}' and ID '{}' cleared the new device request");
+			removeNewDeviceRequest(userId, "User with mobile number '{}' and ID '{}' cleared the new device request");
 		}
 	}
 
@@ -100,16 +96,17 @@ public class NewDeviceRequestService
 	public int deleteAllExpiredRequests()
 	{
 		Set<User> users = userRepository.findAllWithExpiredNewDeviceRequests(TimeUtil.utcNow().minus(getExpirationTime()));
-		users.forEach(u -> removeNewDeviceRequest(u,
+		users.forEach(u -> removeNewDeviceRequest(u.getId(),
 				"New device request for user with mobile number '{}' and ID '{}' was cleared because it was expired"));
 		return users.size();
 	}
 
-	private void removeNewDeviceRequest(User user, String logMessage)
+	private void removeNewDeviceRequest(UUID userId, String logMessage)
 	{
-		logger.info(logMessage, user.getMobileNumber(), user.getId());
-		user.clearNewDeviceRequest();
-		userRepository.save(user);
+		userService.updateUser(userId, user -> {
+			logger.info(logMessage, user.getMobileNumber(), user.getId());
+			user.clearNewDeviceRequest();
+		});
 	}
 
 	private Duration getExpirationTime()

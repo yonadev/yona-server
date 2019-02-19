@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -25,12 +26,13 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.MessageActionDto;
-import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
@@ -45,10 +47,11 @@ public class GoalConflictMessageDto extends MessageDto
 	private final LocalDateTime activityEndTime;
 	private final UUID goalId;
 	private final UUID activityCategoryId;
+	private final LocalDate activityStartDate; // In the user's time zone
 
 	private GoalConflictMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalId,
 			UUID activityCategoryId, Optional<String> url, Status status, LocalDateTime activityStartTime,
-			LocalDateTime activityEndTime)
+			LocalDateTime activityEndTime, LocalDate activityStartDate)
 	{
 		super(id, creationTime, isRead, senderInfo);
 		this.goalId = goalId;
@@ -57,6 +60,7 @@ public class GoalConflictMessageDto extends MessageDto
 		this.status = status;
 		this.activityStartTime = activityStartTime;
 		this.activityEndTime = activityEndTime;
+		this.activityStartDate = activityStartDate;
 	}
 
 	@Override
@@ -134,11 +138,18 @@ public class GoalConflictMessageDto extends MessageDto
 				senderInfo, messageEntity.getGoal().getId(), messageEntity.getActivity().getActivityCategory().getId(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getUrl() : Optional.empty(), messageEntity.getStatus(),
 				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getStartTimeAsZonedDateTime()),
-				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getEndTimeAsZonedDateTime()));
+				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getEndTimeAsZonedDateTime()),
+				messageEntity.getActivity().getStartTimeAsZonedDateTime().toLocalDate());
+	}
+
+	@JsonIgnore
+	public LocalDate getActivityStartDate()
+	{
+		return activityStartDate;
 	}
 
 	@Component
-	private static class Manager extends MessageDto.Manager
+	static class Manager extends MessageDto.Manager
 	{
 		@Autowired
 		private TheDtoManager theDtoFactory;
@@ -180,12 +191,11 @@ public class GoalConflictMessageDto extends MessageDto
 		{
 			messageEntity = updateMessageStatusAsDisclosureRequested(messageEntity);
 
-			MessageDestinationDto messageDestination = userAnonymizedService
-					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
+			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get());
 			messageService.sendMessageAndFlushToDatabase(
-					DisclosureRequestMessage.createInstance(actingUser.getId(), actingUser.getPrivateData().getUserAnonymizedId(),
-							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
-					messageDestination);
+					DisclosureRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(actingUser),
+							requestPayload.getProperty("message"), messageEntity),
+					toUser);
 
 			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
 		}

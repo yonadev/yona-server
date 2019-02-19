@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
@@ -13,8 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -33,7 +33,7 @@ public class StandardResourcesController
 	@Qualifier("otherTemplateEngine")
 	private TemplateEngine templateEngine;
 
-	@RequestMapping(value = "/.well-known/apple-app-site-association", method = RequestMethod.GET)
+	@GetMapping(value = "/.well-known/apple-app-site-association")
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleAppSiteAssociation()
 	{
@@ -44,14 +44,14 @@ public class StandardResourcesController
 				templateEngine.process("apple-app-site-association.json", ctx).getBytes(StandardCharsets.UTF_8), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/ssl/rootcert.cer", method = RequestMethod.GET, produces = { "application/pkix-cert" })
+	@GetMapping(value = "/ssl/rootcert.cer", produces = { "application/pkix-cert" })
 	@ResponseBody
 	public FileSystemResource getSslRootCert()
 	{
 		return new FileSystemResource(yonaProperties.getSecurity().getSslRootCertFile());
 	}
 
-	@RequestMapping(value = "/vpn/profile.ovpn", method = RequestMethod.GET, produces = { "application/x-openvpn-profile" })
+	@GetMapping(value = "/vpn/profile.ovpn", produces = { "application/x-openvpn-profile" })
 	@ResponseBody
 	public FileSystemResource getOvpnProfile()
 	{

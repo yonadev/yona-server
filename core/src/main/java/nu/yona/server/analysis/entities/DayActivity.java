@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -15,6 +15,7 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -26,6 +27,7 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.BatchSize;
 
+import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -88,9 +90,11 @@ public class DayActivity extends IntervalActivity
 		return Collections.unmodifiableList(activities);
 	}
 
-	public Activity getLastActivity()
+	public Activity getLastActivity(UUID deviceAnonymizedId)
 	{
-		return this.activities.stream().max((a, b) -> a.getEndTime().compareTo(b.getEndTime())).orElse(null);
+		return this.activities.stream().filter(
+				a -> a.getDeviceAnonymized().map(DeviceAnonymized::getId).map(id -> id.equals(deviceAnonymizedId)).orElse(false))
+				.max((a, b) -> a.getEndTime().compareTo(b.getEndTime())).orElse(null);
 	}
 
 	public void addActivity(Activity activity)
@@ -181,7 +185,10 @@ public class DayActivity extends IntervalActivity
 
 	private int getSpreadIndex(ZonedDateTime atTime)
 	{
-		return (int) (Duration.between(getStartTime(), atTime).toMinutes() / 15);
+		// Convert to local date/time first, to ensure we always have exactly 24 hours in a day
+		// Otherwise, the days we move in or out of daylight saving time would have 23 or 25 hours
+		LocalDateTime atLocalTime = atTime.toLocalDateTime();
+		return (int) (Duration.between(getStartTime().toLocalDateTime(), atLocalTime).toMinutes() / 15);
 	}
 
 	@Override

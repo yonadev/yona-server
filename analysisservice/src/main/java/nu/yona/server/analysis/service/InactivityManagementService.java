@@ -116,7 +116,7 @@ public class InactivityManagementService
 		{
 			return existingActivity;
 		}
-		UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+		UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId).get();
 		Goal goal = goalService.getGoalEntityForUserAnonymizedId(userAnonymizedId, goalId);
 		T inactivityEntity = creator.apply(userAnonymized, goal);
 

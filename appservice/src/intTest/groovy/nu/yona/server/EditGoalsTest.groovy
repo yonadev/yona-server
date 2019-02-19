@@ -1,10 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server
+
+import static nu.yona.server.test.CommonAssertions.*
 
 import java.time.Duration
 import java.time.ZoneOffset
@@ -13,6 +15,7 @@ import java.time.ZonedDateTime
 import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
+import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
@@ -29,7 +32,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addGoal(richard, BudgetGoal.createInstance(notExistingActivityCategoryUrl, 60))
 
 		then:
-		response.status == 404
+		assertResponseStatus(response, 404)
 		response.responseData.code == "error.activitycategory.not.found"
 
 		cleanup:
@@ -45,7 +48,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addGoal(richard, BudgetGoal.createInstance(GAMBLING_ACT_CAT_URL, 60))
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.goal.cannot.add.second.on.activity.category"
 
 		cleanup:
@@ -62,7 +65,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getGoals(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData._embedded."yona:goals".size() == 2
 		def gamblingGoals = filterGoals(response, GAMBLING_ACT_CAT_URL)
 		gamblingGoals.size() == 1
@@ -87,14 +90,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 
 		when:
-		BudgetGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
+		BudgetGoal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
 
 		then:
 		addedGoal
 		addedGoal.maxDurationMinutes == 60
 
 		def responseGoalsAfterAdd = appService.getGoals(richard)
-		responseGoalsAfterAdd.status == 200
+		assertResponseStatusOk(responseGoalsAfterAdd)
 		responseGoalsAfterAdd.responseData._embedded."yona:goals".size() == 3
 
 		def bobMessagesResponse = appService.getMessages(bob)
@@ -104,7 +107,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -135,7 +138,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
-		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		TimeZoneGoal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 
 		then:
 		addedGoal
@@ -143,7 +146,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		addedGoal.zones.size() == 1
 
 		def responseGoalsAfterAdd = appService.getGoals(richard)
-		responseGoalsAfterAdd.status == 200
+		assertResponseStatusOk(responseGoalsAfterAdd)
 		responseGoalsAfterAdd.responseData._embedded."yona:goals".size() == 3
 
 		def bobMessagesResponse = appService.getMessages(bob)
@@ -153,7 +156,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -180,7 +183,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["00:00-24:00"].toArray()), "Going social!")
+		TimeZoneGoal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["00:00-24:00"].toArray()), "Going social!")
 
 		then:
 		addedGoal
@@ -197,7 +200,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["00:00-01:00"].toArray()))
+		TimeZoneGoal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["00:00-01:00"].toArray()))
 
 		then:
 		addedGoal
@@ -214,7 +217,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["23:00-24:00"].toArray()))
+		TimeZoneGoal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["23:00-24:00"].toArray()))
 
 		then:
 		addedGoal
@@ -329,7 +332,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		].toArray()
 
 		when:
-		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, allZones))
+		TimeZoneGoal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, allZones))
 
 		then:
 		addedGoal
@@ -356,11 +359,11 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Want to become a bit more social :)")
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData.maxDurationMinutes == 120
 
 		def responseGoalsAfterUpdate = appService.getGoals(richard)
-		responseGoalsAfterUpdate.status == 200
+		assertResponseStatusOk(responseGoalsAfterUpdate)
 		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
 		findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 120
 		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
@@ -378,7 +381,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -402,7 +405,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["10:00-11:00"].toArray()), "Going to restrict my social time!")
+		TimeZoneGoal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["10:00-11:00"].toArray()), "Going to restrict my social time!")
 		postFacebookActivityPastHour(richard)
 		TimeZoneGoal updatedGoal = TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00", "20:00-22:00"].toArray())
 
@@ -410,11 +413,11 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Will be social in the evening too")
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData.zones.size() == 2
 
 		def responseGoalsAfterUpdate = appService.getGoals(richard)
-		responseGoalsAfterUpdate.status == 200
+		assertResponseStatusOk(responseGoalsAfterUpdate)
 		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
 		def timeZoneGoalAfterUpdate = findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		timeZoneGoalAfterUpdate.zones.size() == 2
@@ -434,7 +437,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -457,9 +460,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		BudgetGoal addedGoal = addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, 60, "W-1 Thu 18:00")
+		BudgetGoal addedGoal = addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, 60, "W-2 Thu 18:00")
 		postFacebookActivityPastHour(richard)
-		BudgetGoal updatedGoal = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 120)
+		def goalUpdateTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
+		BudgetGoal updatedGoal = BudgetGoal.createInstance(goalUpdateTime, SOCIAL_ACT_CAT_URL, 120)
 		bob = appService.reloadUser(bob)
 		def buddyRichardUrl = bob.buddies[0].url
 
@@ -468,14 +472,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Want to become a bit more social :)")
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData.maxDurationMinutes == 120
 
 		def responseGoalsAfterUpdate = appService.getGoals(richard)
-		responseGoalsAfterUpdate.status == 200
+		assertResponseStatusOk(responseGoalsAfterUpdate)
 		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
 		findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 120
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, goalUpdateTime)
 
 		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		allSocialGoals.size() == 2
@@ -490,7 +494,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -505,18 +509,19 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		// Change 2
 		when:
-		BudgetGoal updatedGoal2 = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 180)
+		def goalUpdateTime2 = goalUpdateTime.plusMinutes(15)
+		BudgetGoal updatedGoal2 = BudgetGoal.createInstance(goalUpdateTime2, SOCIAL_ACT_CAT_URL, 180)
 		def response2 = appService.updateGoal(richard, addedGoal.url, updatedGoal2, "Want to become even more social :)")
 
 		then:
-		response2.status == 200
+		assertResponseStatusOk(response2)
 		response2.responseData.maxDurationMinutes == 180
 
 		def responseGoalsAfterUpdate2 = appService.getGoals(richard)
-		responseGoalsAfterUpdate2.status == 200
+		assertResponseStatusOk(responseGoalsAfterUpdate2)
 		responseGoalsAfterUpdate2.responseData._embedded."yona:goals".size() == 5
 		findActiveGoal(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 180
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL).creationTime, goalUpdateTime2)
 
 		def allSocialGoals2 = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL)
 		allSocialGoals2.size() == 3
@@ -531,7 +536,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages2[0].change == 'GOAL_CHANGED'
 		goalChangeMessages2[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages2[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages2[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages2[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages2[0]._embedded?."yona:user" == null
 		goalChangeMessages2[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages2[0].creationTime, YonaServer.now)
@@ -546,18 +551,19 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		// Change 3
 		when:
-		BudgetGoal updatedGoal3 = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 240)
+		def goalUpdateTime3 = goalUpdateTime2.plusMinutes(20)
+		BudgetGoal updatedGoal3 = BudgetGoal.createInstance(goalUpdateTime3, SOCIAL_ACT_CAT_URL, 240)
 		def response3 = appService.updateGoal(richard, addedGoal.url, updatedGoal3, "Want to become extremely social :)")
 
 		then:
-		response3.status == 200
+		assertResponseStatusOk(response3)
 		response3.responseData.maxDurationMinutes == 240
 
 		def responseGoalsAfterUpdate3 = appService.getGoals(richard)
-		responseGoalsAfterUpdate3.status == 200
+		assertResponseStatusOk(responseGoalsAfterUpdate3)
 		responseGoalsAfterUpdate3.responseData._embedded."yona:goals".size() == 6
 		findActiveGoal(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 240
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL).creationTime, goalUpdateTime3)
 
 		def allSocialGoals3 = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL)
 		allSocialGoals3.size() == 4
@@ -572,7 +578,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages3[0].change == 'GOAL_CHANGED'
 		goalChangeMessages3[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages3[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages3[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages3[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages3[0]._embedded?."yona:user" == null
 		goalChangeMessages3[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages3[0].creationTime, YonaServer.now)
@@ -595,14 +601,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		Goal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
+		Goal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
 		TimeZoneGoal updatedGoal = TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray())
 
 		when:
 		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.goal.cannot.change.type"
 
 		cleanup:
@@ -613,14 +619,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		Goal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
+		Goal addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
 		BudgetGoal updatedGoal = BudgetGoal.createInstance(NEWS_ACT_CAT_URL, 60)
 
 		when:
 		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.goal.cannot.change.activity.category"
 
 		cleanup:
@@ -636,7 +642,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addGoal(richard, BudgetGoal.createInstance(NEWS_ACT_CAT_URL, -1))
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.goal.budget.invalid.max.duration.cannot.be.negative"
 
 		cleanup:
@@ -661,25 +667,25 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def fullDayResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["00:00-24:00"].toArray()))
 
 		then:
-		noZoneResponse.status == 400
+		assertResponseStatus(noZoneResponse, 400)
 		noZoneResponse.responseData.code == "error.goal.time.zone.invalid.at.least.one.zone.required"
-		invalidFormatResponse.status == 400
+		assertResponseStatus(invalidFormatResponse, 400)
 		invalidFormatResponse.responseData.code == "error.goal.time.zone.invalid.zone.format"
-		toNotBeyondFromResponse.status == 400
+		assertResponseStatus(toNotBeyondFromResponse, 400)
 		toNotBeyondFromResponse.responseData.code == "error.goal.time.zone.to.not.beyond.from"
-		invalidFromHourResponse.status == 400
+		assertResponseStatus(invalidFromHourResponse, 400)
 		invalidFromHourResponse.responseData.code == "error.goal.time.zone.not.a.valid.hour"
-		invalidToHourResponse.status == 400
+		assertResponseStatus(invalidToHourResponse, 400)
 		invalidToHourResponse.responseData.code == "error.goal.time.zone.not.a.valid.hour"
-		fromNotQuarterHourResponse.status == 400
+		assertResponseStatus(fromNotQuarterHourResponse, 400)
 		fromNotQuarterHourResponse.responseData.code == "error.goal.time.zone.not.a.quarter.hour"
-		toNotQuarterHourResponse.status == 400
+		assertResponseStatus(toNotQuarterHourResponse, 400)
 		toNotQuarterHourResponse.responseData.code == "error.goal.time.zone.not.a.quarter.hour"
-		fromBeyond24Response.status == 400
+		assertResponseStatus(fromBeyond24Response, 400)
 		fromBeyond24Response.responseData.code == "error.goal.time.zone.beyond.twenty.four"
-		toBeyond24Response.status == 400
+		assertResponseStatus(toBeyond24Response, 400)
 		toBeyond24Response.responseData.code == "error.goal.time.zone.beyond.twenty.four"
-		fullDayResponse.status == 201
+		assertResponseStatus(fullDayResponse, 201)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -697,7 +703,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.updateGoal(richard, goal.url, updatedGoal)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.goal.update.time.before.original"
 
 		cleanup:
@@ -710,16 +716,16 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60))
+		def addedGoal = appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60))
 
 		when:
 		def response = appService.removeGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		def responseGoalsAfterDelete = appService.getGoals(richard)
-		responseGoalsAfterDelete.status == 200
+		assertResponseStatusOk(responseGoalsAfterDelete)
 		responseGoalsAfterDelete.responseData._embedded."yona:goals".size() == 2
 
 		def bobMessagesResponse = appService.getMessages(bob)
@@ -728,7 +734,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_DELETED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -752,12 +758,12 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
 		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		postToAeResponse.status == 200
+		assertResponseStatusNoContent(postToAeResponse)
 		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
-		getMessagesRichardBeforeGoalDeleteResponse.status == 200
+		assertResponseStatusOk(getMessagesRichardBeforeGoalDeleteResponse)
 		getMessagesRichardBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 1
 		def getMessagesBobBeforeGoalDeleteResponse = appService.getMessages(bob)
-		getMessagesBobBeforeGoalDeleteResponse.status == 200
+		assertResponseStatusOk(getMessagesBobBeforeGoalDeleteResponse)
 		getMessagesBobBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
 
 		Goal newsGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -766,13 +772,13 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, newsGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		def getMessagesRichardAfterGoalDeleteResponse = appService.getMessages(richard)
-		getMessagesRichardAfterGoalDeleteResponse.status == 200
+		assertResponseStatusOk(getMessagesRichardAfterGoalDeleteResponse)
 		getMessagesRichardAfterGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 0
 		def getMessagesBobAfterGoalDeleteResponse = appService.getMessages(bob)
-		getMessagesBobAfterGoalDeleteResponse.status == 200
+		assertResponseStatusOk(getMessagesBobAfterGoalDeleteResponse)
 		getMessagesBobAfterGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 0
 
 		cleanup:
@@ -788,15 +794,15 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
 		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		postToAeResponse.status == 200
+		assertResponseStatusNoContent(postToAeResponse)
 		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
-		getMessagesRichardBeforeGoalDeleteResponse.status == 200
+		assertResponseStatusOk(getMessagesRichardBeforeGoalDeleteResponse)
 		getMessagesRichardBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 1
 		def getMessagesBobBeforeGoalDeleteResponse = appService.getMessages(bob)
-		getMessagesBobBeforeGoalDeleteResponse.status == 200
+		assertResponseStatusOk(getMessagesBobBeforeGoalDeleteResponse)
 		getMessagesBobBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
 
-		assert appService.removeBuddy(bob, bob.buddies[0], "Richard, as you know our ways parted, so I'll remove you as buddy.").status == 200
+		assertResponseStatusOk(appService.removeBuddy(bob, bob.buddies[0], "Richard, as you know our ways parted, so I'll remove you as buddy."))
 
 		Goal newsGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 
@@ -804,10 +810,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, newsGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		def getMessagesRichardAfterGoalDeleteResponse = appService.getMessages(richard)
-		getMessagesRichardAfterGoalDeleteResponse.status == 200
+		assertResponseStatusOk(getMessagesRichardAfterGoalDeleteResponse)
 		getMessagesRichardAfterGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 0
 
 		cleanup:
@@ -825,9 +831,9 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.deleteResourceWithPassword(gamblingGoal.url, richard.password)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		def responseGoalsAfterDelete = appService.getGoals(richard)
-		responseGoalsAfterDelete.status == 200
+		assertResponseStatusOk(responseGoalsAfterDelete)
 		responseGoalsAfterDelete.responseData._embedded."yona:goals".size() == 2
 
 		cleanup:

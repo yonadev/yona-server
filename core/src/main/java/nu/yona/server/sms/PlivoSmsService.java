@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.sms;
@@ -11,7 +11,6 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
@@ -35,6 +34,7 @@ import org.thymeleaf.context.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.SmsException;
 import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
@@ -69,18 +69,7 @@ public class PlivoSmsService implements SmsService
 
 		try (CloseableHttpClient httpClient = HttpClientBuilder.create().build())
 		{
-			String requestMessageStr = createRequestJson(phoneNumber, message);
-			HttpPost httpRequest = createHttpRequest(requestMessageStr);
-			HttpClientContext httpClientContext = createHttpClientContext();
-			HttpResponse httpResponse = httpClient.execute(httpRequest, httpClientContext);
-			HttpEntity entity = httpResponse.getEntity();
-
-			int httpResponseCode = httpResponse.getStatusLine().getStatusCode();
-			String httpResponseBody = EntityUtils.toString(entity);
-			if (httpResponseCode != HttpStatus.SC_ACCEPTED)
-			{
-				throw SmsException.smsSendingFailed(httpResponseCode, httpResponseBody);
-			}
+			send(httpClient, phoneNumber, message);
 		}
 		catch (IOException e)
 		{
@@ -88,6 +77,40 @@ public class PlivoSmsService implements SmsService
 		}
 
 		logger.info("SMS sent succesfully.");
+	}
+
+	private void send(CloseableHttpClient httpClient, String phoneNumber, String message) throws IOException
+	{
+		String requestMessageStr = createRequestJson(phoneNumber, message);
+		HttpPost httpRequest = createHttpRequest(requestMessageStr);
+		HttpClientContext httpClientContext = createHttpClientContext();
+
+		HttpResponse httpResponse = httpClient.execute(httpRequest, httpClientContext);
+
+		assertSuccess(httpResponse, phoneNumber);
+	}
+
+	private void assertSuccess(HttpResponse httpResponse, String phoneNumber) throws IOException
+	{
+		int httpResponseCode = httpResponse.getStatusLine().getStatusCode();
+		if (httpResponseCode != HttpStatus.SC_ACCEPTED)
+		{
+			String httpResponseBody = EntityUtils.toString(httpResponse.getEntity());
+			// @formatter:off
+			/*
+			 *  In case of an invalid number, the server returns this body:
+			 *  {
+			 *    "api_id": "d37761b4-b555-11e7-8bc8-065f6a74a84a",
+			 *    "error": "'31612345' is not a valid phone number."
+			 *  }
+			 */
+			// @formatter:on
+			if (httpResponseBody != null && httpResponseBody.contains("is not a valid phone number"))
+			{
+				throw InvalidDataException.invalidMobileNumber(phoneNumber);
+			}
+			throw SmsException.smsSendingFailed(httpResponseCode, httpResponseBody);
+		}
 	}
 
 	private HttpClientContext createHttpClientContext()

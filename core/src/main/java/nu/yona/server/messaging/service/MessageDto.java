@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -29,13 +30,17 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DtoManager;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.rest.PolymorphicDto;
+import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDto;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
+import nu.yona.server.subscriptions.service.BuddyDeviceChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.BuddyUserPrivateDataDto;
+import nu.yona.server.subscriptions.service.BuddyVpnConnectionStatusChangeMessageDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
 
@@ -44,6 +49,8 @@ import nu.yona.server.util.TimeUtil;
 		@Type(value = BuddyConnectResponseMessageDto.class, name = "BuddyConnectResponseMessage"),
 		@Type(value = BuddyDisconnectMessageDto.class, name = "BuddyDisconnectMessage"),
 		@Type(value = BuddyInfoChangeMessageDto.class, name = "BuddyInfoChangeMessage"),
+		@Type(value = BuddyDeviceChangeMessageDto.class, name = "BuddyDeviceChangeMessage"),
+		@Type(value = BuddyVpnConnectionStatusChangeMessageDto.class, name = "BuddyVpnConnectionStatusChangeMessage"),
 		@Type(value = DisclosureRequestMessageDto.class, name = "DisclosureRequestMessage"),
 		@Type(value = DisclosureResponseMessageDto.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDto.class, name = "GoalConflictMessage"),
@@ -100,6 +107,12 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonIgnore
+	public Optional<UUID> getSenderUserPhotoId()
+	{
+		return senderInfo.getUserPhotoId();
+	}
+
+	@JsonIgnore
 	public Optional<UUID> getSenderBuddyId()
 	{
 		return senderInfo.getBuddy().map(BuddyDto::getId);
@@ -153,6 +166,7 @@ public abstract class MessageDto extends PolymorphicDto
 		private SenderInfo.Factory senderInfoFactory;
 
 		@Override
+		@Transactional
 		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
@@ -181,16 +195,16 @@ public abstract class MessageDto extends PolymorphicDto
 			Optional<UUID> senderUserAnonymizedId = getSenderUserAnonymizedId(actingUser, messageEntity);
 			if (senderUserAnonymizedId.isPresent())
 			{
-				if (actingUser.getPrivateData().getUserAnonymizedId().equals(senderUserAnonymizedId.get()))
+				if (actingUser.getOwnPrivateData().getUserAnonymizedId().equals(senderUserAnonymizedId.get()))
 				{
 					return createSenderInfoForSelf(actingUser);
 				}
 
-				Optional<BuddyDto> buddy = buddyService.getBuddyOfUserByUserAnonymizedId(actingUser.getPrivateData(),
+				Optional<BuddyDto> buddy = buddyService.getBuddyOfUserByUserAnonymizedId(actingUser.getOwnPrivateData(),
 						senderUserAnonymizedId.get());
 				if (buddy.isPresent())
 				{
-					return createSenderInfoForBuddy(buddy.get());
+					return createSenderInfoForBuddy(buddy.get(), messageEntity);
 				}
 			}
 
@@ -211,17 +225,26 @@ public abstract class MessageDto extends PolymorphicDto
 
 		private SenderInfo createSenderInfoForSelf(UserDto actingUser)
 		{
-			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getPrivateData().getNickname());
+			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getOwnPrivateData().getNickname(),
+					actingUser.getOwnPrivateData().getUserPhotoId());
 		}
 
-		private SenderInfo createSenderInfoForBuddy(BuddyDto buddy)
+		protected SenderInfo createSenderInfoForBuddy(BuddyDto buddy, Message messageEntity)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getId());
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(),
+					buddy.getUser().getPrivateData().getUserPhotoId(), buddy.getId());
 		}
 
-		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname)
+		protected SenderInfo createSenderInfoForBuddyConnectionChangeMessage(Optional<User> senderUser,
+				BuddyConnectionChangeMessage buddyMessageEntity)
 		{
-			return senderInfoFactory.createInstanceForDetachedBuddy(UserDto.createInstance(userEntity), nickname);
+			String firstName = buddyMessageEntity.determineFirstName(senderUser);
+			String lastName = buddyMessageEntity.determineLastName(senderUser);
+
+			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(firstName, lastName,
+					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId());
+			return senderInfoFactory.createInstanceForDetachedBuddy(
+					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyUserPrivateData)), buddyUserPrivateData);
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

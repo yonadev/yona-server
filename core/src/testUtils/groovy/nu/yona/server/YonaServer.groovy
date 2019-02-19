@@ -38,7 +38,7 @@ class YonaServer
 
 	def static getTimeStamp()
 	{
-		def formatter = DateTimeFormatter.ofPattern("yyyyMMddhhmmss")
+		def formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssS")
 		formatter.format(now)
 	}
 
@@ -69,7 +69,7 @@ class YonaServer
 
 	def deleteResource(path, headers = [:], parameters = [:])
 	{
-		restClient.delete(path: path, headers: headers, query:parameters)
+		restClient.delete(path: stripQueryString(path), headers: headers, query:parameters + getQueryParams(path))
 	}
 
 	def getResourceWithPassword(path, password, parameters = [:])
@@ -79,16 +79,10 @@ class YonaServer
 
 	def getResource(path, headers = [:], parameters = [:])
 	{
-		def queryParametersOfUri = [ : ]
-		if (path ==~ /.*\?.*/)
-		{
-			queryParametersOfUri = getQueryParams(path)
-			path = path.substring(0, path.indexOf('?'))
-		}
-		restClient.get(path: path,
+		restClient.get(path: stripQueryString(path),
 		contentType:'application/json',
 		headers: headers,
-		query: queryParametersOfUri + parameters)
+		query: parameters + getQueryParams(path))
 	}
 
 	def postJson(path, jsonString, headers = [:], parameters = [:])
@@ -103,11 +97,11 @@ class YonaServer
 			object = jsonSlurper.parseText(jsonString)
 		}
 
-		restClient.post(path: path,
+		restClient.post(path: stripQueryString(path),
 		body: object,
 		contentType:'application/json',
 		headers: headers,
-		query: parameters)
+		query: parameters + getQueryParams(path))
 	}
 
 	def putJson(path, jsonString, headers = [:], parameters = [:])
@@ -122,14 +116,14 @@ class YonaServer
 			object = jsonSlurper.parseText(jsonString)
 		}
 
-		restClient.put(path: path,
+		restClient.put(path: stripQueryString(path),
 		body: object,
 		contentType:'application/json',
 		headers: headers,
-		query: parameters)
+		query: parameters + getQueryParams(path))
 	}
 
-	def getQueryParams(url)
+	static def getQueryParams(url)
 	{
 		def uriBuilder = new URIBuilder(url)
 		if(uriBuilder.query)
@@ -140,6 +134,38 @@ class YonaServer
 		{
 			return [ : ]
 		}
+	}
+
+	static void storeStatistics(def statistics, def heading)
+	{
+		def file = new File("build/reports/tests/intTest/" + heading + ".md")
+		file << "# $heading\n\n"
+		def statNames = (statistics[statistics.keySet().first()].keySet().findAll{ it != "startTime" && it != "sqlStatements"} as List).sort()
+		storeRow(file, ["Operation"]+ statNamesToHeadingNames(statNames))
+		storeRow(file, ["---"]* (statNames.size() + 1))
+		statistics.each{ k, v -> storeRow(file, [k]+ statNames.collect{v[it]}) }
+
+		file << "\n# SQL statements\n\n"
+		statistics.each{ k, v -> storeSqlStatements(file, k, v["sqlStatements"]) }
+	}
+
+	private static def statNamesToHeadingNames(def statNames)
+	{
+		statNames = statNames*.minus("Count")
+		statNames*.uncapitalize()
+		statNames.collect{ it.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")*.uncapitalize().join(" ")}*.capitalize()
+	}
+
+	private static storeRow(def file, def cells)
+	{
+		cells.each{ file << "| $it"}
+		file << "\n"
+	}
+
+	private static storeSqlStatements(file, testName, sqlStatements)
+	{
+		file << "\n## $testName\n"
+		sqlStatements.each{ file << "1. ``$it``\n"}
 	}
 
 	static def stripQueryString(url)

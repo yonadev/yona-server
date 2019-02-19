@@ -1,11 +1,14 @@
 pipeline {
 	agent none
+	options {
+		disableConcurrentBuilds()
+	}
 	stages {
 		stage('Build') {
 			agent { label 'yona' }
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
-				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
+				GIT = credentials('github-yonabuild')
 				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
 			}
 			steps {
@@ -18,10 +21,10 @@ pipeline {
 					}
 				}
 				dir ('k8s/helm') {
-					sh('../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GIT_USR $GIT_PSW /opt/ope-cloudbees/yona/k8s/helm helm-charts')
+					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GIT_USR $GIT_PSW /opt/ope-cloudbees/yona/k8s/helm helm-charts'
 				}
-				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
-				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
+				sh 'git tag -a build-$BUILD_NUMBER -m "Jenkins"'
+				sh 'git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags'
 				script {
 					env.BUILD_NUMBER_TO_DEPLOY = env.BUILD_NUMBER
 				}
@@ -29,6 +32,14 @@ pipeline {
 			post {
 				always {
 					junit '**/build/test-results/*/*.xml'
+				}
+				success {
+					step([$class: 'hudson.plugins.jira.JiraIssueUpdater', 
+						issueSelector: [$class: 'hudson.plugins.jira.selector.DefaultIssueSelector'], 
+						scm: scm])
+				}
+				failure {
+					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed"
 				}
 			}
 		}
@@ -40,82 +51,174 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			steps {
-				sh script: 'helm delete yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
+				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
+				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
+				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
-				sh 'helm upgrade --install --namespace yona --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER yona yona/yona'
-				sh 'scripts/wait-for-services.sh k8s'
+				sh 'helm upgrade --install --namespace yona --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
+				sh 'scripts/wait-for-services.sh k8snew'
+			}
+			post {
+				failure {
+					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to integration test server"
+				}
 			}
 		}
 		stage('Run integration tests') {
 			agent { label 'yona' }
 			steps {
-				sh './gradlew -Pyona_adminservice_url=http://185.3.209.132:31000 -Pyona_analysisservice_url=http://185.3.209.132:31001 -Pyona_appservice_url=http://185.3.209.132:31002 -Pyona_batchservice_url=http://185.3.209.132:31003 intTest'
+				sh './gradlew -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest'
 			}
 			post {
 				always {
-					junit '**/build/test-results/*/*.xml'
+					junit testResults: '**/build/test-results/*/*.xml', keepLongStdio: true
+				}
+				success {
+					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} passed all tests on build ${env.BUILD_NUMBER_TO_DEPLOY}"
+				}
+				failure {
+					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed integration test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 			}
 		}
-		stage('Decide deploy to Mobiquity test server') {
+		stage('Decide deploy to test servers') {
 			agent none
 			steps {
-				checkpoint 'Build and tests done'
 				script {
-					env.DEPLOY_TO_MOB_TEST = input message: 'User input required',
+					env.DEPLOY_TO_TEST_SERVERS = input message: 'User input required',
 							submitter: 'authenticated',
-							parameters: [choice(name: 'Deploy to Mobiquity test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the Mobiquity test server')]
+							parameters: [choice(name: 'Deploy to the test servers', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the test servers')]
+					if (env.DEPLOY_TO_TEST_SERVERS == 'no') {
+						slackSend color: 'warning', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} skips all further steps"
+					}
 				}
 			}
 		}
-		stage('Deploy to Mobiquity test server') {
-			agent { label 'mob-test' }
-			environment {
-				YONA_DB = credentials('test-db')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
-				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
-			}
+		stage('Deploy to beta test server') {
+			agent { label 'beta' }
 			when {
-				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				sh 'helm repo update'
-				sh 'helm upgrade --install --namespace yona --set mariadb.mariadbUser=$YONA_DB_USR --set mariadb.mariadbPassword="$YONA_DB_PSW" --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
-				sh 'scripts/wait-for-services.sh k8s'
+				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
+				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh 'scripts/wait-for-services.sh k8snew'
+			}
+			post {
+				success {
+					script {
+						jiraIssueSelector(issueSelector: [$class: 'DefaultIssueSelector']).each {
+							id -> jiraComment(issueKey: id,
+								body: "Build [#${env.BUILD_NUMBER}|${currentBuild.absoluteUrl}] deployed this to beta")
+						}
+					}
+				}
+				failure {
+					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to beta"
+				}
 			}
 		}
-		stage('Decide deploy to acceptance test server') {
+		stage('Deploy to load test server') {
+			agent { label 'load' }
+			environment {
+				BETA_DB = credentials('beta-db-jenkins')
+				BETA_DB_IP = credentials('beta-db-ip')
+			}
+			when {
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
+			}
+			steps {
+				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
+				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
+				sh 'helm upgrade --install -f /config/values.yaml --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
+				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
+			}
+			post {
+				failure {
+					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to load test"
+				}
+			}
+		}
+		stage('Decide run load test') {
 			agent none
 			when {
-				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				checkpoint 'Mobiquity test server deployed'
+				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to start load test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				script {
-					env.DEPLOY_TO_ACC_TEST = input message: 'User input required',
-							submitter: 'authenticated',
-							parameters: [choice(name: 'Deploy to acceptance test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the acceptance test server')]
+					env.RUN_LOAD_TEST = input message: 'User input required',
+					submitter: 'authenticated',
+					parameters: [choice(name: 'Run load test', choices: 'no\nyes', description: 'Choose "yes" if you want to run the load test')]
 				}
 			}
 		}
-		stage('Deploy to acceptance test server') {
-			agent { label 'acc-test' }
-			environment {
-				YONA_DB = credentials('test-db')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
-				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
-			}
+		stage('Run load test') {
+			agent { label 'yona' }
 			when {
-				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
+				environment name: 'RUN_LOAD_TEST', value: 'yes'
+			}
+			environment {
+				JM_PATH_IN_CONT = "/mnt/jmeter"
+				JM_LOCAL_PATH = "jmeter"
+				JM_THREADS = "100"
+				JM_LOAD_DURATION = "1200"
 			}
 			steps {
-				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
-				sh 'chmod +x refresh-build.sh'
-				sh 'wget -O copy-resources.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/copy-resources.sh'
-				sh 'chmod +x copy-resources.sh'
-				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
-				sh 'chmod +x wait-for-services.sh'
-				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
+				checkout scm
+				sh 'rm -rf ${JM_LOCAL_PATH}'
+				sh 'mkdir ${JM_LOCAL_PATH}'
+				sh 'cp scripts/load-test.jmx ${JM_LOCAL_PATH}'
+				sh 'docker run --volume ${WORKSPACE}/${JM_LOCAL_PATH}:${JM_PATH_IN_CONT} yonadev/jmeter:JMeter3.3 -n -t ${JM_PATH_IN_CONT}/load-test.jmx -l ${JM_PATH_IN_CONT}/out/result.jtl -j ${JM_PATH_IN_CONT}/out/jmeter.log -Jthreads=${JM_THREADS} -JloadDuration=${JM_LOAD_DURATION}'
+				sh 'docker run --volume ${WORKSPACE}/${JM_LOCAL_PATH}:${JM_PATH_IN_CONT} --entrypoint /opt/apache-jmeter-3.3/bin/FilterResults.sh yonadev/jmeter:JMeter3.3 --input-file ${JM_PATH_IN_CONT}/out/result.jtl --output-file ${JM_PATH_IN_CONT}/out/filtered-result.jtl --exclude-label-regex true --exclude-labels .*Batch.*'
+				perfReport "${env.JM_LOCAL_PATH}/out/filtered-result.jtl"
+			}
+			post {
+				failure {
+					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed in load test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
+				}
+			}
+		}
+		stage('Decide deploy to production server') {
+			agent none
+			when {
+				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
+			}
+			steps {
+				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
+				script {
+					env.DEPLOY_TO_PRD = input message: 'User input required',
+					submitter: 'authenticated',
+					parameters: [choice(name: 'Deploy to production server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the production server')]
+					if (env.DEPLOY_TO_PRD == 'no') {
+						slackSend color: 'warning', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} skips all further steps"
+					}
+				}
+			}
+		}
+		stage('Deploy to production server') {
+			agent { label 'prd' }
+			when {
+				environment name: 'DEPLOY_TO_PRD', value: 'yes'
+			}
+			steps {
+				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
+				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh 'scripts/wait-for-services.sh k8snew'
+			}
+			post {
+				success {
+					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
+					script {
+						jiraIssueSelector(issueSelector: [$class: 'DefaultIssueSelector']).each {
+							id -> jiraComment(issueKey: id,
+								body: "Build [#${env.BUILD_NUMBER}|${currentBuild.absoluteUrl}] deployed this to production")
+						}
+					}
+				}
+				failure {
+					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
+				}
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -28,24 +27,18 @@ import org.hibernate.annotations.FetchMode;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
-import nu.yona.server.entities.EntityWithUuid;
+import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
 @Table(name = "USERS_PRIVATE")
-public class UserPrivate extends EntityWithUuid
+public class UserPrivate extends PrivateUserProperties
 {
-
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
-
-	@Column(nullable = true)
-	private int touchVersion;
 
 	@Convert(converter = StringFieldEncryptor.class)
 	private String decryptionCheck;
-
-	@Convert(converter = StringFieldEncryptor.class)
-	private String nickname;
 
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID userAnonymizedId;
@@ -61,32 +54,37 @@ public class UserPrivate extends EntityWithUuid
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID namedMessageSourceId;
 
+	// YD-542 Remove this property
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
+
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+	@JoinColumn(name = "user_private_id", referencedColumnName = "id")
+	@Fetch(FetchMode.JOIN)
+	private Set<UserDevice> devices;
 
 	// Default constructor is required for JPA
 	public UserPrivate()
 	{
-		super(null);
+		super();
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedId, String vpnPassword, UUID anonymousMessageSourceId,
-			UUID namedMessageSourceId)
+	private UserPrivate(UUID id, String firstName, String lastName, String nickname, UUID userAnonymizedId,
+			UUID anonymousMessageSourceId, UUID namedMessageSourceId)
 	{
-		super(id);
+		super(id, firstName, lastName, nickname, Optional.empty());
 		this.decryptionCheck = buildDecryptionCheck();
-		this.nickname = nickname;
 		this.userAnonymizedId = userAnonymizedId;
-		this.vpnPassword = vpnPassword;
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.namedMessageSourceId = namedMessageSourceId;
+		this.devices = new HashSet<>();
 	}
 
-	public static UserPrivate createInstance(String nickname, String vpnPassword, UUID userAnonymizedId,
+	public static UserPrivate createInstance(String firstName, String lastName, String nickname, UUID userAnonymizedId,
 			UUID anonymousMessageSourceId, MessageSource namedMessageSource)
 	{
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymizedId, vpnPassword, anonymousMessageSourceId,
+		return new UserPrivate(UUID.randomUUID(), firstName, lastName, nickname, userAnonymizedId, anonymousMessageSourceId,
 				namedMessageSource.getId());
 	}
 
@@ -100,21 +98,10 @@ public class UserPrivate extends EntityWithUuid
 		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
 	}
 
-	public String getNickname()
-	{
-		return nickname;
-	}
-
-	public void setNickname(String nickname)
-	{
-		this.nickname = nickname;
-	}
-
 	UserAnonymized getUserAnonymized()
 	{
-		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(userAnonymizedId);
-		Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedId + " not found");
-		return userAnonymized;
+		return UserAnonymized.getRepository().findById(userAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId));
 	}
 
 	public Set<Buddy> getBuddies()
@@ -124,12 +111,12 @@ public class UserPrivate extends EntityWithUuid
 
 	public void addBuddy(Buddy buddy)
 	{
-		buddies.add(buddy);
+		buddies.add(Objects.requireNonNull(buddy));
 	}
 
 	public void removeBuddy(Buddy buddy)
 	{
-		buddies.remove(buddy);
+		buddies.remove(Objects.requireNonNull(buddy));
 	}
 
 	public UUID getAnonymousMessageSourceId()
@@ -142,15 +129,15 @@ public class UserPrivate extends EntityWithUuid
 		return namedMessageSourceId;
 	}
 
-	public UUID getVpnLoginId()
+	public Optional<String> getAndClearVpnPassword()
 	{
-		// these are the same for performance
-		return userAnonymizedId;
-	}
-
-	public String getVpnPassword()
-	{
-		return vpnPassword;
+		if (vpnPassword == null)
+		{
+			return Optional.empty();
+		}
+		Optional<String> retVal = Optional.of(vpnPassword);
+		vpnPassword = null;
+		return retVal;
 	}
 
 	private boolean isDecrypted()
@@ -158,9 +145,11 @@ public class UserPrivate extends EntityWithUuid
 		return decryptionCheck != null;
 	}
 
-	public void touch()
+	@Override
+	public UserPrivate touch()
 	{
-		touchVersion++;
+		super.touch();
+		return this;
 	}
 
 	public UUID getUserAnonymizedId()
@@ -171,12 +160,12 @@ public class UserPrivate extends EntityWithUuid
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
 		loadAllBuddyUsersAtOnce();
-		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
+		return buddies.stream().filter(b -> !b.getUserIfExists().isPresent()).collect(Collectors.toSet());
 	}
 
 	private void loadAllBuddyUsersAtOnce()
 	{
-		User.getRepository().findAll(buddies.stream().map(Buddy::getUserId).collect(Collectors.toList()));
+		User.getRepository().findAllById(buddies.stream().map(Buddy::getUserId).collect(Collectors.toList()));
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()
@@ -187,5 +176,23 @@ public class UserPrivate extends EntityWithUuid
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
+	}
+
+	public Set<UserDevice> getDevices()
+	{
+		return Collections.unmodifiableSet(devices);
+	}
+
+	public void addDevice(UserDevice device)
+	{
+		devices.add(device);
+		device.setUserPrivateId(getId());
+		getUserAnonymized().addDeviceAnonymized(device.getDeviceAnonymized());
+	}
+
+	public void removeDevice(UserDevice device)
+	{
+		devices.remove(device);
+		device.clearUserPrivateId();
 	}
 }

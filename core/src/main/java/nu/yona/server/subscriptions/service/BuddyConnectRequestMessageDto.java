@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -91,7 +91,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 	}
 
 	@Component
-	private static class Manager extends BuddyMessageDto.Manager
+	static class Manager extends BuddyMessageEmbeddedUserDto.Manager
 	{
 		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 
@@ -100,6 +100,9 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 
 		@Autowired
 		private BuddyService buddyService;
+
+		@Autowired
+		private UserService userService;
 
 		@PostConstruct
 		private void init()
@@ -134,20 +137,13 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		private MessageActionDto handleAction_Accept(UserDto actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
 				MessageActionDto payload)
 		{
-			if (!connectRequestMessageEntity.getSenderUser().isPresent())
-			{
-				throw UserServiceException.notFoundById(connectRequestMessageEntity.getSenderUserId());
-			}
-			User senderUser = connectRequestMessageEntity.getSenderUser().get();
-			buddyService.addBuddyToAcceptingUser(actingUser, senderUser.getId(), connectRequestMessageEntity.getSenderNickname(),
-					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(),
-					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
+			buddyService.addBuddyToAcceptingUser(actingUser, connectRequestMessageEntity);
 
 			connectRequestMessageEntity = updateMessageStatusAsAccepted(connectRequestMessageEntity);
 
 			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			logHandledAction_Accept(actingUser, senderUser);
+			logHandledAction_Accept(actingUser, connectRequestMessageEntity.getSenderUser().get());
 
 			return MessageActionDto
 					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
@@ -198,10 +194,10 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		private void sendResponseMessageToRequestingUser(UserDto respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			buddyService.sendBuddyConnectResponseMessage(respondingUser.getId(),
-					respondingUser.getPrivateData().getUserAnonymizedId(), respondingUser.getPrivateData().getNickname(),
+			User respondingUserEntity = userService.getUserEntityById(respondingUser.getId());
+			buddyService.sendBuddyConnectResponseMessage(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
 					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(), connectRequestMessageEntity.getBuddyId(),
-					connectRequestMessageEntity.getStatus(), responseMessage);
+					respondingUserEntity.getDevices(), connectRequestMessageEntity.getStatus(), responseMessage);
 		}
 	}
 }

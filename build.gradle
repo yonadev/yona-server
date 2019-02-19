@@ -1,6 +1,9 @@
+import org.gradle.internal.util.PropertiesUtils
+import java.nio.charset.StandardCharsets 
+
 buildscript {
 	repositories {
-		mavenCentral()
+		jcenter()
 	}
 }
 
@@ -8,10 +11,10 @@ plugins {
 	id "java"
 	id "eclipse"
 	id "groovy"
-	id "io.spring.dependency-management" version "1.0.3.RELEASE"
-	id "org.springframework.boot" version "1.5.7.RELEASE" apply false
+	id "io.spring.dependency-management" version "1.0.6.RELEASE"
+	id "org.springframework.boot" version "2.1.2.RELEASE" apply false
 	id "net.researchgate.release" version "2.6.0"
-	id "com.bmuschko.docker-remote-api" version "3.0.11" apply false
+	id "com.bmuschko.docker-remote-api" version "3.6.1" apply false
 }
 
 description = "Yona server"
@@ -19,8 +22,6 @@ description = "Yona server"
 allprojects {
 	group = "yonadev"
 }
-
-ext['thymeleaf.version'] = "3.0.3.RELEASE"
 
 subprojects {
 	sourceCompatibility = 1.8
@@ -67,15 +68,32 @@ subprojects {
 	}
 
 	repositories {
-		mavenCentral()
+		jcenter()
+		maven { url "https://repo.spring.io/snapshot" }
 	}
 
 	springBoot {
-		buildInfo() {
-			additionalProperties = [
-				buildNumber : project.ext.build_number
-			]
+		buildInfo {
+			properties {
+				time = null
+				additional = [
+					buildNumber : project.ext.build_number
+				]
+			}
+			doLast {
+				File propertiesFile = new File(destinationDir, 'build-info.properties')
+				Properties props = new Properties()
+				propertiesFile.withInputStream { props.load(it)}
+				OutputStream out = new BufferedOutputStream(new FileOutputStream(propertiesFile))
+				PropertiesUtils.store(props, out, "Custom generated to ensure repeatability", StandardCharsets.UTF_8, "\n");
+				out.close()
+			}
 		}
+	}
+
+	tasks.withType(JavaCompile) {
+		options.compilerArgs << '-Xlint:all,-try'
+		options.deprecation = true
 	}
 }
 
@@ -86,6 +104,6 @@ eclipse {
 	}
 }
 
-task wrapper(type: Wrapper) {
-	gradleVersion = "4.2.1"
+wrapper {
+	gradleVersion = "4.8"
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
@@ -16,11 +16,14 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
+
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "ACTIVITY_CATEGORIES")
+@BatchSize(size = 20)
 public class ActivityCategory extends EntityWithUuid
 {
 	@ElementCollection
@@ -71,7 +74,7 @@ public class ActivityCategory extends EntityWithUuid
 		return new HashMap<>(localizableName);
 	}
 
-	public final void setLocalizableName(Map<Locale, String> name)
+	public void setLocalizableName(Map<Locale, String> name)
 	{
 		this.localizableName = new HashMap<>(name);
 	}
@@ -91,7 +94,7 @@ public class ActivityCategory extends EntityWithUuid
 		return Collections.unmodifiableSet(smoothwallCategories);
 	}
 
-	public final void setSmoothwallCategories(Set<String> smoothwallCategories)
+	public void setSmoothwallCategories(Set<String> smoothwallCategories)
 	{
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 	}
@@ -101,7 +104,7 @@ public class ActivityCategory extends EntityWithUuid
 		return Collections.unmodifiableSet(applications);
 	}
 
-	public final void setApplications(Set<String> applications)
+	public void setApplications(Set<String> applications)
 	{
 		this.applications = new HashSet<>(applications);
 	}
@@ -111,7 +114,7 @@ public class ActivityCategory extends EntityWithUuid
 		return new HashMap<>(localizableDescription);
 	}
 
-	public final void setLocalizableDescription(Map<Locale, String> localizableDescription)
+	public void setLocalizableDescription(Map<Locale, String> localizableDescription)
 	{
 		this.localizableDescription = new HashMap<>(localizableDescription);
 	}

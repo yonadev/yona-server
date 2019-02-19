@@ -22,7 +22,7 @@ abstract class Goal
 	{
 		this.creationTime = (json.creationTime instanceof ZonedDateTime) ? json.creationTime : null // Only set the creation time when explicitly provided
 		this.activityCategoryUrl = (json.activityCategoryUrl) ?: json._links."yona:activityCategory".href
-		this.url = json._links ? YonaServer.stripQueryString(json._links.self.href) : null
+		this.url = json._links ? json._links.self.href : null
 		this.editUrl = json._links?.edit?.href
 		this.historyItem = json.historyItem
 	}
@@ -31,7 +31,7 @@ abstract class Goal
 
 	def getId()
 	{
-		url[-36..-1]
+		YonaServer.stripQueryString(url)[-36..-1]
 	}
 
 	static def fromJson(def json)

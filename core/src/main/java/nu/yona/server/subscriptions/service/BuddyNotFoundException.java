@@ -24,4 +24,9 @@ public class BuddyNotFoundException extends YonaException
 	{
 		return new BuddyNotFoundException(HttpStatus.NOT_FOUND, "error.buddy.not.found", id);
 	}
+
+	public static BuddyNotFoundException notFoundForUser(UUID userId, UUID buddyUserId)
+	{
+		return new BuddyNotFoundException(HttpStatus.NOT_FOUND, "error.buddy.not.found.for.user", userId, buddyUserId);
+	}
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -18,15 +18,26 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.util.Optional;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import nu.yona.server.device.entities.DeviceAnonymized;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 
 @RunWith(JUnitParamsRunner.class)
 public class ActivityTest
 {
+	private DeviceAnonymized deviceAnonEntity;
+
+	@Before
+	public void setUp()
+	{
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty());
+	}
+
 	@Test
 	public void setEndTime_afterComputeAggregates_resetsAreAggregatesComputed()
 	{
@@ -56,7 +67,7 @@ public class ActivityTest
 	public void getDurationMinutes_fullDay_returnsIncludingLastMinute()
 	{
 		ZonedDateTime startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
-		Activity activity = Activity.createInstance(ZoneId.of("Europe/Amsterdam"), startOfDay.toLocalDateTime(),
+		Activity activity = Activity.createInstance(deviceAnonEntity, ZoneId.of("Europe/Amsterdam"), startOfDay.toLocalDateTime(),
 				startOfDay.plusDays(1).toLocalDateTime(), Optional.empty());
 
 		assertThat(activity.getDurationMinutes(), equalTo(1440));
@@ -64,8 +75,8 @@ public class ActivityTest
 
 	private Activity createActivity(String startTimeString, String endTimeString)
 	{
-		return Activity.createInstance(ZoneId.of("Europe/Amsterdam"), getTimeOnDay(startTimeString).toLocalDateTime(),
-				getTimeOnDay(endTimeString).toLocalDateTime(), Optional.empty());
+		return Activity.createInstance(deviceAnonEntity, ZoneId.of("Europe/Amsterdam"),
+				getTimeOnDay(startTimeString).toLocalDateTime(), getTimeOnDay(endTimeString).toLocalDateTime(), Optional.empty());
 	}
 
 	protected ZonedDateTime getTimeOnDay(String timeString)

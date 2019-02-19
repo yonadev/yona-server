@@ -18,6 +18,42 @@ parameters:
     description: The device password
     required: true
     type: string
+  yonaPasswordOptional:
+    name: Yona-Password
+    in: header
+    description: The device password
+    required: false
+    type: string
+  newDeviceRequestPassword:
+    name: Yona-NewDeviceRequestPassword
+    in: header
+    description: The temporary password used to encrypt the device key
+    required: false
+    type: string
+  requestingUserId:
+    name: requestingUserId
+    in: query
+    description: The user ID of the user GETting this user entity. Either equal to the ID of the user being fetched or the user ID of one of their buddies.
+    required: false
+    type: string
+  requestingDeviceId:
+    name: requestingDeviceId
+    in: query
+    description: The ID of the device from which the request originates. Several operations take this query parameter to enable returning a device-specific URL for the open-app event and to post the app activities 
+    required: false
+    type: string
+  tempPassword:
+    name: tempPassword
+    in: query
+    description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
+    required: false
+    type: string
+  deviceID:
+    name: deviceID
+    in: path
+    description: The ID of the device
+    required: true
+    type: string
   goalID:
     name: goalID
     in: path
@@ -88,26 +124,15 @@ paths:
       description: Fetches the user identified by the given ID
       parameters:
         - $ref: "#/parameters/userID"
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: false
-          type: string
-        - name: tempPassword
-          in: query
-          description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
-          required: false
-          type: string
-        - name: includePrivateData
-          in: query
-          description: Pass true to fetch the private data of the user
-          required: false
-          type: boolean
+        - $ref: "#/parameters/yonaPasswordOptional"
+        - $ref: "#/parameters/tempPassword"
+        - $ref: "#/parameters/requestingUserId"
+        - $ref: "#/parameters/requestingDeviceId"
       tags:
         - User
       responses:
         '200':
-          description: The requested user. The set of returned properties depends on the query parameter includePrivateData.
+          description: The requested user. The set of returned properties depends on the query parameter requestingUserId.
           schema:
             $ref: '#/definitions/UserWithPrivateData'
         default:
@@ -119,12 +144,9 @@ paths:
       description: Fetches the user identified by the given ID
       parameters:
         - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/yonaPassword"
-        - name: tempPassword
-          in: query
-          description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
-          required: false
-          type: string
+        - $ref: "#/parameters/requestingDeviceId"
+        - $ref: "#/parameters/yonaPasswordOptional"
+        - $ref: "#/parameters/tempPassword"
         - in: body
           name: body
           description: New user
@@ -168,6 +190,7 @@ paths:
       description: Post the code to confirm the mobile number of the user. This number is sent to the user by SMS.
       parameters:
         - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
         - $ref: "#/parameters/yonaPassword"
         - in: body
           name: body
@@ -202,15 +225,188 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/openApp':
-    post:
-      summary: Inform the server that the user just opened the Yona app
-      description: The server uses this to maintain the "last seen" information
+  '/users/{userID}/photo':
+    put:
+      summary: Upload a user photo
+      description: Adds or replaces the user photo for this user. A multipart/form-data request is expected with a "file" field containing an image. The image is expected to be resized already.
+      consumes: 
+        - multipart/form-data
+      parameters:
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
+        - in: formData
+          name: file
+          type: file
+          description: The image to upload. It should be resized already.
+      tags:
+        - User photo
+      responses:
+        '200':
+          description: The user photo added
+          schema:
+            $ref: '#/definitions/UserPhoto'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Remove a user photo
+      description: Removes the photo association of this user. It is still downloadable for some time.
       parameters:
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/yonaPassword"
       tags:
-        - User
+        - User photo
+      responses:
+        '200':
+          description: The user photo is deleted.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'               
+  '/userPhotos/{userPhotoID}':
+    get:
+      summary: Get the user photo
+      description: Fetches the user photo by ID.
+      parameters:
+        - name: userPhotoID
+          in: path
+          description: The ID of the user photo
+          required: true
+          type: string
+      tags:
+        - User photo
+      responses:
+        '200':
+          description: The user photo in image/png format
+          schema:
+            type: file
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/devices/':
+    post:
+      summary: Register a new device
+      description: Register a new device for an existing user
+      parameters:
+        - $ref: "#/parameters/newDeviceRequestPassword"
+        - $ref: "#/parameters/userID"
+        - in: body
+          name: body
+          description: New device
+          required: true
+          schema:
+            $ref: '#/definitions/DeviceRegistrationRequest'
+      tags:
+        - Device
+      responses:
+        '201':
+          description: The user profile, including the newly registered device
+          schema:
+            $ref: '#/definitions/UserWithPrivateData'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: Get all devices
+      description: Fetches all devices of the user with the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
+      tags:
+        - Device
+      responses:
+        '200':
+          description: All devices of this user.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UserDevice'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}':
+    get:
+      summary: Get a device
+      description: Fetches the device identified by the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - $ref: "#/parameters/requestingDeviceId"
+      tags:
+        - Device
+      responses:
+        '200':
+          description: The requested device.
+          schema:
+            $ref: '#/definitions/UserDevice'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update a device
+      description: Update an existing device
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - $ref: "#/parameters/requestingDeviceId"
+        - in: body
+          name: body
+          description: Updated device
+          required: true
+          schema:
+            $ref: '#/definitions/PostPutDevice'
+      tags:
+        - Device
+      responses:
+        '200':
+          description: The updated device
+          schema:
+            $ref: '#/definitions/UserDevice'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete device
+      description: Deletes this device
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - $ref: "#/parameters/requestingDeviceId"
+      tags:
+        - Device
+      responses:
+        '204':
+          description: The device is deleted.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}/openApp':
+    post:
+      summary: Inform the server that the user just opened the Yona app
+      description: The server uses this to maintain the "last seen" information and to inform the user about the usage of the Yona app on their various devices
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - in: body
+          name: body
+          description: The app open event
+          required: true
+          schema:
+            $ref: '#/definitions/OpenAppEvent'
+      tags:
+        - Device
       responses:
         '200':
           description: The request is successfully handled
@@ -218,15 +414,16 @@ paths:
           description: Action failed
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/apple.mobileconfig':
+  '/users/{userID}/devices/{deviceID}/apple.mobileconfig':
     get:
-      summary: Get the Apple mobile config for this user
-      description: Fetches the user-specific .mobileconfig file needed for iOS devices. Notice this contains VPN username and password.
+      summary: Get the Apple configuration profile for this device
+      description: Fetches the device-specific .mobileconfig file needed for iOS devices. Notice this contains the VPN username and password.
       parameters:
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/deviceID"
       tags:
-        - User
+        - Device
       responses:
         '200':
           description: The config file
@@ -235,7 +432,94 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'           
+            $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}/appActivity/':
+    post:
+      summary: Register a new device
+      description: Register a new device for an existing user
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - in: body
+          name: body
+          description: The app activity report
+          required: true
+          schema:
+            type: object
+            properties:
+              deviceDateTime:
+                type: string
+                format: dateTime
+                description: The actual time on the device
+                example: 2016-02-31T21:03:52.290+0000
+              activities:
+                type: array
+                description: A set of app activities
+                items:
+                  type: object
+                  properties:
+                    application:
+                      type: string
+                      description: The name of the app
+                      example: com.google.android.youtube
+                    startTime:
+                      type: string
+                      format: dateTime
+                      description: The time the app was activiated
+                      example: 2016-02-31T21:03:52.290+0000
+                    endTime:
+                      type: string
+                      format: dateTime
+                      description: The time the app was deactiviated
+                      example: 2016-02-31T21:28:02.290+0000
+                  required:
+                    - application
+                    - startTime
+                    - endTime
+            required:
+              - deviceDateTime
+              - activities
+      tags:
+        - Device
+      responses:
+        '200':
+          description: App activity reported correctly
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}/vpnStatus/':
+    post:
+      summary: Post VPN connection status change
+      description: Post a change in the VPN connection status on this device
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - in: body
+          name: body
+          description: The VPN status event
+          required: true
+          schema:
+            type: object
+            properties:
+              vpnConnected:
+                type: string
+                format: boolean
+                description: Whether the VPN is connected or disconnected
+                example: true
+            required:
+              - vpnConnected
+      tags:
+        - Device
+      responses:
+        '204':
+          description: VPN connection status change recorded correctly
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/users/{userID}/goals/':
     post:
       summary: Add a new goal
@@ -349,61 +633,6 @@ paths:
       responses:
         '200':
           description: The goal is deleted.
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  '/users/{userID}/appActivity/':
-    post:
-      summary: Report app activities
-      description: Reports the usage of apps on the device
-      parameters:
-        - $ref: "#/parameters/yonaPassword"
-        - $ref: "#/parameters/userID"
-        - in: body
-          name: body
-          description: The app activity report
-          required: true
-          schema:
-            type: object
-            properties:
-              deviceDateTime:
-                type: string
-                format: dateTime
-                description: The actual time on the device
-                example: 2016-02-31T21:03:52.290+0000
-              activities:
-                type: array
-                description: A set of app activities
-                items:
-                  type: object
-                  properties:
-                    application:
-                      type: string
-                      description: The name of the app
-                      example: com.google.android.youtube
-                    startTime:
-                      type: string
-                      format: dateTime
-                      description: The time the app was activiated
-                      example: 2016-02-31T21:03:52.290+0000
-                    endTime:
-                      type: string
-                      format: dateTime
-                      description: The time the app was deactiviated
-                      example: 2016-02-31T21:28:02.290+0000
-                  required:
-                    - application
-                    - startTime
-                    - endTime
-            required:
-              - deviceDateTime
-              - activities
-      tags:
-        - App activity
-      responses:
-        '200':
-          description: App activity reported correctly
         default:
           description: Unexpected error
           schema:
@@ -574,6 +803,7 @@ paths:
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -600,6 +830,7 @@ paths:
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
         - $ref: "#/parameters/date"
       tags:
         - Activity
@@ -754,47 +985,6 @@ paths:
       responses:
         '200':
           description: The new buddy is deleted.
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  '/users/{userID}/buddies/{buddyID}/goals/':
-    get:
-      summary: Get all goals
-      description: Fetches all goals of the buddy with the given ID
-      parameters:
-        - $ref: "#/parameters/yonaPassword"
-        - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/buddyID"
-      tags:
-        - Buddy
-      responses:
-        '200':
-          description: All goals of this user.
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Goal'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  '/users/{userID}/buddies/{buddyID}/goals/{goalID}':
-    get:
-      summary: Get a goal
-      description: Fetches the goal identified by the given ID
-      parameters:
-        - $ref: "#/parameters/yonaPassword"
-        - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/buddyID"
-        - $ref: "#/parameters/goalID"
-      tags:
-        - Buddy
-      responses:
-        '200':
-          description: The requested goal.
-          schema:
-            $ref: '#/definitions/Goal'
         default:
           description: Unexpected error
           schema:
@@ -1183,11 +1373,7 @@ paths:
       description: If the new device request password is given, the returned resource contains the device password. The app can check the presence of a new device request by omitting the new device request password. In that case, a blank new device request is returned.
       parameters:
         - $ref: "#/parameters/mobileNumber"
-        - name: Yona-NewDeviceRequestPassword
-          in: header
-          description: The temporary password used to encrypt the device key
-          required: false
-          type: string
+        - $ref: "#/parameters/newDeviceRequestPassword"
       tags:
         - New device requests
       responses:
@@ -1322,6 +1508,28 @@ definitions:
           href:
             type: string
             description: Through this link, this resource can be edited or deleted. Note that this link is not always present. Certain resources can never be edited. Some others can only be edited or deleted in a specific state. Unprocessed messages for example cannot be deleted.
+  UserPhotoLink:
+    type: object
+    properties:
+      "yona:userPhoto":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Link to download user photo in image/png format.
+  EditUserPhotoLink:
+    type: object
+    properties:
+      "yona:editUserPhoto":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the URL to upload/delete an image          
   MessagesLink:
     type: object
     properties:
@@ -1624,6 +1832,133 @@ definitions:
           - totalElements
           - totalPages
           - number
+  DeviceOperatingSystem:
+    type: string
+    description: The operating system of the device running the Yona app
+    enum:
+    - ANDROID
+    - IOS
+    - UNKNOWN
+    example: ANDROID
+  DeviceAppVersion:
+    type: string
+    description: The version of the Yona app running on this device. This is the marketing version, a free text string.
+    example: 1.1 build 83
+  DeviceAppVersionCode:
+    type: integer
+    description: The version code of the Yona app running on this device. This is a positive, monotonic increasing number, across releases
+    example: 31
+  DeviceRegistrationRequest:
+    allOf:
+      - $ref: '#/definitions/OpenAppEvent'
+      - type: object
+        properties:
+          name:
+            type: string
+            description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
+            example: My S8
+          firebaseInstanceId:
+            type: string
+            description: The Instance ID provided by Firebase to the app
+            example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
+    required:
+      - name
+      - operatingSystem
+      - appVersion
+      - appVersionCode
+  PostPutDevice:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
+        example: My S8
+      firebaseInstanceId:
+        type: string
+        description: The Instance ID provided by Firebase to the app
+        example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
+    required:
+      - name
+  DeviceBase:
+    allOf:
+      - $ref: '#/definitions/PostPutDevice'
+      - type: object
+        properties:
+          isVpnConnected:
+            type: boolean
+            description: True when the VPN is connected on this device; false otherwise
+            example: true
+  UserDevice:
+    allOf:
+      - $ref: '#/definitions/DeviceBase'
+      - type: object
+        properties:
+          operatingSystem:
+            $ref: '#/definitions/DeviceOperatingSystem'
+          registrationTime:
+            type: string
+            format: dateTime
+            description: The time this device was registered
+            example: 2017-11-21T19:09:22+0000
+          appLastOpenedDate:
+            type: string
+            format: date
+            description: The date the Yona app was last opened on this device
+            example: 2017-11-21
+          requestingDevice:
+            type: string
+            format: boolean
+            description: Marks the active device that peformed this server request.
+            example: true
+          sslRootCertCN:
+            type: string
+            description: The CN of the SSL root certificate. Not available for buddies.
+            example: "smoothwall003.yona"
+          vpnProfile:
+            $ref: '#/definitions/VPNProfile'
+          firebaseInstanceId:
+            type: string
+            description: The Instance ID provided by Firebase to the app, if known to the server.
+            example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - type: object
+                properties:
+                  "yona:postOpenAppEvent":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: This link allows posting to the server that the Yona app was opened.
+                  "yona:appActivity":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Post new app activity data to this link
+                  "yona:sslRootCert":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Link to SSL root certificate file (available after confirming mobile number)
+                  "yona:appleMobileConfig":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
   BaseUser:
     type: object
     properties:
@@ -1639,48 +1974,49 @@ definitions:
         type: string
         description: 'Mobile number, unique among all users.'
         example: "+31612345678"
+      nickname:
+        type: string
+        description: Nickname known among buddies.
+        example: RQ
     required:
     - firstName
     - lastName
     - mobileNumber
-  PrivateUserDataNoVPN:
-    type: object
-    properties:
-      nickname:
-        type: string
-        description: Nickname known among buddies. Private data.
-        example: RQ
-    required:
     - nickname
   PrivateUserData:
-    allOf:
-      - $ref: '#/definitions/PrivateUserDataNoVPN'
-      - type: object
-        properties:
-          yonaPassword:
-            type: string
-            description: The Yona password for subsequent requests
-            example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
-          vpnProfile:
-            $ref: '#/definitions/VPNProfile'
+    type: object
+    properties:
+      yonaPassword:
+        type: string
+        description: The Yona password for subsequent requests
+        example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
+      vpnProfile: # YD-541 Remove the profile here
+        $ref: '#/definitions/VPNProfile'
   PostPutUser:
     allOf:
       - $ref: '#/definitions/BaseUser'
-      - $ref: '#/definitions/PrivateUserDataNoVPN'
+      - type: object
+        properties:
+          deviceName:
+            type: string
+            description: The name of the device on which the user signs up for Yona.  The name must be at most 20 characters and should not contain a colon. Not supported for a regular user update.
+            example: My S8
+          deviceOperatingSystem:
+            $ref: '#/definitions/DeviceOperatingSystem'
+          deviceAppVersion:
+            $ref: '#/definitions/DeviceAppVersion'
+          deviceAppVersionCode:
+            $ref: '#/definitions/DeviceAppVersionCode'
   UserWithPrivateData:
     allOf:
       - $ref: '#/definitions/BaseUser'
       - $ref: '#/definitions/PrivateUserData'
       - type: object
         properties:
-          sslRootCertCN:
-            type: string
-            description: The CN of the SSL root certificate
-            example: "smoothwall003.yona"
           creationTime:
             type: string
             format: dateTime
-            description: The creation time of this user
+            description: The creation time of this user. Not available for buddies.
             example: 2016-04-26T20:08:55.365+0200
           appLastOpenedDate:
             type: string
@@ -1690,14 +2026,14 @@ definitions:
           lastMonitoredActivityDate:
             type: string
             format: date
-            description: The date of the last monitored activity
+            description: The date of the last monitored activity.  Not available for buddies.
             example: 2016-04-26
           _embedded:
             type: object
             properties:
               "yona:goals":
                 type: object
-                description: The goals of this user. Private data.
+                description: The goals of this user.
                 properties:
                   _embedded:
                     type: object
@@ -1712,7 +2048,7 @@ definitions:
                       - $ref: '#/definitions/EditLink'
               "yona:buddies":
                 type: object
-                description: The buddies of this user. Private data.
+                description: The buddies of this user.
                 properties:
                   _embedded:
                     type: object
@@ -1721,6 +2057,21 @@ definitions:
                         type: array
                         items:
                           $ref: "#/definitions/Buddy"
+                  _links:
+                    allOf:
+                      - $ref: '#/definitions/SelfLink'
+                      - $ref: '#/definitions/EditLink'
+              "yona:devices":
+                type: object
+                description: The devices of this user.
+                properties:
+                  _embedded:
+                    type: object
+                    properties:
+                      "yona:devices":
+                        type: array
+                        items:
+                          $ref: "#/definitions/UserDevice"
                   _links:
                     allOf:
                       - $ref: '#/definitions/SelfLink'
@@ -1734,6 +2085,8 @@ definitions:
               - $ref: '#/definitions/DailyActivityReportsLink'
               - $ref: '#/definitions/DailyActivityReportsWithBuddiesLink'
               - $ref: '#/definitions/MessagesLink'
+              - $ref: '#/definitions/UserPhotoLink'
+              - $ref: '#/definitions/EditUserPhotoLink'
               - type: object
                 properties:
                   "yona:confirmMobileNumber":
@@ -1752,14 +2105,6 @@ definitions:
                       href:
                         type: string
                         description: This link allows requesting a resend of the mobile number confirmation code.
-                  "yona:postOpenAppEvent":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: This link allows posting to the server that the Yona app was opened.
                   "yona:requestPinReset":
                     type: object
                     required:
@@ -1800,30 +2145,6 @@ definitions:
                       href:
                         type: string
                         description: Create, get or delete a "new device request" through this link
-                  "yona:appActivity":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: Post new app activity data to this link
-                  "yona:sslRootCert":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: Link to SSL root certificate file (available after confirming mobile number)
-                  "yona:appleMobileConfig":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
         required:
           - _embedded
           - _links
@@ -1855,6 +2176,15 @@ definitions:
         example: 1234
     required:
       - code
+  UserPhoto:
+    type: object
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+    required:
+      - _links
   PostPutGoal:
     type: object
     discriminator: "@type"
@@ -2000,10 +2330,6 @@ definitions:
       - $ref: '#/definitions/BaseBuddy'
       - type: object
         properties:
-          nickname:
-            type: string
-            description: The nickname of the buddy
-            example: RQ
           lastStatusChangeTime:
             type: string
             format: dateTime
@@ -2017,20 +2343,6 @@ definitions:
           _embedded:
             type: object
             properties:
-              "yona:goals":
-                type: object
-                description: The goals of this buddy.
-                properties:
-                  _embedded:
-                    type: object
-                    properties:
-                      "yona:goals":
-                        type: array
-                        items:
-                          $ref: "#/definitions/Goal"
-                  _links:
-                    allOf:
-                      - $ref: '#/definitions/SelfLink'
               "yona:user":
                   $ref: "#/definitions/UserWithOnlyPublicData"
             required:
@@ -2059,6 +2371,16 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/UserLink'
+          - type: object
+            properties:
+              "yona:registerDevice":
+                type: object
+                required:
+                  - href
+                properties:
+                  href:
+                    type: string
+                    description: To register a new device, post the information about that device to this URL
     required:
       - yonaPassword
       - _links
@@ -2100,12 +2422,22 @@ definitions:
         - BuddyConnectResponseMessage
         - BuddyDisconnectMessage
         - BuddyInfoChangeMessage
+        - BuddyDeviceChangeMessage
         - GoalConflictMessage
         - GoalChangeMessage
         - DisclosureRequestMessage
         - DisclosureResponseMessage
         - ActivityCommentMessage
         - SystemMessage
+      _links:
+         allOf:
+           - $ref: '#/definitions/Curies'
+           - $ref: '#/definitions/SelfLink'
+           - $ref: '#/definitions/UserPhotoLink'
+      nickname:
+        type: string
+        description: The nickname of the buddy, or a self or system sender placeholder
+        example: RQ
       creationTime:
         type: string
         format: dateTime
@@ -2118,6 +2450,8 @@ definitions:
         example: false
     required:
       - "@type"
+      - _links
+      - nickname
       - creationTime
   SystemMessage:
     allOf:
@@ -2143,16 +2477,11 @@ definitions:
       - $ref: '#/definitions/Message'
       - type: object
         properties:
-          nickname:
-            type: string
-            description: The nickname of the buddy
-            example: RQ
           message:
             type: string
             description: The message from the buddy
             example: Hi there, how are you doing?
         required:
-          - nickname
           - message
   BuddyMessageWithEmbeddedUser:
     allOf:
@@ -2229,6 +2558,23 @@ definitions:
           - dropBuddyReason
           - _links
   BuddyInfoChangeMessage:
+    allOf:
+      - $ref: '#/definitions/BuddyMessage'
+      - type: object
+        properties:
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/UserLink'
+              - $ref: '#/definitions/BuddyLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/ProcessLink'
+        required:
+          - _links
+  BuddyDeviceChangeMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
       - type: object
@@ -2516,6 +2862,7 @@ definitions:
           - $ref: '#/definitions/MessagesLink'
           - $ref: '#/definitions/PrevLink'
           - $ref: '#/definitions/NextLink'
+          - $ref: '#/definitions/BuddyLink'
     required:
       - date
       - timeZoneId
@@ -2649,6 +2996,7 @@ definitions:
               - $ref: '#/definitions/MessagesLink'
               - $ref: '#/definitions/PrevLink'
               - $ref: '#/definitions/NextLink'
+              - $ref: '#/definitions/BuddyLink'
             required:
               - self
               - "yona:goal"
@@ -2821,6 +3169,15 @@ definitions:
           type: string
     required:
       - "properties"
+  OpenAppEvent:
+    type: object
+    properties:
+      operatingSystem:
+        $ref: '#/definitions/DeviceOperatingSystem'
+      appVersion:
+        $ref: '#/definitions/DeviceAppVersion'
+      appVersionCode:
+        $ref: '#/definitions/DeviceAppVersionCode'
   Error:
     type: object
     properties:
@@ -2832,6 +3189,10 @@ definitions:
         type: string
         description: A localized error message
         example: The mobile number ''+31 6 12345678'' is invalid. It must start with a + sign, with no spaces between the digits
+      correlationId:
+        type: string
+        description: ID that correlates the server log messages to this error
+        example: 463ac35c9f6413ad48485a3953bb6124
   ConfirmationError:
     allOf:
       - $ref: '#/definitions/Error'

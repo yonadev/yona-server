@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.Repository;
@@ -46,9 +46,12 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
+import nu.yona.server.device.entities.DeviceAnonymized;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalRepository;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -75,6 +78,8 @@ public class ActivityServiceTest
 	@Mock
 	private UserAnonymizedService mockUserAnonymizedService;
 	@Mock
+	private GoalRepository mockGoalRepository;
+	@Mock
 	private WeekActivityRepository mockWeekActivityRepository;
 	@Mock
 	private DayActivityRepository mockDayActivityRepository;
@@ -95,12 +100,14 @@ public class ActivityServiceTest
 	private UUID userAnonId;
 	private UserAnonymized userAnonEntity;
 	private ZoneId userAnonZone;
+	private DeviceAnonymized deviceAnonEntity;
 
 	@Before
 	public void setUp()
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(DayActivity.class, mockDayActivityRepository);
+		repositoriesMap.put(Goal.class, mockGoalRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 
 		// created 2 weeks ago
@@ -132,7 +139,9 @@ public class ActivityServiceTest
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty());
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
+		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
 		userAnonZone = userAnon.getTimeZone();
 		userAnonId = userAnon.getId();
@@ -144,17 +153,12 @@ public class ActivityServiceTest
 
 		// Stub the UserAnonymizedService to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnon);
-		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(userAnonEntity);
 
 		// Stub the GoalService to return our goals.
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, newsGoal.getId())).thenReturn(newsGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
-
-		JUnitUtil.setUpRepositoryMock(mockDayActivityRepository);
-		JUnitUtil.setUpRepositoryMock(mockWeekActivityRepository);
 	}
 
 	private Map<Locale, String> usString(String string)
@@ -172,21 +176,20 @@ public class ActivityServiceTest
 		// mock some activity on yesterday 20:58-21:00
 		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
 				yesterday.toLocalDate());
-		Activity recordedActivity = Activity.createInstance(userAnonZone,
+		Activity recordedActivity = Activity.createInstance(deviceAnonEntity, userAnonZone,
 				yesterday.plusHours(20).plusMinutes(58).toLocalDateTime(),
 				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		Set<UUID> relevantGoalIds = userAnonEntity.getGoals().stream().map(Goal::getId).collect(Collectors.toSet());
-		when(mockDayActivityRepository.findAll(userAnonId, relevantGoalIds,
-				today.minusDays(2).toLocalDate(), today.plusDays(1).toLocalDate()))
-						.thenReturn(Arrays.asList(yesterdayRecordedActivity));
+		when(mockDayActivityRepository.findAll(userAnonId, relevantGoalIds, today.minusDays(2).toLocalDate(),
+				today.plusDays(1).toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> dayOverviews = service.getUserDayActivityOverviews(userId,
-				new PageRequest(0, 3));
+				PageRequest.of(0, 3));
 
 		// assert that the right retrieve from database was done
-		verify(mockDayActivityRepository, times(1)).findAll(userAnonId, relevantGoalIds,
-				today.minusDays(2).toLocalDate(), today.plusDays(1).toLocalDate());
+		verify(mockDayActivityRepository, times(1)).findAll(userAnonId, relevantGoalIds, today.minusDays(2).toLocalDate(),
+				today.plusDays(1).toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of
 		// our page request = 3
@@ -223,7 +226,7 @@ public class ActivityServiceTest
 		ZonedDateTime saturdayStartOfDay = getWeekStartTime(today).minusDays(1);
 		DayActivity previousWeekSaturdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
 				saturdayStartOfDay.toLocalDate());
-		Activity recordedActivity = Activity.createInstance(userAnonZone,
+		Activity recordedActivity = Activity.createInstance(deviceAnonEntity, userAnonZone,
 				saturdayStartOfDay.plusHours(19).plusMinutes(10).toLocalDateTime(),
 				saturdayStartOfDay.plusHours(19).plusMinutes(55).toLocalDateTime(), Optional.empty());
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
@@ -245,7 +248,7 @@ public class ActivityServiceTest
 				getWeekStartTime(today).plusWeeks(1).toLocalDate()))
 						.thenReturn(new HashSet<>(Arrays.asList(previousWeekRecordedActivity)));
 
-		Page<WeekActivityOverviewDto> weekOverviews = service.getUserWeekActivityOverviews(userId, new PageRequest(0, 5));
+		Page<WeekActivityOverviewDto> weekOverviews = service.getUserWeekActivityOverviews(userId, PageRequest.of(0, 5));
 
 		// assert that the right retrieve from database was done
 		verify(mockWeekActivityRepository, times(1)).findAll(userAnonId, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
@@ -299,7 +302,7 @@ public class ActivityServiceTest
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> inactivityDayOverviews = service.getUserDayActivityOverviews(userId,
-				new PageRequest(0, 3));
+				PageRequest.of(0, 3));
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days
 		assertThat(inactivityDayOverviews.getNumberOfElements(), equalTo(3));
@@ -317,7 +320,7 @@ public class ActivityServiceTest
 	public void getUserWeekActivityOverviews_noActivityPresent_resultsWithInactivity()
 	{
 		Page<WeekActivityOverviewDto> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userId,
-				new PageRequest(0, 5));
+				PageRequest.of(0, 5));
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
 		assertThat(inactivityWeekOverviews.getNumberOfElements(), equalTo(3));
@@ -382,7 +385,7 @@ public class ActivityServiceTest
 				.withMinute(activityStartTimeOnDay.getMinute()).withSecond(activityStartTimeOnDay.getSecond());
 		ZonedDateTime activityEndTime = yesterday.withHour(activityEndTimeOnDay.getHour())
 				.withMinute(activityEndTimeOnDay.getMinute()).withSecond(activityEndTimeOnDay.getSecond());
-		Activity recordedActivity = Activity.createInstance(userAnonZone, activityStartTime.toLocalDateTime(),
+		Activity recordedActivity = Activity.createInstance(deviceAnonEntity, userAnonZone, activityStartTime.toLocalDateTime(),
 				activityEndTime.toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId()))

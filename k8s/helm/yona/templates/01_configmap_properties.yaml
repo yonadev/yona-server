@@ -11,7 +11,18 @@ metadata:
     "helm.sh/hook": pre-install,pre-upgrade
 data:
   application.properties: |
-    yona.maxUsers={{ .Values.app.max_users | default "100" }}
+    {{- if .Values.spring.hazelcast.loglevel}}
+    logging.level.com.hazelcast={{ .Values.spring.hazelcast.loglevel | default "info" }}
+    logging.pattern.level={{ .Values.spring.logpattern | default "%5p" }}
+    {{- end }}
+    {{- if .Values.spring.loglevel}}
+    logging.level.org.springframework={{ .Values.spring.loglevel | default "info" }}
+    {{- end }}
+    #spring.hazelcast.config={{ .Values.spring.hazelcast.config }}
+    #hazelcast.client.config={{ .Values.spring.hazelcast.config }}
+    yona.hazelcastConfigFilePath={{ .Values.spring.hazelcast.config }}
+    yona.maxUsers={{ .Values.app.max_users | default "1000000" }}
+    yona.enableHibernateStatsAllowed={{ .Values.app.enable_hibernate_stats_allowed| default "false" }}
     yona.whiteListActiveFreeSignUp={{ required "True or False required for app.whitelist.active_free_signup" .Values.app.whitelist.active_free_signup }}
     yona.whiteListActiveInvitedUsers={{ required "True or False required for app.whitelist.active_invited_users" .Values.app.whitelist.active_invited_users }}
     yona.security.pinResetRequestConfirmationCodeDelay={{ .Values.app.security.pin_reset_request_confirmation_code_delay | default "PT1M" }}
@@ -21,12 +32,15 @@ data:
     yona.security.maxUpdateUserAttemptsPerTimeWindow={{ .Values.app.security.max_update_user_attempts_per_time_window | default "2" }}
     yona.analysisservice.updateSkipWindow={{ .Values.analysis.update_skip_window | default "PT1M" }}
     yona.email.enabled={{ required "True or False required for email.enabled" .Values.email.enabled }}
-    yona.email.senderAddress={{ .Values.email.sender_address | default "noreply@example.com" }}
+    yona.email.senderAddress={{ .Values.email.sender_address | default "noreply@yona.nu" }}
     yona.email.smtp.protocol={{ .Values.email.smtp_protocol | default "smtp" }}
     {{- if .Values.email.smtp_host}}
     yona.email.smtp.host={{ .Values.email.smtp_host}}
     {{- else }}
     yona.email.smtp.host="smtp.{{ .Release.Namespace }}.svc.cluster.local" }}
+    {{- end }}
+    {{- if .Values.email.testEmailAddress }}
+    yona.email.testEmailAddress={{ .Values.email.testEmailAddress }}
     {{- end }}
     yona.email.smtp.port={{ .Values.email.smtp_port | default "587" }}
     yona.email.smtp.enableAuth={{ required "True or False required for email.smtp_enable_auth" .Values.email.smtp_enable_auth }}
@@ -38,7 +52,7 @@ data:
     {{- if .Values.ldap.url_override}}
     yona.ldap.url={{ .Values.ldap.url_override }}
     {{- else }}
-    yona.ldap.url=ldap://ldap.{{ .Release.Namespace }}.svc.cluster.local
+    yona.ldap.url=ldap://ldap.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.ldap.port | default 389 }}
     {{- end }}
     yona.ldap.baseDn={{ .Values.ldap.dn | default "DC=example,DC=local" }}
     yona.ldap.accessUserDn={{ .Values.ldap.user_dn | default "cn=admin,dc=example,dc=local" }}
@@ -55,4 +69,27 @@ data:
     yona.appleMobileConfig.signingKeyStorePassword = {{ .Values.apple.keystore_password | default "DummyPwd" }}
     yona.appleMobileConfig.caCertificateFile={{ .Values.apple.ca_certificate_file | default "apple/AppleWWDRCA.cer" }}
     yona.appleMobileConfig.signingAlias = {{ .Values.apple.alias | default "dummy" }}
+  hazelcast-client.xml: |
+      <hazelcast-client xsi:schemaLocation="http://www.hazelcast.com/schema/client-config hazelcast-client-config-3.6.xsd"
+                        xmlns="http://www.hazelcast.com/schema/client-config"
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <properties>
+              <property name="hazelcast.discovery.enabled">true</property>
+          </properties>
+          <network>
+              <aws enabled="false"/>
+              <smart-routing>true</smart-routing>
+              <redo-operation>true</redo-operation>
+              <discovery-strategies>
+                <discovery-strategy enabled="true"
+                    class="com.hazelcast.kubernetes.HazelcastKubernetesDiscoveryStrategy">
+                  <properties>
+                    <!-- configure discovery service API lookup -->
+                    <property name="service-name">hazelcast</property>
+                    <property name="namespace">{{ .Release.Namespace }}</property>
+                  </properties>
+                </discovery-strategy>
+              </discovery-strategies>
+          </network>
+      </hazelcast-client>
 

@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 
 class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
@@ -18,7 +20,7 @@ class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getAllActivityCategories()
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData._links.self.href == appService.url + appService.ACTIVITY_CATEGORIES_PATH
 		response.responseData._embedded."yona:activityCategories".size() > 0
 		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find

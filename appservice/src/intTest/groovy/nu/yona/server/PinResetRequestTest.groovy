@@ -7,9 +7,12 @@
 package nu.yona.server
 
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import java.time.Duration
 
 import groovy.json.*
+import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
 
 class PinResetRequestTest extends AbstractAppServiceIntegrationTest
@@ -40,19 +43,19 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password, "Accept-Language" : "nl-NL"])
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData.delay == "PT10S"
-		User  richardAfterGet = appService.reloadUser(richard)
+		User  richardAfterGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedNotGenerated)
 		!richardAfterGet.pinResetRequestUrl
 
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
 
 		sleepTillPinResetCodeIsGenerated(richard, response.responseData.delay)
-		User  richardAfterDelayedGet = appService.reloadUser(richard)
+		User  richardAfterDelayedGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
-		richardAfterDelayedGet.verifyPinResetUrl == richard.url + "/pinResetRequest/verify"
-		richardAfterDelayedGet.clearPinResetUrl == richard.url + "/pinResetRequest/clear"
+		richardAfterDelayedGet.verifyPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/verify"
+		richardAfterDelayedGet.clearPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/clear"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -63,11 +66,11 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		def firstResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password, "Accept-Language" : "nl-NL"])
-		assert firstResponse.status == 200
+		assertResponseStatusOk(firstResponse)
 		sleepTillPinResetCodeIsGenerated(richard, firstResponse.responseData.delay)
-		richard = appService.reloadUser(richard)
-		assert richard.clearPinResetUrl == richard.url + "/pinResetRequest/clear"
-		assert appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password]).status == 200
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
+		assert richard.clearPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/clear"
+		assertResponseStatusOk(appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password]))
 		richard = appService.reloadUser(richard)
 		assert richard.pinResetRequestUrl != null
 
@@ -75,19 +78,19 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password, "Accept-Language" : "nl-NL"])
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData.delay == "PT10S"
-		User  richardAfterGet = appService.reloadUser(richard)
+		User  richardAfterGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedNotGenerated)
 		!richardAfterGet.pinResetRequestUrl
 
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
 
 		sleepTillPinResetCodeIsGenerated(richard, response.responseData.delay)
-		User  richardAfterDelayedGet = appService.reloadUser(richard)
+		User  richardAfterDelayedGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
-		richardAfterDelayedGet.verifyPinResetUrl == richard.url + "/pinResetRequest/verify"
-		richardAfterDelayedGet.clearPinResetUrl == richard.url + "/pinResetRequest/clear"
+		richardAfterDelayedGet.verifyPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/verify"
+		richardAfterDelayedGet.clearPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/clear"
 
 
 		cleanup:
@@ -108,14 +111,14 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
 		sleepTillPinResetCodeIsGenerated(richard, resetRequestResponse.responseData.delay)
-		richard = appService.reloadUser(richard)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
 
 		when:
 		def response = appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "1234"}""", ["Yona-Password" : richard.password])
 
 		then:
-		response.status == 200
-		User  richardAfterGet = appService.reloadUser(richard)
+		assertResponseStatusOk(response)
+		User  richardAfterGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
 		!richardAfterGet.pinResetRequestUrl
 		richardAfterGet.verifyPinResetUrl
 		richardAfterGet.clearPinResetUrl
@@ -132,10 +135,10 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		sleepTillMidOfPinResetCodeGenerationInterval(richard, responsePost.responseData.delay)
 
 		when:
-		def response = appService.yonaServer.postJson(richard.url + "/pinResetRequest/verify", """{"code" : "1234"}""", ["Yona-Password" : richard.password])
+		def response = appService.yonaServer.postJson(YonaServer.stripQueryString(richard.url) + "/pinResetRequest/verify", """{"code" : "1234"}""", ["Yona-Password" : richard.password])
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.pin.reset.request.confirmation.code.mismatch"
 
 		cleanup:
@@ -156,19 +159,19 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
 		sleepTillPinResetCodeIsGenerated(richard, resetRequestResponse.responseData.delay)
-		richard = appService.reloadUser(richard)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
 
 		when:
 		def response = appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password])
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		User  richardAfterGet = appService.reloadUser(richard)
 		richardAfterGet.pinResetRequestUrl
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
 		def verifyPinResetAttemptResponse = appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "1234"}""", ["Yona-Password" : richard.password])
-		verifyPinResetAttemptResponse.status == 400
+		assertResponseStatus(verifyPinResetAttemptResponse, 400)
 		verifyPinResetAttemptResponse.responseData.code == "error.pin.reset.request.confirmation.code.not.set"
 
 		cleanup:
@@ -181,14 +184,15 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
 		sleepTillPinResetCodeIsGenerated(richard, resetRequestResponse.responseData.delay)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
 		appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "1234"}""", ["Yona-Password" : richard.password])
-		richard = appService.reloadUser(richard)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
 
 		when:
 		def response = appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password])
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		User  richardAfterGet = appService.reloadUser(richard)
 		richardAfterGet.pinResetRequestUrl
 		!richardAfterGet.verifyPinResetUrl
@@ -204,7 +208,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
 		sleepTillPinResetCodeIsGenerated(richard, resetRequestResponse.responseData.delay)
-		richard = appService.reloadUser(richard)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated)
 
 		when:
 		def response1TimeWrong = appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "12341"}""", ["Yona-Password" : richard.password])
@@ -217,19 +221,19 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		def response7thTimeRight = appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "1234"}""", ["Yona-Password" : richard.password])
 
 		then:
-		response1TimeWrong.status == 400
+		assertResponseStatus(response1TimeWrong, 400)
 		response1TimeWrong.responseData.code == "error.pin.reset.request.confirmation.code.mismatch"
 		response1TimeWrong.responseData.remainingAttempts == 4
-		response4TimesWrong.status == 400
+		assertResponseStatus(response4TimesWrong, 400)
 		response4TimesWrong.responseData.code == "error.pin.reset.request.confirmation.code.mismatch"
 		response4TimesWrong.responseData.remainingAttempts == 1
-		response5TimesWrong.status == 400
+		assertResponseStatus(response5TimesWrong, 400)
 		response5TimesWrong.responseData.code == "error.pin.reset.request.confirmation.code.mismatch"
 		response5TimesWrong.responseData.remainingAttempts == 0
-		response6TimesWrong.status == 400
+		assertResponseStatus(response6TimesWrong, 400)
 		response6TimesWrong.responseData.code == "error.pin.reset.request.confirmation.code.too.many.failed.attempts"
 		response6TimesWrong.responseData.remainingAttempts == null
-		response7thTimeRight.status == 400
+		assertResponseStatus(response7thTimeRight, 400)
 		response7thTimeRight.responseData.code == "error.pin.reset.request.confirmation.code.too.many.failed.attempts"
 
 		cleanup:

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -37,13 +37,18 @@ public class AnalysisEngineProxyService
 		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId) + "/inactivity/", intervalInactivities, String.class);
 	}
 
-	public void analyzeAppActivity(UUID userAnonymizedId, AppActivityDto appActivities)
+	public void analyzeAppActivity(UUID userAnonymizedId, UUID deviceAnonyizedId, AppActivitiesDto appActivities)
 	{
-		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId) + "/appActivity/", appActivities, String.class);
+		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId, deviceAnonyizedId) + "/appActivity/", appActivities, String.class);
 	}
 
 	private String buildBaseUrl(UUID userAnonymizedId)
 	{
 		return analysisEngineUrl + "/userAnonymized/" + userAnonymizedId;
+	}
+
+	private String buildBaseUrl(UUID userAnonymizedId, UUID deviceAnonyizedId)
+	{
+		return analysisEngineUrl + "/userAnonymized/" + userAnonymizedId + "/" + deviceAnonyizedId;
 	}
 }

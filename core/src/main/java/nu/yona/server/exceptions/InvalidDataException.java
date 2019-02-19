@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
@@ -50,6 +50,11 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.user.mobile.number.invalid", mobileNumber);
 	}
 
+	public static InvalidDataException notAMobileNumber(String number, String classification)
+	{
+		return new InvalidDataException("error.user.mobile.number.not.mobile", number, classification);
+	}
+
 	public static InvalidDataException emptyUserId()
 	{
 		return new InvalidDataException("error.missing.user.id");
@@ -88,5 +93,45 @@ public class InvalidDataException extends YonaException
 	public static InvalidDataException appProvidedPasswordNotSupported()
 	{
 		return new InvalidDataException("error.user.app.provided.password.not.supported");
+	}
+
+	public static InvalidDataException unsupportedPhotoFileType()
+	{
+		return new InvalidDataException("error.user.photo.invalid.file.type");
+	}
+
+	public static InvalidDataException invalidOperatingSystem(String operatingSystem)
+	{
+		return new InvalidDataException("error.device.unknown.operating.system", operatingSystem);
+	}
+
+	public static InvalidDataException invalidDeviceName(String name, int maxLength, String deviceNamesSeparator)
+	{
+		return new InvalidDataException("error.device.invalid.device.name", name, maxLength, deviceNamesSeparator);
+	}
+
+	public static InvalidDataException missingProperty(String name, String hint)
+	{
+		return new InvalidDataException("error.request.missing.property", name, hint);
+	}
+
+	public static InvalidDataException extraProperty(String name, String hint)
+	{
+		return new InvalidDataException("error.request.extra.property", name, hint);
+	}
+
+	public static InvalidDataException missingEntity(Class<?> clazz, UUID id)
+	{
+		return new InvalidDataException("error.missing.entity", clazz.getName(), id);
+	}
+
+	public static InvalidDataException missingEntity(Class<?> clazz, long id)
+	{
+		return new InvalidDataException("error.missing.entity", clazz.getName(), id);
+	}
+
+	public static InvalidDataException invalidUuid(String uuid)
+	{
+		return new InvalidDataException("error.invalid.uuid", uuid);
 	}
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -8,7 +8,6 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +16,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.hal.CurieProvider;
@@ -27,11 +27,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -41,9 +43,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.rest.GoalController.GoalResourceAssembler;
 import nu.yona.server.goals.service.GoalDto;
-import nu.yona.server.goals.service.GoalServiceException;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
@@ -57,7 +60,7 @@ import nu.yona.server.util.TimeUtil;
 @Controller
 @ExposesResourceFor(BuddyResource.class)
 @RequestMapping(value = "/users/{userId}/buddies", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class BuddyController
+public class BuddyController extends ControllerBase
 {
 	public static final String BUDDY_LINK = "buddy";
 
@@ -77,12 +80,13 @@ public class BuddyController
 	 * @param userId The ID of the user. This is part of the URL.
 	 * @return the list of buddies for the current user
 	 */
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(
 					createAllBuddiesCollectionResource(curieProvider, userId, buddyService.getBuddiesOfUser(userId)),
@@ -90,75 +94,43 @@ public class BuddyController
 		}
 	}
 
-	@RequestMapping(value = "/{buddyId}", method = RequestMethod.GET)
+	@GetMapping(value = "/{buddyId}")
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID buddyId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 
-			return createOkResponse(userId, buddyService.getBuddy(buddyId));
+			return createOkResponse(buddyService.getBuddy(buddyId), createResourceAssembler(userId));
 		}
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@PostMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody PostPutBuddyDto postPutBuddy)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return createResponse(userId,
-					buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postPutBuddy), this::getInviteUrl),
-					HttpStatus.CREATED);
+			return createResponse(buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postPutBuddy), this::getInviteUrl),
+					HttpStatus.CREATED, createResourceAssembler(userId));
 		}
 	}
 
-	@RequestMapping(value = "/{buddyId}", method = RequestMethod.DELETE)
+	@DeleteMapping(value = "/{buddyId}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			buddyService.removeBuddy(userId, buddyId, Optional.ofNullable(messageStr));
 		}
-	}
-
-	@RequestMapping(value = "/{buddyId}/goals/{goalId}", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID buddyId, @PathVariable UUID goalId)
-	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			return createResponse(userId, getGoal(userId, buddyId, goalId), HttpStatus.OK);
-		}
-	}
-
-	@RequestMapping(value = "/{buddyId}/goals/", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID buddyId)
-	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			return new ResponseEntity<>(createAllGoalsCollectionResource(userId, buddyId, getGoals(buddyId)), HttpStatus.OK);
-		}
-	}
-
-	private GoalDto getGoal(UUID userId, UUID buddyId, UUID goalId)
-	{
-		BuddyDto buddy = buddyService.getBuddy(buddyId);
-		Optional<GoalDto> goal = buddy.getGoals().stream().filter(g -> g.getGoalId().equals(goalId)).findAny();
-		return goal.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForBuddy(userId, buddyId, goalId));
-	}
-
-	private Set<GoalDto> getGoals(UUID buddyId)
-	{
-		return buddyService.getBuddy(buddyId).getGoals();
 	}
 
 	private BuddyDto convertToBuddy(PostPutBuddyDto postPutBuddy)
@@ -188,28 +160,31 @@ public class BuddyController
 
 	public String getInviteUrl(UUID newUserId, String tempPassword)
 	{
-		return UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword).getHref();
+		// getUserSelfLinkWithTempPassword should actually call expand, so we don't need to strip template parameters
+		// This is not being done because of https://github.com/spring-projects/spring-hateoas/issues/703
+		return stripTemplateParameters(UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword));
 	}
 
-	private HttpEntity<BuddyResource> createOkResponse(UUID userId, BuddyDto buddy)
+	private String stripTemplateParameters(Link link)
 	{
-		return createResponse(userId, buddy, HttpStatus.OK);
+		String linkString = link.getHref();
+		if (link.isTemplated())
+		{
+			return linkString.substring(0, linkString.indexOf('{'));
+		}
+		return linkString;
 	}
 
-	private HttpEntity<BuddyResource> createResponse(UUID userId, BuddyDto buddy, HttpStatus status)
+	private BuddyResourceAssembler createResourceAssembler(UUID userId)
 	{
-		return new ResponseEntity<>(new BuddyResourceAssembler(curieProvider, userId).toResource(buddy), status);
+		return new BuddyResourceAssembler(curieProvider, userId);
 	}
 
-	private HttpEntity<GoalDto> createResponse(UUID userId, GoalDto goal, HttpStatus status)
+	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
+			Set<GoalDto> allGoalsOfUser)
 	{
-		return new ResponseEntity<>(new GoalResourceAssembler(userId).toResource(goal), status);
-	}
-
-	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID userId, UUID buddyId, Set<GoalDto> allGoalsOfUser)
-	{
-		return new Resources<>(new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(userId, buddyId, goalId))
-				.toResources(allGoalsOfUser), getAllGoalsLinkBuilder(userId, buddyId).withSelfRel());
+		return new Resources<>(new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId))
+				.toResources(allGoalsOfUser), getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
 	}
 
 	public static ControllerLinkBuilder getBuddyLinkBuilder(UUID userId, UUID buddyId)
@@ -218,16 +193,14 @@ public class BuddyController
 		return linkTo(methodOn.getBuddy(Optional.empty(), userId, buddyId));
 	}
 
-	public static ControllerLinkBuilder getGoalLinkBuilder(UUID userId, UUID buddyId, UUID goalId)
+	public static ControllerLinkBuilder getGoalLinkBuilder(UUID requestingUserId, UUID userId, UUID goalId)
 	{
-		BuddyController methodOn = methodOn(BuddyController.class);
-		return linkTo(methodOn.getGoal(Optional.empty(), userId, buddyId, goalId));
+		return GoalController.getGoalLinkBuilder(requestingUserId, userId, goalId);
 	}
 
-	public static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID userId, UUID buddyId)
+	private static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID requestingUserId, UUID userId)
 	{
-		BuddyController methodOn = methodOn(BuddyController.class);
-		return linkTo(methodOn.getAllGoals(Optional.empty(), userId, buddyId));
+		return GoalController.getAllGoalsLinkBuilder(requestingUserId, userId);
 	}
 
 	static class PostPutBuddyDto
@@ -265,19 +238,13 @@ public class BuddyController
 		@JsonProperty("_embedded")
 		public Map<String, Object> getEmbeddedResources()
 		{
-			if (getContent().getUser() == null)
-			{
-				return Collections.emptyMap();
-			}
-
 			HashMap<String, Object> result = new HashMap<>();
-			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-					new UserController.UserResourceAssembler(curieProvider, false).toResource(getContent().getUser()));
-			if (getContent().getUser() != null && getContent().getGoals() != null)
-			{
-				result.put(curieProvider.getNamespacedRelFor(BuddyDto.GOALS_REL_NAME),
-						BuddyController.createAllGoalsCollectionResource(userId, getContent().getId(), getContent().getGoals()));
-			}
+			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), UserController.UserResourceAssembler
+					.createInstanceForBuddy(curieProvider, userId).toResource(getContent().getUser()));
+
+			Optional<Set<GoalDto>> goals = getContent().getGoals();
+			goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(BuddyDto.GOALS_REL_NAME),
+					BuddyController.createAllGoalsCollectionResource(userId, getContent().getUser().getId(), g)));
 			return result;
 		}
 	}

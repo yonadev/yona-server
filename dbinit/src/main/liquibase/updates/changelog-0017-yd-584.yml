@@ -1,0 +1,14 @@
+databaseChangeLog:
+- changeSet:
+    id: 1533973829316-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: app_version_code
+            type: integer
+            defaultValueNumeric: 0
+        tableName: devices_anonymized

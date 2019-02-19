@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -18,10 +19,12 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Where;
 
+import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -31,6 +34,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 @Table(name = "USERS_ANONYMIZED")
 public class UserAnonymized extends EntityWithUuid
 {
+	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 	private LocalDate lastMonitoredActivityDate;
 
 	@OneToOne(fetch = FetchType.LAZY)
@@ -48,6 +52,12 @@ public class UserAnonymized extends EntityWithUuid
 	@OneToMany(mappedBy = "owningUserAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
+	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<DeviceAnonymized> devicesAnonymized;
+
+	@Transient
+	private boolean isGoalPreloadDone;
+
 	// Default constructor is required for JPA
 	public UserAnonymized()
 	{
@@ -60,6 +70,7 @@ public class UserAnonymized extends EntityWithUuid
 		this.anonymousDestination = anonymousDestination;
 		this.goals = new HashSet<>(goals);
 		this.buddiesAnonymized = new HashSet<>();
+		this.devicesAnonymized = new HashSet<>();
 	}
 
 	public static UserAnonymizedRepository getRepository()
@@ -79,8 +90,7 @@ public class UserAnonymized extends EntityWithUuid
 
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
-		Objects.requireNonNull(lastMonitoredActivityDate);
-		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
+		this.lastMonitoredActivityDate = Objects.requireNonNull(lastMonitoredActivityDate);
 	}
 
 	public Set<Goal> getGoals()
@@ -111,12 +121,6 @@ public class UserAnonymized extends EntityWithUuid
 		buddyAnonimized.clearOwningUserAnonymized();
 	}
 
-	public UUID getVpnLoginId()
-	{
-		// these are the same for performance
-		return getId();
-	}
-
 	public Set<BuddyAnonymized> getBuddiesAnonymized()
 	{
 		return buddiesAnonymized;
@@ -133,6 +137,38 @@ public class UserAnonymized extends EntityWithUuid
 		if (!goals.remove(goal))
 		{
 			throw new IllegalArgumentException("Goal was not found");
+		}
+	}
+
+	public void addDeviceAnonymized(DeviceAnonymized deviceAnonimized)
+	{
+		devicesAnonymized.add(deviceAnonimized);
+		deviceAnonimized.setUserAnonymized(this);
+	}
+
+	public void removeDeviceAnonymized(DeviceAnonymized deviceAnonimized)
+	{
+		boolean removed = devicesAnonymized.remove(deviceAnonimized);
+		assert removed;
+		deviceAnonimized.clearUserAnonymized();
+	}
+
+	public Set<DeviceAnonymized> getDevicesAnonymized()
+	{
+		return devicesAnonymized;
+	}
+
+	public ZoneId getTimeZone()
+	{
+		return DEFAULT_TIME_ZONE;
+	}
+
+	public void preloadGoals()
+	{
+		if (!isGoalPreloadDone)
+		{
+			Goal.getRepository().findByUserAnonymizedId(getId()); // Preload in one go
+			isGoalPreloadDone = true;
 		}
 	}
 }

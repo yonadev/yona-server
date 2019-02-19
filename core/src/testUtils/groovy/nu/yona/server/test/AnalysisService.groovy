@@ -6,10 +6,9 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 import java.time.ZonedDateTime
 
+import groovy.json.*
 import nu.yona.server.YonaServer
 
 class AnalysisService extends Service
@@ -34,12 +33,17 @@ class AnalysisService extends Service
 		def categoriesString = YonaServer.makeStringList(categories)
 		def eventTimeString = (eventTime) ? YonaServer.toIsoDateTimeString(eventTime) : null
 		def eventTimeProperty = (eventTimeString) ? """"eventTime" : "$eventTimeString",""" : ""
-		postToAnalysisEngine(user.vpnProfile.vpnLoginId, """{
+		def dollarIndex =  user.vpnProfile.vpnLoginId.indexOf("\$")
+		def userAnonymizedId = user.vpnProfile.vpnLoginId[0..dollarIndex-1]
+		def deviceIndex = user.vpnProfile.vpnLoginId[dollarIndex+1..-1]
+		postToAnalysisEngine(userAnonymizedId, """{
+					"deviceIndex": $deviceIndex,
 					$eventTimeProperty
 					"categories": [$categoriesString],
 					"url":"$url"
 				}""")
 	}
+
 	def postToAnalysisEngine(String vpnLoginId, jsonString)
 	{
 		yonaServer.postJson(USER_ANONYMIZED_PATH + vpnLoginId + "/networkActivity/", jsonString)

@@ -1,14 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -20,6 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
@@ -28,9 +28,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.analysis.entities.IntervalActivity;
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
+
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.service.DeviceService;
+import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
@@ -41,6 +46,7 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalDto;
+import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.messaging.service.MessageService;
@@ -55,16 +61,20 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
-import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class UserService
 {
-	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
+	/**
+	 * Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers
+	 */
 	private static final Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
-	/** Holds the regex to validate a valid email address. Match the pattern a@b.c */
+	/**
+	 * Holds the regex to validate a valid email address. Match the pattern a@b.c
+	 */
 	private static final Pattern REGEX_EMAIL = Pattern.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$",
 			Pattern.CASE_INSENSITIVE);
 
@@ -92,9 +102,6 @@ public class UserService
 	@Autowired(required = false)
 	private ActivityCategoryRepository activityCategoryRepository;
 
-	@Autowired(required = false)
-	private LDAPUserService ldapUserService;
-
 	@Autowired
 	private YonaProperties yonaProperties;
 
@@ -105,7 +112,7 @@ public class UserService
 	private BuddyService buddyService;
 
 	@Autowired(required = false)
-	private TransactionHelper transactionHelper;
+	private DeviceService deviceService;
 
 	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
@@ -115,6 +122,9 @@ public class UserService
 
 	@Autowired(required = false)
 	private MessageService messageService;
+
+	@Autowired(required = false)
+	private GoalService goalService;
 
 	@Autowired(required = false)
 	private WhiteListedNumberService whiteListedNumberService;
@@ -135,9 +145,59 @@ public class UserService
 	}
 
 	@Transactional
-	public boolean canAccessPrivateData(UUID id)
+	public boolean doPreparationsAndCheckCanAccessPrivateData(UUID id)
 	{
-		return getUserEntityById(id).canAccessPrivateData();
+		// We add a lock here to prevent concurrent user updates. The lock is per user, so concurrency is not an issue.
+		return withLockOnUser(id, user -> {
+			if (!user.canAccessPrivateData())
+			{
+				return false;
+			}
+			boolean updated = doPreparations(user);
+			if (updated)
+			{
+				// The private data is accessible and might be updated, including the UserAnonymized
+				// Let the UserAnonymizedService save that to the repository and cache it
+				userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+				userRepository.save(user);
+			}
+			return true;
+		});
+	}
+
+	private boolean doPreparations(User user)
+	{
+		boolean updated = false;
+		updated |= doPreparationBuddiesRemovedWhileOffline(user);
+		updated |= doPreparationPrivateDataMigration(user);
+		updated |= doPreparationForMessages(user);
+		return updated;
+	}
+
+	private boolean doPreparationBuddiesRemovedWhileOffline(User user)
+	{
+		Set<Buddy> buddiesOfRemovedUsers = user.getBuddiesRelatedToRemovedUsers();
+		if (!buddiesOfRemovedUsers.isEmpty())
+		{
+			buddiesOfRemovedUsers.stream().forEach(b -> buddyService.removeBuddyInfoForRemovedUser(user, b));
+			return true;
+		}
+		return false;
+	}
+
+	private boolean doPreparationPrivateDataMigration(User user)
+	{
+		if (!privateUserDataMigrationService.isUpToDate(user))
+		{
+			privateUserDataMigrationService.upgrade(user);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean doPreparationForMessages(User user)
+	{
+		return messageService.prepareMessageCollection(user);
 	}
 
 	@Transactional
@@ -163,8 +223,7 @@ public class UserService
 	{
 		User user = getUserEntityById(id);
 		userStatusAsserter.accept(user);
-		User updatedUser = handlePrivateDataActions(user);
-		return createUserDtoWithPrivateData(updatedUser);
+		return createUserDtoWithPrivateData(user);
 	}
 
 	private void assertCreatedOnBuddyRequestStatus(User user, boolean isCreatedOnBuddyRequest)
@@ -189,50 +248,39 @@ public class UserService
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
-		User validatedUser = getValidatedUserbyId(id);
-		User updatedUser = handlePrivateDataActions(validatedUser);
-		return createUserDtoWithPrivateData(updatedUser);
+		return createUserDtoWithPrivateData(getPrivateValidatedUserEntity(id));
 	}
 
-	private User handlePrivateDataActions(User user)
+	@Transactional
+	public User getPrivateValidatedUserEntity(UUID id)
 	{
-		handleBuddyUsersRemovedWhileOffline(user);
-
-		if (!privateUserDataMigrationService.isUpToDate(user))
-		{
-			privateUserDataMigrationService.upgrade(user);
-			return userRepository.save(user);
-		}
-
-		return user;
+		return getValidatedUserById(id);
 	}
 
 	@Transactional
 	public void setOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		User existingUserEntity = findUserByMobileNumber(mobileNumber);
-		ConfirmationCode confirmationCode = createConfirmationCode();
-		existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
-		userRepository.save(existingUserEntity);
-		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
-		logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
-				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
+		updateUser(findUserByMobileNumber(mobileNumber).getId(), existingUserEntity -> {
+			ConfirmationCode confirmationCode = createConfirmationCode();
+			existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
+			sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
+			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
+					existingUserEntity.getMobileNumber(), existingUserEntity.getId());
+		});
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
+		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
 		assertValidUserFields(user, UserPurpose.USER);
 
-		// use a separate transaction because in the top transaction we insert a user with the same unique key
-		transactionHelper.executeInNewTransaction(
-				() -> handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode));
+		handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
 
 		User userEntity = createUserEntity(user, UserSignUp.FREE);
+		addDevicesToEntity(user, userEntity);
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNeeded(overwriteUserConfirmationCode, userEntity);
 		userEntity = userRepository.save(userEntity);
-		ldapUserService.createVpnAccount(userEntity.getUserAnonymizedId().toString(), userEntity.getVpnPassword());
-
 		UserDto userDto = createUserDtoWithPrivateData(userEntity);
 		if (confirmationCode.isPresent())
 		{
@@ -249,6 +297,27 @@ public class UserService
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
+		Set<Goal> goals = buildGoalsSet(user, signUp);
+		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
+		UserAnonymized.getRepository().save(userAnonymized);
+		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getFirstName(),
+				user.getOwnPrivateData().getLastName(), user.getOwnPrivateData().getNickname(), userAnonymized.getId(),
+				anonymousMessageSource.getId(), namedMessageSource);
+		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getMobileNumber(), userPrivate,
+				namedMessageSource.getDestination());
+		addMandatoryGoals(userEntity);
+		return userEntity;
+	}
+
+	private void addDevicesToEntity(UserDto userDto, User userEntity)
+	{
+		userRepository.saveAndFlush(userEntity); // To prevent sequence issues when saving the device
+		userDto.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).stream().map(d -> (UserDeviceDto) d)
+				.forEach(d -> deviceService.addDeviceToUser(userEntity, d));
+	}
+
+	private Set<Goal> buildGoalsSet(UserDto user, UserSignUp signUp)
+	{
 		Set<Goal> goals;
 		if (signUp == UserSignUp.INVITED)
 		{
@@ -256,21 +325,10 @@ public class UserService
 		}
 		else
 		{
-			goals = user.getPrivateData().getGoals().stream().map(GoalDto::createGoalEntity).collect(Collectors.toSet());
+			goals = user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).stream().map(GoalDto::createGoalEntity)
+					.collect(Collectors.toSet());
 		}
-		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
-		UserAnonymized.getRepository().save(userAnonymized);
-		UserPrivate userPrivate = UserPrivate.createInstance(user.getPrivateData().getNickname(), generatePassword(),
-				userAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
-		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getFirstName(), user.getLastName(),
-				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
-		addMandatoryGoals(userEntity);
-		if (signUp == UserSignUp.FREE)
-		{
-			// The user signs up through the app, so they apparently opened it now
-			userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
-		}
-		return userEntity;
+		return goals;
 	}
 
 	private Optional<ConfirmationCode> createConfirmationCodeIfNeeded(Optional<String> overwriteUserConfirmationCode,
@@ -288,7 +346,7 @@ public class UserService
 		return confirmationCode;
 	}
 
-	UserDto createUserDtoWithPrivateData(User user)
+	public UserDto createUserDtoWithPrivateData(User user)
 	{
 		return UserDto.createInstanceWithPrivateData(user, buddyService.getBuddyDtos(user.getBuddies()));
 	}
@@ -301,8 +359,8 @@ public class UserService
 
 	private void addNoGoGoal(User userEntity, ActivityCategoryDto category)
 	{
-		userEntity.getAnonymized()
-				.addGoal(BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), activityCategoryRepository.findOne(category.getId())));
+		userEntity.getAnonymized().addGoal(
+				BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), activityCategoryRepository.findById(category.getId()).get()));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
@@ -343,11 +401,8 @@ public class UserService
 	{
 		int maxUsers = yonaProperties.getMaxUsers();
 		long currentNumberOfUsers = userRepository.count();
-		if (currentNumberOfUsers >= maxUsers)
-		{
-			throw UserServiceException.maximumNumberOfUsersReached();
-		}
-		if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
+		Require.that(currentNumberOfUsers < maxUsers, UserServiceException::maximumNumberOfUsersReached);
+		if (currentNumberOfUsers >= maxUsers - 100)
 		{
 			logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers, maxUsers);
 		}
@@ -377,96 +432,140 @@ public class UserService
 		// because the anonymized data cannot be retrieved
 		// (the relation is encrypted, the password is not available)
 		userRepository.delete(existingUserEntity);
+		userRepository.flush(); // So we can insert another one
 		logger.info("User with mobile number '{}' and ID '{}' removed, to overwrite the account",
 				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = MobileNumberConfirmationException.class)
 	public UserDto confirmMobileNumber(UUID userId, String userProvidedConfirmationCode)
 	{
-		User userEntity = getUserEntityById(userId);
-		ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
+		User updatedUserEntity = updateUser(userId, userEntity -> {
+			ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
-		assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
-				() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
-				r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
-						userProvidedConfirmationCode, r),
-				() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
+			assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
+					() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
+					r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
+							userProvidedConfirmationCode, r),
+					() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
-		if (userEntity.isMobileNumberConfirmed())
-		{
-			throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed(userEntity.getMobileNumber());
-		}
+			if (userEntity.isMobileNumberConfirmed())
+			{
+				throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed(userEntity.getMobileNumber());
+			}
 
-		userEntity.setMobileNumberConfirmationCode(null);
-		userEntity.markMobileNumberConfirmed();
-		userRepository.save(userEntity);
+			userEntity.setMobileNumberConfirmationCode(null);
+			userEntity.markMobileNumberConfirmed();
 
-		logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
-				userEntity.getMobileNumber(), userEntity.getId());
-		return createUserDtoWithPrivateData(userEntity);
+			logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
+					userEntity.getMobileNumber(), userEntity.getId());
+		});
+		return createUserDtoWithPrivateData(updatedUserEntity);
 	}
 
 	@Transactional
-	public Object resendMobileNumberConfirmationCode(UUID userId)
+	public void resendMobileNumberConfirmationCode(UUID userId)
 	{
-		User userEntity = getUserEntityById(userId);
-		logger.info("User with mobile number '{}' and ID '{}' requests to resend the mobile number confirmation code",
-				userEntity.getMobileNumber(), userEntity.getId());
-		ConfirmationCode confirmationCode = createConfirmationCode();
-		userEntity.setMobileNumberConfirmationCode(confirmationCode);
-		userRepository.save(userEntity);
-		sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode, SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
-		return null;
+		updateUser(userId, userEntity -> {
+			logger.info("User with mobile number '{}' and ID '{}' requests to resend the mobile number confirmation code",
+					userEntity.getMobileNumber(), userEntity.getId());
+			ConfirmationCode confirmationCode = createConfirmationCode();
+			userEntity.setMobileNumberConfirmationCode(confirmationCode);
+			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
+					SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
+		});
 	}
 
 	@Transactional
-	public void postOpenAppEvent(UUID userId)
-	{
-		User userEntity = getUserEntityById(userId);
-		LocalDate now = TimeUtil.utcNow().toLocalDate();
-		Optional<LocalDate> appLastOpenedDate = userEntity.getAppLastOpenedDate();
-		if (!appLastOpenedDate.isPresent() || appLastOpenedDate.get().isBefore(now))
-		{
-			userEntity.setAppLastOpenedDate(now);
-			userRepository.save(userEntity);
-		}
-	}
-
-	@Transactional
-	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
+	UserDto addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
 		assertUserIsAllowed(buddyUserResource.getMobileNumber(), UserSignUp.INVITED);
 		User newUser = createUserEntity(buddyUserResource, UserSignUp.INVITED);
 		newUser.setIsCreatedOnBuddyRequest();
 		newUser.setMobileNumberConfirmationCode(createConfirmationCode());
 		User savedUser = userRepository.save(newUser);
-		ldapUserService.createVpnAccount(savedUser.getUserAnonymizedId().toString(), savedUser.getVpnPassword());
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
 				savedUser.getId());
-		return savedUser;
+		return createUserDtoWithPrivateData(savedUser);
 	}
 
 	@Transactional
 	public UserDto updateUser(UUID id, UserDto user)
 	{
-		User originalUserEntity = getUserEntityById(id);
-		UserDto originalUser = createUserDtoWithPrivateData(originalUserEntity);
-		assertValidUpdateRequest(user, originalUser, originalUserEntity);
+		User updatedUserEntity = updateUser(id, userEntity -> {
+			UserDto originalUser = createUserDtoWithPrivateData(userEntity);
+			assertValidUpdateRequest(user, originalUser, userEntity);
 
-		User updatedUserEntity = user.updateUser(originalUserEntity);
-		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user, originalUser,
-				updatedUserEntity);
-		User savedUserEntity = userRepository.save(updatedUserEntity);
-		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
-		if (confirmationCode.isPresent())
-		{
-			sendConfirmationCodeTextMessage(updatedUserEntity.getMobileNumber(), confirmationCode.get(),
-					SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
-		}
-		logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
-		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
-		return userDto;
+			user.updateUser(userEntity);
+			Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user, originalUser, userEntity);
+			if (confirmationCode.isPresent())
+			{
+				sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
+						SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
+			}
+			UserDto userDto = createUserDtoWithPrivateData(userEntity);
+			logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
+			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
+		});
+		return createUserDtoWithPrivateData(updatedUserEntity);
+	}
+
+	/**
+	 * Performs the given update action on the user with the specified ID, while holding a write-lock on the user. After the
+	 * update, the entity is saved to the repository.<br/>
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing the user
+	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
+	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
+	 * would cause the GETs to fail rather than to wait for the other one to complete.
+	 * 
+	 * @param id The ID of the user to update
+	 * @param updateAction The update action to perform
+	 * @return The updated and saved user
+	 */
+	@Transactional
+	public User updateUser(UUID id, Consumer<User> updateAction)
+	{
+		// We add a lock here to prevent concurrent user updates.
+		// The lock is per user, so concurrency is not an issue.
+		return withLockOnUser(id, user -> {
+			updateAction.accept(user);
+			if (user.canAccessPrivateData())
+			{
+				// The private data is accessible and might be updated, including the UserAnonymized
+				// Let the UserAnonymizedService save that to the repository and cache it
+				userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+			}
+			return userRepository.save(user);
+		});
+	}
+
+	private <T> T withLockOnUser(UUID userId, Function<User, T> action)
+	{
+		User user = getUserEntityByIdWithUpdateLock(userId);
+
+		return action.apply(user);
+	}
+
+	@Transactional
+	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
+	{
+		User updatedUserEntity = updateUser(id, userEntity -> {
+			UserDto originalUser = createUserDtoWithPrivateData(userEntity);
+			userEntity.setUserPhotoId(userPhotoId);
+			UserDto userDto = createUserDtoWithPrivateData(userEntity);
+			if (userPhotoId.isPresent())
+			{
+				logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+						userDto.getId());
+			}
+			else
+			{
+				logger.info("Deleted user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+						userDto.getId());
+			}
+			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
+		});
+		return createUserDtoWithPrivateData(updatedUserEntity);
 	}
 
 	private void assertValidUpdateRequest(UserDto user, UserDto originalUser, User originalUserEntity)
@@ -500,17 +599,14 @@ public class UserService
 	}
 
 	@Transactional
-	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto userResource)
+	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto user)
 	{
 		User originalUserEntity = getUserEntityById(id);
-		if (!originalUserEntity.isCreatedOnBuddyRequest())
-		{
-			// security check: should not be able to replace the password on an existing user
-			throw UserServiceException.userNotCreatedOnBuddyRequest(id);
-		}
+		// security check: should not be able to replace the password on an existing user
+		Require.that(originalUserEntity.isCreatedOnBuddyRequest(), () -> UserServiceException.userNotCreatedOnBuddyRequest(id));
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
-		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
+		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
 		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
@@ -523,7 +619,7 @@ public class UserService
 	{
 		// use a separate crypto session to read the data based on the temporary password
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
-				() -> canAccessPrivateData(originalUserEntity.getId())))
+				() -> doPreparationsAndCheckCanAccessPrivateData(originalUserEntity.getId())))
 		{
 			return retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity);
 		}
@@ -531,30 +627,73 @@ public class UserService
 
 	private EncryptedUserData retrieveUserEncryptedDataInNewCryptoSession(User originalUserEntity)
 	{
-		MessageSource namedMessageSource = messageSourceRepository.findOne(originalUserEntity.getNamedMessageSourceId());
-		MessageSource anonymousMessageSource = messageSourceRepository.findOne(originalUserEntity.getAnonymousMessageSourceId());
+		MessageSource namedMessageSource = messageService.getMessageSource(originalUserEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageService.getMessageSource(originalUserEntity.getAnonymousMessageSourceId());
 		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
 				anonymousMessageSource);
 		userEncryptedData.loadLazyEncryptedData();
 		return userEncryptedData;
 	}
 
+	/**
+	 * Deletes the specified user, while holding a write-lock on the user.
+	 * 
+	 * @param id The ID of the user to delete
+	 * @param message the message to communicate to buddies
+	 */
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
-		User userEntity = getUserEntityById(id);
+		withLockOnUser(id, userEntity -> deleteUserInsideLock(userEntity, message));
+	}
+
+	private User deleteUserInsideLock(User userEntity, Optional<String> message)
+	{
+		deleteBuddyInfo(userEntity, message);
+
+		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId)
+				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId));
+		deleteGoals(userAnonymizedEntity);
+		User updatedUserEntity = deleteMessageSources(userEntity, userAnonymizedEntity);
+
+		deleteDevices(userEntity);
+
+		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
+		userRepository.delete(updatedUserEntity);
+
+		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
+				updatedUserEntity.getId());
+
+		return null; // Need to return something, but it isn't used
+	}
+
+	private void deleteBuddyInfo(User userEntity, Optional<String> message)
+	{
 		buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
 
 		handleBuddyUsersRemovedWhileOffline(userEntity);
 
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
+	}
 
-		UUID vpnLoginId = userEntity.getVpnLoginId();
-		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
-		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
-		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
-		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+	private void deleteDevices(User userEntity)
+	{
+		new ArrayList<>(userEntity.getDevices()).stream()
+				.forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
+	}
+
+	private void deleteGoals(UserAnonymized userAnonymizedEntity)
+	{
+		Set<Goal> goals = new HashSet<>(userAnonymizedEntity.getGoals()); // Copy to prevent ConcurrentModificationException
+		goals.forEach(g -> goalService.deleteGoal(userAnonymizedEntity, g));
+	}
+
+	private User deleteMessageSources(User userEntity, UserAnonymized userAnonymizedEntity)
+	{
+		MessageSource namedMessageSource = messageService.getMessageSource(userEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageService.getMessageSource(userEntity.getAnonymousMessageSourceId());
 		userAnonymizedEntity.clearAnonymousDestination();
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 		userEntity.clearNamedMessageDestination();
@@ -563,80 +702,26 @@ public class UserService
 		messageSourceRepository.delete(anonymousMessageSource);
 		messageSourceRepository.delete(namedMessageSource);
 		messageSourceRepository.flush();
-
-		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
-		deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
-		deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-
-		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-
-		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
-		userRepository.delete(updatedUserEntity);
-
-		ldapUserService.deleteVpnAccount(vpnLoginId.toString());
-		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
-				updatedUserEntity.getId());
-	}
-
-	private void deleteAllDayActivitiesWithTheirCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
-	{
-		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> {
-			// Other users might have commented on the activities being deleted. Delete these messages.
-			messageService.deleteMessagesForIntervalActivities(wa.getDayActivities().stream().collect(Collectors.toList()));
-			wa.removeAllDayActivities();
-		}));
-	}
-
-	private void deleteAllWeekActivityCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
-	{
-		// Other users might have commented on the activities being deleted. Delete these messages.
-		List<IntervalActivity> allWeekActivities = allGoalsIncludingHistoryItems.stream()
-				.flatMap(g -> g.getWeekActivities().stream()).collect(Collectors.toList());
-		messageService.deleteMessagesForIntervalActivities(allWeekActivities);
-	}
-
-	private Set<Goal> getAllGoalsIncludingHistoryItems(User userEntity)
-	{
-		Set<Goal> allGoals = new HashSet<>(userEntity.getGoals());
-		Set<Goal> historyItems = new HashSet<>();
-		for (Goal goal : allGoals)
-		{
-			Optional<Goal> historyItem = goal.getPreviousVersionOfThisGoal();
-			while (historyItem.isPresent())
-			{
-				historyItems.add(historyItem.get());
-				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
-			}
-		}
-		allGoals.addAll(historyItems);
-		return allGoals;
+		return updatedUserEntity;
 	}
 
 	@Transactional
 	public void addBuddy(UserDto user, BuddyDto buddy)
 	{
-		if (user == null || user.getId() == null)
-		{
-			throw InvalidDataException.emptyUserId();
-		}
+		Require.that(user != null && user.getId() != null, InvalidDataException::emptyUserId);
+		Require.that(buddy != null && buddy.getId() != null, InvalidDataException::emptyBuddyId);
 
-		if (buddy == null || buddy.getId() == null)
-		{
-			throw InvalidDataException.emptyBuddyId();
-		}
+		updateUser(user.getId(), userEntity -> {
+			assertValidatedUser(userEntity);
 
-		User userEntity = getUserEntityById(user.getId());
-		userEntity.assertMobileNumberConfirmed();
+			Buddy buddyEntity = buddyRepository.findById(buddy.getId())
+					.orElseThrow(() -> InvalidDataException.missingEntity(Buddy.class, buddy.getId()));
+			userEntity.addBuddy(buddyEntity);
 
-		Buddy buddyEntity = buddyRepository.findOne(buddy.getId());
-		userEntity.addBuddy(buddyEntity);
-		userRepository.save(userEntity);
-
-		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+			UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+			userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
+			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		});
 	}
 
 	public String generatePassword()
@@ -647,10 +732,7 @@ public class UserService
 	static User findUserByMobileNumber(String mobileNumber)
 	{
 		User userEntity = User.getRepository().findByMobileNumber(mobileNumber);
-		if (userEntity == null)
-		{
-			throw UserServiceException.notFoundByMobileNumber(mobileNumber);
-		}
+		Require.isNonNull(userEntity, () -> UserServiceException.notFoundByMobileNumber(mobileNumber));
 		return userEntity;
 	}
 
@@ -661,7 +743,7 @@ public class UserService
 
 	/**
 	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
-	 * value is always the user entity. If not an exception is thrown.
+	 * value is always the user entity. If not an exception is thrown. The entity is fetched without lock.
 	 * 
 	 * @param id the ID of the user
 	 * @return The user entity (never null)
@@ -669,17 +751,40 @@ public class UserService
 	@Transactional
 	public User getUserEntityById(UUID id)
 	{
-		if (id == null)
+		return getUserEntityById(id, LockModeType.NONE);
+	}
+
+	/**
+	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
+	 * value is always the user entity. If not an exception is thrown. A pessimistic database write lock is claimed when fetching
+	 * the entity.
+	 * 
+	 * @param id the ID of the user
+	 * @return The user entity (never null)
+	 */
+	private User getUserEntityByIdWithUpdateLock(UUID id)
+	{
+		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
+	}
+
+	private User getUserEntityById(UUID id, LockModeType lockModeType)
+	{
+		Require.isNonNull(id, InvalidDataException::emptyUserId);
+
+		User entity;
+		switch (lockModeType)
 		{
-			throw InvalidDataException.emptyUserId();
+			case NONE:
+				entity = userRepository.findById(id).orElseThrow(() -> UserServiceException.notFoundById(id));
+				break;
+			case PESSIMISTIC_WRITE:
+				entity = userRepository.findByIdForUpdate(id);
+				break;
+			default:
+				throw new IllegalArgumentException("Lock mode type " + lockModeType + " is unsupported");
 		}
 
-		User entity = userRepository.findOne(id);
-
-		if (entity == null)
-		{
-			throw UserServiceException.notFoundById(id);
-		}
+		Require.isNonNull(entity, () -> UserServiceException.notFoundById(id));
 
 		return entity;
 	}
@@ -695,12 +800,17 @@ public class UserService
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */
-	public User getValidatedUserbyId(UUID id)
+	public User getValidatedUserById(UUID id)
 	{
 		User retVal = getUserEntityById(id);
-		retVal.assertMobileNumberConfirmed();
+		assertValidatedUser(retVal);
 
 		return retVal;
+	}
+
+	public void assertValidatedUser(User user)
+	{
+		user.assertMobileNumberConfirmed();
 	}
 
 	private ConfirmationCode createConfirmationCode()
@@ -711,7 +821,8 @@ public class UserService
 	public String generateConfirmationCode()
 	{
 		return (yonaProperties.getSms().isEnabled())
-				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) : "1234";
+				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits())
+				: "1234";
 	}
 
 	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, SmsTemplate template)
@@ -726,10 +837,7 @@ public class UserService
 			Function<Integer, YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
-		if (confirmationCode == null)
-		{
-			throw noConfirmationCodeExceptionSupplier.get();
-		}
+		Require.isNonNull(confirmationCode, noConfirmationCodeExceptionSupplier);
 
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
 		if (remainingAttempts <= 0)
@@ -752,87 +860,77 @@ public class UserService
 
 	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
 	{
-		transactionHelper.executeInNewTransaction(() -> {
-			confirmationCode.incrementAttempts();
-			userRepository.save(userEntity);
+		updateUser(userEntity.getId(), u -> confirmationCode.incrementAttempts());
+	}
+
+	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDto user)
+	{
+		return updateUser(retrievedEntitySet.userEntity.getId(), userEntity -> {
+			assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
+			// touch and save all user related data containing encryption
+			// see architecture overview for which classes contain encrypted data
+			// (this could also be achieved with very complex reflection)
+			userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
+			messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
+			messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
+			user.updateUser(userEntity);
+			userEntity.unsetIsCreatedOnBuddyRequest();
+			addDevicesToEntity(user, userEntity);
+			userEntity.touch();
 		});
 	}
 
-	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDto userResource)
+	void assertValidUserFields(UserDto user, UserPurpose purpose)
 	{
-		// touch and save all user related data containing encryption
-		// see architecture overview for which classes contain encrypted data
-		// (this could also be achieved with very complex reflection)
-		retrievedEntitySet.userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
-		messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
-		messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
-		userResource.updateUser(retrievedEntitySet.userEntity);
-		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
-		retrievedEntitySet.userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
-		retrievedEntitySet.userEntity.touch();
-		return userRepository.save(retrievedEntitySet.userEntity);
-	}
+		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getFirstName()), InvalidDataException::blankFirstName);
+		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getLastName()), InvalidDataException::blankLastName);
+		Require.that(!(purpose == UserPurpose.USER && StringUtils.isBlank(user.getOwnPrivateData().getNickname())),
+				InvalidDataException::blankNickname);
 
-	void assertValidUserFields(UserDto userResource, UserPurpose userPurpose)
-	{
-		if (StringUtils.isBlank(userResource.getFirstName()))
+		Require.that(StringUtils.isNotBlank(user.getMobileNumber()), InvalidDataException::blankMobileNumber);
+
+		assertValidMobileNumber(user.getMobileNumber());
+
+		if (purpose == UserPurpose.BUDDY)
 		{
-			throw InvalidDataException.blankFirstName();
-		}
+			Require.that(StringUtils.isNotBlank(user.getEmailAddress()), InvalidDataException::blankEmailAddress);
+			assertValidEmailAddress(user.getEmailAddress());
 
-		if (StringUtils.isBlank(userResource.getLastName()))
-		{
-			throw InvalidDataException.blankLastName();
-		}
-
-		if (userPurpose == UserPurpose.USER && StringUtils.isBlank(userResource.getPrivateData().getNickname()))
-		{
-			throw InvalidDataException.blankNickname();
-		}
-
-		if (StringUtils.isBlank(userResource.getMobileNumber()))
-		{
-			throw InvalidDataException.blankMobileNumber();
-		}
-
-		assertValidMobileNumber(userResource.getMobileNumber());
-
-		if (userPurpose == UserPurpose.BUDDY)
-		{
-			if (StringUtils.isBlank(userResource.getEmailAddress()))
-			{
-				throw InvalidDataException.blankEmailAddress();
-			}
-			assertValidEmailAddress(userResource.getEmailAddress());
-
-			if (!userResource.getPrivateData().getGoals().isEmpty())
-			{
-				throw InvalidDataException.goalsNotSupported();
-			}
+			Require.that(user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty(),
+					InvalidDataException::goalsNotSupported);
 		}
 		else
 		{
-			if (!StringUtils.isBlank(userResource.getEmailAddress()))
-			{
-				throw InvalidDataException.excessEmailAddress();
-			}
+			Require.that(StringUtils.isBlank(user.getEmailAddress()), InvalidDataException::excessEmailAddress);
 		}
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		if (!REGEX_PHONE.matcher(mobileNumber).matches())
+		Require.that(REGEX_PHONE.matcher(mobileNumber).matches(), () -> InvalidDataException.invalidMobileNumber(mobileNumber));
+		assertNumberIsMobile(mobileNumber);
+	}
+
+	private void assertNumberIsMobile(String mobileNumber)
+	{
+		try
 		{
-			throw InvalidDataException.invalidMobileNumber(mobileNumber);
+			PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+			PhoneNumberType numberType = util.getNumberType(util.parse(mobileNumber, null));
+			if ((numberType != PhoneNumberType.MOBILE) && (numberType != PhoneNumberType.FIXED_LINE_OR_MOBILE))
+			{
+				throw InvalidDataException.notAMobileNumber(mobileNumber, numberType.toString());
+			}
+		}
+		catch (NumberParseException e)
+		{
+			throw YonaException.unexpected(e);
 		}
 	}
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		if (!REGEX_EMAIL.matcher(emailAddress).matches())
-		{
-			throw InvalidDataException.invalidEmailAddress(emailAddress);
-		}
+		Require.that(REGEX_EMAIL.matcher(emailAddress).matches(), () -> InvalidDataException.invalidEmailAddress(emailAddress));
 	}
 
 	/**

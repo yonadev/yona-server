@@ -7,13 +7,16 @@ support_infrastructure:
   enabled: true
 
 global:
-
   stage: develop
+  imagebase: yonadev
 
 # Attempt tries in seed/update container before exit.  Not k8s job retry
 # This just reduces the 'failed' jobs spam in pod list until services
 # come online (5 second delay on curl, 2 on sql)
 seed_max_tries: 3
+
+istio:
+  enabled: false
 
 vpn:
   remote: "vpn.yona.local 443"
@@ -126,7 +129,7 @@ vpn:
 
 email:
   enabled: false
-  sender_address: noreply@example.com
+  sender_address: noreply@yona.nu
   smtp_protocol: smtp
   smtp_host: smtp.example.com
   smtp_port: 587
@@ -141,10 +144,14 @@ ldap:
   org: "Yona Development"
   domain: "example.local"
   #url_override: "ldap://ldap.yona.svc.cluster.local:389"
+  #hostname: ldap.yona.svc.cluster.local
+  port: 389
   dn: "dc=example,dc=local"
   user_dn: "cn=admin,dc=example,dc=local"
   user_password: "ldappassword"
   config_password: "config"
+  storage_class_name_ldap: standard
+  storage_class_name_sldap: standard
 
 sms:
   enabled: false
@@ -170,12 +177,19 @@ mariadb:
   mariadbPassword: develop
   mariadbDatabase: yona
   persistence:
-    storageClass: yona-default
+    storageClass: standard
     size: 2Gi
   user: develop
   password: develop
-  #nameOverride: develop
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
+  #hostname_override: yona-mariadb.yona.svc.cluster.local
+
+spring:
+  loglevel: info
+  logpattern: "correlation.id=%X{yona.correlation.id} %5p"
+  hazelcast:
+    loglevel: info
+    config: /opt/app/config/hazelcast-client.xml
 
 admin:
   act_categories_json_file : productionActivityCategories.json
@@ -185,7 +199,8 @@ analysis:
   update_skip_window: PT1M
 
 app:
-  max_users: 100
+  max_users: "1000000"
+  enable_hibernate_stats_allowed: false
   whitelist:
     active_free_signup: false
     active_invited_users: false
@@ -219,3 +234,6 @@ certs:
     E1atre3I6+sXDD1stfFZs6qKpphRaSwNSCnFOa5+mK1GtHbr0f/BbSTyop+nKVyt
     A+pewjPUaERijjkgaT2qygKCkQQ03iaLEz6jD1DKvY9NipcY2f8WBK+STNz6qAyp
     MCuIv7V26zjwX1P91NOo0s/htoxxxxDiv86nUuYW8A==
+
+nodePorts: {}
+  # Placeholder. Normally, we use the defaults configured in the services yamls
