@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -80,16 +80,9 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def getUser(userUrl, boolean includePrivateData, password = null)
+	def getUser(userUrl, password = null)
 	{
-		if (includePrivateData)
-		{
-			yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
-		}
-		else
-		{
-			yonaServer.getResourceWithPassword(userUrl, password)
-		}
+		yonaServer.getResourceWithPassword(userUrl, password)
 	}
 
 	def getUser(Closure asserter, userUrl, password)
@@ -118,21 +111,14 @@ class AppService extends Service
 			}
 			else
 			{
-				assertUserGetResponseDetailsWithPrivateData(response)
+				assertUserGetResponseDetails(response)
 			}
 			assertBuddyUsers(response)
 		}
 		else
 		{
 			response = yonaServer.getResourceWithPassword(user.url, user.password)
-			if (asserter)
-			{
-				asserter(response)
-			}
-			else
-			{
-				assertUserGetResponseDetailsWithoutPrivateData(response)
-			}
+			asserter(response)
 		}
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}

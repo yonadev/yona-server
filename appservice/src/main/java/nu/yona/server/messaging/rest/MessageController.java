@@ -66,7 +66,7 @@ import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
-import nu.yona.server.subscriptions.rest.UserController.UserResourceAssembler;
+import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -415,17 +415,13 @@ public class MessageController extends ControllerBase
 		{
 			buddyMessage.getSenderUser()
 					.ifPresent(user -> buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-							createResourceAssembler(user).toResource(user)));
+							createUserResource(user, buddyMessage)));
 		}
 
-		private UserResourceAssembler createResourceAssembler(UserDto user)
+		private UserResource createUserResource(UserDto user, BuddyMessageEmbeddedUserDto buddyMessage)
 		{
-			if (goalIdMapping.getUser().getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getId())
-					.anyMatch(id -> id.equals(user.getId())))
-			{
-				return UserController.UserResourceAssembler.createMinimalInstance(curieProvider, goalIdMapping.getUserId());
-			}
-			return UserController.UserResourceAssembler.createPublicUserInstance(curieProvider);
+			return UserController.UserResourceAssembler.createMinimalInstance(curieProvider, goalIdMapping.getUserId())
+					.toResource(user);
 		}
 
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDto buddyMessage)

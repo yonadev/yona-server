@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -83,7 +83,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def newDeviceFirebaseInstanceId = "New firebase instance id"
 		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, newDeviceFirebaseInstanceId)
 		assertResponseStatusCreated(registerResponse)
-		assertUserGetResponseDetailsWithPrivateData(registerResponse, false)
+		assertUserGetResponseDetails(registerResponse, false)
 
 		def devices = registerResponse.responseData._embedded."yona:devices"._embedded."yona:devices"
 		devices.size == 2
@@ -308,7 +308,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
 		richardAfterReload.devices[0].name == updatedName
@@ -347,7 +347,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
 		richardAfterReload.devices[0].name == existingName
@@ -385,7 +385,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
 		richardAfterReload.devices[0].name == updatedName
@@ -465,7 +465,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusNoContent(response)
-		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
 		richardAfterReload.devices[0].name == remainingDevice.name

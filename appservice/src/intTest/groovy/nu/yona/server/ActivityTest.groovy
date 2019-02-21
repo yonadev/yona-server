@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -1527,7 +1527,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard(false, operatingSystem)
 		setCreationTimeOfMandatoryGoalsToNow(richard)
 		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["01:00-12:00"], "W-1 Mon 02:18")
-		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		Goal timeZoneGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
 		// Activities on default device

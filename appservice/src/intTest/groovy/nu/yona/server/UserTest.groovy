@@ -27,7 +27,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = createJohnDoe(ts)
 
 		then:
-		testUser(john, true, false, ts)
+		testUser(john, false, ts)
 		def baseUserUrl = YonaServer.stripQueryString(john.url)
 		// The below asserts checks returned URLs match the request URL. This is important when going through a proxy
 		baseUserUrl.startsWith(appService.url)
@@ -51,11 +51,11 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated)
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertUserGetResponseDetails, johnAsCreated)
 
 		then:
 		User john = appService.reloadUser(johnAfterNumberConfirmation)
-		testUser(john, true, true, ts)
+		testUser(john, true, ts)
 		john.mobileNumberConfirmationUrl == null
 
 		def baseUserUrl = YonaServer.stripQueryString(john.url)
@@ -87,7 +87,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		def getUserResponse = appService.getUser(john.url, false)
+		def getUserResponse = appService.getUser(john.url)
 		getUserResponse.status == 400 || getUserResponse.status == 404
 	}
 
@@ -155,7 +155,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(john)
 	}
 
-	def 'Get John Doe with private data'()
+	def 'Get John Doe'()
 	{
 		given:
 		def ts = timestamp
@@ -165,54 +165,20 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = appService.reloadUser(johnAsCreated)
 
 		then:
-		testUser(john, true, false, ts)
+		testUser(john, false, ts)
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
 	}
 
-	def 'Get John Doe with private data using legacy includePrivateData param'()
-	{
-		given:
-		def ts = timestamp
-		User johnAsCreated = createJohnDoe(ts)
-
-		when:
-		def response = appService.yonaServer.getResourceWithPassword(YonaServer.stripQueryString(johnAsCreated.url), johnAsCreated.password, ["includePrivateData": "true"])
-
-		then:
-		assertResponseStatusOk(response)
-		testUser(new User(response.responseData), true, false, ts)
-
-		cleanup:
-		appService.deleteUser(johnAsCreated)
-	}
-
-	def 'Get John Doe without private data using legacy includePrivateData param'()
-	{
-		given:
-		def ts = timestamp
-		User johnAsCreated = createJohnDoe(ts)
-
-		when:
-		def response = appService.yonaServer.getResourceWithPassword(YonaServer.stripQueryString(johnAsCreated.url), johnAsCreated.password, ["includePrivateData": "false"])
-
-		then:
-		assertResponseStatusOk(response)
-		testUser(new User(response.responseData), false, false, ts)
-
-		cleanup:
-		appService.deleteUser(johnAsCreated)
-	}
-
-	def 'Try to get John Doe\'s private data with a bad password'()
+	def 'Try to get John Doe\'s data with a bad password'()
 	{
 		given:
 		def ts = timestamp
 		def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def response = appService.getUser(johnAsCreated.url, true, "nonsense")
+		def response = appService.getUser(johnAsCreated.url, "nonsense")
 
 		then:
 		assertResponseStatus(response, 400)
@@ -222,17 +188,35 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(johnAsCreated)
 	}
 
-	def 'Get John Doe without private data'()
+	def 'Try to get John Doe \'without private data\''()
 	{
 		given:
 		def ts = timestamp
-		def johnAsCreated = createJohnDoe(ts)
+		User johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def john = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(johnAsCreated.url))
+		def response = appService.getUser(YonaServer.stripQueryString(johnAsCreated.url), johnAsCreated.password)
 
 		then:
-		testUser(john, false, false, ts)
+		assertResponseStatus(response, 400)
+		response.responseData.message ==~ /.*'requestingUserId' is not present.*/
+
+		cleanup:
+		appService.deleteUser(johnAsCreated)
+	}
+
+	def 'Try to get John Doe without Yona password header'()
+	{
+		given:
+		def ts = timestamp
+		User johnAsCreated = createJohnDoe(ts)
+
+		when:
+		def response = appService.getUser(johnAsCreated.url)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.missing.password.header"
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -311,7 +295,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def response = appService.getUser(richard.url.replaceFirst(/requestingUserId=..../, "requestingUserId=QQQQ"), false)
+		def response = appService.getUser(richard.url.replaceFirst(/requestingUserId=..../, "requestingUserId=QQQQ"))
 
 		then:
 		assertResponseStatus(response, 400)
@@ -483,44 +467,34 @@ class UserTest extends AbstractAppServiceIntegrationTest
 				makeMobileNumber(ts))
 	}
 
-	private void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
+	private void testUser(User user, mobileNumberConfirmed, timestamp)
 	{
 		assert user.mobileNumber == makeMobileNumber(timestamp)
 		assertEquals(user.creationTime, YonaServer.now)
 		assertEquals(user.appLastOpenedDate, YonaServer.now.toLocalDate())
 
-		if (includePrivateData)
+		assertUser(user)
+		assert user.firstName == "John"
+		assert user.lastName == "Doe"
+		assert user.nickname == "JD"
+
+		assert user.buddies != null
+		assert user.buddies.size() == 0
+		if (mobileNumberConfirmed)
 		{
-			assertUserWithPrivateData(user)
-			assert user.firstName == "John"
-			assert user.lastName == "Doe"
-			assert user.nickname == "JD"
+			assert user.vpnProfile.vpnLoginId ==~ /$CommonAssertions.VPN_LOGIN_ID_PATTERN/
+			assert user.vpnProfile.vpnPassword.length() == 32
+			assert user.vpnProfile.ovpnProfileUrl
 
-			assert user.buddies != null
-			assert user.buddies.size() == 0
-			if (mobileNumberConfirmed)
-			{
-				assert user.vpnProfile.vpnLoginId ==~ /$CommonAssertions.VPN_LOGIN_ID_PATTERN/
-				assert user.vpnProfile.vpnPassword.length() == 32
-				assert user.vpnProfile.ovpnProfileUrl
-
-				assert user.goals.size() == 1 // Mandatory goal added
-				assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
-				assert user.devices.size() == 1 // Default device
-				assert user.devices[0].name == "First device"
-			}
-			else
-			{
-				assert user.goals == null
-				assert user.devices == null
-			}
+			assert user.goals.size() == 1 // Mandatory goal added
+			assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
+			assert user.devices.size() == 1 // Default device
+			assert user.devices[0].name == "First device"
 		}
 		else
 		{
-			assert user.firstName == null
-			assert user.lastName == null
-			assert user.nickname == null
 			assert user.goals == null
+			assert user.devices == null
 		}
 	}
 }

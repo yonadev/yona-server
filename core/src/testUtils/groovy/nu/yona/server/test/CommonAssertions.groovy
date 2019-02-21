@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -18,22 +18,22 @@ class CommonAssertions extends Service
 	static final UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
 	static final VPN_LOGIN_ID_PATTERN = "(?i)^$UUID_PATTERN\\\$[0-9]+\$"
 
-	static final PUBLIC_USER_PROPERTIES_APP_NOT_OPENED = ["mobileNumber", "creationTime", "_links"] as Set
-	static final PUBLIC_USER_PROPERTIES_APP_OPENED = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
-	static final PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["firstName", "lastName", "nickname", "yonaPassword"] as Set
-	static final PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED = PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST + ["appLastOpenedDate"] as Set
-	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["vpnProfile", "sslRootCertCN", "_embedded"] as Set
-	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY + ["lastMonitoredActivityDate"] as Set
-	static final BUDDY_USER_PROPERTIES = PUBLIC_USER_PROPERTIES_APP_OPENED + ["firstName", "lastName", "nickname"] as Set
+	static final BASIC_USER_PROPERTIES_APP_NOT_OPENED = ["mobileNumber", "creationTime", "_links"] as Set
+	static final BASIC_USER_PROPERTIES_APP_OPENED = BASIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
+	static final USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = BASIC_USER_PROPERTIES_APP_NOT_OPENED + ["firstName", "lastName", "nickname", "yonaPassword"] as Set
+	static final USER_PROPERTIES_NUM_TO_BE_CONFIRMED = USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST + ["appLastOpenedDate"] as Set
+	static final USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["vpnProfile", "sslRootCertCN", "_embedded"] as Set
+	static final USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY = USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY + ["lastMonitoredActivityDate"] as Set
+	static final BUDDY_USER_PROPERTIES = BASIC_USER_PROPERTIES_APP_OPENED + ["firstName", "lastName", "nickname"] as Set
 	static final BUDDY_USER_PROPERTIES_VARYING = ["_embedded"] as Set
-	static final PRIVATE_USER_COMMON_LINKS = ["self", "curies"] as Set
-	static final PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["yona:confirmMobileNumber", "yona:resendMobileNumberConfirmationCode", "edit"] as Set
-	static final PRIVATE_USER_LINKS_NUM_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["edit", "yona:postOpenAppEvent", "yona:messages", "yona:dailyActivityReports", "yona:weeklyActivityReports", "yona:dailyActivityReportsWithBuddies", "yona:newDeviceRequest", "yona:appActivity", "yona:sslRootCert", "yona:appleMobileConfig", "yona:editUserPhoto"] as Set
-	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED = PRIVATE_USER_LINKS_NUM_CONFIRMED + ["yona:requestPinReset"] as Set
-	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED = PRIVATE_USER_LINKS_NUM_CONFIRMED
-	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED = PRIVATE_USER_LINKS_NUM_CONFIRMED + ["yona:verifyPinReset", "yona:resendPinResetConfirmationCode", "yona:clearPinReset"] as Set
+	static final USER_COMMON_LINKS = ["self", "curies"] as Set
+	static final USER_LINKS_NUM_TO_BE_CONFIRMED = USER_COMMON_LINKS + ["yona:confirmMobileNumber", "yona:resendMobileNumberConfirmationCode", "edit"] as Set
+	static final USER_LINKS_NUM_CONFIRMED = USER_COMMON_LINKS + ["edit", "yona:postOpenAppEvent", "yona:messages", "yona:dailyActivityReports", "yona:weeklyActivityReports", "yona:dailyActivityReportsWithBuddies", "yona:newDeviceRequest", "yona:appActivity", "yona:sslRootCert", "yona:appleMobileConfig", "yona:editUserPhoto"] as Set
+	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED = USER_LINKS_NUM_CONFIRMED + ["yona:requestPinReset"] as Set
+	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED = USER_LINKS_NUM_CONFIRMED
+	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED = USER_LINKS_NUM_CONFIRMED + ["yona:verifyPinReset", "yona:resendPinResetConfirmationCode", "yona:clearPinReset"] as Set
 	static final BUDDY_USER_LINKS =  ["self"] as Set
-	static final PRIVATE_USER_EMBEDDED = ["yona:devices", "yona:goals", "yona:buddies"] as Set
+	static final USER_EMBEDDED = ["yona:devices", "yona:goals", "yona:buddies"] as Set
 	static final BUDDY_USER_EMBEDDED = ["yona:goals", "yona:devices"] as Set
 	static final USER_LINKS_VARYING = ["yona:userPhoto"]
 
@@ -45,71 +45,53 @@ class CommonAssertions extends Service
 	static void assertUserCreationResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
-		assertUserWithPrivateData(response.responseData, false)
+		assertUser(response.responseData, false)
 	}
 
 	static void assertUserUpdateResponseDetails(def response)
 	{
 		assertResponseStatusOk(response)
-		assertUserWithPrivateData(response.responseData, false)
+		assertUser(response.responseData, false)
 	}
 
-	static void assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice(def response)
+	static void assertUserGetResponseDetailsIgnoreDefaultDevice(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData, false, false, false)
+		assertUser(response.responseData, false, false, false)
 	}
 
-	static void assertUserGetResponseDetailsWithPrivateData(def response, assertDefaultDevice = true)
+	static void assertUserGetResponseDetails(def response, assertDefaultDevice = true)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData, false, false, assertDefaultDevice)
+		assertUser(response.responseData, false, false, assertDefaultDevice)
 	}
 
-	static void assertUserGetResponseDetailsWithPrivateDataPinResetRequestedNotGenerated(def response)
+	static void assertUserGetResponseDetailsPinResetRequestedNotGenerated(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData, true)
-		assert response.responseData.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
-		assert response.responseData._links.keySet() == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED
-		assert response.responseData._embedded.keySet() == PRIVATE_USER_EMBEDDED
+		assertUser(response.responseData, true)
+		assert response.responseData.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
+		assert response.responseData._links.keySet() == USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED
+		assert response.responseData._embedded.keySet() == USER_EMBEDDED
 	}
 
-	static void assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated(def response)
+	static void assertUserGetResponseDetailsPinResetRequestedAndGenerated(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData, true)
-		assert response.responseData.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
-		assert response.responseData._links.keySet() == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED
-		assert response.responseData._embedded.keySet() == PRIVATE_USER_EMBEDDED
+		assertUser(response.responseData, true)
+		assert response.responseData.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
+		assert response.responseData._links.keySet() == USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED
+		assert response.responseData._embedded.keySet() == USER_EMBEDDED
 	}
 
-	static void assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest(def response)
+	static void assertUserGetResponseDetailsCreatedOnBuddyRequest(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData, true, true)
-		assert response.responseData.keySet() == PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST
+		assertUser(response.responseData, true, true)
+		assert response.responseData.keySet() == USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST
 	}
 
-	static void assertUserGetResponseDetailsWithoutPrivateData(def response)
-	{
-		assertResponseStatusSuccess(response)
-		assertPublicUserData(response.responseData, false, false)
-	}
-
-	static void assertUserWithPrivateData(user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest = false, assertDefaultDevice = true)
-	{
-		assertPublicUserData(user, true, userCreatedOnBuddyRequest)
-		assertPrivateUserData(user, skipPropertySetAssertion, userCreatedOnBuddyRequest, assertDefaultDevice)
-	}
-
-	static void assertUserGetResponseDetailsWithBuddyData(def response)
-	{
-		assertResponseStatusSuccess(response)
-		assertBuddyUser(response.responseData)
-	}
-
-	static void assertPublicUserData(def user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest)
+	static void assertUser(user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest = false, assertDefaultDevice = true)
 	{
 		if (user instanceof User)
 		{
@@ -118,24 +100,20 @@ class CommonAssertions extends Service
 		else
 		{
 			assert user._links.self.href != null
-			assert skipPropertySetAssertion || user.keySet() == PUBLIC_USER_PROPERTIES_APP_NOT_OPENED || user.keySet() == PUBLIC_USER_PROPERTIES_APP_OPENED
 		}
 		assert user.creationTime != null
 		assert userCreatedOnBuddyRequest || user.appLastOpenedDate != null
 		assert user.mobileNumber ==~/^\+[0-9]+$/
-	}
 
-	static void assertPrivateUserData(def user, boolean skipPropertySetAssertion, boolean userCreatedOnBuddyRequest, boolean assertDefaultDevice)
-	{
 		assert userCreatedOnBuddyRequest || user.nickname != null
 		assert user.firstName != null
 		assert user.lastName != null
-		boolean mobileNumberToBeConfirmed
 
 		/*
 		 * The below asserts use exclusive or operators. Either there should be a mobile number confirmation URL, or the other URL.
 		 * The URLs shouldn't be both missing or both present.
 		 */
+		boolean mobileNumberToBeConfirmed
 		if (user instanceof User)
 		{
 			mobileNumberToBeConfirmed = userCreatedOnBuddyRequest || ((boolean) user.mobileNumberConfirmationUrl)
@@ -163,9 +141,9 @@ class CommonAssertions extends Service
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:appActivity")
-			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user.keySet() == PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED : (user.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY || user.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY))
-			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() - USER_LINKS_VARYING == PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() - USER_LINKS_VARYING == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
-			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._embedded == null : user._embedded.keySet() == PRIVATE_USER_EMBEDDED)
+			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user.keySet() == USER_PROPERTIES_NUM_TO_BE_CONFIRMED : (user.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY || user.keySet() == USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY))
+			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() - USER_LINKS_VARYING == USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() - USER_LINKS_VARYING == USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
+			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._embedded == null : user._embedded.keySet() == USER_EMBEDDED)
 			assert skipPropertySetAssertion || user._links.self.href ==~/(?i)^.*\/$UUID_PATTERN\?requestingUserId=$UUID_PATTERN\&requestingDeviceId=$UUID_PATTERN$/
 			if (!mobileNumberToBeConfirmed && assertDefaultDevice)
 			{
@@ -178,6 +156,12 @@ class CommonAssertions extends Service
 		{
 			assertVpnProfile(user.vpnProfile)
 		}
+	}
+
+	static void assertUserGetResponseDetailsWithBuddyData(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertBuddyUser(response.responseData)
 	}
 
 	static void assertVpnProfile(def vpnProfile)

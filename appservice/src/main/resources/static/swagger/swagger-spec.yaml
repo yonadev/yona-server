@@ -34,7 +34,7 @@ parameters:
     name: requestingUserId
     in: query
     description: The user ID of the user GETting this user entity. Either equal to the ID of the user being fetched or the user ID of one of their buddies.
-    required: false
+    required: true
     type: string
   requestingDeviceId:
     name: requestingDeviceId

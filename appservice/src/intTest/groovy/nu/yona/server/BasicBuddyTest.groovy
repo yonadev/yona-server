@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -117,7 +117,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyConnectRequestMessages[0]._links."yona:accept".href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
 
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, buddyConnectRequestMessages[0]._embedded."yona:user"._links.self.href)
+		// TODO YD-503 The user isn't a buddy yet, so that entity cannot be fetched
+		// appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, buddyConnectRequestMessages[0]._embedded."yona:user"._links.self.href)
 
 		assertMarkReadUnread(bob, buddyConnectRequestMessages[0])
 
@@ -396,7 +397,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bob.emailAddress = "bob@dunn.com"
 		appService.makeBuddies(richard, bob)
 		richard = appService.reloadUser(richard)
-		bob = appService.reloadUser(bob, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		bob = appService.reloadUser(bob, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		Goal goalBob = bob.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		Goal goalBuddyBob = richard.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)

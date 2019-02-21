@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -173,7 +173,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 
-		def johnAfterAppActivity = appService.reloadUser(john, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		def johnAfterAppActivity = appService.reloadUser(john, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		johnAfterAppActivity.devices.size == 1
 		johnAfterAppActivity.devices[0].name == "First device"
 		johnAfterAppActivity.devices[0].operatingSystem == "ANDROID"

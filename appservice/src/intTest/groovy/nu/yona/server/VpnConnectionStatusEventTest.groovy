@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -98,7 +98,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		Device richardFirstDevice = richard.devices[0]
 		User bob = richardAndBob.bob
 		Device richardSecondDevice = addDevice(richard, "My S9", "ANDROID")
-		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		bob = appService.reloadUser(bob)
 
 		def bobInitialMessagesResponse = appService.getMessages(bob) // Get will do auto-processing, making Richard's device visible to Bob
@@ -137,7 +137,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 	{
 		assertResponseStatusNoContent(response)
 
-		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		Device richardFirstDevice = richard.devices.find { it.name == "Richard's iPhone" }
 		Device richardSecondDevice = richard.devices.find { it.name == "My S9" }
 
