@@ -14,7 +14,7 @@ plugins {
 	id "io.spring.dependency-management" version "1.0.6.RELEASE"
 	id "org.springframework.boot" version "2.1.3.RELEASE" apply false
 	id "net.researchgate.release" version "2.6.0"
-	id "com.bmuschko.docker-remote-api" version "3.6.1" apply false
+	id "com.bmuschko.docker-remote-api" version "4.4.1" apply false
 }
 
 description = "Yona server"
@@ -24,8 +24,8 @@ allprojects {
 }
 
 subprojects {
-	sourceCompatibility = 1.8
-	targetCompatibility = 1.8
+	sourceCompatibility = 11.0
+	targetCompatibility = 11.0
 	apply plugin: "eclipse"
 	apply plugin: "groovy"
 	apply plugin: "io.spring.dependency-management"
@@ -81,6 +81,8 @@ subprojects {
 				]
 			}
 			doLast {
+				// Can be removed when we upgrade to a Spring Boot build that has this issue fixed:
+				// https://github.com/spring-projects/spring-boot/issues/14494
 				File propertiesFile = new File(destinationDir, 'build-info.properties')
 				Properties props = new Properties()
 				propertiesFile.withInputStream { props.load(it)}
@@ -105,5 +107,5 @@ eclipse {
 }
 
 wrapper {
-	gradleVersion = "4.8"
+	gradleVersion = "5.1.1"
 }

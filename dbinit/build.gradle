@@ -5,9 +5,7 @@ apply from: "liquibase.gradle"
 import com.bmuschko.gradle.docker.tasks.container.*
 import com.bmuschko.gradle.docker.tasks.image.*
 
-jar {
-	baseName = "DatabaseInitializer"
-}
+def dockerImageName = "${project.group}/yona-mariadb-liquibase-update"
 
 release {
 	failOnCommitNeeded = true
@@ -21,7 +19,7 @@ dependencies {
 	compile project(":core")
 	runtime "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
 	compile "org.springframework.batch:spring-batch-core:$project.ext.version_batch_core"
-	compile "org.liquibase:liquibase-core:3.5.3"
+	compile "org.liquibase:liquibase-core:3.6.3"
 }
 
 docker {
@@ -34,46 +32,22 @@ docker {
 
 task buildDockerImage(type: DockerBuildImage) {
 	inputDir = mkdir("build/docker")
-	tag = "${project.group}/yona-mariadb-liquibase-update:${project.ext.docker_tag}"
+	tags = [ "${dockerImageName}:${project.ext.docker_tag}" ]
 	doFirst {
 		copy {
 			from "src/main/liquibase"
-			into "$inputDir/changelogs"
+			into "$inputDir.asFile.orNull/changelogs"
 			exclude "liquibase-task.properties"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
 			from "src/main/docker/update.sh"
-			into "$inputDir"
+			into inputDir
 		}
 	}
 }
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	imageName = "${project.group}/yona-mariadb-liquibase-update"
+	imageName = dockerImageName
 	tag = project.ext.docker_tag
-}
-
-task pathingJar(type: Jar) {
-	dependsOn configurations.runtime
-	appendix = 'pathing'
-	doFirst {
-		manifest {
-			attributes "Class-Path": configurations.runtime.files.collect {
-				it.toURL().toString().replaceFirst(/file:\/+/, '/')
-			}.join(' ')
-		}
-	}
-}
-
-bootRun {
-	dependsOn pathingJar
-	doFirst {
-		classpath = files(sourceSets.main.output.files, pathingJar.archivePath)
-	}
-	enableAssertions = true
-}
-
-bootJar {
-	classifier = "full"
 }

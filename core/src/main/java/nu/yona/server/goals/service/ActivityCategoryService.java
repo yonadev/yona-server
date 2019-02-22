@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
@@ -93,6 +93,7 @@ public class ActivityCategoryService
 		return ActivityCategoryDto.createInstance(activityCategoryEntity);
 	}
 
+	@SuppressWarnings("unchecked") // The cast to serializable is necessary to ensure a serializable/cacheable result
 	@Cacheable(key = "'instance'")
 	@Transactional
 	public Set<ActivityCategoryDto> getAllActivityCategories()
@@ -105,6 +106,7 @@ public class ActivityCategoryService
 	}
 
 	// Added to analyse randomly failing ActivityCategoriesTest
+	@SuppressWarnings("unchecked") // The cast to serializable is necessary to ensure a serializable/cacheable result
 	@Transactional
 	public Set<ActivityCategoryDto> getAllActivityCategoriesSkipCache()
 	{
