@@ -358,7 +358,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	}
 	void generateCommentThreadOnYesterdaysNewsActivity(User user, def buddyUsers)
 	{
-		User buddyUser = buddyUsers.find { it.nickname == user.buddies[0].nickname }
+		User buddyUser = buddyUsers.find { it.nickname == user.buddies[0].user.nickname }
 		def yesterdayShortDay = LocalDate.now().getDayOfWeek().minus(1).getDisplayName(TextStyle.SHORT, Locale.US)
 		ActivityCommentTest.assertCommentingWorks(appService, user, buddyUser, NEWS_ACT_CAT_URL, false, {u -> appService.getDayActivityOverviews(u, ["size": 14])},
 		{u -> appService.getDayActivityOverviews(u, u.buddies[0], ["size": 14])},

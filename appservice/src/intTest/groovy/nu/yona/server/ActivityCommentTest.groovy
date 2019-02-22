@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -579,9 +579,10 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 	private static void assertCommentMessageDetails(message, User user, boolean isWeek, sender, expectedDetailsUrl, expectedText, threadHeadMessage, repliedMessage = null)
 	{
+		def expectedNickname = (sender instanceof User) ? sender.nickname : sender.user.nickname
 		assert message."@type" == "ActivityCommentMessage"
 		assert message.message == expectedText
-		assert message.nickname == ((user.url == sender.url) ? (sender.nickname + " (me)") : sender.nickname)
+		assert message.nickname == ((user.url == sender.url) ? (expectedNickname + " (me)") : expectedNickname)
 
 		assert message._links?.self?.href?.startsWith(YonaServer.stripQueryString(user.messagesUrl))
 		assert message._links?.edit?.href == message._links.self.href

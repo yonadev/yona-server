@@ -757,10 +757,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
 		TimeZoneGoal timeZoneGoalSocialRichardAfterUpdate = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
-		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
-		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem}
-		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
-		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem}
+		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
+		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem}
+		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
+		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem}
 
 		def expectedValuesRichardWeekBeforeLastWeek = [
 			"Mon" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
@@ -1029,10 +1029,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
 		TimeZoneGoal timeZoneGoalSocialRichardAfterUpdate = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
-		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
-		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem}
-		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
-		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem}
+		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
+		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem}
+		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
+		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem}
 
 		def expectedValuesRichardWeekBeforeLastWeek = []
 		def expectedValuesBobWeekBeforeLastWeek = [
@@ -1277,7 +1277,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setCreationTimeOfMandatoryGoalsToNow(bob)
 
 		BudgetGoal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
-		BudgetGoal budgetGoalNewsBob = richard.buddies[0].goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL }
+		BudgetGoal budgetGoalNewsBob = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL }
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
@@ -1288,7 +1288,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		richard = appService.reloadUser(richard)
 		bob= appService.reloadUser(bob)
 
-		TimeZoneGoal timeZoneGoalMultimediaBob = richard.buddies[0].goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL }
+		TimeZoneGoal timeZoneGoalMultimediaBob = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL }
 		assert timeZoneGoalMultimediaBob
 
 		def expectedValuesRichardWeekBeforeLastWeek = [

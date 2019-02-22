@@ -242,9 +242,6 @@ public class BuddyController extends ControllerBase
 			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), UserController.UserResourceAssembler
 					.createInstanceForBuddy(curieProvider, userId).toResource(getContent().getUser()));
 
-			Optional<Set<GoalDto>> goals = getContent().getGoals();
-			goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(BuddyDto.GOALS_REL_NAME),
-					BuddyController.createAllGoalsCollectionResource(userId, getContent().getUser().getId(), g)));
 			return result;
 		}
 	}

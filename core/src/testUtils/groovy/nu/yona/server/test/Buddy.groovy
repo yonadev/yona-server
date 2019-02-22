@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -15,13 +15,11 @@ import nu.yona.server.YonaServer
 @ToString(includeNames=true)
 class Buddy
 {
-	final String nickname
 	final String receivingStatus
 	final String sendingStatus
 	final String lastStatusChangeTime
 	final LocalDate lastMonitoredActivityDate
 	final User user
-	final List<Goal> goals
 	final String url
 	final String goalsUrl
 	final String dailyActivityReportsUrl
@@ -29,7 +27,6 @@ class Buddy
 	final String editUrl
 	Buddy(def json)
 	{
-		this.nickname = json.nickname
 		this.receivingStatus = json.receivingStatus
 		this.sendingStatus = json.sendingStatus
 		this.lastStatusChangeTime = json.lastStatusChangeTime
@@ -39,7 +36,6 @@ class Buddy
 			this.user = new User(json._embedded."yona:user")
 		}
 		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
-		this.goals = (json._embedded?."yona:goals"?._embedded?."yona:goals") ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : null
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.dailyActivityReportsUrl = json._links?."yona:dailyActivityReports"?.href
 		this.weeklyActivityReportsUrl = json._links?."yona:weeklyActivityReports"?.href
@@ -48,7 +44,7 @@ class Buddy
 
 	def findActiveGoal(def activityCategoryUrl)
 	{
-		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
+		user.goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
 	/**
@@ -57,7 +53,7 @@ class Buddy
 	Goal findGoal(Goal goal)
 	{
 		def goalId = goal.url.substring(goal.url.lastIndexOf('/') + 1)
-		Goal matchingGoal = goals.find{it.url.endsWith(goalId)}
+		Goal matchingGoal = user.goals.find{it.url.endsWith(goalId)}
 		assert matchingGoal
 		return matchingGoal
 	}

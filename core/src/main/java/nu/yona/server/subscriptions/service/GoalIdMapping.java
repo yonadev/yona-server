@@ -69,7 +69,7 @@ public class GoalIdMapping
 		Set<UUID> userGoalIds = user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).stream()
 				.map(GoalDto::getGoalId).collect(Collectors.toSet());
 		Map<UUID, UUID> goalIdToBuddyIdmapping = new HashMap<>();
-		user.getOwnPrivateData().getBuddies().forEach(b -> b.getGoals().orElse(Collections.emptySet())
+		user.getOwnPrivateData().getBuddies().forEach(b -> b.getUser().getPrivateData().getGoals().orElse(Collections.emptySet())
 				.forEach(g -> goalIdToBuddyIdmapping.put(g.getGoalId(), b.getId())));
 		Map<UUID, UUID> buddyIdToUserIdmapping = new HashMap<>();
 		user.getOwnPrivateData().getBuddies().forEach(b -> buddyIdToUserIdmapping.put(b.getId(), b.getUser().getId()));

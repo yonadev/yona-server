@@ -587,7 +587,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 			dayActivityOverviewForUser = dayActivitiesForCategory.dayActivitiesForUsers.find{it._links."yona:buddy"?.href == buddyToAssert.url}
 			dayDetailsUrlPrefix = buddyToAssert.url
 			assert dayActivityOverviewForUser._links."yona:user" == null
-			assert buddyToAssert.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
+			assert buddyToAssert.user.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
 		}
 		assert dayActivityOverviewForUser.totalActivityDurationMinutes == calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedValuesForDayAndActivityCategory.data.spread))
 		assert dayActivityOverviewForUser.goalAccomplished == expectedValuesForDayAndActivityCategory.data.goalAccomplished

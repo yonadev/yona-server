@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -38,7 +38,6 @@ import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.exceptions.InvalidDataException;
-import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -118,10 +117,7 @@ public class BuddyService
 	{
 		if (canIncludePrivateData(buddyEntity))
 		{
-			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddyEntity);
-			Set<GoalDto> goals = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId).getGoals().stream()
-					.collect(Collectors.toSet());
-			return BuddyDto.createInstance(buddyEntity, goals);
+			return BuddyDto.createInstance(buddyEntity);
 		}
 		return BuddyDto.createInstance(buddyEntity);
 	}

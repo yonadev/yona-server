@@ -77,7 +77,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies[0].user.firstName == bobby.firstName
 		richardWithBuddy.buddies[0].user.lastName == bobby.lastName
 		// goals and devices should not be embedded before accept
-		richardWithBuddy.buddies[0].goals == null
 		richardWithBuddy.buddies[0].user.goals == null
 		richardWithBuddy.buddies[0].user.devices == null
 		richardWithBuddy.buddies[0].sendingStatus == "REQUESTED"
@@ -152,7 +151,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		List<Buddy> buddies = appService.getBuddies(bob)
 		buddies.size() == 1
 		buddies[0].user.firstName == richard.firstName
-		buddies[0].nickname == richard.nickname
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
 
@@ -160,7 +158,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobWithBuddy.buddies != null
 		bobWithBuddy.buddies.size() == 1
 		bobWithBuddy.buddies[0].user.firstName == richard.firstName
-		bobWithBuddy.buddies[0].goals.size() == 2
 		bobWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
 		bobWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 
@@ -206,7 +203,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies.size() == 1
 		buddies[0].user.firstName == bob.firstName
 		buddies[0].user.lastName == bob.lastName
-		buddies[0].nickname == bob.nickname
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
 		buddies[0].url == buddyConnectResponseMessages[0]._links."yona:buddy".href
@@ -217,8 +213,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == bob.firstName
 		richardWithBuddy.buddies[0].user.nickname == bob.nickname
-		richardWithBuddy.buddies[0].goals.size() == 2
-		richardWithBuddy.buddies[0].nickname == bob.nickname
 		richardWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
 		richardWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 		assertDateTimeFormat(richardWithBuddy.buddies[0].lastStatusChangeTime)
@@ -245,35 +239,21 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(getBuddyUserGoalsResponse)
 		getBuddyUserGoalsResponse.responseData._embedded."yona:goals".size() == 2
 
-		richard.buddies[0].user.goalsUrl == richard.buddies[0].goalsUrl // YD-505
-
-		buddiesRichard[0].goals.size() == 2 // YD-505
 		buddiesRichard[0].user.goals.size() == 2
 		buddiesRichard[0].user.devices.size() == 1
-		buddiesBob[0].goals.size() == 2 // YD-505
 		buddiesBob[0].user.goals.size() == 2
 		buddiesBob[0].user.devices.size() == 1
 
 		def bobGoalUrls = bob.goals.collect { YonaServer.stripQueryString(it.url) }
-		def richardBuddyGoalUrls = buddiesRichard[0].goals.collect { YonaServer.stripQueryString(it.url) } // YD-505
+		def richardBuddyGoalUrls = buddiesRichard[0].user.goals.collect { YonaServer.stripQueryString(it.url) } // YD-505
 		def richardBuddyUserGoalUrls = buddiesRichard[0].user.goals.collect { YonaServer.stripQueryString(it.url) }
 
 		assert bobGoalUrls == richardBuddyGoalUrls // YD-505
 		assert bobGoalUrls == richardBuddyUserGoalUrls
 
-		buddiesRichard[0].goals.each // YD-505
-		{
-			assertResponseStatusOk(appService.yonaServer.getResource(it.url, ["Yona-Password": richard.password]))
-		}
-
 		buddiesRichard[0].user.goals.each
 		{
 			assertResponseStatusOk(appService.yonaServer.getResource(it.url, ["Yona-Password": richard.password]))
-		}
-
-		buddiesBob[0].goals.each // YD-505
-		{
-			assertResponseStatusOk(appService.yonaServer.getResource(it.url, ["Yona-Password": bob.password]))
 		}
 
 		buddiesBob[0].user.goals.each

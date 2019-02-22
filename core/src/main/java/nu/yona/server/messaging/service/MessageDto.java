@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -231,8 +231,9 @@ public abstract class MessageDto extends PolymorphicDto
 
 		protected SenderInfo createSenderInfoForBuddy(BuddyDto buddy, Message messageEntity)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(),
-					buddy.getUser().getPrivateData().getUserPhotoId(), buddy.getId());
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(),
+					buddy.getUser().getPrivateData().getNickname(), buddy.getUser().getPrivateData().getUserPhotoId(),
+					buddy.getId());
 		}
 
 		protected SenderInfo createSenderInfoForBuddyConnectionChangeMessage(Optional<User> senderUser,

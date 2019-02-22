@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -41,7 +41,6 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User richardAfterProcess = appService.reloadUser(richard)
-		richardAfterProcess.buddies[0].nickname == "Bobby"
 		richardAfterProcess.buddies[0].user.nickname == "Bobby"
 
 		cleanup:
@@ -75,7 +74,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User richardAfterProcess = appService.reloadUser(richard)
-		richardAfterProcess.buddies[0].nickname == "BD"
+		richardAfterProcess.buddies[0].user.nickname == "BD"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -109,7 +108,6 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == updatedBobJson.firstName
 		richardWithBuddy.buddies[0].user.nickname == updatedBobJson.nickname
-		richardWithBuddy.buddies[0].nickname == updatedBobJson.nickname
 
 		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
 		{ it."@type" == "BuddyConnectResponseMessage" }
