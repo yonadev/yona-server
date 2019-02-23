@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -28,14 +28,14 @@ class AnalysisService extends Service
 		yonaServer.getResource(RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT)
 	}
 
-	def postToAnalysisEngine(user, categories, url, ZonedDateTime eventTime = null)
+	def postToAnalysisEngine(Device device, categories, url, ZonedDateTime eventTime = null)
 	{
 		def categoriesString = YonaServer.makeStringList(categories)
 		def eventTimeString = (eventTime) ? YonaServer.toIsoDateTimeString(eventTime) : null
 		def eventTimeProperty = (eventTimeString) ? """"eventTime" : "$eventTimeString",""" : ""
-		def dollarIndex =  user.vpnProfile.vpnLoginId.indexOf("\$")
-		def userAnonymizedId = user.vpnProfile.vpnLoginId[0..dollarIndex-1]
-		def deviceIndex = user.vpnProfile.vpnLoginId[dollarIndex+1..-1]
+		def dollarIndex =  device.vpnProfile.vpnLoginId.indexOf("\$")
+		def userAnonymizedId = device.vpnProfile.vpnLoginId[0..dollarIndex-1]
+		def deviceIndex = device.vpnProfile.vpnLoginId[dollarIndex+1..-1]
 		postToAnalysisEngine(userAnonymizedId, """{
 					"deviceIndex": $deviceIndex,
 					$eventTimeProperty

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -10,6 +10,7 @@ import static nu.yona.server.test.CommonAssertions.*
 
 import groovy.json.*
 import nu.yona.server.test.Goal
+import nu.yona.server.test.User
 
 class DisclosureTest extends AbstractAppServiceIntegrationTest
 {
@@ -17,9 +18,9 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		when:
 		def responseRichard = appService.getMessages(richard)
@@ -51,9 +52,9 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 		def goalConflictMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]
 		def disclosureRequestUrl = goalConflictMessage._links."yona:requestDisclosure".href
 		Goal goalRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
@@ -100,9 +101,9 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 		def getMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesResponse)
 		def disclosureRequestUrl = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links."yona:requestDisclosure".href
@@ -177,9 +178,9 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 		def getMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesResponse)
 		def disclosureRequestUrl = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links."yona:requestDisclosure".href

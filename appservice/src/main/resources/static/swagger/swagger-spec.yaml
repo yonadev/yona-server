@@ -1990,8 +1990,6 @@ definitions:
         type: string
         description: The Yona password for subsequent requests
         example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
-      vpnProfile: # YD-541 Remove the profile here
-        $ref: '#/definitions/VPNProfile'
   PostPutUser:
     allOf:
       - $ref: '#/definitions/BaseUser'

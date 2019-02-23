@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -17,11 +17,11 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker'com")
-		analysisService.postToAnalysisEngine(bob, ["news/media"], "http://www.refdag.nl")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker'com")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		when:
 		def allMessagesResponse = appService.getMessages(richard)
@@ -71,12 +71,12 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker'com")
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker'com")
-		analysisService.postToAnalysisEngine(bob, ["news/media"], "http://www.refdag.nl")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker'com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker'com")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		def initialGetMessagesResponse = appService.getMessages(richard)
 		assertResponseStatusOk(initialGetMessagesResponse)
@@ -117,8 +117,8 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 	def 'Bob tries to delete Richard\'s buddy request before it is processed'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def messageUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
@@ -141,8 +141,8 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 	def 'Bob deletes Richard\'s buddy request after it is processed'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
@@ -164,8 +164,8 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 	def 'Richard deletes Bob\'s buddy acceptance after it is processed'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
@@ -189,9 +189,9 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		def messageDeleteUrl = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.edit.href
 
 		when:
@@ -212,9 +212,9 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		def messageDeleteUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.edit.href
 
 		when:

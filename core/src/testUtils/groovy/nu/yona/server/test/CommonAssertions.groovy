@@ -22,13 +22,13 @@ class CommonAssertions extends Service
 	static final BASIC_USER_PROPERTIES_APP_OPENED = BASIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
 	static final USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = BASIC_USER_PROPERTIES_APP_NOT_OPENED + ["firstName", "lastName", "nickname", "yonaPassword"] as Set
 	static final USER_PROPERTIES_NUM_TO_BE_CONFIRMED = USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST + ["appLastOpenedDate"] as Set
-	static final USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["vpnProfile", "sslRootCertCN", "_embedded"] as Set
+	static final USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["_embedded"] as Set
 	static final USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY = USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY + ["lastMonitoredActivityDate"] as Set
 	static final BUDDY_USER_PROPERTIES = BASIC_USER_PROPERTIES_APP_OPENED + ["firstName", "lastName", "nickname"] as Set
 	static final BUDDY_USER_PROPERTIES_VARYING = ["_embedded"] as Set
 	static final USER_COMMON_LINKS = ["self", "curies"] as Set
 	static final USER_LINKS_NUM_TO_BE_CONFIRMED = USER_COMMON_LINKS + ["yona:confirmMobileNumber", "yona:resendMobileNumberConfirmationCode", "edit"] as Set
-	static final USER_LINKS_NUM_CONFIRMED = USER_COMMON_LINKS + ["edit", "yona:postOpenAppEvent", "yona:messages", "yona:dailyActivityReports", "yona:weeklyActivityReports", "yona:dailyActivityReportsWithBuddies", "yona:newDeviceRequest", "yona:appActivity", "yona:sslRootCert", "yona:appleMobileConfig", "yona:editUserPhoto"] as Set
+	static final USER_LINKS_NUM_CONFIRMED = USER_COMMON_LINKS + ["edit", "yona:messages", "yona:dailyActivityReports", "yona:weeklyActivityReports", "yona:dailyActivityReportsWithBuddies", "yona:newDeviceRequest", "yona:editUserPhoto"] as Set
 	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED = USER_LINKS_NUM_CONFIRMED + ["yona:requestPinReset"] as Set
 	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED = USER_LINKS_NUM_CONFIRMED
 	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED = USER_LINKS_NUM_CONFIRMED + ["yona:verifyPinReset", "yona:resendPinResetConfirmationCode", "yona:clearPinReset"] as Set
@@ -125,7 +125,6 @@ class CommonAssertions extends Service
 			assert mobileNumberToBeConfirmed ^ ((boolean) user.buddiesUrl)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user.messagesUrl)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user.newDeviceRequestUrl)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user.appActivityUrl)
 		}
 		else
 		{
@@ -140,7 +139,6 @@ class CommonAssertions extends Service
 			}
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:appActivity")
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user.keySet() == USER_PROPERTIES_NUM_TO_BE_CONFIRMED : (user.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY || user.keySet() == USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY))
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() - USER_LINKS_VARYING == USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() - USER_LINKS_VARYING == USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._embedded == null : user._embedded.keySet() == USER_EMBEDDED)
@@ -150,11 +148,6 @@ class CommonAssertions extends Service
 				assert user._embedded."yona:devices"._embedded."yona:devices".size == 1
 				assertDefaultOwnDevice(user._embedded."yona:devices"._embedded."yona:devices"[0])
 			}
-		}
-
-		if (!mobileNumberToBeConfirmed)
-		{
-			assertVpnProfile(user.vpnProfile)
 		}
 	}
 

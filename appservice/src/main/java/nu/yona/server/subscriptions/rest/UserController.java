@@ -8,7 +8,6 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,15 +16,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
-import javax.annotation.PostConstruct;
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
@@ -66,7 +61,6 @@ import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.InvalidDataException;
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.rest.MessageController;
@@ -77,14 +71,12 @@ import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.rest.RestUtil;
-import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
-import nu.yona.server.subscriptions.service.VPNProfileDto;
 import nu.yona.server.util.Require;
 
 @Controller
@@ -130,10 +122,6 @@ public class UserController extends ControllerBase
 
 	@Autowired
 	private PinResetRequestController pinResetRequestController;
-
-	@Autowired
-	@Qualifier("sslRootCertificate")
-	private X509Certificate sslRootCertificate; // YD-544
 
 	@GetMapping(value = "/{userId}")
 	@ResponseBody
@@ -451,20 +439,6 @@ public class UserController extends ControllerBase
 		return getUserLink(rel, userId, requestingUserId, Optional.empty());
 	}
 
-	@PostConstruct
-	private void setSslRootCertificateCn() // YD-544
-	{
-		try
-		{
-			LdapName name = new LdapName(sslRootCertificate.getIssuerX500Principal().getName());
-			UserResource.setSslRootCertificateCn(name.getRdn(0).getValue().toString());
-		}
-		catch (InvalidNameException e)
-		{
-			throw YonaException.unexpected(e);
-		}
-	}
-
 	static class PostPutUserDto
 	{
 		private final String firstName;
@@ -518,7 +492,6 @@ public class UserController extends ControllerBase
 	public static class UserResource extends Resource<UserDto>
 	{
 		private final CurieProvider curieProvider;
-		private static String sslRootCertificateCn; // YD-544
 		private UserResourceRepresentation representation;
 		private UUID requestingUserId;
 		private Optional<UUID> requestingDeviceId;
@@ -531,23 +504,6 @@ public class UserController extends ControllerBase
 			this.representation = representation;
 			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
-		}
-
-		public static void setSslRootCertificateCn(String sslRootCertificateCn)
-		{
-			UserResource.sslRootCertificateCn = sslRootCertificateCn;
-		}
-
-		@JsonProperty("sslRootCertCN")
-		@JsonInclude(Include.NON_EMPTY)
-		public Optional<String> getSslRootCertCn() // YD-544
-		{
-			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
-			{
-				return Optional.of(sslRootCertificateCn);
-			}
-			return Optional.empty();
-
 		}
 
 		@JsonProperty("_embedded")
@@ -574,18 +530,6 @@ public class UserController extends ControllerBase
 			}
 
 			return result;
-		}
-
-		// Remove this method as part of YD-541
-		@JsonInclude(Include.NON_EMPTY)
-		public Resource<VPNProfileDto> getVpnProfile()
-		{
-			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
-			{
-				return getContent().getOwnPrivateData().getVpnProfile()
-						.map(DeviceController.DeviceResource::createVpnProfileResource).orElse(null);
-			}
-			return null;
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserId)
@@ -672,16 +616,12 @@ public class UserController extends ControllerBase
 		private void addOwnUserNumConfirmedLinks(UserResource userResource)
 		{
 			addEditLink(userResource);
-			addPostOpenAppEventLink(userResource); // YD-544
 			addMessagesLink(userResource);
 			addDayActivityOverviewsLink(userResource);
 			addWeekActivityOverviewsLink(userResource);
 			addDayActivityOverviewsWithBuddiesLink(userResource);
 			addNewDeviceRequestLink(userResource);
-			addAppActivityLink(userResource); // YD-544
 			pinResetRequestController.get().addLinks(userResource);
-			addSslRootCertificateLink(userResource); // YD-544
-			addAppleMobileConfigLink(userResource); // YD-544
 			addEditUserPhotoLink(userResource);
 		}
 
@@ -695,17 +635,6 @@ public class UserController extends ControllerBase
 		{
 			userResource.getContent().getPrivateData().getUserPhotoId().ifPresent(userPhotoId -> userResource
 					.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId)).withRel("userPhoto")));
-		}
-
-		private void addAppleMobileConfigLink(UserResource userResource)
-		{
-			userResource.add(linkTo(methodOn(DeviceController.class).getAppleMobileConfig(Optional.empty(),
-					userResource.getContent().getId(), requestingDeviceId.get())).withRel("appleMobileConfig"));
-		}
-
-		private void addSslRootCertificateLink(Resource<UserDto> userResource)
-		{
-			userResource.add(linkTo(methodOn(StandardResourcesController.class).getSslRootCert()).withRel("sslRootCert"));
 		}
 
 		@Override
@@ -742,12 +671,6 @@ public class UserController extends ControllerBase
 			userResource.add(UserController.getResendMobileNumberConfirmationLink(userResource.getContent().getId()));
 		}
 
-		private void addPostOpenAppEventLink(Resource<UserDto> userResource)
-		{
-			userResource
-					.add(DeviceController.getPostOpenAppEventLink(userResource.getContent().getId(), requestingDeviceId.get()));
-		}
-
 		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(UserActivityController.getUserWeekActivityOverviewsLinkBuilder(userResource.getContent().getId())
@@ -776,12 +699,6 @@ public class UserController extends ControllerBase
 		{
 			userResource.add(NewDeviceRequestController
 					.getNewDeviceRequestLinkBuilder(userResource.getContent().getMobileNumber()).withRel("newDeviceRequest"));
-		}
-
-		private void addAppActivityLink(UserResource userResource)
-		{
-			// IDs are available when the app activity link is relevant, so directly call get on Optional
-			userResource.add(DeviceController.getAppActivityLink(requestingUserId, requestingDeviceId.get()));
 		}
 	}
 }

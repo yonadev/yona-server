@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -51,7 +51,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		analysisService.clearCaches()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["YouTube"], "http://www.youtube.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["YouTube"], "http://www.youtube.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -68,11 +68,11 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		analysisService.clearCaches()
-		analysisService.postToAnalysisEngine(richard, ["YouTube"], "http://www.youtube.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["YouTube"], "http://www.youtube.com")
 		analysisService.resetStatistics()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["YouTube"], "http://www.youtube.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["YouTube"], "http://www.youtube.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -92,7 +92,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		analysisService.clearCaches()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["Facebook"], "http://www.facebook.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Facebook"], "http://www.facebook.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -109,11 +109,11 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		analysisService.clearCaches()
-		analysisService.postToAnalysisEngine(richard, ["Facebook"], "http://www.facebook.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Facebook"], "http://www.facebook.com")
 		analysisService.resetStatistics()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["Facebook"], "http://www.facebook.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Facebook"], "http://www.facebook.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -133,7 +133,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		analysisService.clearCaches()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -150,11 +150,11 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		analysisService.clearCaches()
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 		analysisService.resetStatistics()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 
 		then:
 		def stats = analysisService.getStatistics()

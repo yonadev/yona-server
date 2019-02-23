@@ -25,7 +25,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(bob, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
+		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
 
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -49,7 +49,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(bob, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
+		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
 
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)

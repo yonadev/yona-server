@@ -253,9 +253,9 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		appService.updateGoal(CommonAssertions.&assertResponseStatusSuccess, user, updatedGoal.editUrl, BudgetGoal.createInstance(updatedGoal, YonaServer.now, maxDurationMinutes))
 	}
 
-	void reportAppActivity(User user, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
+	void reportAppActivity(User user, Device device, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
 	{
-		reportAppActivities(user, createAppActivity(appName, relativeStartDateTimeString, relativeEndDateTimeString))
+		reportAppActivities(user, device, createAppActivity(appName, relativeStartDateTimeString, relativeEndDateTimeString))
 	}
 
 	AppActivity createAppActivity(def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
@@ -265,21 +265,21 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		AppActivity.singleActivity(appName, startDateTime, endDateTime)
 	}
 
-	void reportAppActivities(User user, def appActivities)
+	void reportAppActivities(User user, Device device, def appActivities)
 	{
 		appActivities.collect
 		{
-			def response = appService.postAppActivityToAnalysisEngine(user, it)
+			def response = appService.postAppActivityToAnalysisEngine(user, device, it)
 			assertResponseStatusOk(response)
 		}
 	}
-	void reportNetworkActivity(User user, def categories, def url)
+	void reportNetworkActivity(Device device, def categories, def url)
 	{
-		analysisService.postToAnalysisEngine(user, categories, url)
+		analysisService.postToAnalysisEngine(device, categories, url)
 	}
-	void reportNetworkActivity(User user, def categories, def url, relativeDateTimeString)
+	void reportNetworkActivity(Device device, def categories, def url, relativeDateTimeString)
 	{
-		def response = analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
+		def response = analysisService.postToAnalysisEngine(device, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
 		assertResponseStatusNoContent(response)
 	}
 

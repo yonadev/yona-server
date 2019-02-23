@@ -275,7 +275,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		ZonedDateTime now = YonaServer.now
 
 		when:
-		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		def response = analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		then:
 		assertResponseStatusNoContent(response)
@@ -322,7 +322,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password))
 
 		when:
-		def response = analysisService.postToAnalysisEngine(bob, ["news/media"], "http://www.refdag.nl")
+		def response = analysisService.postToAnalysisEngine(bob.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		then:
 		assertResponseStatusNoContent(response)
@@ -352,8 +352,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
@@ -384,7 +384,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		ZonedDateTime goalConflictTime = YonaServer.now
 
 		when:
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
 
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
@@ -439,7 +439,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def url = buildLongUrl(2048)
-		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], url)
+		def response = analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], url)
 
 		then:
 		assertResponseStatusNoContent(response)
@@ -473,7 +473,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def url = buildLongUrl(2049)
-		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], url)
+		def response = analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], url)
 
 		then:
 		assertResponseStatusNoContent(response)
@@ -509,8 +509,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
 		def buddy = appService.getBuddies(richard)[0]
 
 		when:
@@ -552,8 +552,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
 		def buddy = appService.getBuddies(richard)[0]
 		def message = "Bob, as you know our ways parted, so I'll remove you as buddy."
 		appService.removeBuddy(richard, buddy, message)
@@ -589,8 +589,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
 		def buddy = appService.getBuddies(bob)[0]
 		def message = "Richard, as you know our ways parted, so I'll remove you as buddy."
 		sleep(100) // So we are sure the request time differs from the remove buddy time
@@ -728,7 +728,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def relativeActivityDate = "W-1 Thu 15:00"
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
 		richard = appService.reloadUser(richard)
 		Buddy buddyBob = richard.buddies[0]
 
@@ -750,8 +750,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def relativeActivityDate = "W-1 Sat 00:10"
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
-		reportAppActivity(bob, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
+		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
 		richard = appService.reloadUser(richard)
 		Buddy buddyBob = richard.buddies[0]
 
@@ -814,7 +814,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 	private void assertGoalConflictIsReportedToBuddy(User user, User buddy)
 	{
-		analysisService.postToAnalysisEngine(user, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(user.requestingDevice, ["Gambling"], "http://www.poker.com")
 		def responseGetMessagesBuddy = appService.getMessages(buddy)
 		assertResponseStatusOk(responseGetMessagesBuddy)
 		def goalConflictMessagesBuddy = responseGetMessagesBuddy.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
@@ -836,7 +836,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 	private void assertGoalConflictIsNotReportedToBuddy(User user, User buddy)
 	{
-		analysisService.postToAnalysisEngine(user, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(user.requestingDevice, ["Gambling"], "http://www.poker.com")
 		def responseGetMessagesBuddy = appService.getMessages(buddy)
 		assertResponseStatusOk(responseGetMessagesBuddy)
 		assert responseGetMessagesBuddy.responseData._embedded?."yona:messages"?.find{ it."@type" == "GoalConflictMessage"} == null

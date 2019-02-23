@@ -19,7 +19,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	def 'Delete account'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
 
 		when:
 		def response = appService.deleteUser(richard, "Goodbye friends! I deinstalled the Internet")
@@ -31,7 +31,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	def 'Delete and recreate account'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
 		appService.deleteUser(richard, "Goodbye friends! I deinstalled the Internet")
 
 		when:
@@ -49,10 +49,10 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com"))
-		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"))
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard.requestingDevice, "news/media", "http://www.refdag.nl"))
 
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"
@@ -90,8 +90,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	def 'Remove Richard with pending buddy request from Bob and verify that Bob receives a reject message'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		richard.emailAddress = "richard@quinn.com"
 		appService.sendBuddyConnectRequest(bob, richard)
 
@@ -132,8 +132,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	def 'Remove Richard with pending buddy request to Bob and verify buddy request is removed'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 
@@ -157,8 +157,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
@@ -167,7 +167,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		//insert some messages
 		//goal conflict
-		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard.requestingDevice, "news/media", "http://www.refdag.nl"))
 		//goal change
 		appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 		//activity comment at activity of Richard
@@ -186,8 +186,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard, message)
 
 		then:
-		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com"))
-		assertResponseStatus(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"), 400) // User deleted
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com"))
+		assertResponseStatus(analysisService.postToAnalysisEngine(richard.requestingDevice, "news/media", "http://www.refdag.nl"), 400) // User deleted
 
 		def getMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesResponse)
@@ -231,8 +231,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 		def getResponse = appService.getMessages(bob)
@@ -240,7 +240,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		assert getResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links."yona:process" == null // Processing happens automatically these days
 
 		when:
-		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		def response = analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
 
 		then:
 		assertResponseStatusNoContent(response)

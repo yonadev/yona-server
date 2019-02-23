@@ -151,8 +151,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def bobWithConfirmedNumber = appService.confirmMobileNumber({ assertResponseStatusSuccess(it)}, updatedBob)
 		bobWithConfirmedNumber.devices.size() == 1
-		bobWithConfirmedNumber.devices[0].name == "My S8"
-		bobWithConfirmedNumber.devices[0].operatingSystem == "ANDROID"
+		bobWithConfirmedNumber.requestingDevice.name == "My S8"
+		bobWithConfirmedNumber.requestingDevice.operatingSystem == "ANDROID"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -331,7 +331,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		assert appService.fetchBuddyConnectResponseMessage(richard).processUrl == null // Processing happens automatically these days
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
@@ -539,7 +539,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		appService.makeBuddies(richard, bob)
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		then:
 

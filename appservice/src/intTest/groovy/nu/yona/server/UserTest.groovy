@@ -60,13 +60,10 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		def baseUserUrl = YonaServer.stripQueryString(john.url)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
-		john.postOpenAppEventUrl == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/openApp"
 		john.buddiesUrl == baseUserUrl + "/buddies/"
 		YonaServer.stripQueryString(john.goalsUrl) == baseUserUrl + "/goals/"
 		john.messagesUrl == baseUserUrl + "/messages/"
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
-		john.appActivityUrl == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/appActivity/"
-		john.appleMobileConfig == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/apple.mobileconfig"
 		john.pinResetRequestUrl == baseUserUrl + "/pinResetRequest/request"
 		john.dailyActivityReportsUrl == baseUserUrl + "/activity/days/"
 		john.dailyActivityReportsWithBuddiesUrl == baseUserUrl + "/activity/withBuddies/days/?requestingDeviceId=" + john.getRequestingDeviceId()
@@ -305,64 +302,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Retrieve OVPN profile and SSL root certificate (YD-541, YD-544)'()
-	{
-		given:
-		User richard = addRichard()
-
-		when:
-		assert richard.vpnProfile.ovpnProfileUrl
-		assert richard.sslRootCertUrl
-		def responseOvpnProfile = appService.yonaServer.restClient.get(path: richard.vpnProfile.ovpnProfileUrl)
-		def responseSslRootCert = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl)
-
-		then:
-		assertResponseStatusOk(responseOvpnProfile)
-		responseOvpnProfile.contentType == "application/x-openvpn-profile"
-		assertResponseStatusOk(responseSslRootCert)
-		responseSslRootCert.contentType == "application/pkix-cert"
-		richard.sslRootCertCn == "smoothwall003.yona"
-
-		cleanup:
-		appService.deleteUser(richard)
-	}
-
-	def 'Retrieve appleMobileConfig (YD-544)'()
-	{
-		given:
-		User richard = addRichard()
-
-		when:
-		assert richard.appleMobileConfig
-		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: richard.appleMobileConfig, headers: ["Yona-Password":richard.password])
-
-		then:
-		assertResponseStatusOk(responseAppleMobileConfig)
-		responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
-		def appleMobileConfig = responseAppleMobileConfig.responseData.text
-		appleMobileConfig.contains("<string>${richard.vpnProfile.vpnLoginId}\\n${richard.vpnProfile.vpnPassword}</string>")
-
-		cleanup:
-		appService.deleteUser(richard)
-	}
-
-	def 'Retrieve SSL root certificate'()
-	{
-		given:
-		User richard = addRichard()
-
-		when:
-		assert richard.sslRootCertUrl
-		def responseSslRootCertUrl = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl, headers: ["Yona-Password":richard.password])
-
-		then:
-		assertResponseStatusOk(responseSslRootCertUrl)
-		responseSslRootCertUrl.contentType == "application/pkix-cert"
-
-		cleanup:
-		appService.deleteUser(richard)
-	}
-
 	def 'Retrieve Apple App site association'()
 	{
 		when:
@@ -396,7 +335,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def relativeActivityDate = "W-1 Thu 15:00"
-		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
+		reportNetworkActivity(richard.requestingDevice, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
 		richard = appService.reloadUser(richard)
 
 		then:
@@ -413,8 +352,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def relativeActivityDate = "W-1 Sat 00:10"
-		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
-		reportAppActivity(richard, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
+		reportNetworkActivity(richard.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
 		richard = appService.reloadUser(richard)
 
 		then:
@@ -482,14 +421,10 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		assert user.buddies.size() == 0
 		if (mobileNumberConfirmed)
 		{
-			assert user.vpnProfile.vpnLoginId ==~ /$CommonAssertions.VPN_LOGIN_ID_PATTERN/
-			assert user.vpnProfile.vpnPassword.length() == 32
-			assert user.vpnProfile.ovpnProfileUrl
-
 			assert user.goals.size() == 1 // Mandatory goal added
 			assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
 			assert user.devices.size() == 1 // Default device
-			assert user.devices[0].name == "First device"
+			assert user.requestingDevice.name == "First device"
 		}
 		else
 		{

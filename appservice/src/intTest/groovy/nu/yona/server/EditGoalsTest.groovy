@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -757,7 +757,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
-		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		def postToAeResponse = analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		assertResponseStatusNoContent(postToAeResponse)
 		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardBeforeGoalDeleteResponse)
@@ -793,7 +793,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
-		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		def postToAeResponse = analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		assertResponseStatusNoContent(postToAeResponse)
 		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardBeforeGoalDeleteResponse)
@@ -849,6 +849,6 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 	{
 		def startTime = YonaServer.now.minus(Duration.ofHours(1))
 		def endTime = YonaServer.now
-		appService.postAppActivityToAnalysisEngine(user, AppActivity.singleActivity("Facebook", startTime, endTime))
+		appService.postAppActivityToAnalysisEngine(user, user.requestingDevice, AppActivity.singleActivity("Facebook", startTime, endTime))
 	}
 }

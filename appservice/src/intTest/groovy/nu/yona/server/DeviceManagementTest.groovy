@@ -57,7 +57,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		def firstDeviceName = richard.devices[0].name
+		def firstDeviceName = richard.requestingDevice.name
 
 		when:
 		def newDeviceRequestPassword = "Temp password"
@@ -101,9 +101,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		// User self-link uses the new device as "requestingDeviceId"
 		def idOfNewDevice = extractDeviceId(newDevice._links.self.href)
 		registerResponse.responseData._links.self.href ==~ /.*requestingDeviceId=$idOfNewDevice.*/
-
-		// App activity URL is for the new device
-		registerResponse.responseData._links."yona:appActivity".href == newDevice._links.self.href - ~/\?.*/ + "/appActivity/"
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
@@ -303,7 +300,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def updatedName = "Updated name"
 
 		when:
-		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$updatedName"}""", richard.password)
+		def response = appService.updateResourceWithPassword(richard.requestingDevice.editUrl, """{"name":"$updatedName"}""", richard.password)
 
 
 		then:
@@ -311,8 +308,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
-		richardAfterReload.devices[0].name == updatedName
-		richardAfterReload.devices[0].operatingSystem == "IOS"
+		richardAfterReload.requestingDevice.name == updatedName
+		richardAfterReload.requestingDevice.operatingSystem == "IOS"
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
@@ -339,19 +336,19 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		def existingName = richard.devices[0].name
+		def existingName = richard.requestingDevice.name
 		def updatedFirebaseInstanceId = "Updated firebase instance id"
 
 		when:
-		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$existingName", "firebaseInstanceId":"$updatedFirebaseInstanceId"}""", richard.password)
+		def response = appService.updateResourceWithPassword(richard.requestingDevice.editUrl, """{"name":"$existingName", "firebaseInstanceId":"$updatedFirebaseInstanceId"}""", richard.password)
 
 		then:
 		assertResponseStatusOk(response)
 		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
-		richardAfterReload.devices[0].name == existingName
-		richardAfterReload.devices[0].firebaseInstanceId == updatedFirebaseInstanceId
+		richardAfterReload.requestingDevice.name == existingName
+		richardAfterReload.requestingDevice.firebaseInstanceId == updatedFirebaseInstanceId
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
@@ -375,21 +372,21 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		def existingName = richard.devices[0].name
+		def existingName = richard.requestingDevice.name
 		def existingFirebaseInstanceId = "Existing firebase instance id"
-		appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$existingName", "firebaseInstanceId":"$existingFirebaseInstanceId"}""", richard.password)
+		appService.updateResourceWithPassword(richard.requestingDevice.editUrl, """{"name":"$existingName", "firebaseInstanceId":"$existingFirebaseInstanceId"}""", richard.password)
 		def updatedName = "Updated name"
 
 		when:
-		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$updatedName"}""", richard.password)
+		def response = appService.updateResourceWithPassword(richard.requestingDevice.editUrl, """{"name":"$updatedName"}""", richard.password)
 
 		then:
 		assertResponseStatusOk(response)
 		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
-		richardAfterReload.devices[0].name == updatedName
-		richardAfterReload.devices[0].firebaseInstanceId == existingFirebaseInstanceId
+		richardAfterReload.requestingDevice.name == updatedName
+		richardAfterReload.requestingDevice.firebaseInstanceId == existingFirebaseInstanceId
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
@@ -418,7 +415,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def updatedName = "Updated:name"
 
 		when:
-		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$updatedName"}""", richard.password)
+		def response = appService.updateResourceWithPassword(richard.requestingDevice.editUrl, """{"name":"$updatedName"}""", richard.password)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -433,7 +430,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		given:
 		def ts = timestamp
 		User richard = addRichard()
-		Device deviceToUpdate = richard.devices[0]
+		Device deviceToUpdate = richard.requestingDevice
 		def existingName = "Existing name"
 		appService.addDevice(richard, existingName, "ANDROID")
 
@@ -453,23 +450,23 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		given:
 		def ts = timestamp
 		def richardAndBob = addRichardAndBobAsBuddies()
-		User richard = richardAndBob.richard
+		User richardOnFirstDevice = richardAndBob.richard
 		User bob = richardAndBob.bob
-		Device remainingDevice = richard.devices[0]
+		Device remainingDevice = richardOnFirstDevice.requestingDevice
 		def deletedDeviceName = "Second device"
-		richard = appService.addDevice(richard, deletedDeviceName, "ANDROID")
-		Device deviceToDelete = richard.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
+		User richardOnSecondDevice = appService.addDevice(richardOnFirstDevice, deletedDeviceName, "ANDROID")
+		Device deviceToDelete = richardOnSecondDevice.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
 
 		when:
-		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richard.password)
+		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richardOnSecondDevice.password)
 
 		then:
 		assertResponseStatusNoContent(response)
-		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
+		User richardAfterReload = appService.reloadUser(richardOnFirstDevice, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
-		richardAfterReload.devices[0].name == remainingDevice.name
-		richardAfterReload.devices[0].operatingSystem == remainingDevice.operatingSystem
+		richardAfterReload.requestingDevice.name == remainingDevice.name
+		richardAfterReload.requestingDevice.operatingSystem == remainingDevice.operatingSystem
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
@@ -486,7 +483,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		bobAfterReload.buddies[0].user.devices[0].name == remainingDevice.name
 
 		cleanup:
-		appService.deleteUser(richard)
+		appService.deleteUser(richardOnFirstDevice)
 		appService.deleteUser(bob)
 	}
 
@@ -495,7 +492,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		given:
 		def ts = timestamp
 		User richard = addRichard()
-		Device deviceToDelete = richard.devices[0]
+		Device deviceToDelete = richard.requestingDevice
 
 		when:
 		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richard.password)

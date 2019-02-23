@@ -31,7 +31,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 
 		when:
 		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard)
@@ -140,18 +140,18 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setCreationTimeOfMandatoryGoalsToNow(bob)
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
-		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Tue 10:10")])
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportAppActivities(richard, richard.requestingDevice, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Tue 10:10")])
 		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:55")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
 
 		addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, "W-1 Thu 18:00")
-		reportAppActivity(bob, "Facebook", "W-1 Thu 20:00", "W-1 Thu 20:35")
+		reportAppActivity(bob, bob.requestingDevice, "Facebook", "W-1 Thu 20:00", "W-1 Thu 20:35")
 
 		addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-1 Fri 15:00")
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-1 Sat 21:00")
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-1 Fri 15:00")
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-1 Sat 21:00")
 
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -315,10 +315,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		setCreationTimeOfMandatoryGoalsToNow(richard)
 
-		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		reportNetworkActivity(richard.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
 		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
-		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Fri 15:00")
-		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Fri 21:00")
+		reportNetworkActivity(richard.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-1 Fri 15:00")
+		reportNetworkActivity(richard.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-1 Fri 21:00")
 
 		richard = appService.reloadUser(richard)
 		TimeZoneGoal timeZoneGoalMultimediaRichard = richard.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
@@ -371,7 +371,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayDetail(richard, initialResponseDayOverviews, budgetGoalNews, initialExpectedValues, 0, currentShortDay)
 
 		when:
-		reportAppActivities(richard, AppActivity.singleActivity("NU.nl", now, now))
+		reportAppActivities(richard, richard.requestingDevice, AppActivity.singleActivity("NU.nl", now, now))
 
 		then:
 		def expectedValuesAfterActivity = [
@@ -416,7 +416,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayDetail(richard, initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesRichardLastWeek, 1, "Wed")
 
 		when:
-		reportAppActivity(richard, "NU.nl", "W-1 Wed 03:15", "W-1 Wed 03:35")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Wed 03:15", "W-1 Wed 03:35")
 
 		then:
 		def expectedValuesRichardLastWeekAfterActivity = [
@@ -452,11 +452,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		setCreationTimeOfMandatoryGoalsToNow(richard)
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
-		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Tue 10:10")])
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportAppActivities(richard, richard.requestingDevice, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Tue 10:10")])
 		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:55")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
 
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -538,7 +538,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, 1, "Fri")
 
 		// See whether we can still report activities the activity category of the deleted goal
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 
 		// Activity report should be identical
 		def responseWeekOverviewsNewActivity = appService.getWeekActivityOverviews(richard)
@@ -713,43 +713,43 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		// Monday
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
 		BudgetGoal budgetGoalNewsRichardBeforeUpdate = richard.findActiveGoal(NEWS_ACT_CAT_URL)
-		reportAppActivity(richard, "NU.nl", "W-2 Mon 03:15", "W-2 Mon 03:35")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-2 Mon 03:15", "W-2 Mon 03:35")
 
 		// Tuesday
-		reportAppActivities(richard, [createAppActivity("NU.nl", "W-2 Tue 08:45", "W-2 Tue 09:10"), createAppActivity("Facebook", "W-2 Tue 09:35", "W-2 Tue 10:10")])
+		reportAppActivities(richard, richard.requestingDevice, [createAppActivity("NU.nl", "W-2 Tue 08:45", "W-2 Tue 09:10"), createAppActivity("Facebook", "W-2 Tue 09:35", "W-2 Tue 10:10")])
 
 		// Thursday
 		BudgetGoal budgetGoalSocialBobBeforeUpdate = addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, "W-2 Thu 18:00")
-		reportAppActivity(bob, "Facebook", "W-2 Thu 20:00", "W-2 Thu 20:35")
+		reportAppActivity(bob, bob.requestingDevice, "Facebook", "W-2 Thu 20:00", "W-2 Thu 20:35")
 
 		// Friday
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
 		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-2 Fri 14:00")
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 15:00")
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 21:00")
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-2 Fri 15:00")
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-2 Fri 21:00")
 
 		// Week -1
 		// Wednesday
-		reportAppActivity(richard, "NU.nl", "W-1 Wed 09:13", "W-1 Wed 10:07")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Wed 09:13", "W-1 Wed 10:07")
 		updateBudgetGoal(richard, budgetGoalNewsRichardBeforeUpdate, 60, "W-1 Wed 20:51")
-		reportAppActivity(richard, "NU.nl", "W-1 Wed 21:43", "W-1 Wed 22:01")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Wed 21:43", "W-1 Wed 22:01")
 
 		// Thursday
 		TimeZoneGoal timeZoneGoalSocialRichardBeforeUpdate = addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Thu 13:55")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 15:00")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Thu 15:00")
 
 		// Friday
 		updateTimeZoneGoal(richard, timeZoneGoalSocialRichardBeforeUpdate, ["11:00-12:00", "17:30-21:30"], , "W-1 Fri 12:03")
 
-		reportAppActivity(bob, "com.google.android.youtube", "W-1 Fri 10:13", "W-1 Fri 10:35")
+		reportAppActivity(bob, bob.requestingDevice, "com.google.android.youtube", "W-1 Fri 10:13", "W-1 Fri 10:35")
 		updateTimeZoneGoal(bob, timeZoneGoalMultimediaBobBeforeUpdate, ["10:00-11:00", "20:00-22:00"], , "W-1 Fri 12:03")
-		reportAppActivity(bob, "com.google.android.youtube", "W-1 Fri 21:43", "W-1 Fri 21:59")
+		reportAppActivity(bob, bob.requestingDevice, "com.google.android.youtube", "W-1 Fri 21:43", "W-1 Fri 21:59")
 
 		// Saturday
-		reportAppActivity(richard, "Facebook", "W-1 Sat 20:43", "W-1 Sat 21:01")
+		reportAppActivity(richard, richard.requestingDevice, "Facebook", "W-1 Sat 20:43", "W-1 Sat 21:01")
 
 		updateBudgetGoal(bob, budgetGoalSocialBobBeforeUpdate, 120, "W-1 Sat 20:51")
-		reportAppActivity(bob, "Facebook", "W-1 Sat 20:55", "W-1 Sat 22:00")
+		reportAppActivity(bob, bob.requestingDevice, "Facebook", "W-1 Sat 20:55", "W-1 Sat 22:00")
 
 		richard = appService.reloadUser(richard)
 		budgetGoalNewsRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL && it.historyItem }
@@ -985,43 +985,43 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		// Monday
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
 		BudgetGoal budgetGoalNewsRichardBeforeUpdate = richard.findActiveGoal(NEWS_ACT_CAT_URL)
-		reportAppActivity(richard, "NU.nl", "W-2 Mon 03:15", "W-2 Mon 03:35")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-2 Mon 03:15", "W-2 Mon 03:35")
 
 		// Tuesday
-		reportAppActivities(richard, [createAppActivity("NU.nl", "W-2 Tue 08:45", "W-2 Tue 09:10"), createAppActivity("Facebook", "W-2 Tue 09:35", "W-2 Tue 10:10")])
+		reportAppActivities(richard, richard.requestingDevice, [createAppActivity("NU.nl", "W-2 Tue 08:45", "W-2 Tue 09:10"), createAppActivity("Facebook", "W-2 Tue 09:35", "W-2 Tue 10:10")])
 
 		// Thursday
 		BudgetGoal budgetGoalSocialBobBeforeUpdate = addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, "W-2 Thu 18:00")
-		reportAppActivity(bob, "Facebook", "W-2 Thu 20:00", "W-2 Thu 20:35")
+		reportAppActivity(bob, bob.requestingDevice, "Facebook", "W-2 Thu 20:00", "W-2 Thu 20:35")
 
 		// Friday
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
 		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-2 Fri 14:00")
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 15:00")
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 21:00")
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-2 Fri 15:00")
+		reportNetworkActivity(bob.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-2 Fri 21:00")
 
 		// Week -1
 		// Wednesday
-		reportAppActivity(richard, "NU.nl", "W-1 Wed 09:13", "W-1 Wed 10:07")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Wed 09:13", "W-1 Wed 10:07")
 		BudgetGoal budgetGoalNewsRichardAfterUpdate = updateBudgetGoal(richard, budgetGoalNewsRichardBeforeUpdate, 60, "W-1 Wed 20:51")
-		reportAppActivity(richard, "NU.nl", "W-1 Wed 21:43", "W-1 Wed 22:01")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Wed 21:43", "W-1 Wed 22:01")
 
 		// Thursday
 		TimeZoneGoal timeZoneGoalSocialRichardBeforeUpdate = addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Thu 13:55")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 15:00")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Thu 15:00")
 
 		// Friday
 		updateTimeZoneGoal(richard, timeZoneGoalSocialRichardBeforeUpdate, ["11:00-12:00", "17:30-21:30"], , "W-1 Fri 12:03")
 
-		reportAppActivity(bob, "com.google.android.youtube", "W-1 Fri 10:13", "W-1 Fri 10:35")
+		reportAppActivity(bob, bob.requestingDevice, "com.google.android.youtube", "W-1 Fri 10:13", "W-1 Fri 10:35")
 		updateTimeZoneGoal(bob, timeZoneGoalMultimediaBobBeforeUpdate, ["10:00-11:00", "20:00-22:00"], , "W-1 Fri 12:03")
-		reportAppActivity(bob, "com.google.android.youtube", "W-1 Fri 21:43", "W-1 Fri 21:59")
+		reportAppActivity(bob, bob.requestingDevice, "com.google.android.youtube", "W-1 Fri 21:43", "W-1 Fri 21:59")
 
 		// Saturday
-		reportAppActivity(richard, "Facebook", "W-1 Sat 20:43", "W-1 Sat 21:01")
+		reportAppActivity(richard, richard.requestingDevice, "Facebook", "W-1 Sat 20:43", "W-1 Sat 21:01")
 
 		updateBudgetGoal(bob, budgetGoalSocialBobBeforeUpdate, 120, "W-1 Sat 20:51")
-		reportAppActivity(bob, "Facebook", "W-1 Sat 20:55", "W-1 Sat 22:00")
+		reportAppActivity(bob, bob.requestingDevice, "Facebook", "W-1 Sat 20:55", "W-1 Sat 22:00")
 
 		assertResponseStatusOk(appService.removeGoal(richard, budgetGoalNewsRichardAfterUpdate))
 
@@ -1241,9 +1241,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def app = "NU.nl"
 		def appActStartTime = "W-1 Wed 03:15"
 		def appActEndTime = "W-1 Wed 03:35"
-		reportAppActivity(richard, app, appActStartTime, appActEndTime)
+		reportAppActivity(richard, richard.requestingDevice, app, appActStartTime, appActEndTime)
 		def netActStartTime = "W-1 Wed 15:00"
-		reportNetworkActivity(richard, ["News"], "http://rd.nl", netActStartTime)
+		reportNetworkActivity(richard.requestingDevice, ["News"], "http://rd.nl", netActStartTime)
 
 		def goalId = richard.findActiveGoal(NEWS_ACT_CAT_URL).getId()
 		def lastWednesdayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Wed 09:00"))
@@ -1415,18 +1415,18 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User richardIphone = appService.addDevice(richardDefault, iphoneDeviceName, "IOS", Device.SOME_APP_VERSION)
 
 		// Activities on default device
-		reportAppActivity(richardDefault, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
-		reportNetworkActivity(richardDefault, ["News"], "http://www.nu.nl", "W-1 Mon 03:20") // Same device, within app activity
-		reportNetworkActivity(richardDefault, ["News"], "http://www.nu.nl", "W-1 Mon 03:40") // Same device, outside app activity
-		reportNetworkActivity(richardDefault, ["social"], "http://www.facebook.com", "W-1 Mon 03:20") // Same device, within app activity
-		reportNetworkActivity(richardDefault, ["social"], "http://www.facebook.com", "W-1 Mon 03:42") // Same device, outside app activity
-		reportAppActivity(richardDefault, "NU.nl", "W-1 Mon 04:15", "W-1 Mon 04:35")
-		reportAppActivity(richardDefault, "NU.nl", "W-1 Mon 05:15", "W-1 Mon 05:35")
+		reportAppActivity(richardDefault, richardDefault.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportNetworkActivity(richardDefault.requestingDevice, ["News"], "http://www.nu.nl", "W-1 Mon 03:20") // Same device, within app activity
+		reportNetworkActivity(richardDefault.requestingDevice, ["News"], "http://www.nu.nl", "W-1 Mon 03:40") // Same device, outside app activity
+		reportNetworkActivity(richardDefault.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Mon 03:20") // Same device, within app activity
+		reportNetworkActivity(richardDefault.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Mon 03:42") // Same device, outside app activity
+		reportAppActivity(richardDefault, richardDefault.requestingDevice, "NU.nl", "W-1 Mon 04:15", "W-1 Mon 04:35")
+		reportAppActivity(richardDefault, richardDefault.requestingDevice, "NU.nl", "W-1 Mon 05:15", "W-1 Mon 05:35")
 
 		// Activities on second device
-		reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 04:10", "W-1 Mon 04:20") // Partial overlap
-		reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 05:20", "W-1 Mon 05:30") // Full overlap
-		reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 06:15", "W-1 Mon 06:35") // No overlap at all
+		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Mon 04:10", "W-1 Mon 04:20") // Partial overlap
+		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Mon 05:20", "W-1 Mon 05:30") // Full overlap
+		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Mon 06:15", "W-1 Mon 06:35") // No overlap at all
 
 		def expectedValuesRichardLastWeek = [
 			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 86, spread: [13 : 15, 14 : 6, 15 : 0, 16 : 5, 17 : 15, 18 : 5, 19 : 0, 20 : 0, 21 : 15, 22 : 5, 23 : 0, 24 : 0, 25 : 15, 26 : 5]]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [13 : 1, 14 : 1]]]],
@@ -1531,7 +1531,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal timeZoneGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
 		// Activities on default device
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Mon 03:20")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Mon 03:20")
 
 		def expectedValuesRichardLastWeek = [
 			"Mon" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: expectedValue]]],

@@ -26,7 +26,6 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import nu.yona.server.Constants;
 import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.service.GoalDto;
@@ -53,11 +52,11 @@ public class UserDto
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed,
 			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
-			Set<BuddyDto> buddies, UUID userAnonymizedId, Optional<VPNProfileDto> vpnProfile, Set<UserDeviceDto> devices)
+			Set<BuddyDto> buddies, UUID userAnonymizedId, Set<UserDeviceDto> devices)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest,
 				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, firstName, lastName, nickname, userPhotoId,
-						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, vpnProfile, devices));
+						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, devices));
 	}
 
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String mobileNumber,
@@ -218,19 +217,8 @@ public class UserDto
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
 				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(),
 				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
-				userEntity.getUserAnonymizedId(), createVpnProfileDto(userEntity),
+				userEntity.getUserAnonymizedId(),
 				userEntity.getDevices().stream().map(UserDeviceDto::createInstance).collect(Collectors.toSet()));
-	}
-
-	// YD-541: Remove this method
-	private static Optional<VPNProfileDto> createVpnProfileDto(User userEntity)
-	{
-		return determineDefaultDevice(userEntity).map(VPNProfileDto::createInstance);
-	}
-
-	private static Optional<UserDevice> determineDefaultDevice(User userEntity)
-	{
-		return userEntity.getDevices().stream().filter(d -> d.getDeviceAnonymized().getDeviceIndex() == 0).findAny();
 	}
 
 	public static UserDto createInstanceWithBuddyData(User userEntity, BuddyUserPrivateDataDto buddyData)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -29,7 +29,6 @@ class User
 	String deviceAppVersion
 	final String mobileNumberConfirmationUrl
 	final String resendMobileNumberConfirmationCodeUrl
-	final String postOpenAppEventUrl // YD-544
 	final boolean hasPrivateData
 	final String nickname
 	final String userPhotoUrl
@@ -37,7 +36,6 @@ class User
 	final List<Goal> goals
 	final List<Buddy> buddies
 	final List<Device> devices
-	final VPNProfile vpnProfile // YD-541
 	final String url
 	final String editUrl
 	final String buddiesUrl
@@ -47,14 +45,10 @@ class User
 	final String dailyActivityReportsWithBuddiesUrl
 	final String weeklyActivityReportsUrl
 	final String newDeviceRequestUrl
-	final String appActivityUrl // YD-544
 	final String pinResetRequestUrl
 	final String verifyPinResetUrl
 	final String resendPinResetConfirmationCodeUrl
 	final String clearPinResetUrl
-	final String sslRootCertUrl // YD-544
-	final String appleMobileConfig // YD-544
-	final String sslRootCertCn // YD-544
 	final String password
 
 	User(def json)
@@ -69,7 +63,6 @@ class User
 		this.editUserPhotoUrl = json._links?."yona:editUserPhoto"?.href
 		this.mobileNumberConfirmationUrl = json._links?."yona:confirmMobileNumber"?.href
 		this.resendMobileNumberConfirmationCodeUrl = json._links?."yona:resendMobileNumberConfirmationCode"?.href
-		this.postOpenAppEventUrl = json._links?."yona:postOpenAppEvent"?.href
 		this.hasPrivateData = json.yonaPassword != null
 		if (this.hasPrivateData)
 		{
@@ -78,7 +71,6 @@ class User
 			this.password = json.yonaPassword
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
-			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : null
 		this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect{new Device(this.password, it)} : null
@@ -91,14 +83,10 @@ class User
 		this.dailyActivityReportsWithBuddiesUrl = json._links?."yona:dailyActivityReportsWithBuddies"?.href
 		this.weeklyActivityReportsUrl = json._links?."yona:weeklyActivityReports"?.href
 		this.newDeviceRequestUrl = json._links?."yona:newDeviceRequest"?.href
-		this.appActivityUrl = json._links?."yona:appActivity"?.href
 		this.pinResetRequestUrl = json._links?."yona:requestPinReset"?.href
 		this.verifyPinResetUrl = json._links?."yona:verifyPinReset"?.href
 		this.resendPinResetConfirmationCodeUrl = json._links?."yona:resendPinResetConfirmationCode"?.href
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
-		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
-		this.appleMobileConfig = json._links?."yona:appleMobileConfig"?.href
-		this.sslRootCertCn = json.sslRootCertCN
 	}
 
 	def convertToJson()
@@ -146,6 +134,11 @@ class User
 	def getRequestingDeviceId()
 	{
 		YonaServer.getQueryParams(url)["requestingDeviceId"]
+	}
+
+	Device getRequestingDevice()
+	{
+		devices.find{ it.isRequestingDevice() }
 	}
 
 	static def getIdFromUrl(def url)

@@ -16,7 +16,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	def 'Attempt to add another user with the same mobile number'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
 
 		when:
 		def duplicateUser = appService.addUser(this.&userExistsAsserter, "The", "Next", "TN",
@@ -38,7 +38,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	def 'Richard gets a confirmation code when requesting to overwrite his account'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
 
 		when:
 		def response = appService.requestOverwriteUser(richard.mobileNumber)
@@ -54,9 +54,9 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
@@ -96,8 +96,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	def 'Overwrite Richard with pending buddy invitation to Bob'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		appService.requestOverwriteUser(richard.mobileNumber)
@@ -141,8 +141,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	def 'Overwrite Richard with pending buddy invitation from Bob'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		richard.emailAddress = "richard@quinn.com"
 		appService.sendBuddyConnectRequest(bob, richard)
 		appService.requestOverwriteUser(richard.mobileNumber)
@@ -186,8 +186,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
@@ -199,8 +199,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged
 		richardChanged.firstName == "${richard.firstName}Changed"
 
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
-		analysisService.postToAnalysisEngine(richardChanged, "news/media", "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richardChanged.requestingDevice, "news/media", "http://www.refdag.nl")
 
 		def getMessagesRichardResponse = appService.getMessages(richardChanged)
 		assertResponseStatusOk(getMessagesRichardResponse)
@@ -245,7 +245,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 				["overwriteUserConfirmationCode": "1234"])
 
 		when:
-		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		def response = analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
 
 		def getMessagesResponse = appService.getMessages(richardChanged)
 		assertResponseStatusOk(getMessagesResponse)
@@ -262,8 +262,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	def 'Overwrite Richard after requesting a confirmation code for the second time'()
 	{
 		given:
-		def richard = addRichard()
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		User richard = addRichard()
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		assertResponseStatusOk(appService.requestOverwriteUser(richard.mobileNumber))
 		assertResponseStatusOk(appService.requestOverwriteUser(richard.mobileNumber))
 

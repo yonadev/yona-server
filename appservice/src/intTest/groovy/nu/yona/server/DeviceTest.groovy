@@ -22,12 +22,18 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID")
+		User johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID")
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
+		User johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
 
 		assertInitialDeviceDetails(johnAfterNumberConfirmation, "My S8", "ANDROID")
+
+		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
+		def baseUserUrl = YonaServer.stripQueryString(johnAfterNumberConfirmation.url)
+		johnAfterNumberConfirmation.requestingDevice.postOpenAppEventUrl == baseUserUrl + "/devices/" + johnAfterNumberConfirmation.getRequestingDeviceId() + "/openApp"
+		johnAfterNumberConfirmation.requestingDevice.appActivityUrl == baseUserUrl + "/devices/" + johnAfterNumberConfirmation.getRequestingDeviceId() + "/appActivity/"
+		johnAfterNumberConfirmation.requestingDevice.appleMobileConfig == baseUserUrl + "/devices/" + johnAfterNumberConfirmation.getRequestingDeviceId() + "/apple.mobileconfig"
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -39,10 +45,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = createJohnDoe(ts, "My iPhone X", "IOS")
+		User johnAsCreated = createJohnDoe(ts, "My iPhone X", "IOS")
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
+		User johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
 
 		assertInitialDeviceDetails(johnAfterNumberConfirmation, "My iPhone X", "IOS")
 
@@ -56,10 +62,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = createJohnDoe(ts)
+		User johnAsCreated = createJohnDoe(ts)
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
+		User johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
 
 		assertInitialDeviceDetails(johnAfterNumberConfirmation, "First device", "UNKNOWN")
 
@@ -73,10 +79,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = createJohnDoe(ts, "01234567890123456789", "IOS")
+		User johnAsCreated = createJohnDoe(ts, "01234567890123456789", "IOS")
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
+		User johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
 
 		assertInitialDeviceDetails(johnAfterNumberConfirmation, "01234567890123456789", "IOS")
 
@@ -84,26 +90,43 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(johnAsCreated)
 	}
 
+	def 'Retrieve SSL root certificate'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		assert richard.requestingDevice.sslRootCertCn
+		def responseSslRootCertUrl = appService.yonaServer.restClient.get(path: richard.requestingDevice.sslRootCertUrl, headers: ["Yona-Password":richard.password])
+
+		then:
+		assertResponseStatusOk(responseSslRootCertUrl)
+		responseSslRootCertUrl.contentType == "application/pkix-cert"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	private void assertInitialDeviceDetails(User johnAfterNumberConfirmation, name, operatingSystem)
 	{
 		assert johnAfterNumberConfirmation.devices.size == 1
-		assert johnAfterNumberConfirmation.devices[0].name == name
-		assert johnAfterNumberConfirmation.devices[0].operatingSystem == operatingSystem
-		assert johnAfterNumberConfirmation.devices[0].sslRootCertCn == "smoothwall003.yona"
-		assert johnAfterNumberConfirmation.devices[0].sslRootCertUrl
-		assert johnAfterNumberConfirmation.devices[0].firebaseInstanceId == null
-		assertEquals(johnAfterNumberConfirmation.devices[0].appLastOpenedDate, YonaServer.now.toLocalDate())
+		assert johnAfterNumberConfirmation.requestingDevice.name == name
+		assert johnAfterNumberConfirmation.requestingDevice.operatingSystem == operatingSystem
+		assert johnAfterNumberConfirmation.requestingDevice.sslRootCertCn == "smoothwall003.yona"
+		assert johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl
+		assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId == null
+		assertEquals(johnAfterNumberConfirmation.requestingDevice.appLastOpenedDate, YonaServer.now.toLocalDate())
 
-		def responseSslRootCert = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.devices[0].sslRootCertUrl)
+		def responseSslRootCert = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl)
 		assertResponseStatusOk(responseSslRootCert)
 		assert responseSslRootCert.contentType == "application/pkix-cert"
 
-		assert johnAfterNumberConfirmation.devices[0].appleMobileConfig
-		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.devices[0].appleMobileConfig, headers: ["Yona-Password":johnAfterNumberConfirmation.password])
+		assert johnAfterNumberConfirmation.requestingDevice.appleMobileConfig
+		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, headers: ["Yona-Password":johnAfterNumberConfirmation.password])
 		assertResponseStatusOk(responseAppleMobileConfig)
 		assert responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
 		def appleMobileConfig = responseAppleMobileConfig.responseData.text
-		assert appleMobileConfig.contains("<string>${johnAfterNumberConfirmation.devices[0].vpnProfile.vpnLoginId}\\n${johnAfterNumberConfirmation.devices[0].vpnProfile.vpnPassword}</string>")
+		assert appleMobileConfig.contains("<string>${johnAfterNumberConfirmation.requestingDevice.vpnProfile.vpnLoginId}\\n${johnAfterNumberConfirmation.requestingDevice.vpnProfile.vpnPassword}</string>")
 	}
 
 	def 'Try to create John Doe with an unsupported device operating system'()
@@ -164,19 +187,19 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def john = createJohnDoe(ts)
 		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
 		assert john.devices.size == 1
-		assert john.devices[0].name == "First device"
-		assert john.devices[0].operatingSystem == "UNKNOWN"
+		assert john.requestingDevice.name == "First device"
+		assert john.requestingDevice.operatingSystem == "UNKNOWN"
 
 		when:
-		def response = appService.postAppActivityToAnalysisEngine(john, AppActivity.singleActivity("Poker App", YonaServer.now.minusHours(1), YonaServer.now))
+		def response = appService.postAppActivityToAnalysisEngine(john, john.requestingDevice, AppActivity.singleActivity("Poker App", YonaServer.now.minusHours(1), YonaServer.now))
 
 		then:
 		assertResponseStatusOk(response)
 
 		def johnAfterAppActivity = appService.reloadUser(john, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		johnAfterAppActivity.devices.size == 1
-		johnAfterAppActivity.devices[0].name == "First device"
-		johnAfterAppActivity.devices[0].operatingSystem == "ANDROID"
+		johnAfterAppActivity.requestingDevice.name == "First device"
+		johnAfterAppActivity.requestingDevice.operatingSystem == "ANDROID"
 
 		cleanup:
 		appService.deleteUser(john)
@@ -199,30 +222,13 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		assert johnAsCreated == null // Creation failed
 	}
 
-	def 'John Doe posts empty app opened event to legacy URL (YD-544)'()
-	{
-		given:
-		def ts = timestamp
-		def john = createJohnDoe(ts)
-		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
-
-		when:
-		def response = appService.createResourceWithPassword(john.postOpenAppEventUrl, "{}", john.password)
-
-		then:
-		assertResponseStatusOk(response)
-
-		cleanup:
-		appService.deleteUser(john)
-	}
-
 	def 'Richard posts app opened event with a valid operating system and app version'()
 	{
 		given:
 		def richard = addRichard()
 
 		when:
-		def response = richard.devices[0].postOpenAppEvent(appService)
+		def response = richard.requestingDevice.postOpenAppEvent(appService)
 
 		then:
 		assertResponseStatusOk(response)
@@ -234,10 +240,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 	def 'Try to post app opened event with different operating system'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
 
 		when:
-		def response = richard.devices[0].postOpenAppEvent(appService, "ANDROID")
+		def response = richard.requestingDevice.postOpenAppEvent(appService, "ANDROID")
 
 		then:
 		assertResponseStatus(response, 400)
@@ -250,11 +256,11 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 	def 'Try to post app opened event for a too old app version'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
 
 		when:
 		def appVersion = "9.9.9"
-		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, appVersion, 2)
+		def response = richard.requestingDevice.postOpenAppEvent(appService, richard.requestingDevice.operatingSystem, appVersion, 2)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -268,10 +274,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 	def 'Try to post app opened event with an invalid version code (negative)'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
 
 		when:
-		def response = richard.devices[0].postOpenAppEvent(appService, richard.devices[0].operatingSystem, "1.0.0", -2)
+		def response = richard.requestingDevice.postOpenAppEvent(appService, richard.requestingDevice.operatingSystem, "1.0.0", -2)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -285,7 +291,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def ts = timestamp
-		def john = createJohnDoe(ts)
+		User john = createJohnDoe(ts)
 		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
 
 		when:
@@ -303,7 +309,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 			values["appVersionCode"] = appVersionCode
 		}
 
-		def response = appService.createResourceWithPassword(john.devices[0].postOpenAppEventUrl, JsonOutput.prettyPrint(JsonOutput.toJson(values)), john.password)
+		def response = appService.createResourceWithPassword(john.requestingDevice.postOpenAppEventUrl, JsonOutput.prettyPrint(JsonOutput.toJson(values)), john.password)
 
 		then:
 		assertResponseStatus(response, responseStatus)
