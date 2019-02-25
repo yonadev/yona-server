@@ -83,7 +83,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def response = appService.deleteUser(john)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getUserResponse = appService.getUser(john.url)
 		getUserResponse.status == 400 || getUserResponse.status == 404
 	}
@@ -139,7 +139,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
 		response1TimeWrong.responseData.remainingAttempts == 4
 
-		assertResponseStatusOk(responseRequestResend)
+		assertResponseStatusNoContent(responseRequestResend)
 
 		def response1TimeWrongAgain = confirmMobileNumber(john, "12341")
 		assertResponseStatus(response1TimeWrongAgain, 400)

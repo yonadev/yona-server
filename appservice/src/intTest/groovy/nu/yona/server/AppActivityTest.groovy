@@ -58,7 +58,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def response = appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, AppActivity.singleActivity("Poker App", startTime, endTime))
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
@@ -103,7 +103,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def response = appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, AppActivity.singleActivity(currentTimeWrong, "Poker App", startTimeWrong, endTimeWrong))
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
@@ -178,7 +178,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime), new AppActivity.Activity("Lotto App", , startTime1, endTime1)].toArray()))
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
@@ -214,7 +214,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime)].toArray()))
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
@@ -303,7 +303,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime)].toArray()))
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
@@ -328,7 +328,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com", netActStartTime)
-		assertResponseStatusOk(appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, new AppActivity([appActivity].toArray())))
+		assertResponseStatusNoContent(appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, new AppActivity([appActivity].toArray())))
 
 		then:
 		def response = appService.getDayDetails(richard, GAMBLING_ACT_CAT_URL, appActStartTime)
@@ -357,7 +357,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com", netActStartTime)
-		assertResponseStatusOk(appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, new AppActivity([appActOne, appActTwo, appActOne].toArray())))
+		assertResponseStatusNoContent(appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, new AppActivity([appActOne, appActTwo, appActOne].toArray())))
 
 		then:
 		def response = appService.getDayDetails(richard, GAMBLING_ACT_CAT_URL, appActOneStartTime)

@@ -404,7 +404,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, richardGoal, "Don't want to monitor my news time anymore")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		cleanup:
 		appService.deleteUser(richard)

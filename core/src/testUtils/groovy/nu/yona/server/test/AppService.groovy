@@ -155,7 +155,7 @@ class AppService extends Service
 			return null
 		}
 		def response = yonaServer.deleteResourceWithPassword(user.editUrl, user.password, ["message":message])
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		return response
 	}
 

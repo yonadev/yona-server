@@ -190,7 +190,7 @@ public class DeviceController extends ControllerBase
 			assertValidOpenAppEvent(request);
 			deviceService.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(),
 					Optional.ofNullable(request.appVersion), request.appVersionCode);
-			return createOkResponse();
+			return createNoContentResponse();
 		}
 	}
 
@@ -303,7 +303,7 @@ public class DeviceController extends ControllerBase
 			UUID userAnonymizedId = userDto.getOwnPrivateData().getUserAnonymizedId();
 			UUID deviceAnonymizedId = deviceService.getDeviceAnonymizedId(userDto, deviceId);
 			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, deviceAnonymizedId, appActivities);
-			return createOkResponse();
+			return createNoContentResponse();
 		}
 	}
 

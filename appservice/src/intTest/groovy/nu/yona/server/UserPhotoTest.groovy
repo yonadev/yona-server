@@ -173,7 +173,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.deleteResourceWithPassword(richard.editUserPhotoUrl, richard.password)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == null

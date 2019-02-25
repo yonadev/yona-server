@@ -509,7 +509,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, budgetGoalNews)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def expectedTotalDaysAfterDelete = expectedTotalDaysBeforeDelete - 2
 		def expectedTotalWeeksAfterDelete = expectedTotalWeeksBeforeDelete
 		def expectedValuesRichardLastWeekAfterDelete = [
@@ -1023,7 +1023,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		updateBudgetGoal(bob, budgetGoalSocialBobBeforeUpdate, 120, "W-1 Sat 20:51")
 		reportAppActivity(bob, bob.requestingDevice, "Facebook", "W-1 Sat 20:55", "W-1 Sat 22:00")
 
-		assertResponseStatusOk(appService.removeGoal(richard, budgetGoalNewsRichardAfterUpdate))
+		assertResponseStatusNoContent(appService.removeGoal(richard, budgetGoalNewsRichardAfterUpdate))
 
 		richard = appService.reloadUser(richard)
 		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
@@ -1385,7 +1385,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		def responseRemoveBuddy = appService.removeBuddy(bob, appService.getBuddies(bob)[0], "Sorry, I regret having asked you")
-		assertResponseStatusOk(responseRemoveBuddy)
+		assertResponseStatusNoContent(responseRemoveBuddy)
 
 		when:
 		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 14])

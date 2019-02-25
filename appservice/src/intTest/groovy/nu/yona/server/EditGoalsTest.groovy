@@ -722,7 +722,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def responseGoalsAfterDelete = appService.getGoals(richard)
 		assertResponseStatusOk(responseGoalsAfterDelete)
@@ -772,7 +772,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, newsGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getMessagesRichardAfterGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardAfterGoalDeleteResponse)
@@ -802,7 +802,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(getMessagesBobBeforeGoalDeleteResponse)
 		getMessagesBobBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
 
-		assertResponseStatusOk(appService.removeBuddy(bob, bob.buddies[0], "Richard, as you know our ways parted, so I'll remove you as buddy."))
+		assertResponseStatusNoContent(appService.removeBuddy(bob, bob.buddies[0], "Richard, as you know our ways parted, so I'll remove you as buddy."))
 
 		Goal newsGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 
@@ -810,7 +810,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, newsGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getMessagesRichardAfterGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardAfterGoalDeleteResponse)

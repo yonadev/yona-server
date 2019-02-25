@@ -70,7 +70,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		sleepTillPinResetCodeIsGenerated(richard, firstResponse.responseData.delay)
 		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsPinResetRequestedAndGenerated)
 		assert richard.clearPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/clear"
-		assertResponseStatusOk(appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password]))
+		assertResponseStatusNoContent(appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password]))
 		richard = appService.reloadUser(richard)
 		assert richard.pinResetRequestUrl != null
 
@@ -117,7 +117,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "1234"}""", ["Yona-Password" : richard.password])
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		User  richardAfterGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsPinResetRequestedAndGenerated)
 		!richardAfterGet.pinResetRequestUrl
 		richardAfterGet.verifyPinResetUrl
@@ -165,7 +165,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password])
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		User  richardAfterGet = appService.reloadUser(richard)
 		richardAfterGet.pinResetRequestUrl
 		!richardAfterGet.verifyPinResetUrl
@@ -192,7 +192,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password])
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		User  richardAfterGet = appService.reloadUser(richard)
 		richardAfterGet.pinResetRequestUrl
 		!richardAfterGet.verifyPinResetUrl

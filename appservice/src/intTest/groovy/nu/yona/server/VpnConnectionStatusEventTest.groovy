@@ -165,7 +165,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 	{
 		def newDeviceRequestPassword = "Temp password"
 		def response = appService.setNewDeviceRequest(user.mobileNumber, user.password, newDeviceRequestPassword)
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getResponseAfter = appService.getNewDeviceRequest(user.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)

@@ -178,7 +178,7 @@ paths:
       tags:
         - User
       responses:
-        '200':
+        '204':
           description: The user is deleted.
         default:
           description: Unexpected error
@@ -219,7 +219,7 @@ paths:
       tags:
         - User
       responses:
-        '200':
+        '204':
           description: The request is successfully handled
         default:
           description: Confirmation failed
@@ -258,7 +258,7 @@ paths:
       tags:
         - User photo
       responses:
-        '200':
+        '204':
           description: The user photo is deleted.
         default:
           description: Unexpected error
@@ -408,7 +408,7 @@ paths:
       tags:
         - Device
       responses:
-        '200':
+        '204':
           description: The request is successfully handled
         default:
           description: Action failed
@@ -483,7 +483,7 @@ paths:
       tags:
         - Device
       responses:
-        '200':
+        '204':
           description: App activity reported correctly
         default:
           description: Unexpected error
@@ -631,7 +631,7 @@ paths:
       tags:
         - Goal
       responses:
-        '200':
+        '204':
           description: The goal is deleted.
         default:
           description: Unexpected error
@@ -983,7 +983,7 @@ paths:
       tags:
         - Buddy
       responses:
-        '200':
+        '204':
           description: The new buddy is deleted.
         default:
           description: Unexpected error
@@ -1229,8 +1229,8 @@ paths:
       tags:
         - Message
       responses:
-        '200':
-          description: Messages of this user.
+        '204':
+          description: Message is deleted.
   '/users/{userID}/messages/{messageID}/{messageAction}':
     post:
       summary: Act on a message
@@ -1302,7 +1302,7 @@ paths:
       tags:
         - Pin reset
       responses:
-        '200':
+        '204':
           description: Confirmation code correct
         default:
           description: Unexpected error
@@ -1318,7 +1318,7 @@ paths:
       tags:
         - Pin reset
       responses:
-        '200':
+        '204':
           description: The request is successfully handled
         default:
           description: Unexpected error
@@ -1334,7 +1334,7 @@ paths:
       tags:
         - Pin reset
       responses:
-        '200':
+        '204':
           description: Request cleared successfully
         default:
           description: Unexpected error
@@ -1362,7 +1362,7 @@ paths:
       tags:
         - New device requests
       responses:
-        '200':
+        '204':
           description: The new device request is available
         default:
           description: Unexpected error
@@ -1451,7 +1451,7 @@ paths:
       tags:
         - Admin
       responses:
-        '200':
+        '201':
           description: The request was successfully created. The confirmation will be texted to the mobile number.
         default:
           description: Unexpected error

@@ -28,7 +28,7 @@ public class AdminController
 	private UserService userService;
 
 	@PostMapping(value = "/requestUserOverwrite/")
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
 	{
 		try

@@ -293,7 +293,7 @@ public class UserController extends ControllerBase
 
 	@DeleteMapping(value = "/{userId}")
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
@@ -328,7 +328,7 @@ public class UserController extends ControllerBase
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userService.resendMobileNumberConfirmationCode(userId);
-			return createOkResponse();
+			return createNoContentResponse();
 		}
 	}
 

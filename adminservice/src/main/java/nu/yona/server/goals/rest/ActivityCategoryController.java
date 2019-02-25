@@ -92,7 +92,7 @@ public class ActivityCategoryController extends ControllerBase
 	}
 
 	@DeleteMapping(value = "/{id}")
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteActivityCategory(@PathVariable UUID id)
 	{
 		activityCategoryService.deleteActivityCategory(id);

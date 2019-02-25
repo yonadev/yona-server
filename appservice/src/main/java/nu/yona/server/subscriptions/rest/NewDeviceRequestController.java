@@ -60,7 +60,7 @@ public class NewDeviceRequestController extends ControllerBase
 	private NewDeviceRequestService newDeviceRequestService;
 
 	@PutMapping(value = "/{mobileNumber}")
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) String password,
 			@PathVariable String mobileNumber, @RequestBody NewDeviceRequestCreationDto newDeviceRequestCreation)
 	{
@@ -106,7 +106,7 @@ public class NewDeviceRequestController extends ControllerBase
 
 	@DeleteMapping(value = "/{mobileNumber}")
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable String mobileNumber)
 	{

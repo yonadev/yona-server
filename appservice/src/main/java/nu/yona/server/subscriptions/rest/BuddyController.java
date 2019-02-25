@@ -122,7 +122,7 @@ public class BuddyController extends ControllerBase
 
 	@DeleteMapping(value = "/{buddyId}")
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @RequestParam(value = "message", required = false) String messageStr)
 	{

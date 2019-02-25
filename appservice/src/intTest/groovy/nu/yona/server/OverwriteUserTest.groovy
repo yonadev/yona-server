@@ -44,7 +44,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def response = appService.requestOverwriteUser(richard.mobileNumber)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -264,8 +264,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
-		assertResponseStatusOk(appService.requestOverwriteUser(richard.mobileNumber))
-		assertResponseStatusOk(appService.requestOverwriteUser(richard.mobileNumber))
+		assertResponseStatusNoContent(appService.requestOverwriteUser(richard.mobileNumber))
+		assertResponseStatusNoContent(appService.requestOverwriteUser(richard.mobileNumber))
 
 		when:
 		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",

@@ -194,7 +194,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def response = appService.postAppActivityToAnalysisEngine(john, john.requestingDevice, AppActivity.singleActivity("Poker App", YonaServer.now.minusHours(1), YonaServer.now))
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def johnAfterAppActivity = appService.reloadUser(john, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		johnAfterAppActivity.devices.size == 1
@@ -231,7 +231,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def response = richard.requestingDevice.postOpenAppEvent(appService)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -319,8 +319,8 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		where:
 		operatingSystem | appVersion | appVersionCode | responseStatus
-		"IOS" | "1.1" | 50 | 200
-		null | null | null | 200
+		"IOS" | "1.1" | 50 | 204
+		null | null | null | 204
 		"IOS" | null | null | 400
 		null | "1.1" | null | 400
 		null | null | 50 | 400

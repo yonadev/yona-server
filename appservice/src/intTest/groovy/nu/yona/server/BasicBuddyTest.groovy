@@ -521,7 +521,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bob = appService.reloadUser(bob)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		richard.buddies.size() == 0 // Buddy removed for Richard
 		bob.buddies.size() == 0 // Buddy removed for Bob (processed as part of reload)
 
@@ -657,7 +657,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeBuddy(richard, appService.getBuddies(richard)[0], "Sorry, I regret having asked you")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		appService.getBuddies(bob).size() == 0 // Bob didn't accept Richard's request yet
 		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
 
@@ -800,7 +800,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	private void disconnectBuddy(User user, User buddy)
 	{
 		def response = appService.removeBuddy(user, appService.getBuddies(user)[0], "Good luck")
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		processBuddyDisconnectMessage(buddy)
 		assert appService.getBuddies(user).size() == 0
 		assert appService.getBuddies(buddy).size() == 0

@@ -270,7 +270,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		appActivities.collect
 		{
 			def response = appService.postAppActivityToAnalysisEngine(user, device, it)
-			assertResponseStatusOk(response)
+			assertResponseStatusNoContent(response)
 		}
 	}
 	void reportNetworkActivity(Device device, def categories, def url)

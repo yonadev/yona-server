@@ -26,7 +26,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def response = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
@@ -64,7 +64,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def response = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
@@ -130,7 +130,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def newDeviceRequestPassword = "Temp password"
 		def setResponse = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
-		assertResponseStatusOk(setResponse)
+		assertResponseStatusNoContent(setResponse)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
 		def registerUrl = getResponseAfter.responseData._links."yona:registerDevice".href
@@ -233,7 +233,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def response = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatusOk(getResponseAfter)
 		getResponseAfter.responseData.yonaPassword == richard.password
@@ -253,7 +253,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def response = appService.clearNewDeviceRequest(richard.mobileNumber, richard.password)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatus(getResponseAfter, 400)
 		getResponseAfter.responseData.code == "error.no.device.request.present"
