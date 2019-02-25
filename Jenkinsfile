@@ -82,7 +82,6 @@ pipeline {
 				BETA_DB_IP = credentials('beta-db-ip')
 			}
 			steps {
-				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace loadtest --version 2.0.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
