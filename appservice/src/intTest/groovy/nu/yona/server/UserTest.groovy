@@ -14,9 +14,9 @@ import nu.yona.server.test.User
 
 class UserTest extends AbstractAppServiceIntegrationTest
 {
-	final def firstName = "John"
-	final def lastName = "Doe"
-	final def nickname = "JD"
+	static final def firstName = "John"
+	static final def lastName = "Doe"
+	static final def nickname = "JD"
 
 	def 'Create John Doe'()
 	{

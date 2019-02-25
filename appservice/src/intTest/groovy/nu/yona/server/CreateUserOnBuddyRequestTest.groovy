@@ -15,7 +15,7 @@ import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 {
-	final def dummyTempPassword = "abcd"
+	static final def dummyTempPassword = "abcd"
 
 	def 'Richard cannot create a buddy request before confirming his own mobile number'()
 	{

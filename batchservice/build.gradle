@@ -7,6 +7,8 @@ mainClassName = "nu.yona.server.BatchServiceApplication"
 import com.bmuschko.gradle.docker.tasks.container.*
 import com.bmuschko.gradle.docker.tasks.image.*
 
+def dockerImageName = "${project.group}/${jar.baseName}"
+
 release {
 	failOnCommitNeeded = true
 	tagTemplate = "batchservice-${version}"
@@ -54,7 +56,7 @@ docker {
 
 task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 	inputDir = mkdir("build/docker")
-	tag = "${project.group}/${jar.baseName}:${project.ext.docker_tag}"
+	tags = [ "${dockerImageName}:${project.ext.docker_tag}" ]
 	doFirst {
 		copy {
 			from bootJar
@@ -63,13 +65,13 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
-			into "$inputDir"
+			into inputDir
 		}
 	}
 }
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	imageName = "${project.group}/${jar.baseName}"
+	imageName = dockerImageName
 	tag = project.ext.docker_tag
 }
 
