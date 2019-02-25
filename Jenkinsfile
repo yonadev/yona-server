@@ -118,6 +118,7 @@ pipeline {
 				}
 			}
 		}
+		/*
 		stage('Deploy to load test server') {
 			agent { label 'load' }
 			environment {
@@ -179,6 +180,7 @@ pipeline {
 				}
 			}
 		}
+		*/
 		stage('Decide deploy to production server') {
 			agent none
 			when {
