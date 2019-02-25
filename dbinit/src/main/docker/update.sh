@@ -62,7 +62,7 @@ EOFLDAP
 }
 
 apply_external_json () {
-  SOURCE="${GIT_BASE}build-${RELEASE}/dbinit/data/${1}"
+  SOURCE="${GIT_BASE}napi-build-${RELEASE}/dbinit/data/${1}"
   TARGET="${2}"
   DOWNLOAD="${1}"
   download_validate $DOWNLOAD $SOURCE

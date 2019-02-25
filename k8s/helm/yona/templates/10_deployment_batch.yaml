@@ -49,7 +49,7 @@ spec:
               value: "10s"
       containers:
         - name: batch
-          image: '{{ .Values.global.imagebase | default "yonadev" }}/batchservice:build-{{ .Chart.AppVersion }}'
+        image: '{{ .Values.global.imagebase | default "yonadev" }}/batchservice:napi-build-{{ .Chart.AppVersion }}'
           #imagePullPolicy: Always
           env:       
             - name: YONA_DB_USER_NAME

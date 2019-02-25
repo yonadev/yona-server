@@ -17,6 +17,8 @@ pipeline {
 				dir ('k8s/helm') {
 					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 2.0.$BUILD_NUMBER yona $GIT_USR $GIT_PSW /opt/ope-cloudbees/yona/k8s/helm helm-charts'
 				}
+				sh 'git tag -a napi-build-$BUILD_NUMBER -m "Jenkins"'
+				sh 'git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags'
 				script {
 					env.BUILD_NUMBER_TO_DEPLOY = env.BUILD_NUMBER
 				}
