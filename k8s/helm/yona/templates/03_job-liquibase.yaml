@@ -55,7 +55,7 @@ spec:
               value: "{{ .Values.ldap.port | default 389 }}"
       containers:
         - name: liquibase
-        image: {{ .Values.global.imagebase | default "yonadev" }}/yona-mariadb-liquibase-update:napi-build-{{ .Chart.AppVersion }}
+          image: {{ .Values.global.imagebase | default "yonadev" }}/yona-mariadb-liquibase-update:napi-build-{{ .Chart.AppVersion }}
           imagePullPolicy: IfNotPresent
           env:       
             - name: USER
