@@ -88,8 +88,11 @@ pipeline {
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
+				success {
+					slackSend color: 'good', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to the test server"
+				}
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to load test"
+					slackSend color: 'danger', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to the test server"
 				}
 			}
 		}
