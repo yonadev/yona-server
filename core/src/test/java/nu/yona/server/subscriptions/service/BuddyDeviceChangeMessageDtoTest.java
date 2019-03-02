@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -190,7 +190,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.ADD, device.getDeviceAnonymizedId(), Optional.empty(), Optional.of(deviceName));
 
 		// Process the message
-		manager.handleAction(UserDto.createInstance(bob), messageEntity, "process", null);
+		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
 
 		// Assert success
 		assertTrue(messageEntity.isProcessed());
@@ -222,7 +222,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.RENAME, device.getDeviceAnonymizedId(), Optional.of(orgDeviceName), Optional.of(newDeviceName));
 
 		// Process the message
-		manager.handleAction(UserDto.createInstance(bob), messageEntity, "process", null);
+		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
 
 		// Assert success
 		assertTrue(messageEntity.isProcessed());
@@ -259,7 +259,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.DELETE, device2.getDeviceAnonymizedId(), Optional.of(deviceName2), Optional.empty());
 
 		// Process the message
-		manager.handleAction(UserDto.createInstance(bob), messageEntity, "process", null);
+		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
 
 		// Assert success
 		assertTrue(messageEntity.isProcessed());
@@ -290,7 +290,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.DELETE, device1.getDeviceAnonymizedId(), Optional.of(deviceName1), Optional.empty());
 
 		// Process the message
-		manager.handleAction(UserDto.createInstance(bob), messageEntity, "process", null);
+		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
 
 		// Assert success
 		assertTrue(messageEntity.isProcessed());

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -201,29 +201,29 @@ public class UserService
 	}
 
 	@Transactional
-	public UserDto getPublicUser(UUID id)
+	public UserDto getUserWithoutPrivateData(UUID id)
 	{
-		return UserDto.createInstance(getUserEntityById(id));
+		return UserDto.createInstanceWithoutPrivateData(getUserEntityById(id));
 	}
 
 	@Transactional
-	public UserDto getPrivateUser(UUID id)
+	public UserDto getUser(UUID id)
 	{
-		return getPrivateUser(id, u -> { // Nothing required here
+		return getUser(id, u -> { // Nothing required here
 		});
 	}
 
 	@Transactional
-	public UserDto getPrivateUser(UUID id, boolean isCreatedOnBuddyRequest)
+	public UserDto getUser(UUID id, boolean isCreatedOnBuddyRequest)
 	{
-		return getPrivateUser(id, u -> assertCreatedOnBuddyRequestStatus(u, isCreatedOnBuddyRequest));
+		return getUser(id, u -> assertCreatedOnBuddyRequestStatus(u, isCreatedOnBuddyRequest));
 	}
 
-	private UserDto getPrivateUser(UUID id, Consumer<User> userStatusAsserter)
+	private UserDto getUser(UUID id, Consumer<User> userStatusAsserter)
 	{
 		User user = getUserEntityById(id);
 		userStatusAsserter.accept(user);
-		return createUserDtoWithPrivateData(user);
+		return createUserDto(user);
 	}
 
 	private void assertCreatedOnBuddyRequestStatus(User user, boolean isCreatedOnBuddyRequest)
@@ -248,7 +248,7 @@ public class UserService
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
-		return createUserDtoWithPrivateData(getPrivateValidatedUserEntity(id));
+		return createUserDto(getPrivateValidatedUserEntity(id));
 	}
 
 	@Transactional
@@ -281,7 +281,7 @@ public class UserService
 		addDevicesToEntity(user, userEntity);
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNeeded(overwriteUserConfirmationCode, userEntity);
 		userEntity = userRepository.save(userEntity);
-		UserDto userDto = createUserDtoWithPrivateData(userEntity);
+		UserDto userDto = createUserDto(userEntity);
 		if (confirmationCode.isPresent())
 		{
 			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
@@ -346,9 +346,9 @@ public class UserService
 		return confirmationCode;
 	}
 
-	public UserDto createUserDtoWithPrivateData(User user)
+	public UserDto createUserDto(User user)
 	{
-		return UserDto.createInstanceWithPrivateData(user, buddyService.getBuddyDtos(user.getBuddies()));
+		return UserDto.createInstance(user, buddyService.getBuddyDtos(user.getBuddies()));
 	}
 
 	private void addMandatoryGoals(User userEntity)
@@ -460,7 +460,7 @@ public class UserService
 			logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
 					userEntity.getMobileNumber(), userEntity.getId());
 		});
-		return createUserDtoWithPrivateData(updatedUserEntity);
+		return createUserDto(updatedUserEntity);
 	}
 
 	@Transactional
@@ -486,14 +486,14 @@ public class UserService
 		User savedUser = userRepository.save(newUser);
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
 				savedUser.getId());
-		return createUserDtoWithPrivateData(savedUser);
+		return createUserDto(savedUser);
 	}
 
 	@Transactional
 	public UserDto updateUser(UUID id, UserDto user)
 	{
 		User updatedUserEntity = updateUser(id, userEntity -> {
-			UserDto originalUser = createUserDtoWithPrivateData(userEntity);
+			UserDto originalUser = createUserDto(userEntity);
 			assertValidUpdateRequest(user, originalUser, userEntity);
 
 			user.updateUser(userEntity);
@@ -503,11 +503,11 @@ public class UserService
 				sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
 						SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
 			}
-			UserDto userDto = createUserDtoWithPrivateData(userEntity);
+			UserDto userDto = createUserDto(userEntity);
 			logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
 			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
 		});
-		return createUserDtoWithPrivateData(updatedUserEntity);
+		return createUserDto(updatedUserEntity);
 	}
 
 	/**
@@ -550,9 +550,9 @@ public class UserService
 	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
 	{
 		User updatedUserEntity = updateUser(id, userEntity -> {
-			UserDto originalUser = createUserDtoWithPrivateData(userEntity);
+			UserDto originalUser = createUserDto(userEntity);
 			userEntity.setUserPhotoId(userPhotoId);
-			UserDto userDto = createUserDtoWithPrivateData(userEntity);
+			UserDto userDto = createUserDto(userEntity);
 			if (userPhotoId.isPresent())
 			{
 				logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
@@ -565,7 +565,7 @@ public class UserService
 			}
 			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
 		});
-		return createUserDtoWithPrivateData(updatedUserEntity);
+		return createUserDto(updatedUserEntity);
 	}
 
 	private void assertValidUpdateRequest(UserDto user, UserDto originalUser, User originalUserEntity)
@@ -609,7 +609,7 @@ public class UserService
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
 		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
-		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
+		UserDto userDto = createUserDto(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
 				userDto.getId());
 		return userDto;
@@ -791,7 +791,7 @@ public class UserService
 
 	public UserDto getUserByMobileNumber(String mobileNumber)
 	{
-		return UserDto.createInstance(findUserByMobileNumber(mobileNumber));
+		return UserDto.createInstanceWithoutPrivateData(findUserByMobileNumber(mobileNumber));
 	}
 
 	/**

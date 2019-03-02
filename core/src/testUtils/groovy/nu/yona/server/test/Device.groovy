@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -18,7 +18,6 @@ class Device
 	final String password
 	final String url
 	final String editUrl
-	final String ovpnProfileUrl
 	final String name
 	final String operatingSystem
 	final String appLastOpenedDate
@@ -40,7 +39,6 @@ class Device
 		this.appLastOpenedDate = json.appLastOpenedDate
 		this.url = json._links?.self?.href
 		this.editUrl = json._links?.edit?.href
-		this.ovpnProfileUrl = json._links?.ovpnProfile?.href
 		this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		this.vpnConnected = json.vpnConnected
 		this.requestingDevice = json.requestingDevice
@@ -61,5 +59,19 @@ class Device
 	def postVpnStatus(AppService appService, boolean vpnConnected)
 	{
 		appService.createResourceWithPassword(postVpnStatusEventUrl, """{"vpnConnected":"$vpnConnected"}""", password)
+	}
+}
+
+class VPNProfile
+{
+	final String vpnLoginId
+	final String vpnPassword
+	final String ovpnProfileUrl
+
+	VPNProfile(def json)
+	{
+		this.vpnLoginId = json.vpnLoginID
+		this.vpnPassword = json.vpnPassword
+		this.ovpnProfileUrl = json._links."yona:ovpnProfile".href
 	}
 }

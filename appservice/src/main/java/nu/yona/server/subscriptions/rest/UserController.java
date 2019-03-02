@@ -153,13 +153,13 @@ public class UserController extends ControllerBase
 
 	private HttpEntity<UserResource> getOwnUser(UUID userId, String requestingDeviceIdStr, boolean isCreatedOnBuddyRequest)
 	{
-		UserDto user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
+		UserDto user = userService.getUser(userId, isCreatedOnBuddyRequest);
 		Optional<UUID> requestingDeviceId = determineRequestingDeviceId(user, requestingDeviceIdStr, isCreatedOnBuddyRequest);
 		if (requestingDeviceId.isPresent() && user.getOwnPrivateData().getDevices().map(d -> d.size() > 1).orElse(false))
 		{
 			// User has multiple devices
 			deviceService.removeDuplicateDefaultDevices(user, requestingDeviceId.get());
-			user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
+			user = userService.getUser(userId, isCreatedOnBuddyRequest);
 		}
 		return createOkResponse(user, createResourceAssemblerForOwnUser(userId, requestingDeviceId));
 	}
@@ -429,7 +429,7 @@ public class UserController extends ControllerBase
 				userId)).withRel(rel).expand(OMITTED_PARAMS);
 	}
 
-	public static Link getPrivateUserLink(String rel, UUID userId, Optional<UUID> requestingDeviceId)
+	public static Link getUserLink(String rel, UUID userId, Optional<UUID> requestingDeviceId)
 	{
 		return getUserLink(rel, userId, userId, requestingDeviceId);
 	}

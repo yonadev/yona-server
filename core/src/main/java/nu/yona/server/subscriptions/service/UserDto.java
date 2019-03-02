@@ -181,27 +181,7 @@ public class UserDto
 		originalUserEntity.setNickname(privateData.getNickname());
 	}
 
-	/**
-	 * Creates a {@link UserDto} with the public data of the user, if the user is not {@code null}. This method is provided
-	 * because the related user may be removed in the meantime. In that case the passed {@code userEntity} will be {@code null}
-	 * and the method returns {@code null}.
-	 * 
-	 * @param userEntity
-	 * @return
-	 */
-	public static Optional<UserDto> createInstance(Optional<User> userEntity)
-	{
-		return userEntity.map(UserDto::createInstance);
-	}
-
-	/**
-	 * Creates a {@link UserDto} with the public data of the user. Please use {@link #createInstance(User)} if {@code userEntity}
-	 * may be {@code null}. Use {@link #createInstanceWithPrivateData(User)} to include private data of the user.
-	 * 
-	 * @param userEntity
-	 * @return
-	 */
-	static UserDto createInstance(User userEntity)
+	static UserDto createInstanceWithoutPrivateData(User userEntity)
 	{
 		Objects.requireNonNull(userEntity, "userEntity cannot be null");
 
@@ -209,7 +189,7 @@ public class UserDto
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
 	}
 
-	public static UserDto createInstanceWithPrivateData(User userEntity, Set<BuddyDto> buddies)
+	public static UserDto createInstance(User userEntity, Set<BuddyDto> buddies)
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
@@ -221,7 +201,7 @@ public class UserDto
 				userEntity.getDevices().stream().map(UserDeviceDto::createInstance).collect(Collectors.toSet()));
 	}
 
-	public static UserDto createInstanceWithBuddyData(User userEntity, BuddyUserPrivateDataDto buddyData)
+	public static UserDto createInstance(User userEntity, BuddyUserPrivateDataDto buddyData)
 	{
 		return new UserDto(userEntity.getId(), Optional.of(userEntity.getCreationTime()), userEntity.getAppLastOpenedDate(), null,
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),

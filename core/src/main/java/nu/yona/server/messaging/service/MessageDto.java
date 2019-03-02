@@ -245,7 +245,7 @@ public abstract class MessageDto extends PolymorphicDto
 			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(firstName, lastName,
 					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId());
 			return senderInfoFactory.createInstanceForDetachedBuddy(
-					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyUserPrivateData)), buddyUserPrivateData);
+					senderUser.map(u -> UserDto.createInstance(u, buddyUserPrivateData)), buddyUserPrivateData);
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

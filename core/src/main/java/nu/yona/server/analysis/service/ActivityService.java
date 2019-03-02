@@ -655,7 +655,7 @@ public class ActivityService
 	public MessageDto addMessageToActivity(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			ActivitySupplier activitySupplier, PostPutActivityCommentMessageDto message)
 	{
-		UserDto sendingUser = userService.getPrivateUser(userId);
+		UserDto sendingUser = userService.getUser(userId);
 		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		IntervalActivity dayActivityEntity = activitySupplier.get(buddy, date, goalId);
 		if (dayActivityEntity == null)

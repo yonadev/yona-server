@@ -166,17 +166,3 @@ class User
 		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, true)
 	}
 }
-
-class VPNProfile
-{
-	final String vpnLoginId
-	final String vpnPassword
-	final String ovpnProfileUrl
-
-	VPNProfile(def json)
-	{
-		this.vpnLoginId = json.vpnLoginID
-		this.vpnPassword = json.vpnPassword
-		this.ovpnProfileUrl = json._links."yona:ovpnProfile".href
-	}
-}

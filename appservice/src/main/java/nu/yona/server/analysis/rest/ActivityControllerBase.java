@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
@@ -182,7 +182,7 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	protected GoalIdMapping createGoalIdMapping(UUID userId)
 	{
-		return GoalIdMapping.createInstance(userService.getPrivateUser(userId));
+		return GoalIdMapping.createInstance(userService.getUser(userId));
 	}
 
 	public abstract void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDto message);

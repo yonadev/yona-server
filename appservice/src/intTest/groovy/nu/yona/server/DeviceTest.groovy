@@ -121,6 +121,11 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(responseSslRootCert)
 		assert responseSslRootCert.contentType == "application/pkix-cert"
 
+		assert johnAfterNumberConfirmation.requestingDevice.vpnProfile.ovpnProfileUrl
+		def responseOvpnProfile = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.vpnProfile.ovpnProfileUrl)
+		assertResponseStatusOk(responseOvpnProfile)
+		responseOvpnProfile.contentType == "application/x-openvpn-profile"
+
 		assert johnAfterNumberConfirmation.requestingDevice.appleMobileConfig
 		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, headers: ["Yona-Password":johnAfterNumberConfirmation.password])
 		assertResponseStatusOk(responseAppleMobileConfig)

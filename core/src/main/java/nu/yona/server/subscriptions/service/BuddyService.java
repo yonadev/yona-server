@@ -129,7 +129,7 @@ public class BuddyService
 
 	public Set<BuddyDto> getBuddiesOfUser(UUID forUserId)
 	{
-		UserDto user = userService.getPrivateUser(forUserId);
+		UserDto user = userService.getUser(forUserId);
 		return user.getOwnPrivateData().getBuddies();
 	}
 
@@ -143,7 +143,7 @@ public class BuddyService
 	public BuddyDto addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDto buddy,
 			BiFunction<UUID, String, String> inviteUrlGetter)
 	{
-		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		UserDto requestingUser = userService.getUser(idOfRequestingUser);
 		assertMobileNumberOfRequestingUserConfirmed(idOfRequestingUser);
 		assertValidBuddy(requestingUser, buddy);
 
@@ -177,13 +177,13 @@ public class BuddyService
 		}
 
 		String inviteUrl = inviteUrlGetter.apply(savedUserId, tempPassword);
-		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		UserDto requestingUser = userService.getUser(idOfRequestingUser);
 		sendInvitationMessage(requestingUser, buddy, inviteUrl);
 	}
 
 	private void assertMobileNumberOfRequestingUserConfirmed(UUID idOfRequestingUser)
 	{
-		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		UserDto requestingUser = userService.getUser(idOfRequestingUser);
 		requestingUser.assertMobileNumberConfirmed();
 	}
 
@@ -301,7 +301,7 @@ public class BuddyService
 		final int pageSize = 50;
 		Page<Message> messagePage;
 		boolean messageFound = false;
-		UserDto user = userService.createUserDtoWithPrivateData(userEntity);
+		UserDto user = userService.createUserDto(userEntity);
 		do
 		{
 			messagePage = messageService.getReceivedMessageEntitiesSinceDate(user.getId(), buddy.getLastStatusChangeTime(),
@@ -456,7 +456,7 @@ public class BuddyService
 
 	private Set<Buddy> getBuddyEntitiesOfUser(UUID forUserId)
 	{
-		UserDto user = userService.getPrivateUser(forUserId);
+		UserDto user = userService.getUser(forUserId);
 		return getBuddyEntities(user.getOwnPrivateData().getBuddyIds());
 	}
 
@@ -602,7 +602,7 @@ public class BuddyService
 
 	private BuddyDto handleBuddyRequestForExistingUser(UUID idOfRequestingUser, BuddyDto buddy)
 	{
-		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		UserDto requestingUser = userService.getUser(idOfRequestingUser);
 		User buddyUserEntity = UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		buddy.getUser().setUserId(buddyUserEntity.getId());
 		Buddy buddyEntity = buddy.createBuddyEntity();
@@ -691,7 +691,7 @@ public class BuddyService
 		User userEntity = userService.getUserEntityById(userId);
 		Buddy buddy = userEntity.getBuddies().stream().filter(b -> b.getUserId().equals(buddyUserId)).findAny()
 				.orElseThrow(() -> BuddyNotFoundException.notFoundForUser(userId, buddyUserId));
-		return UserDto.createInstanceWithBuddyData(userEntity, BuddyUserPrivateDataDto.createInstance(buddy));
+		return UserDto.createInstance(userEntity, BuddyUserPrivateDataDto.createInstance(buddy));
 	}
 
 	@Transactional

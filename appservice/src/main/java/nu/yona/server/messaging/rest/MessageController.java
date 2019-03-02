@@ -413,12 +413,11 @@ public class MessageController extends ControllerBase
 
 		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDto buddyMessage)
 		{
-			buddyMessage.getSenderUser()
-					.ifPresent(user -> buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-							createUserResource(user, buddyMessage)));
+			buddyMessage.getSenderUser().ifPresent(user -> buddyMessage
+					.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), createUserResource(user)));
 		}
 
-		private UserResource createUserResource(UserDto user, BuddyMessageEmbeddedUserDto buddyMessage)
+		private UserResource createUserResource(UserDto user)
 		{
 			return UserController.UserResourceAssembler.createMinimalInstance(curieProvider, goalIdMapping.getUserId())
 					.toResource(user);
