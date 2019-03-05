@@ -243,7 +243,8 @@ public abstract class MessageDto extends PolymorphicDto
 			String lastName = buddyMessageEntity.determineLastName(senderUser);
 
 			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(firstName, lastName,
-					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId());
+					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId(),
+					buddyMessageEntity.isUserFetchable());
 			return senderInfoFactory.createInstanceForDetachedBuddy(
 					senderUser.map(u -> UserDto.createInstance(u, buddyUserPrivateData)), buddyUserPrivateData);
 		}

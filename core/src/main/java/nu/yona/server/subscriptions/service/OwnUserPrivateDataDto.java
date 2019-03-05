@@ -51,6 +51,13 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 		this.userAnonymizedId = userAnonymizedId;
 	}
 
+	@Override
+	@JsonIgnore
+	public boolean isFetchable()
+	{
+		return true;
+	}
+
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	@JsonInclude(Include.NON_EMPTY)
 	public Optional<LocalDate> getLastMonitoredActivityDate()

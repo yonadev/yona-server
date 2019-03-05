@@ -112,12 +112,12 @@ public class BuddyDto
 
 	private static Optional<UUID> getBuddyUserAnonymizedId(Buddy buddyEntity)
 	{
-		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedId() : Optional.empty();
+		return BuddyUserPrivateDataDto.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedId() : Optional.empty();
 	}
 
 	private static Optional<LocalDate> getLastMonitoredActivityDate(Buddy buddyEntity)
 	{
-		return BuddyService.canIncludePrivateData(buddyEntity)
+		return BuddyUserPrivateDataDto.canIncludePrivateData(buddyEntity)
 				? buddyEntity.getBuddyAnonymized().getUserAnonymized().getLastMonitoredActivityDate()
 				: Optional.empty();
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -10,6 +10,7 @@ import java.util.UUID;
 import javax.persistence.Entity;
 
 import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 @Entity
 public class BuddyConnectResponseMessage extends BuddyConnectMessage
@@ -34,6 +35,12 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 			UUID buddyId, Set<UserDevice> devices, BuddyAnonymized.Status status)
 	{
 		return new BuddyConnectResponseMessage(buddyInfoParameters, message, buddyId, devices, status);
+	}
+
+	@Override
+	public boolean isUserFetchable()
+	{
+		return status == Status.ACCEPTED;
 	}
 
 	public BuddyAnonymized.Status getStatus()

@@ -116,8 +116,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyConnectRequestMessages[0]._links."yona:accept".href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
 
-		// TODO YD-503 The user isn't a buddy yet, so that entity cannot be fetched
-		// appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, buddyConnectRequestMessages[0]._embedded."yona:user"._links.self.href)
+		// Bob didn't accept the buddy request, nor initiate it, so he has no access to Richard's user entity
+		buddyConnectRequestMessages[0]._embedded."yona:user"._links?.self == null
 
 		assertMarkReadUnread(bob, buddyConnectRequestMessages[0])
 
@@ -162,6 +162,24 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 
 		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyData, buddies[0].user.url, bob.password)
+
+		def getMessagesResponse = appService.getMessages(bob)
+
+		assertResponseStatusOk(getMessagesResponse)
+		getMessagesResponse.responseData._embedded."yona:messages".size() == 1
+		def buddyConnectRequestMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "BuddyConnectRequestMessage" }
+		buddyConnectRequestMessages.size() == 1
+		buddyConnectRequestMessages[0].nickname == richard.nickname
+		assertEquals(buddyConnectRequestMessages[0].creationTime, YonaServer.now)
+		buddyConnectRequestMessages[0].status == "ACCEPTED"
+		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == "Richard"
+		buddyConnectRequestMessages[0]._links."yona:user" == null
+		buddyConnectRequestMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
+		buddyConnectRequestMessages[0]._links."yona:accept" == null
+
+		// Bob accepted the buddy request, so he should be able to access to Richard's user entity
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyData, buddyConnectRequestMessages[0]._embedded."yona:user"._links.self.href, bob.password)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -574,6 +592,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyDisconnectMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
+		// Richard disconnected, so Bob has no access to Richard's user entity
+		buddyDisconnectMessages[0]._embedded."yona:user"._links?.self == null
+
 		assertMarkReadUnread(bob, buddyDisconnectMessages[0])
 
 		appService.getBuddies(bob).size() == 0
@@ -615,7 +636,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyDisconnectMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
-		richard.buddies.size() == 0 // Buddy not yet removed for Richard (not processed yet)
+		// Bob disconnected, so Richard has no access to Richard's user entity
+		buddyDisconnectMessages[0]._embedded."yona:user"._links?.self == null
+
+		richard.buddies.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)

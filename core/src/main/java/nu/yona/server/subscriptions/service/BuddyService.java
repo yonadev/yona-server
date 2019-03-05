@@ -115,16 +115,7 @@ public class BuddyService
 
 	private BuddyDto getBuddy(Buddy buddyEntity)
 	{
-		if (canIncludePrivateData(buddyEntity))
-		{
-			return BuddyDto.createInstance(buddyEntity);
-		}
 		return BuddyDto.createInstance(buddyEntity);
-	}
-
-	static boolean canIncludePrivateData(Buddy buddyEntity)
-	{
-		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED);
 	}
 
 	public Set<BuddyDto> getBuddiesOfUser(UUID forUserId)
