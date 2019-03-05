@@ -18,6 +18,15 @@ class CommonAssertions extends Service
 	static final UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
 	static final VPN_LOGIN_ID_PATTERN = "(?i)^$UUID_PATTERN\\\$[0-9]+\$"
 
+	/*
+	 * Explanation of the prefix (BASIC_USER_, BUDDY_USER_, USER_) of the below defined constants:
+	 * 
+	 * The user entity occurs in two situations:
+	 * * Your own user, generally just called "user"
+	 * * The user entity of a buddy, generally called "buddy user"
+	 * 
+	 * This naming convention is applied here as well. Next, there is a set of basic properties/links that applies to each of the two user variations.
+	 */
 	static final BASIC_USER_PROPERTIES_APP_NOT_OPENED = ["mobileNumber", "creationTime", "_links"] as Set
 	static final BASIC_USER_PROPERTIES_APP_OPENED = BASIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
 	static final USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = BASIC_USER_PROPERTIES_APP_NOT_OPENED + ["firstName", "lastName", "nickname", "yonaPassword"] as Set
