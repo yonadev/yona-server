@@ -18,7 +18,7 @@ class ActivityCategoriesTest extends Specification
 {
 	// See https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#near-cache-invalidation
 	// Default batch invalidation frequency is 10 seconds
-	static final def cachePropagationTimeoutSeconds = 20
+	static final def cachePropagationTimeoutSeconds = 240
 
 	@Shared
 	def AdminService adminService = new AdminService()
@@ -181,7 +181,7 @@ class ActivityCategoriesTest extends Specification
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 		assertResponseStatusOk(createResponse)
 		def numActivityCategoriesBeforeDelete = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
-		
+
 		println "Admin service number of activity categories before delete: $numActivityCategoriesBeforeDelete"
 
 		when:
