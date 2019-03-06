@@ -92,7 +92,7 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.localizableDescription["en-US"] == englishDescription
 		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
 
-		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategories + 1
+		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
 
 		def appServiceSkipCacheResponse = appService.getAllActivityCategoriesSkipCache()
 		def appServiceSkipCacheNumOfCategories = appServiceSkipCacheResponse.responseData._embedded."yona:activityCategories".size()
@@ -189,7 +189,7 @@ class ActivityCategoriesTest extends Specification
 
 		then:
 		assertResponseStatusOk(response)
-		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategories - 1
+		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1
 
 		def appServiceSkipCacheResponse = appService.getAllActivityCategoriesSkipCache()
 		def appServiceSkipCacheNumOfCategories = appServiceSkipCacheResponse.responseData._embedded."yona:activityCategories".size()
