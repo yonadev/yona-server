@@ -16,7 +16,9 @@ import spock.lang.Specification
 
 class ActivityCategoriesTest extends Specification
 {
-	static final def cachePropagationTimeoutSeconds = 10
+	// See https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#near-cache-invalidation
+	// Default batch invalidation frequency is 10 seconds
+	static final def cachePropagationTimeoutSeconds = 240
 
 	@Shared
 	def AdminService adminService = new AdminService()
@@ -61,11 +63,9 @@ class ActivityCategoriesTest extends Specification
 		String englishDescription = "Programming computers"
 		String dutchDescription = "Programmeren van computers"
 		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US" : englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US" : englishDescription])
-		def numActivityCategories = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
-		int numOfCategoriesInAppServiceBeforeAdd = appService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
+		def numActivityCategoriesBeforeAdd = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
 
-		println "Admin service number of activity categories before add: $numActivityCategories"
-		println "App service number of activity categories before add: $numOfCategoriesInAppServiceBeforeAdd"
+		println "Admin service number of activity categories before add: $numActivityCategoriesBeforeAdd"
 
 		when:
 		def response = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
@@ -92,15 +92,15 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.localizableDescription["en-US"] == englishDescription
 		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
 
-		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategories + 1
+		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
 
 		def appServiceSkipCacheResponse = appService.getAllActivityCategoriesSkipCache()
 		def appServiceSkipCacheNumOfCategories = appServiceSkipCacheResponse.responseData._embedded."yona:activityCategories".size()
 		println "App service skip cache size after add: $appServiceSkipCacheNumOfCategories"
 
-		waitForCachePropagation(numOfCategoriesInAppServiceBeforeAdd)
+		waitForCachePropagation(numActivityCategoriesBeforeAdd)
 		def appServiceGetResponse = appService.getAllActivityCategories()
-		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numOfCategoriesInAppServiceBeforeAdd + 1
+		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
 		def programmingCategory = findActivityCategoryByName(appServiceGetResponse, englishName)
 		programmingCategory.description == englishDescription
 
@@ -178,26 +178,24 @@ class ActivityCategoriesTest extends Specification
 		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US" : "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US" : "Programming computers"])
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 		assertResponseStatusOk(createResponse)
-		def numActivityCategories = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
-		int numOfCategoriesInAppServiceBeforeDelete = appService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
+		def numActivityCategoriesBeforeDelete = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
 
-		println "Admin service number of activity categories before delete: $numActivityCategories"
-		println "App service number of activity categories before delete: $numOfCategoriesInAppServiceBeforeDelete"
+		println "Admin service number of activity categories before delete: $numActivityCategoriesBeforeDelete"
 
 		when:
 		def response = adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
 
 		then:
 		assertResponseStatusNoContent(response)
-		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategories - 1
+		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1
 
 		def appServiceSkipCacheResponse = appService.getAllActivityCategoriesSkipCache()
 		def appServiceSkipCacheNumOfCategories = appServiceSkipCacheResponse.responseData._embedded."yona:activityCategories".size()
 		println "App service skip cache size after delete: $appServiceSkipCacheNumOfCategories"
 
-		waitForCachePropagation(numOfCategoriesInAppServiceBeforeDelete)
+		waitForCachePropagation(numActivityCategoriesBeforeDelete)
 		def appServiceGetResponse = appService.getAllActivityCategories()
-		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numOfCategoriesInAppServiceBeforeDelete - 1
+		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1
 		findActivityCategoryByName(appServiceGetResponse, "Programming") == null
 	}
 
