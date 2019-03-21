@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.test.util;
@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockingDetails;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -22,7 +22,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.Translator;
 import nu.yona.server.subscriptions.entities.User;
@@ -30,7 +30,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.UserRepository;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 public abstract class BaseSpringIntegrationTest
 {
 	@Autowired
@@ -39,13 +39,13 @@ public abstract class BaseSpringIntegrationTest
 	@Autowired
 	protected UserAnonymizedRepository userAnonymizedRepository;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUpForAll()
 	{
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 	}
 
-	@Before
+	@BeforeEach
 	public final void setUpPerTestBase()
 	{
 		MockitoAnnotations.initMocks(this);

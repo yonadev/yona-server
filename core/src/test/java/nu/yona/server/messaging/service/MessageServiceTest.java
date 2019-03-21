@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -19,9 +19,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -81,7 +81,7 @@ class MessageServiceTestConfiguration extends UserRepositoriesConfiguration
 	}
 }
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { MessageServiceTestConfiguration.class })
 public class MessageServiceTest extends BaseSpringIntegrationTest
 {
@@ -126,7 +126,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	private UserAnonymized userAnonEntity;
 	private DeviceAnonymized deviceAnonEntity;
 
-	@Before
+	@BeforeEach
 	public void setUp()
 	{
 		when(mockUserService.generatePassword()).thenReturn("topSecret");

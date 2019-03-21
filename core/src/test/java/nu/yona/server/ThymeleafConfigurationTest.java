@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
@@ -12,21 +12,21 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Optional;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import nu.yona.server.util.ThymeleafUtil;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ThymeleafConfiguration.class })
 public class ThymeleafConfigurationTest
 {
@@ -44,14 +44,14 @@ public class ThymeleafConfigurationTest
 	@Qualifier("otherTemplateEngine")
 	private TemplateEngine otherTemplateEngine;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUp()
 	{
 		originalLocale = LocaleContextHolder.getLocale();
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown()
 	{
 		LocaleContextHolder.setLocale(originalLocale);
@@ -141,10 +141,9 @@ public class ThymeleafConfigurationTest
 				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber, requestingUserNickname);
 
 		assertThat(result, containsString(MessageFormat.format("<a href=\"{0}\"", inviteUrl)));
-		assertThat(result,
-				containsString(MessageFormat.format(
-						"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
-						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
+		assertThat(result, containsString(MessageFormat.format(
+				"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
 		assertThat(result, containsString("Return to this mail and click <a href=\"http"));
 		assertThat(result, containsString("https://app.prd.yona.nu/media/img/en_US/header.jpg"));
 	}
@@ -166,10 +165,9 @@ public class ThymeleafConfigurationTest
 				requestingUserNickname);
 
 		assertThat(result, containsString(MessageFormat.format("<a href=\"{0}\"", inviteUrl)));
-		assertThat(result,
-				containsString(MessageFormat.format(
-						"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
-						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
+		assertThat(result, containsString(MessageFormat.format(
+				"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
 		assertThat(result, containsString("Ga terug naar deze mail en klik op <a href=\"http"));
 		assertThat(result, containsString("https://app.prd.yona.nu/media/img/nl_NL/header.jpg"));
 	}
