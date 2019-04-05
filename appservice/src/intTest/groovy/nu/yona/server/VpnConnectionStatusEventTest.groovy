@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation
+ * Copyright (c) 2018,. 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -8,7 +8,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
@@ -40,7 +39,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyVpnConnectionStatusChangeMessage"}
 
 		vpnConnectionStatusChangeMessages.size() == 1
-		vpnConnectionStatusChangeMessages[0]._links.self != null
+		vpnConnectionStatusChangeMessages[0]._links.keySet() == ["self", "edit", "yona:buddy", "yona:user", "yona:markRead"] as Set
 		vpnConnectionStatusChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
 		vpnConnectionStatusChangeMessages[0].message == "User connected VPN on device '${richard.devices[0].name}'"
 

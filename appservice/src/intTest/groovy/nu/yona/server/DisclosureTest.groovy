@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -8,7 +8,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.Goal
 
 class DisclosureTest extends AbstractAppServiceIntegrationTest
@@ -30,17 +29,17 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def messagesRichard = responseRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		messagesRichard.size() == 1
 		messagesRichard[0].nickname == "RQ (me)"
+		messagesRichard[0]._links.keySet() == ["self", "edit", "yona:activityCategory", "yona:dayDetails", "yona:markRead"] as Set
 		messagesRichard[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		messagesRichard[0].url != null
-		messagesRichard[0]._links."yona:requestDisclosure" == null
 
 		assertResponseStatusOk(responseBob)
 		def messagesBob = responseBob.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		messagesBob.size() == 1
 		messagesBob[0].nickname == richard.nickname
+		messagesBob[0]._links.keySet() == ["self", "edit", "yona:buddy", "yona:activityCategory", "yona:dayDetails", "yona:requestDisclosure", "yona:markRead"] as Set
 		messagesBob[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		messagesBob[0].url == null
-		messagesBob[0]._links."yona:requestDisclosure"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -77,13 +76,11 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureRequestMessages[0].status == "DISCLOSURE_REQUESTED"
 		disclosureRequestMessages[0].message == requestMessageText
 		assertEquals(disclosureRequestMessages[0].creationTime, YonaServer.now)
+		disclosureRequestMessages[0]._links.keySet() == ["self", "related", "yona:buddy", "yona:user", "yona:accept", "yona:reject", "yona:markRead", "yona:dayDetails"] as Set
 		disclosureRequestMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(bob.url))
 		disclosureRequestMessages[0]._links?.related?.href == getRichardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
-		disclosureRequestMessages[0]._links."yona:accept"?.href
-		disclosureRequestMessages[0]._links."yona:reject"?.href
 		// link to own activity present
 		def dayDetailsUrlRichard = disclosureRequestMessages[0]._links."yona:dayDetails"?.href
-		dayDetailsUrlRichard
 		def dayActivityDetailRichard = appService.getResourceWithPassword(dayDetailsUrlRichard, richard.password)
 		assertResponseStatusOk(dayActivityDetailRichard)
 		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDateString(YonaServer.now)
@@ -131,9 +128,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def disclosureRequestMessages = getRichardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "DisclosureRequestMessage"}
 		disclosureRequestMessages.size() == 1
 		disclosureRequestMessages[0].status == "DISCLOSURE_ACCEPTED"
-		disclosureRequestMessages[0]._links."yona:accept" == null
-		disclosureRequestMessages[0]._links."yona:reject" == null
-		disclosureRequestMessages[0]._links."yona:dayDetails"?.href
+		disclosureRequestMessages[0]._links.keySet() == ["self", "edit", "related", "yona:buddy", "yona:user", "yona:markRead", "yona:dayDetails"] as Set
 
 		def getBobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getBobMessagesResponse)
@@ -148,6 +143,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage.message == responseMessageText
 		disclosureResponseMessage.nickname == richard.nickname
 		assertEquals(disclosureResponseMessage.creationTime, YonaServer.now)
+		disclosureResponseMessage._links.keySet() == ["self", "edit", "related", "yona:buddy", "yona:user", "yona:markRead", "yona:dayDetails"] as Set
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		disclosureResponseMessage._embedded?."yona:user" == null
