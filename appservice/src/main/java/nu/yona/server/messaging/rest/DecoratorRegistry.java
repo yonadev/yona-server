@@ -64,7 +64,7 @@ public class DecoratorRegistry
 		}
 	}
 
-	public <T> Set<Decorator> getDecorators(Class<? extends MessageDto> classToDecorate)
+	public Set<Decorator> getDecorators(Class<? extends MessageDto> classToDecorate)
 	{
 		synchronized (decoratorsByConcreteType)
 		{

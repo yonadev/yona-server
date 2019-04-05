@@ -19,12 +19,12 @@ public class GoalConflictMessageDecorator implements Decorator
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)
 	{
 		GoalConflictMessageDto goalConflictMessage = (GoalConflictMessageDto) message;
-		addActivityCategoryLink(assembler, goalConflictMessage);
+		addActivityCategoryLink(goalConflictMessage);
 		addDayActivityDetailLink(assembler, goalConflictMessage);
 
 	}
 
-	private void addActivityCategoryLink(MessageResourceAssembler assembler, GoalConflictMessageDto message)
+	private void addActivityCategoryLink(GoalConflictMessageDto message)
 	{
 		message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryId())
 				.withRel("activityCategory"));

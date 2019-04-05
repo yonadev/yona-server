@@ -19,14 +19,9 @@ public class ActivityCommentMessageDecorator implements Decorator
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)
 	{
 		ActivityCommentMessageDto activityCommentMessageMessage = (ActivityCommentMessageDto) message;
-		IntervalActivity activity = IntervalActivity.getIntervalActivityRepository()
-				.findById(activityCommentMessageMessage.getIntervalActivityId())
-				.orElseThrow(() -> new IllegalStateException(String.format(
-						"Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
-						message.getSenderNickname(), activityCommentMessageMessage.getIntervalActivityId())));
-		Goal goal = Objects.requireNonNull(activity.getGoal(),
-				String.format("Activity getGoal() returns null for '%s' instance with id '%s' and start time '%s'",
-						activity.getClass().getSimpleName(), activity.getId(), activity.getStartDate()));
+		IntervalActivity activity = getIntervalActivity(message, activityCommentMessageMessage);
+		Goal goal = activity.getGoal();
+		assertGoalNotNull(goal, activity);
 		if (assembler.getGoalIdMapping().isUserGoal(goal.getId()))
 		{
 			assembler.getMessageController().getUserActivityController().addLinks(assembler.getGoalIdMapping(), activity,
@@ -37,5 +32,20 @@ public class ActivityCommentMessageDecorator implements Decorator
 			assembler.getMessageController().getBuddyActivityController().addLinks(assembler.getGoalIdMapping(), activity,
 					activityCommentMessageMessage);
 		}
+	}
+
+	private void assertGoalNotNull(Goal goal, IntervalActivity activity)
+	{
+		Objects.requireNonNull(goal,
+				String.format("Activity getGoal() returns null for '%s' instance with id '%s' and start time '%s'",
+						activity.getClass().getSimpleName(), activity.getId(), activity.getStartDate()));
+	}
+
+	private IntervalActivity getIntervalActivity(MessageDto message, ActivityCommentMessageDto activityCommentMessageMessage)
+	{
+		return IntervalActivity.getIntervalActivityRepository().findById(activityCommentMessageMessage.getIntervalActivityId())
+				.orElseThrow(() -> new IllegalStateException(String.format(
+						"Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
+						message.getSenderNickname(), activityCommentMessageMessage.getIntervalActivityId())));
 	}
 }
