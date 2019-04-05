@@ -13,7 +13,6 @@ import java.time.ZonedDateTime
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 
-import groovy.json.*
 import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.CommonAssertions
@@ -636,7 +635,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyDisconnectMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
-		// Bob disconnected, so Richard has no access to Richard's user entity
+		// Bob disconnected, so Richard has no access to Bob's user entity
 		buddyDisconnectMessages[0]._embedded."yona:user"._links?.self == null
 
 		richard.buddies.size() == 0
