@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -16,7 +16,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -149,7 +148,7 @@ public class ActivityUpdateServiceTest
 		goalMap.put("social", socialGoal);
 		goalMap.put("shopping", shoppingGoal);
 
-		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
+		lenient().when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
@@ -165,12 +164,14 @@ public class ActivityUpdateServiceTest
 		userAnonZoneId = userAnonDto.getTimeZone();
 
 		// Stub the GoalService to return our goals.
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
+		lenient().when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId()))
+				.thenReturn(gamblingGoal);
+		lenient().when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
+		lenient().when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId()))
+				.thenReturn(shoppingGoal);
 
 		// Mock the week activity repository
-		when(mockWeekActivityRepository.findOne(any(UUID.class), any(UUID.class), any(LocalDate.class)))
+		lenient().when(mockWeekActivityRepository.findOne(any(UUID.class), any(UUID.class), any(LocalDate.class)))
 				.thenAnswer(new Answer<WeekActivity>() {
 					@Override
 					public WeekActivity answer(InvocationOnMock invocation) throws Throwable
@@ -187,7 +188,7 @@ public class ActivityUpdateServiceTest
 				});
 
 		// Mock device service and repo
-		when(mockDeviceAnonymizedRepository.getOne(deviceAnonId)).thenReturn(deviceAnonEntity);
+		lenient().when(mockDeviceAnonymizedRepository.getOne(deviceAnonId)).thenReturn(deviceAnonEntity);
 	}
 
 	private void setUpRepositoryMocks()
@@ -538,7 +539,8 @@ public class ActivityUpdateServiceTest
 				startTime.truncatedTo(ChronoUnit.DAYS).toLocalDate());
 		Arrays.asList(activities).forEach(a -> dayActivity.addActivity(a));
 		ActivityDto existingActivity = ActivityDto.createInstance(activities[activities.length - 1]);
-		when(mockDayActivityRepository.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId())).thenReturn(dayActivity);
+		lenient().doReturn(dayActivity).when(mockDayActivityRepository).findOne(userAnonId, dayActivity.getStartDate(),
+				forGoal.getId());
 		lenient().when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, deviceAnonId, forGoal.getId()))
 				.thenReturn(existingActivity);
 		WeekActivity weekActivity = WeekActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,

@@ -23,7 +23,7 @@ public class AnalysisEngineService_determineRelevantGoalsIOsTest extends Analysi
 	}
 
 	@Test
-	public void determineRelevantGoals_networkActivityOneOptionalUserGoal_userGoalOnIOs()
+	public void determineRelevantGoals_networkActivityOneOptionalUserGoal_userGoal()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService
 				.determineRelevantGoals(makeNetworkPayload(makeCategorySet(getSocialGoal())));

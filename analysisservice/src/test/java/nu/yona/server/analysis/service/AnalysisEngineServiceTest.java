@@ -11,7 +11,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -179,10 +178,10 @@ public class AnalysisEngineServiceTest
 		goalMap.put("social", socialGoal);
 		goalMap.put("shopping", shoppingGoal);
 
-		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
+		lenient().when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
-		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
-		when(mockActivityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(anySet()))
+		lenient().when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
+		lenient().when(mockActivityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(anySet()))
 				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
 					@Override
 					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
@@ -196,7 +195,7 @@ public class AnalysisEngineServiceTest
 								.collect(Collectors.toSet());
 					}
 				});
-		when(mockActivityCategoryFilterService.getMatchingCategoriesForApp(any(String.class)))
+		lenient().when(mockActivityCategoryFilterService.getMatchingCategoriesForApp(any(String.class)))
 				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
 					@Override
 					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
@@ -222,11 +221,11 @@ public class AnalysisEngineServiceTest
 		userAnonZoneId = userAnonDto.getTimeZone();
 
 		// Stub the UserAnonymizedService to return our user.
-		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnonDto);
-		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(Optional.of(userAnonEntity));
+		lenient().when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnonDto);
+		lenient().when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(Optional.of(userAnonEntity));
 
 		// Mock the transaction helper
-		doAnswer(new Answer<Void>() {
+		lenient().doAnswer(new Answer<Void>() {
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable
 			{
@@ -236,8 +235,8 @@ public class AnalysisEngineServiceTest
 		}).when(transactionHelper).executeInNewTransaction(any(Runnable.class));
 
 		// Mock device service and repo
-		when(mockDeviceService.getDeviceAnonymized(userAnonDto, -1)).thenReturn(deviceAnonDto);
-		when(mockDeviceService.getDeviceAnonymized(userAnonDto, deviceAnonId)).thenReturn(deviceAnonDto);
+		lenient().when(mockDeviceService.getDeviceAnonymized(userAnonDto, -1)).thenReturn(deviceAnonDto);
+		lenient().when(mockDeviceService.getDeviceAnonymized(userAnonDto, deviceAnonId)).thenReturn(deviceAnonDto);
 	}
 
 	private void setUpRepositoryMocks()

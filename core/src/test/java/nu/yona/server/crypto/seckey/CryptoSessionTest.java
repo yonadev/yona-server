@@ -8,6 +8,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -29,11 +30,13 @@ public class CryptoSessionTest
 	private static final String PASSWORD2 = "easy";
 	private static final String PLAINTEXT1 = "One";
 
+	@SuppressWarnings("unused") // Used as MethodSource
 	private static Stream<String> getPlaintextCases()
 	{
 		return Stream.of(PLAINTEXT1, createVeryLongPlaintext());
 	}
 
+	@SuppressWarnings("unused") // Called from getPlaintextCases
 	private static String createVeryLongPlaintext()
 	{
 		char[] chars = new char[2500];
@@ -108,10 +111,12 @@ public class CryptoSessionTest
 	@Test
 	public void start_passwordCheckerSaysOk_doesNotThrow()
 	{
+		boolean passedThroughBoddy = false;
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk))
 		{
-			assertThat("Password checker returned OK", true);
+			passedThroughBoddy = true;
 		}
+		assertThat("Password checker returned OK", passedThroughBoddy);
 	}
 
 	@Test
@@ -120,7 +125,7 @@ public class CryptoSessionTest
 		assertThrows(CryptoException.class, () -> {
 			try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk))
 			{
-				assertThat("Password checker inadvertently returned OK", false);
+				fail("Password checker inadvertently returned OK");
 			}
 		});
 	}

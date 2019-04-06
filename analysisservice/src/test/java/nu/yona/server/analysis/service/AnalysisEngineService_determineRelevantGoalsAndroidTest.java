@@ -5,7 +5,7 @@
 package nu.yona.server.analysis.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
 
 import java.util.Set;
 
@@ -23,10 +23,10 @@ public class AnalysisEngineService_determineRelevantGoalsAndroidTest extends Ana
 	}
 
 	@Test
-	public void determineRelevantGoals_networkActivityOneOptionalUserGoal_userGoalOnIOs()
+	public void determineRelevantGoals_networkActivityOneOptionalUserGoal_empty()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService
 				.determineRelevantGoals(makeNetworkPayload(makeCategorySet(getSocialGoal())));
-		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(getSocialGoal())));
+		assertThat(relevantGoals, empty());
 	}
 }
