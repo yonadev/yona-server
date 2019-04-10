@@ -83,7 +83,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertDateTimeFormat(richardWithBuddy.buddies[0].lastStatusChangeTime)
 		assertEquals(richardWithBuddy.buddies[0].lastStatusChangeTime, buddyRequestTime)
 
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyData, richardWithBuddy.buddies[0].user.url, richard.password)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyDataNotYetEstablishedRelationship, richardWithBuddy.buddies[0].user.url, richard.password)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -160,7 +160,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
 		bobWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyData, buddies[0].user.url, bob.password)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyDataEstablishedRelationship, buddies[0].user.url, bob.password)
 
 		def getMessagesResponse = appService.getMessages(bob)
 
@@ -178,7 +178,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages[0]._links."yona:accept" == null
 
 		// Bob accepted the buddy request, so he should be able to access to Richard's user entity
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyData, buddyConnectRequestMessages[0]._embedded."yona:user"._links.self.href, bob.password)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyDataEstablishedRelationship, buddyConnectRequestMessages[0]._embedded."yona:user"._links.self.href, bob.password)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -212,7 +212,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyData, buddyConnectResponseMessages[0]._links."yona:user".href, richard.password)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyDataEstablishedRelationship, buddyConnectResponseMessages[0]._links."yona:user".href, richard.password)
 
 		assertMarkReadUnread(richard, buddyConnectResponseMessages[0])
 

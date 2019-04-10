@@ -52,8 +52,9 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 			return new BuddyUserPrivateDataDto(firstName, lastName, buddyEntity.getNickname(), buddyEntity.getUserPhotoId(),
 					goals, devices);
 		}
+		// Pass true for isFetchable. When there is a buddy entity, the related user entity is always fetchable
 		return new BuddyUserPrivateDataDto(buddyEntity.getFirstName(), buddyEntity.getLastName(), buddyEntity.getNickname(),
-				buddyEntity.getUserPhotoId(), false);
+				buddyEntity.getUserPhotoId(), true);
 	}
 
 	public static BuddyUserPrivateDataDto createInstance(String firstName, String lastName, String nickname,

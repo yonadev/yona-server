@@ -10,7 +10,6 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-import groovy.json.*
 import nu.yona.server.YonaServer
 
 class CommonAssertions extends Service
@@ -33,8 +32,7 @@ class CommonAssertions extends Service
 	static final USER_PROPERTIES_NUM_TO_BE_CONFIRMED = USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST + ["appLastOpenedDate"] as Set
 	static final USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["_embedded"] as Set
 	static final USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY = USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY + ["lastMonitoredActivityDate"] as Set
-	static final BUDDY_USER_PROPERTIES = BASIC_USER_PROPERTIES_APP_OPENED + ["firstName", "lastName", "nickname"] as Set
-	static final BUDDY_USER_PROPERTIES_VARYING = ["_embedded"] as Set
+	static final BUDDY_USER_PROPERTIES = BASIC_USER_PROPERTIES_APP_OPENED + ["firstName", "lastName", "nickname", "_embedded", "_links"] as Set
 	static final USER_COMMON_LINKS = ["self", "curies"] as Set
 	static final USER_LINKS_NUM_TO_BE_CONFIRMED = USER_COMMON_LINKS + ["yona:confirmMobileNumber", "yona:resendMobileNumberConfirmationCode", "edit"] as Set
 	static final USER_LINKS_NUM_CONFIRMED = USER_COMMON_LINKS + ["edit", "yona:messages", "yona:dailyActivityReports", "yona:weeklyActivityReports", "yona:dailyActivityReportsWithBuddies", "yona:newDeviceRequest", "yona:editUserPhoto"] as Set
@@ -160,10 +158,16 @@ class CommonAssertions extends Service
 		}
 	}
 
-	static void assertUserGetResponseDetailsWithBuddyData(def response)
+	static void assertUserGetResponseDetailsWithBuddyDataEstablishedRelationship(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertBuddyUser(response.responseData)
+		assertBuddyUser(response.responseData, true)
+	}
+
+	static void assertUserGetResponseDetailsWithBuddyDataNotYetEstablishedRelationship(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertBuddyUser(response.responseData, false)
 	}
 
 	static void assertVpnProfile(def vpnProfile)
@@ -269,13 +273,20 @@ class CommonAssertions extends Service
 
 	private static assertBuddyUsers(response)
 	{
-		response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies".each{assertBuddyUser(it._embedded."yona:user")}
+		response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies".each{assertBuddyUser(it._embedded."yona:user", it.sendingStatus == "ACCEPTED")}
 	}
 
-	static void assertBuddyUser(def buddyUser)
+	static void assertBuddyUser(def buddyUser, boolean isBuddyRelationshipEstablished)
 	{
-		assert buddyUser.keySet() -BUDDY_USER_PROPERTIES_VARYING == BUDDY_USER_PROPERTIES
+		if (isBuddyRelationshipEstablished)
+		{
+			assert buddyUser.keySet() == BUDDY_USER_PROPERTIES
+			assert buddyUser._embedded.keySet() == BUDDY_USER_EMBEDDED
+		}
+		else
+		{
+			assert buddyUser.keySet() == BUDDY_USER_PROPERTIES - ["_embedded"] as Set
+		}
 		assert buddyUser._links.keySet() - USER_LINKS_VARYING == BUDDY_USER_LINKS
-		assert buddyUser._embedded == null || buddyUser._embedded.keySet() == BUDDY_USER_EMBEDDED
 	}
 }

@@ -582,7 +582,7 @@ public class UserController extends ControllerBase
 		public UserResource toResource(UserDto user)
 		{
 			UserResource userResource = instantiateResource(user);
-			if (representation != UserResourceRepresentation.MINIMAL || user.getPrivateData().isFetchable())
+			if (user.getPrivateData().isFetchable())
 			{
 				addSelfLink(userResource);
 			}

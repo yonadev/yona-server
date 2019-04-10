@@ -8,7 +8,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
@@ -439,8 +438,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		def responseAddBuddy = sendBuddyRequestForBobby(richard, mobileNumberBob)
-		def bobUrl = responseAddBuddy.responseData._embedded."yona:user"._links.self.href
-		def urlToTry = bobUrl.replaceAll(richard.getId(), User.getIdFromUrl(bobUrl)) // Correct requestingUserId
+		// Take invite URL and remove "tempPassword=abcd&" or "&tempPassword=abcd" (varying order occurs)
+		def urlToTry = getInviteUrl().replaceFirst(/tempPassword=[^&]*&/, "").replaceFirst(/&tempPassword=[^&]*/, "")
 
 		when:
 		def response = appService.getUser(urlToTry, dummyTempPassword)
