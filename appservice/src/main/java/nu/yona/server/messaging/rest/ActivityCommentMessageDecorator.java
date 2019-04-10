@@ -18,19 +18,19 @@ public class ActivityCommentMessageDecorator implements Decorator
 	@Override
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)
 	{
-		ActivityCommentMessageDto activityCommentMessageMessage = (ActivityCommentMessageDto) message;
-		IntervalActivity activity = getIntervalActivity(message, activityCommentMessageMessage);
+		ActivityCommentMessageDto activityCommentMessage = (ActivityCommentMessageDto) message;
+		IntervalActivity activity = getIntervalActivity(message, activityCommentMessage);
 		Goal goal = activity.getGoal();
 		assertGoalNotNull(goal, activity);
 		if (assembler.getGoalIdMapping().isUserGoal(goal.getId()))
 		{
 			assembler.getMessageController().getUserActivityController().addLinks(assembler.getGoalIdMapping(), activity,
-					activityCommentMessageMessage);
+					activityCommentMessage);
 		}
 		else
 		{
 			assembler.getMessageController().getBuddyActivityController().addLinks(assembler.getGoalIdMapping(), activity,
-					activityCommentMessageMessage);
+					activityCommentMessage);
 		}
 	}
 
