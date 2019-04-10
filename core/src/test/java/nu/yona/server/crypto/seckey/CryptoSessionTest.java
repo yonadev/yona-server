@@ -111,12 +111,10 @@ public class CryptoSessionTest
 	@Test
 	public void start_passwordCheckerSaysOk_doesNotThrow()
 	{
-		boolean passedThroughBoddy = false;
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk))
 		{
-			passedThroughBoddy = true;
+			// Session-based work normally goes here.
 		}
-		assertThat("Password checker returned OK", passedThroughBoddy);
 	}
 
 	@Test
