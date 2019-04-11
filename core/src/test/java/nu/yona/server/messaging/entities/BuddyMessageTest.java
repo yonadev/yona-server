@@ -1,24 +1,22 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.MethodRule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.repository.Repository;
 
 import nu.yona.server.Translator;
@@ -33,25 +31,24 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.PrivateUserProperties;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.test.util.CryptoSessionRule;
+import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
 
 public class BuddyMessageTest
 {
-	@RunWith(MockitoJUnitRunner.class)
+	private static final String PASSWORD = "password";
+
+	@ExtendWith(MockitoExtension.class)
+	@InCryptoSession(PASSWORD)
 	public static class BuddyInfoParametersTest
 	{
 		private static final String FIRST_NAME_SUBSTITUTE = "FN BD";
 		private static final String LAST_NAME_SUBSTITUTE = "LN BD";
-		private static final String PASSWORD = "password";
 		private final Field translatorStaticField = JUnitUtil.getAccessibleField(Translator.class, "staticReference");
 		private final Field privateUserPropertiesFirstNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
 				"firstName");
 		private final Field privateUserPropertiesLastNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
 				"lastName");
-
-		@Rule
-		public MethodRule cryptoSession = new CryptoSessionRule(PASSWORD);
 
 		@Mock
 		private Translator translator;
@@ -59,7 +56,7 @@ public class BuddyMessageTest
 		private User richard;
 		private User bob;
 
-		@Before
+		@BeforeEach
 		public void setUpPerTest() throws Exception
 		{
 			translatorStaticField.set(null, translator);
@@ -78,8 +75,10 @@ public class BuddyMessageTest
 			}
 
 			Object[] params = { bob.getNickname() };
-			when(translator.getLocalizedMessage("message.alternative.first.name", params)).thenReturn(FIRST_NAME_SUBSTITUTE);
-			when(translator.getLocalizedMessage("message.alternative.last.name", params)).thenReturn(LAST_NAME_SUBSTITUTE);
+			lenient().when(translator.getLocalizedMessage("message.alternative.first.name", params))
+					.thenReturn(FIRST_NAME_SUBSTITUTE);
+			lenient().when(translator.getLocalizedMessage("message.alternative.last.name", params))
+					.thenReturn(LAST_NAME_SUBSTITUTE);
 		}
 
 		@Test

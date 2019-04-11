@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
@@ -10,10 +10,10 @@ import static org.junit.Assert.assertThat;
 import java.io.Serializable;
 import java.util.Locale;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.CoreConfiguration;
 import nu.yona.server.Translator;
@@ -39,7 +39,7 @@ class MainContext
 	}
 }
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { MainContext.class })
 public class ResourceBasedExceptionTest
 {
@@ -56,14 +56,14 @@ public class ResourceBasedExceptionTest
 
 	}
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUp()
 	{
 		originalLocale = LocaleContextHolder.getLocale();
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown()
 	{
 		LocaleContextHolder.setLocale(originalLocale);

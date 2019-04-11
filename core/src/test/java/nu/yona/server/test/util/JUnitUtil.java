@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.test.util;
 
+import static com.spencerwi.hamcrestJDK8Time.matchers.IsAfter.after;
 import static org.junit.Assume.assumeThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -17,7 +18,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.exparity.hamcrest.date.ZonedDateTimeMatchers;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -129,6 +129,6 @@ public class JUnitUtil
 
 	public static void skipBefore(String description, ZonedDateTime now, int hour, int minute)
 	{
-		assumeThat(description, now, ZonedDateTimeMatchers.after(now.withHour(hour).withMinute(minute).withSecond(0)));
+		assumeThat(description, now, after(now.withHour(hour).withMinute(minute).withSecond(0)));
 	}
 }

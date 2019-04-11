@@ -1,12 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,9 +24,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -37,7 +38,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
@@ -60,7 +61,7 @@ class ActivityCategoryServiceTestConfiguration
 	}
 }
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ActivityCategoryServiceTestConfiguration.class })
 public class ActivityCategoryServiceTest
 {
@@ -72,7 +73,7 @@ public class ActivityCategoryServiceTest
 	private ActivityCategory gambling;
 	private ActivityCategory news;
 
-	@Before
+	@BeforeEach
 	public void setUpPerTest()
 	{
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
@@ -114,10 +115,10 @@ public class ActivityCategoryServiceTest
 		assertThat(service.getActivityCategory(news.getId()).getName(), equalTo("news"));
 	}
 
-	@Test(expected = ActivityCategoryException.class)
+	@Test
 	public void getActivityCategory_unknownId_throws()
 	{
-		service.getActivityCategory(UUID.randomUUID());
+		assertThrows(ActivityCategoryException.class, () -> service.getActivityCategory(UUID.randomUUID()));
 	}
 
 	@Test

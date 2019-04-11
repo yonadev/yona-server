@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service.migration;
@@ -18,11 +18,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.MethodRule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
@@ -35,7 +33,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.CoreConfiguration;
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -55,7 +53,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
-import nu.yona.server.test.util.CryptoSessionRule;
+import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.LockPool;
 
@@ -70,6 +68,8 @@ import nu.yona.server.util.LockPool;
 				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
 class EncryptFirstAndLastNameTestConfiguration extends UserRepositoriesConfiguration
 {
+	static final String PASSWORD = "password";
+
 	@Bean(name = "messageSource")
 	public ReloadableResourceBundleMessageSource messageSource()
 	{
@@ -83,11 +83,11 @@ class EncryptFirstAndLastNameTestConfiguration extends UserRepositoriesConfigura
 	}
 }
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
+@InCryptoSession(EncryptFirstAndLastNameTestConfiguration.PASSWORD)
 @ContextConfiguration(classes = { EncryptFirstAndLastNameTestConfiguration.class })
 public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 {
-	private static final String PASSWORD = "password";
 	private static final Field firstNameUserField = JUnitUtil.getAccessibleField(User.class, "firstName");
 	private static final Field lastNameUserField = JUnitUtil.getAccessibleField(User.class, "lastName");
 	private static final Field firstNameUserPrivateField = JUnitUtil.getAccessibleField(PrivateUserProperties.class, "firstName");
@@ -97,9 +97,6 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 
 	@Autowired
 	private MigrationStep migrationStep;
-
-	@Rule
-	public MethodRule cryptoSession = new CryptoSessionRule(PASSWORD);
 
 	@Autowired
 	private BuddyAnonymizedRepository buddyAnonymizedRepository;
@@ -116,10 +113,10 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
 
-	@Before
+	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
+		try (CryptoSession cryptoSession = CryptoSession.start(EncryptFirstAndLastNameTestConfiguration.PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();
 		}

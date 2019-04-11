@@ -21,6 +21,8 @@ artifacts {
 	testUtils testUtilsJar
 }
 
+ext['mockito.version'] = '2.25.0'
+
 dependencies {
 	compile "com.hazelcast:hazelcast-client"
 	compile 'com.hazelcast:hazelcast-kubernetes:1.1.0'
@@ -49,13 +51,11 @@ dependencies {
 	compile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 
 	testCompile "org.springframework.boot:spring-boot-starter-test"
-	testCompile "org.mockito:mockito-core:2.21.0"
-	testCompile "junit:junit:4.12"
-	testCompile "pl.pragmatists:JUnitParams:1.1.0"
+	testCompile "org.mockito:mockito-junit-jupiter:2.25.0"
+	testCompile "org.junit.jupiter:junit-jupiter:5.4.0"
 	testCompile "com.spencerwi:hamcrest-jdk8-time:0.7.1"
 	testCompile "nl.jqno.equalsverifier:equalsverifier:3.1.4"
 	testCompile "org.spockframework:spock-core:1.2-groovy-2.5"
-	testCompile "org.exparity:hamcrest-date:2.0.4"
 	
 	testUtilsCompile "org.codehaus.groovy:groovy-all:2.5.5"
 	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
@@ -67,6 +67,7 @@ dependencies {
 test {
 	// Enable assertions
 	jvmArgs '-ea'
+	useJUnitPlatform()
 }
 
 bootJar {

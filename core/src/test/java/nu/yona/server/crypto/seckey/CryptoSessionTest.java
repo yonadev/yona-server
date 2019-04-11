@@ -1,29 +1,28 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto.seckey;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.NamedParameters;
-import junitparams.Parameters;
 import nu.yona.server.crypto.CryptoException;
 
-@RunWith(JUnitParamsRunner.class)
 public class CryptoSessionTest
 {
 	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
@@ -31,12 +30,13 @@ public class CryptoSessionTest
 	private static final String PASSWORD2 = "easy";
 	private static final String PLAINTEXT1 = "One";
 
-	@NamedParameters("plaintextCases")
-	private static String[] getPlaintextCases()
+	@SuppressWarnings("unused") // Used as MethodSource
+	private static Stream<String> getPlaintextCases()
 	{
-		return new String[] { PLAINTEXT1, createVeryLongPlaintext() };
+		return Stream.of(PLAINTEXT1, createVeryLongPlaintext());
 	}
 
+	@SuppressWarnings("unused") // Called from getPlaintextCases
 	private static String createVeryLongPlaintext()
 	{
 		char[] chars = new char[2500];
@@ -44,22 +44,22 @@ public class CryptoSessionTest
 		return String.valueOf(chars);
 	}
 
-	@Test(expected = CryptoException.class)
 	public void getCurrent_noCurrentSession_throws()
 	{
-		CryptoSession.getCurrent();
+		assertThrows(CryptoException.class, () -> CryptoSession.getCurrent());
 	}
 
-	@Test(expected = WrongPasswordException.class)
 	public void start_emptyPassword_throws()
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(Optional.empty(), () -> true))
-		{
-		}
+		assertThrows(WrongPasswordException.class, () -> {
+			try (CryptoSession cryptoSession = CryptoSession.start(Optional.empty(), () -> true))
+			{
+			}
+		});
 	}
 
-	@Test
-	@Parameters(named = "plaintextCases")
+	@ParameterizedTest
+	@MethodSource("getPlaintextCases")
 	public void encrypt_default_returnsBase64EncryptedDataWithCryptoVariantNumberAsFirstByte(String plaintext)
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
@@ -71,8 +71,8 @@ public class CryptoSessionTest
 		assertThat(ciphertextBytes[0], equalTo(CryptoSession.CURRENT_CRYPTO_VARIANT_NUMBER));
 	}
 
-	@Test
-	@Parameters(named = "plaintextCases")
+	@ParameterizedTest
+	@MethodSource("getPlaintextCases")
 	public void decrypt_validPassword_returnsDecryptedData(String plaintext)
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
@@ -83,28 +83,29 @@ public class CryptoSessionTest
 		assertThat(result, equalTo(plaintext));
 	}
 
-	@Test(expected = CryptoException.class)
 	public void decrypt_invalidCryptoVariantNumber_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		byte[] ciphertext = Base64.getDecoder().decode(encrypt(PASSWORD1, PLAINTEXT1, initializationVector));
 		ciphertext[0] = 13; // Unsupported crypto variant number
 
-		decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector);
+		assertThrows(CryptoException.class,
+				() -> decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector));
 	}
 
-	@Test(expected = CryptoException.class)
 	public void decrypt_invalidPassword_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector);
 
-		String plaintext = decrypt(PASSWORD2, ciphertext, initializationVector);
+		assertThrows(CryptoException.class, () -> {
+			String plaintext = decrypt(PASSWORD2, ciphertext, initializationVector);
 
-		// In rare cases, decryption with a wrong password doesn't throw but delivers rubbish.
-		// In such rare cases, compare the string and explicitly throw that exception.
-		assertThat(plaintext, not(equalTo(PLAINTEXT1)));
-		throw CryptoException.decryptingData();
+			// In rare cases, decryption with a wrong password doesn't throw but delivers rubbish.
+			// In such rare cases, compare the string and explicitly throw that exception.
+			assertThat(plaintext, not(equalTo(PLAINTEXT1)));
+			throw CryptoException.decryptingData();
+		});
 	}
 
 	@Test
@@ -112,17 +113,19 @@ public class CryptoSessionTest
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk))
 		{
-			assertTrue(true);
+			// Session-based work normally goes here.
 		}
 	}
 
-	@Test(expected = CryptoException.class)
+	@Test
 	public void start_passwordCheckerSaysNotOk_throws()
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk))
-		{
-			assertTrue(false);
-		}
+		assertThrows(CryptoException.class, () -> {
+			try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk))
+			{
+				fail("Password checker inadvertently returned OK");
+			}
+		});
 	}
 
 	private static boolean passwordIsOk()
