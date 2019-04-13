@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.device.entities.DeviceAnonymized;
@@ -45,7 +45,7 @@ public abstract class IntervalActivityTestBase
 	protected UserAnonymized userAnonEntity;
 	protected DeviceAnonymized deviceAnonEntity;
 
-	@Before
+	@BeforeEach
 	public void setUp()
 	{
 		testZone = ZoneId.of("Europe/Amsterdam");

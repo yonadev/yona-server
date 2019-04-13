@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -18,21 +18,19 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 
-@RunWith(JUnitParamsRunner.class)
 public class ActivityTest
 {
 	private DeviceAnonymized deviceAnonEntity;
 
-	@Before
+	@BeforeEach
 	public void setUp()
 	{
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty());
@@ -51,9 +49,9 @@ public class ActivityTest
 		verify(dayActivityMock, atLeastOnce()).resetAggregatesComputed();
 	}
 
-	@Test
-	@Parameters({ "00:00:00, 00:00:59, 0", "00:00, 00:01:59.999, 1", "01:00, 01:05, 5", "01:00:01, 01:05, 4",
-			"01:00, 01:04:59, 4", "01:00, 02:01, 61" })
+	@ParameterizedTest
+	@CsvSource({ "00:00:00, 00:00:59, 0", "00:00, 00:01:59.999, 1", "01:00, 01:05, 5", "01:00:01, 01:05, 4", "01:00, 01:04:59, 4",
+			"01:00, 02:01, 61" })
 	// Note that the analysis service will never create activities shorter than one minute
 	public void getDurationMinutes_various_returnsTotalMinutes(String startTimeString, String endTimeString,
 			int expectedTotalMinutes)

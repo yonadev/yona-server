@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -7,34 +7,31 @@ package nu.yona.server.subscriptions.entities;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.MethodRule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.test.util.CryptoSessionRule;
+import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@InCryptoSession("PASSWORD")
 public class BuddyTest
 {
-	private static final String PASSWORD = "PASSWORD";
-
 	private final Field translatorStaticField = JUnitUtil.getAccessibleField(Translator.class, "staticReference");
 	private final Field userUserPrivateField = JUnitUtil.getAccessibleField(User.class, "userPrivate");
 	private final Field privateUserPropertiesFirstNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
@@ -49,16 +46,13 @@ public class BuddyTest
 	@Mock
 	private MessageDestination messageDestination;
 
-	@Rule
-	public MethodRule cryptoSession = new CryptoSessionRule(PASSWORD);
-
-	@Before
+	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
 		translatorStaticField.set(null, translator);
 
-		when(messageSource.getId()).thenReturn(UUID.randomUUID());
-		when(translator.getLocalizedMessage(any(String.class), any())).thenAnswer(new Answer<String>() {
+		lenient().when(messageSource.getId()).thenReturn(UUID.randomUUID());
+		lenient().when(translator.getLocalizedMessage(any(String.class), any())).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable
 			{

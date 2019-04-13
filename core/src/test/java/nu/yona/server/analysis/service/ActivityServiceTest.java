@@ -1,11 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,12 +29,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.Repository;
@@ -64,7 +65,7 @@ import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ActivityServiceTest
 {
 	private final Map<String, Goal> goalMap = new HashMap<>();
@@ -102,7 +103,7 @@ public class ActivityServiceTest
 	private ZoneId userAnonZone;
 	private DeviceAnonymized deviceAnonEntity;
 
-	@Before
+	@BeforeEach
 	public void setUp()
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
@@ -133,7 +134,7 @@ public class ActivityServiceTest
 		goalMap.put("social", socialGoal);
 		goalMap.put("shopping", shoppingGoal);
 
-		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
+		lenient().when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
@@ -155,10 +156,12 @@ public class ActivityServiceTest
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnon);
 
 		// Stub the GoalService to return our goals.
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
+		lenient().when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId()))
+				.thenReturn(gamblingGoal);
+		lenient().when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
+		lenient().when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
+		lenient().when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId()))
+				.thenReturn(shoppingGoal);
 	}
 
 	private Map<Locale, String> usString(String string)
