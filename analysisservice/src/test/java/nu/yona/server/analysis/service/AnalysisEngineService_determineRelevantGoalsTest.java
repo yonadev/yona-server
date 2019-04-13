@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.Duration;
@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,11 +24,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.data.repository.Repository;
 
@@ -51,14 +47,11 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
-@RunWith(Parameterized.class)
-public class AnalysisEngineService_determineRelevantGoalsTest
+public abstract class AnalysisEngineService_determineRelevantGoalsTest
 {
 	@Mock
 	private GoalRepository mockGoalRepository;
 
-	private OperatingSystem operatingSystem;
-	private boolean isIOs;
 	private Goal gamblingGoal;
 	private Goal newsGoal;
 	private Goal gamingGoal;
@@ -73,19 +66,9 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 
 	private DeviceAnonymizedDto deviceAnonDto;
 
-	public AnalysisEngineService_determineRelevantGoalsTest(String operatingSystem, boolean isIOs)
-	{
-		this.operatingSystem = OperatingSystem.valueOf(operatingSystem);
-		this.isIOs = isIOs;
-	}
+	protected abstract OperatingSystem getOperatingSystem();
 
-	@Parameters
-	public static Collection<Object[]> data()
-	{
-		return Arrays.asList(new Object[][] { { "IOS", true }, { "ANDROID", false } });
-	}
-
-	@Before
+	@BeforeEach
 	public void setUp()
 	{
 		initMocks(this);
@@ -117,7 +100,7 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(
 				Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal, shoppingGoalHistoryItem));
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, operatingSystem, "Unknown", 0, Optional.empty());
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, getOperatingSystem(), "Unknown", 0, Optional.empty());
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);
@@ -131,6 +114,11 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(Goal.class, mockGoalRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
+	}
+
+	protected Goal getSocialGoal()
+	{
+		return socialGoal;
 	}
 
 	private Map<Locale, String> usString(String string)
@@ -192,22 +180,7 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(gamingGoal)));
 	}
 
-	@Test
-	public void determineRelevantGoals_networkActivityOneOptionalUserGoal_userGoalOnIOs()
-	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService
-				.determineRelevantGoals(makeNetworkPayload(makeCategorySet(socialGoal)));
-		if (isIOs)
-		{
-			assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(socialGoal)));
-		}
-		else
-		{
-			assertThat(relevantGoals, empty());
-		}
-	}
-
-	private Set<ActivityCategoryDto> makeCategorySet(Goal... goals)
+	protected Set<ActivityCategoryDto> makeCategorySet(Goal... goals)
 	{
 		return Arrays.asList(goals).stream().map(Goal::getActivityCategory).map(ActivityCategoryDto::createInstance)
 				.collect(Collectors.toSet());
@@ -225,7 +198,7 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 		return ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime, endTime, "n/a", activityCategories);
 	}
 
-	private ActivityPayload makeNetworkPayload(Set<ActivityCategoryDto> activityCategories)
+	protected ActivityPayload makeNetworkPayload(Set<ActivityCategoryDto> activityCategories)
 	{
 		return makeNetworkPayload(activityCategories, Duration.ofDays(0));
 	}

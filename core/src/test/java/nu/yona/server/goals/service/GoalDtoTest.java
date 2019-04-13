@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,7 +7,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 

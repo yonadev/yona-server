@@ -1,17 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto.pubkey;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import nu.yona.server.crypto.CryptoException;
 
@@ -42,24 +43,24 @@ public class PublicKeyDecryptorTest
 		assertThat(result, equalTo(null));
 	}
 
-	@Test(expected = CryptoException.class)
+	@Test
 	public void decrypt_invalidKeyPair_throws()
 	{
 		byte[] ciphertext = encrypt(keyPair.getPublic(), PLAINTEXT1);
 		KeyPair otherKeyPair = PublicKeyUtil.generateKeyPair();
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(otherKeyPair.getPrivate());
 
-		decryptor.decrypt(ciphertext);
+		assertThrows(CryptoException.class, () -> decryptor.decrypt(ciphertext));
 	}
 
-	@Test(expected = CryptoException.class)
+	@Test
 	public void decrypt_unsupportedCryptoVariantNumber_throws()
 	{
 		byte[] ciphertext = encrypt(keyPair.getPublic(), PLAINTEXT1);
 		ciphertext[0] = 13; // Unsupported crypto variant number
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(keyPair.getPrivate());
 
-		decryptor.decrypt(ciphertext);
+		assertThrows(CryptoException.class, () -> decryptor.decrypt(ciphertext));
 	}
 
 	private static byte[] encrypt(PublicKey publicKey, String plaintext)

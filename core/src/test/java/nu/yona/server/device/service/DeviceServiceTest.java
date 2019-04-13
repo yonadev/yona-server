@@ -5,7 +5,6 @@
 package nu.yona.server.device.service;
 
 import static com.spencerwi.hamcrestJDK8Time.matchers.IsBetween.between;
-import static nu.yona.server.test.util.Matchers.hasMessageId;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -15,6 +14,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -36,12 +37,9 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.MethodRule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
@@ -56,7 +54,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.CoreConfiguration;
 import nu.yona.server.analysis.entities.Activity;
@@ -84,7 +82,7 @@ import nu.yona.server.subscriptions.service.LDAPUserService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
-import nu.yona.server.test.util.CryptoSessionRule;
+import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
@@ -99,6 +97,8 @@ import nu.yona.server.util.TimeUtil;
 				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
 class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 {
+	static final String PASSWORD = "password";
+
 	@Bean(name = "messageSource")
 	public ReloadableResourceBundleMessageSource messageSource()
 	{
@@ -124,8 +124,9 @@ class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 	}
 }
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { DeviceServiceTestConfiguration.class })
+@InCryptoSession(DeviceServiceTestConfiguration.PASSWORD)
 public class DeviceServiceTest extends BaseSpringIntegrationTest
 {
 	private static final String SOME_APP_VERSION = "9.9.9";
@@ -159,19 +160,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
 
-	private static final String PASSWORD = "password";
 	private User richard;
 
-	@Rule
-	public MethodRule cryptoSession = new CryptoSessionRule(PASSWORD);
-
-	@Rule
-	public ExpectedException expectedException = ExpectedException.none();
-
-	@Before
+	@BeforeEach
 	public void setUpPerTest()
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
+		try (CryptoSession cryptoSession = CryptoSession.start(DeviceServiceTestConfiguration.PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();
 		}
@@ -194,9 +188,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDevice_tryGetNonExistingDevice_exception() throws Exception
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.not.found.id"));
-		service.getDevice(UUID.randomUUID());
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service.getDevice(UUID.randomUUID()));
+		assertEquals("error.device.not.found.id", exception.getMessageId());
 	}
 
 	@Test
@@ -255,15 +248,14 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void addDeviceToUser_tryAddDuplicateName_exception()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.name.already.exists"));
-
 		String deviceName = "First";
 		richard.addDevice(createDevice(0, deviceName, OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName, OperatingSystem.IOS, SOME_APP_VERSION,
 				SUPPORTED_APP_VERSION_CODE);
-		service.addDeviceToUser(richard, deviceDto2);
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.addDeviceToUser(richard, deviceDto2));
+		assertEquals("error.device.name.already.exists", exception.getMessageId());
 	}
 
 	@Test
@@ -351,8 +343,6 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void deleteDevice_tryDeleteOneAndOnlyDevice_exception() throws Exception
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.cannot.delete.last.one"));
 
 		richard.addDevice(createDevice(0, "Testing", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
@@ -360,22 +350,23 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		UserDevice device = richard.getDevices().iterator().next();
 
-		service.deleteDevice(richard.getId(), device.getId());
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.deleteDevice(richard.getId(), device.getId()));
+		assertEquals("error.device.cannot.delete.last.one", exception.getMessageId());
 	}
 
 	@Test
 	public void deleteDevice_tryDeleteNonExistingDevice_exception() throws Exception
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.not.found.id"));
-
 		richard.addDevice(createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 		UserDevice notAddedDevice = createDevice(1, "NotAddedDevice", OperatingSystem.IOS, SOME_APP_VERSION,
 				SUPPORTED_APP_VERSION_CODE);
 
 		assertThat(richard.getDevices().size(), equalTo(1));
 
-		service.deleteDevice(richard.getId(), notAddedDevice.getId());
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.deleteDevice(richard.getId(), notAddedDevice.getId()));
+		assertEquals("error.device.not.found.id", exception.getMessageId());
 	}
 
 	private void assertDevice(UserDevice device, LocalDateTime startTime, String expectedDeviceName,
@@ -465,9 +456,6 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void updateDevice_tryDuplicateName_exception()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.name.already.exists"));
-
 		String firstDeviceName = "First";
 		UserDevice device1 = createDevice(0, firstDeviceName, OperatingSystem.ANDROID, "Unknown", 0);
 		richard.addDevice(device1);
@@ -479,7 +467,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		assertThat(richard.getDevices().size(), equalTo(2));
 
 		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(firstDeviceName, Optional.empty());
-		service.updateDevice(richard.getId(), device.getId(), changeRequest);
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.updateDevice(richard.getId(), device.getId(), changeRequest));
+		assertEquals("error.device.name.already.exists", exception.getMessageId());
 	}
 
 	@Test
@@ -498,10 +488,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDefaultDeviceId_tryNoDevices_exception() throws Exception
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.collection.empty"));
-
-		service.getDefaultDeviceId(createRichardUserDto());
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.getDefaultDeviceId(createRichardUserDto()));
+		assertEquals("error.device.collection.empty", exception.getMessageId());
 	}
 
 	@Test
@@ -579,9 +568,6 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDeviceAnonymized_byIndex_tryGetNonExistingIndex_exception()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.not.found.index"));
-
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
@@ -597,7 +583,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Try to get the anonymized ID for a nonexisting index
-		service.getDeviceAnonymized(createRichardAnonymizedDto(), 2);
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.getDeviceAnonymized(createRichardAnonymizedDto(), 2));
+		assertEquals("error.device.not.found.index", exception.getMessageId());
 	}
 
 	@Test
@@ -653,9 +641,6 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDeviceAnonymized_byId_tryGetNonExistingId_exception()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.not.found.anonymized.id"));
-
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
@@ -671,7 +656,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Try to get the anonymized ID for a nonexisting ID
-		service.getDeviceAnonymized(createRichardAnonymizedDto(), UUID.randomUUID());
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.getDeviceAnonymized(createRichardAnonymizedDto(), UUID.randomUUID()));
+		assertEquals("error.device.not.found.anonymized.id", exception.getMessageId());
 	}
 
 	@Test
@@ -725,9 +712,6 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDeviceAnonymizedId_byId_tryGetNonExistingId_exception()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.not.found.id"));
-
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
@@ -746,7 +730,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Try to get the anonymized ID for a nonexisting device ID
-		service.getDeviceAnonymizedId(createRichardUserDto(), notAddedDevice.getId());
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.getDeviceAnonymizedId(createRichardUserDto(), notAddedDevice.getId()));
+		assertEquals("error.device.not.found.id", exception.getMessageId());
 	}
 
 	@Test
@@ -783,46 +769,43 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void postOpenAppEvent_unsupportedVersionCode_exception()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.app.version.not.supported"));
-
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
 		setAppLastOpenedDateField(device, originalDate);
 
-		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("0.0.1"), 1);
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service
+				.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("0.0.1"), 1));
+		assertEquals("error.device.app.version.not.supported", exception.getMessageId());
 	}
 
 	@Test
 	public void postOpenAppEvent_invalidVersionCode_exception()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.invalid.version.code"));
-
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
 		setAppLastOpenedDateField(device, originalDate);
 
-		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"), -1);
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service
+				.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"), -1));
+		assertEquals("error.device.invalid.version.code", exception.getMessageId());
 	}
 
 	@Test
 	public void postOpenAppEvent_differentOperatingSystem_exception()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.cannot.switch.operating.system"));
-
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
 		richard.setAppLastOpenedDate(originalDate);
 		setAppLastOpenedDateField(device, originalDate);
 
-		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS), Optional.of(SOME_APP_VERSION),
-				SUPPORTED_APP_VERSION_CODE);
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS),
+						Optional.of(SOME_APP_VERSION), SUPPORTED_APP_VERSION_CODE));
+		assertEquals("error.device.cannot.switch.operating.system", exception.getMessageId());
 	}
 
 	@Test

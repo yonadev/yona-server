@@ -4,10 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,11 +14,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.MethodRule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -31,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -61,7 +58,7 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
-import nu.yona.server.test.util.CryptoSessionRule;
+import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TransactionHelper;
@@ -76,6 +73,8 @@ import nu.yona.server.util.TransactionHelper;
 				@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.SenderInfo.Factory", type = FilterType.REGEX) })
 class BuddyDeviceChangeMessageDtoTestConfiguration extends UserRepositoriesConfiguration
 {
+	static final String PASSWORD = "password";
+
 	@Bean
 	UserDeviceRepository getMockUserDeviceRepository()
 	{
@@ -95,11 +94,11 @@ class BuddyDeviceChangeMessageDtoTestConfiguration extends UserRepositoriesConfi
 	}
 }
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
+@InCryptoSession(BuddyDeviceChangeMessageDtoTestConfiguration.PASSWORD)
 @ContextConfiguration(classes = { BuddyDeviceChangeMessageDtoTestConfiguration.class })
 public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 {
-	private static final String PASSWORD = "password";
 	private static final String MESSAGE_TEXT = "Not relevant to test";
 	private User richard;
 	private User bob;
@@ -146,13 +145,10 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
 
-	@Rule
-	public MethodRule cryptoSession = new CryptoSessionRule(PASSWORD);
-
-	@Before
+	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
+		try (CryptoSession cryptoSession = CryptoSession.start(BuddyDeviceChangeMessageDtoTestConfiguration.PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();
 			bob = JUnitUtil.createBob();
@@ -193,7 +189,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
 
 		// Assert success
-		assertTrue(messageEntity.isProcessed());
+		assertThat("Message is not processed", messageEntity.isProcessed());
 		assertThat(buddy.getDevices().size(), equalTo(1));
 		BuddyDevice buddyDevice = buddy.getDevices().iterator().next();
 		assertThat(buddyDevice.getDeviceAnonymizedId(), equalTo(device.getDeviceAnonymizedId()));
@@ -225,7 +221,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
 
 		// Assert success
-		assertTrue(messageEntity.isProcessed());
+		assertThat("Message is not processed", messageEntity.isProcessed());
 		assertThat(buddy.getDevices(), containsInAnyOrder(buddyDevice));
 		BuddyDevice updatedBuddyDevice = buddy.getDevices().iterator().next();
 		assertThat(updatedBuddyDevice.getDeviceAnonymizedId(), equalTo(device.getDeviceAnonymizedId()));
@@ -262,7 +258,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
 
 		// Assert success
-		assertTrue(messageEntity.isProcessed());
+		assertThat("Message is not processed", messageEntity.isProcessed());
 		assertThat(buddy.getDevices(), containsInAnyOrder(buddyDevice1));
 		BuddyDevice remainingBuddyDevice = buddy.getDevices().iterator().next();
 		assertThat(remainingBuddyDevice.getDeviceAnonymizedId(), equalTo(device1.getDeviceAnonymizedId()));
@@ -293,7 +289,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
 
 		// Assert success
-		assertTrue(messageEntity.isProcessed());
+		assertThat("Message is not processed", messageEntity.isProcessed());
 		assertThat(buddy.getDevices().size(), equalTo(0));
 	}
 

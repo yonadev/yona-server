@@ -1,39 +1,31 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.sms;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.lenient;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
 
-@RunWith(JUnitParamsRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PlivoSmsServiceTest
 {
 	private static final String TEST_ALPHA_ID = "TestId";
 	private static final String TEST_DEFAULT_NUMBER = "+12345678";
 	private static final String TEST_ALPHA_SUPPORTING_COUNTRY_CALLING_CODES = "+31 +49";
-
-	@Rule
-	public MockitoRule rule = MockitoJUnit.rule();
 
 	@Mock
 	private YonaProperties mockYonaProperties;
@@ -41,18 +33,18 @@ public class PlivoSmsServiceTest
 	@InjectMocks
 	private final PlivoSmsService smsService = new PlivoSmsService();
 
-	@Before
+	@BeforeEach
 	public void setUp()
 	{
 		SmsProperties smsProperties = new SmsProperties();
 		smsProperties.setAlphaSenderId(TEST_ALPHA_ID);
 		smsProperties.setDefaultSenderNumber(TEST_DEFAULT_NUMBER);
 		smsProperties.setAlphaSenderSupportingCountryCallingCodes(TEST_ALPHA_SUPPORTING_COUNTRY_CALLING_CODES);
-		when(mockYonaProperties.getSms()).thenReturn(smsProperties);
+		lenient().when(mockYonaProperties.getSms()).thenReturn(smsProperties);
 	}
 
-	@Test
-	@Parameters({ "+31000000000", "+49222222222" })
+	@ParameterizedTest
+	@ValueSource(strings = { "+31000000000", "+49222222222" })
 	public void determineSender_targetPhoneNumberInAlphaSenderSupportingCountries_returnsAlphaId(String targetPhoneNumber)
 	{
 		assertThat(smsService.determineSender(targetPhoneNumber), equalTo(TEST_ALPHA_ID));

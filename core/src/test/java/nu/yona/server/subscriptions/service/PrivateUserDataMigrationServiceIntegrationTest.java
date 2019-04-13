@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -16,9 +16,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,7 +29,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.repository.Repository;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
@@ -78,7 +78,7 @@ class MockMigrationStep2 implements MigrationStep
 	}
 }
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { PrivateUserDataMigrationServiceIntegrationTestConfiguration.class })
 public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIntegrationTest
 {
@@ -109,7 +109,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	private final String password = "password";
 	private User richard;
 
-	@Before
+	@BeforeEach
 	public void setUpPerTest()
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
