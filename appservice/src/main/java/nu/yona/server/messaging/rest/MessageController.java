@@ -78,7 +78,7 @@ public class MessageController extends ControllerBase
 	private BuddyActivityController buddyActivityController;
 
 	@Autowired
-	private DecoratorRegistry decoratorRegistry;
+	private MessageResourceDecoratorRegistry messageResourceDecoratorRegistry;
 
 	@GetMapping(value = "/")
 	@ResponseBody
@@ -196,9 +196,9 @@ public class MessageController extends ControllerBase
 		return buddyActivityController;
 	}
 
-	public Set<Decorator> getDecorators(Class<? extends MessageDto> classToDecorate)
+	public Set<MessageResourceDecorator> getMessageResourceDecorators(Class<? extends MessageDto> classToDecorate)
 	{
-		return decoratorRegistry.getDecorators(classToDecorate);
+		return messageResourceDecoratorRegistry.getDecorators(classToDecorate);
 	}
 
 	static class MessageActionResource extends Resource<MessageActionDto>
@@ -318,7 +318,7 @@ public class MessageController extends ControllerBase
 
 		protected void doDynamicDecoration(MessageDto message)
 		{
-			messageController.getDecorators(message.getClass()).stream().forEach(d -> d.decorate(this, message));
+			messageController.getMessageResourceDecorators(message.getClass()).stream().forEach(d -> d.decorate(this, message));
 		}
 
 		UUID getSenderBuddyId(MessageDto message)

@@ -7,7 +7,7 @@ package nu.yona.server.messaging.rest;
 import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
 import nu.yona.server.messaging.service.MessageDto;
 
-public interface Decorator
+public interface MessageResourceDecorator
 {
 	void decorate(MessageResourceAssembler assembler, MessageDto message);
 }

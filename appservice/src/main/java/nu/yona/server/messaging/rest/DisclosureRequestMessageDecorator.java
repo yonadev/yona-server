@@ -11,7 +11,7 @@ import nu.yona.server.messaging.service.DisclosureRequestMessageDto;
 import nu.yona.server.messaging.service.MessageDto;
 
 @Decorates(DisclosureRequestMessageDto.class)
-public class DisclosureRequestMessageDecorator implements Decorator
+public class DisclosureRequestMessageDecorator implements MessageResourceDecorator
 {
 	@Override
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)

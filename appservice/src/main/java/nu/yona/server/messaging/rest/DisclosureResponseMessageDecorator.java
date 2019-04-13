@@ -12,7 +12,7 @@ import nu.yona.server.messaging.service.DisclosureResponseMessageDto;
 import nu.yona.server.messaging.service.MessageDto;
 
 @Decorates(DisclosureResponseMessageDto.class)
-public class DisclosureResponseMessageDecorator implements Decorator
+public class DisclosureResponseMessageDecorator implements MessageResourceDecorator
 {
 	@Override
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)

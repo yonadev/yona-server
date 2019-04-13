@@ -21,10 +21,10 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.service.MessageDto;
 
 @Component
-public class DecoratorRegistry
+public class MessageResourceDecoratorRegistry
 {
-	private Map<Class<?>, Decorator> decoratorByType = new HashMap<>();
-	private Map<Class<?>, Set<Decorator>> decoratorsByConcreteType = new HashMap<>();
+	private Map<Class<?>, MessageResourceDecorator> decoratorByType = new HashMap<>();
+	private Map<Class<?>, Set<MessageResourceDecorator>> decoratorsByConcreteType = new HashMap<>();
 
 	@PostConstruct
 	private void initializeDecoratorCollection()
@@ -41,8 +41,8 @@ public class DecoratorRegistry
 		try
 		{
 			@SuppressWarnings("unchecked")
-			Class<? extends Decorator> decoratorClass = (Class<? extends Decorator>) Class.forName(bd.getBeanClassName());
-			Decorator decorator = decoratorClass.getDeclaredConstructor().newInstance();
+			Class<? extends MessageResourceDecorator> decoratorClass = (Class<? extends MessageResourceDecorator>) Class.forName(bd.getBeanClassName());
+			MessageResourceDecorator decorator = decoratorClass.getDeclaredConstructor().newInstance();
 			Class<? extends MessageDto> decoratedClass = decoratorClass.getAnnotation(Decorates.class).value();
 			assertNoDecoratorExists(decoratedClass, decorator);
 			decoratorByType.put(decoratedClass, decorator);
@@ -54,9 +54,9 @@ public class DecoratorRegistry
 		}
 	}
 
-	private void assertNoDecoratorExists(Class<? extends MessageDto> decoratedClass, Decorator decoratorToRegister)
+	private void assertNoDecoratorExists(Class<? extends MessageDto> decoratedClass, MessageResourceDecorator decoratorToRegister)
 	{
-		Decorator existingDecorator = decoratorByType.get(decoratedClass);
+		MessageResourceDecorator existingDecorator = decoratorByType.get(decoratedClass);
 		if (existingDecorator != null)
 		{
 			throw new IllegalStateException("Duplicate decorators for class " + decoratedClass.getName() + ": "
@@ -64,11 +64,11 @@ public class DecoratorRegistry
 		}
 	}
 
-	public Set<Decorator> getDecorators(Class<? extends MessageDto> classToDecorate)
+	public Set<MessageResourceDecorator> getDecorators(Class<? extends MessageDto> classToDecorate)
 	{
 		synchronized (decoratorsByConcreteType)
 		{
-			Set<Decorator> decorators = decoratorsByConcreteType.get(classToDecorate);
+			Set<MessageResourceDecorator> decorators = decoratorsByConcreteType.get(classToDecorate);
 			if (decorators != null)
 			{
 				return decorators;

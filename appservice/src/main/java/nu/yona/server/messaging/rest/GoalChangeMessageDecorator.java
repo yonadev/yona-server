@@ -10,7 +10,7 @@ import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
 import nu.yona.server.messaging.service.MessageDto;
 
 @Decorates(GoalChangeMessageDto.class)
-public class GoalChangeMessageDecorator implements Decorator
+public class GoalChangeMessageDecorator implements MessageResourceDecorator
 {
 	@Override
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)

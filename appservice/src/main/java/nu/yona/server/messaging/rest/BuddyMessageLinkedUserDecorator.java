@@ -11,7 +11,7 @@ import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.BuddyDto;
 
 @Decorates(BuddyMessageLinkedUserDto.class)
-public class BuddyMessageLinkedUserDecorator implements Decorator
+public class BuddyMessageLinkedUserDecorator implements MessageResourceDecorator
 {
 	@Override
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)

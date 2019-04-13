@@ -13,7 +13,7 @@ import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
 import nu.yona.server.messaging.service.MessageDto;
 
 @Decorates(GoalConflictMessageDto.class)
-public class GoalConflictMessageDecorator implements Decorator
+public class GoalConflictMessageDecorator implements MessageResourceDecorator
 {
 	@Override
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)

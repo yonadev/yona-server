@@ -13,7 +13,7 @@ import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.UserDto;
 
 @Decorates(BuddyMessageEmbeddedUserDto.class)
-public class BuddyMessageEmbeddedUserDecorator implements Decorator
+public class BuddyMessageEmbeddedUserDecorator implements MessageResourceDecorator
 {
 	@Override
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)
