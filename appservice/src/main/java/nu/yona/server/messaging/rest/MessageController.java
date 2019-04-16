@@ -11,7 +11,6 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -44,33 +43,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import nu.yona.server.analysis.entities.GoalConflictMessage;
-import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
-import nu.yona.server.analysis.service.ActivityCommentMessageDto;
-import nu.yona.server.analysis.service.DayActivityDto;
-import nu.yona.server.analysis.service.GoalConflictMessageDto;
 import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.rest.ActivityCategoryController;
-import nu.yona.server.goals.service.GoalChangeMessageDto;
-import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDto;
-import nu.yona.server.messaging.service.BuddyMessageLinkedUserDto;
-import nu.yona.server.messaging.service.DisclosureRequestMessageDto;
-import nu.yona.server.messaging.service.DisclosureResponseMessageDto;
 import nu.yona.server.messaging.service.MessageActionDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
-import nu.yona.server.subscriptions.rest.UserController;
-import nu.yona.server.subscriptions.rest.UserController.UserResourceAssembler;
 import nu.yona.server.subscriptions.rest.UserPhotoController;
-import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
-import nu.yona.server.subscriptions.service.BuddyDto;
-import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
@@ -94,6 +76,9 @@ public class MessageController extends ControllerBase
 
 	@Autowired
 	private BuddyActivityController buddyActivityController;
+
+	@Autowired
+	private MessageResourceDecoratorRegistry messageResourceDecoratorRegistry;
 
 	@GetMapping(value = "/")
 	@ResponseBody
@@ -201,14 +186,19 @@ public class MessageController extends ControllerBase
 		return linkBuilder.withRel("messages").expand();
 	}
 
-	private UserActivityController getUserActivityController()
+	UserActivityController getUserActivityController()
 	{
 		return userActivityController;
 	}
 
-	private BuddyActivityController getBuddyActivityController()
+	BuddyActivityController getBuddyActivityController()
 	{
 		return buddyActivityController;
+	}
+
+	public Set<MessageResourceDecorator> getMessageResourceDecorators(Class<? extends MessageDto> classToDecorate)
+	{
+		return messageResourceDecoratorRegistry.getDecorators(classToDecorate);
 	}
 
 	static class MessageActionResource extends Resource<MessageActionDto>
@@ -235,7 +225,7 @@ public class MessageController extends ControllerBase
 		}
 	}
 
-	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDto, MessageDto>
+	static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDto, MessageDto>
 	{
 		private final GoalIdMapping goalIdMapping;
 		private final CurieProvider curieProvider;
@@ -259,6 +249,10 @@ public class MessageController extends ControllerBase
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
 			addRelatedMessageLink(message, message);
+			if (message.isToIncludeSenderUserLink())
+			{
+				addSenderBuddyLink(message);
+			}
 			addSenderUserPhotoLinkIfAvailable(message);
 			if (message.canBeDeleted())
 			{
@@ -266,6 +260,21 @@ public class MessageController extends ControllerBase
 			}
 			doDynamicDecoration(message);
 			return message;
+		}
+
+		public GoalIdMapping getGoalIdMapping()
+		{
+			return goalIdMapping;
+		}
+
+		public CurieProvider getCurieProvider()
+		{
+			return curieProvider;
+		}
+
+		public MessageController getMessageController()
+		{
+			return messageController;
 		}
 
 		private void addRelatedMessageLink(MessageDto message, MessageDto messageResource)
@@ -295,58 +304,10 @@ public class MessageController extends ControllerBase
 			messageResource.getPossibleActions().stream().forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
 		}
 
-		protected void doDynamicDecoration(MessageDto message)
+		private void addSenderBuddyLink(MessageDto message)
 		{
-			if (message instanceof BuddyMessageEmbeddedUserDto)
-			{
-				embedBuddyUserIfAvailable((BuddyMessageEmbeddedUserDto) message);
-			}
-			if (message instanceof BuddyMessageLinkedUserDto)
-			{
-				addUserLinkIfAvailable((BuddyMessageLinkedUserDto) message);
-			}
-			if (message instanceof BuddyConnectResponseMessageDto || message instanceof GoalConflictMessageDto
-					|| message instanceof BuddyInfoChangeMessageDto || message instanceof GoalChangeMessageDto)
-			{
-				addSenderBuddyLinkIfAvailable(message);
-			}
-			if (message instanceof GoalConflictMessageDto)
-			{
-				addGoalConflictMessageLinks((GoalConflictMessageDto) message);
-			}
-			if (message instanceof DisclosureRequestMessageDto)
-			{
-				addDayActivityDetailLink((DisclosureRequestMessageDto) message);
-			}
-			if (message instanceof DisclosureResponseMessageDto)
-			{
-				addDayActivityDetailLinkIfDisclosureAccepted((DisclosureResponseMessageDto) message);
-			}
-			if (message instanceof GoalChangeMessageDto)
-			{
-				addRelatedActivityCategoryLink((GoalChangeMessageDto) message);
-			}
-			if (message instanceof ActivityCommentMessageDto)
-			{
-				addActivityCommentMessageLinks((ActivityCommentMessageDto) message);
-			}
-		}
-
-		private void addDayActivityDetailLinkIfDisclosureAccepted(DisclosureResponseMessageDto message)
-		{
-			if (message.getStatus() == GoalConflictMessage.Status.DISCLOSURE_ACCEPTED)
-			{
-				addDayActivityDetailLink(message);
-			}
-		}
-
-		private void addSenderBuddyLinkIfAvailable(MessageDto message)
-		{
-			if (message.getSenderBuddyId().isPresent())
-			{
-				message.add(BuddyController.getBuddyLinkBuilder(goalIdMapping.getUserId(), getSenderBuddyId(message))
-						.withRel(BuddyController.BUDDY_LINK));
-			}
+			message.add(BuddyController.getBuddyLinkBuilder(goalIdMapping.getUserId(), getSenderBuddyId(message))
+					.withRel(BuddyController.BUDDY_LINK));
 		}
 
 		private void addSenderUserPhotoLinkIfAvailable(MessageDto message)
@@ -355,102 +316,15 @@ public class MessageController extends ControllerBase
 					userPhotoId -> message.add(UserPhotoController.getUserPhotoLinkBuilder(userPhotoId).withRel("userPhoto")));
 		}
 
-		private void addRelatedActivityCategoryLink(GoalChangeMessageDto message)
+		protected void doDynamicDecoration(MessageDto message)
 		{
-			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryIdOfChangedGoal())
-					.withRel("related"));
+			messageController.getMessageResourceDecorators(message.getClass()).stream().forEach(d -> d.decorate(this, message));
 		}
 
-		private void addGoalConflictMessageLinks(GoalConflictMessageDto message)
-		{
-			addActivityCategoryLink(message);
-			addDayActivityDetailLink(message);
-		}
-
-		private void addActivityCategoryLink(GoalConflictMessageDto message)
-		{
-			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryId())
-					.withRel("activityCategory"));
-		}
-
-		private void addDayActivityDetailLink(DisclosureRequestMessageDto message)
-		{
-			String dateStr = DayActivityDto.formatDate(message.getGoalConflictStartTime());
-			message.add(UserActivityController
-					.getUserDayActivityDetailLinkBuilder(goalIdMapping.getUserId(), dateStr, message.getGoalId())
-					.withRel(UserActivityController.DAY_DETAIL_LINK));
-		}
-
-		private void addDayActivityDetailLink(DisclosureResponseMessageDto message)
-		{
-			String dateStr = DayActivityDto.formatDate(message.getGoalConflictStartTime());
-			message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(),
-					getSenderBuddyId(message), dateStr, message.getGoalId()).withRel(BuddyActivityController.DAY_DETAIL_LINK));
-		}
-
-		private void addDayActivityDetailLink(GoalConflictMessageDto message)
-		{
-			String dateStr = DayActivityDto.formatDate(message.getActivityStartDate());
-			if (message.isSentFromBuddy())
-			{
-				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(),
-						getSenderBuddyId(message), dateStr, message.getGoalId())
-						.withRel(BuddyActivityController.DAY_DETAIL_LINK));
-			}
-			else
-			{
-				message.add(UserActivityController
-						.getUserDayActivityDetailLinkBuilder(goalIdMapping.getUserId(), dateStr, message.getGoalId())
-						.withRel(UserActivityController.DAY_DETAIL_LINK));
-			}
-		}
-
-		private UUID getSenderBuddyId(MessageDto message)
+		UUID getSenderBuddyId(MessageDto message)
 		{
 			return message.getSenderBuddyId()
 					.orElseThrow(() -> new IllegalStateException("Sender buddy ID must be available in this context"));
-		}
-
-		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDto buddyMessage)
-		{
-			buddyMessage.getSenderUser()
-					.ifPresent(user -> buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-							createResourceAssembler(user).toResource(user)));
-		}
-
-		private UserResourceAssembler createResourceAssembler(UserDto user)
-		{
-			if (goalIdMapping.getUser().getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getId())
-					.anyMatch(id -> id.equals(user.getId())))
-			{
-				return UserController.UserResourceAssembler.createMinimalInstance(curieProvider, goalIdMapping.getUserId());
-			}
-			return UserController.UserResourceAssembler.createPublicUserInstance(curieProvider);
-		}
-
-		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDto buddyMessage)
-		{
-			buddyMessage.getSenderUser().ifPresent(user -> buddyMessage
-					.add(UserController.getBuddyUserLink(BuddyDto.USER_REL_NAME, user.getId(), goalIdMapping.getUserId())));
-		}
-
-		private void addActivityCommentMessageLinks(ActivityCommentMessageDto message)
-		{
-			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findById(message.getIntervalActivityId())
-					.orElseThrow(() -> new IllegalStateException(String.format(
-							"Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
-							message.getSenderNickname(), message.getIntervalActivityId())));
-			Goal goal = Objects.requireNonNull(activity.getGoal(),
-					String.format("Activity getGoal() returns null for '%s' instance with id '%s' and start time '%s'",
-							activity.getClass().getSimpleName(), activity.getId(), activity.getStartDate()));
-			if (goalIdMapping.isUserGoal(goal.getId()))
-			{
-				messageController.getUserActivityController().addLinks(goalIdMapping, activity, message);
-			}
-			else
-			{
-				messageController.getBuddyActivityController().addLinks(goalIdMapping, activity, message);
-			}
 		}
 	}
 }

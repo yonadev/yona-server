@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -7,8 +7,6 @@
 package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
-
-import groovy.json.*
 
 class SystemMessageTest extends AbstractAppServiceIntegrationTest
 {
@@ -31,16 +29,14 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		systemMessagesRichard.size() == 1
 		systemMessagesRichard[0].message == "Hi there!"
 		systemMessagesRichard[0].nickname == "Yona"
+		systemMessagesRichard[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesRichard[0]._links?.self?.href?.startsWith(richard.messagesUrl)
-		systemMessagesRichard[0]._links?.edit
-		systemMessagesRichard[0]._links?."yona:markRead"
 		def systemMessagesBob = messagesBob.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		systemMessagesBob.size() == 1
 		systemMessagesBob[0].message == "Hi there!"
 		systemMessagesBob[0].nickname == "Yona"
+		systemMessagesBob[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesBob[0]._links?.self?.href?.startsWith(bob.messagesUrl)
-		systemMessagesBob[0]._links?.edit
-		systemMessagesBob[0]._links?."yona:markRead"
 
 		cleanup:
 		appService.deleteUser(richard)

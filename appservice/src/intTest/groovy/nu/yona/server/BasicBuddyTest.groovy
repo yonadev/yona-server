@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -13,7 +13,6 @@ import java.time.ZonedDateTime
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 
-import groovy.json.*
 import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.CommonAssertions
@@ -113,7 +112,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(buddyConnectRequestMessages[0].creationTime, YonaServer.now)
 		buddyConnectRequestMessages[0].status == "REQUESTED"
 		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == "Richard"
-		buddyConnectRequestMessages[0]._links."yona:user" == null
+		buddyConnectRequestMessages[0]._links.keySet() == ["self", "yona:accept", "yona:reject", "yona:markRead"] as Set
 		buddyConnectRequestMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyConnectRequestMessages[0]._links."yona:accept".href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
 
@@ -145,8 +144,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:affectedMessages".size() == 1
 		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectRequestMessage.selfUrl
 		response.responseData._embedded."yona:affectedMessages"[0].status == "ACCEPTED"
-		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:accept" == null
-		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:reject" == null
+		response.responseData._embedded."yona:affectedMessages"[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 
 		List<Buddy> buddies = appService.getBuddies(bob)
 		buddies.size() == 1
@@ -195,7 +193,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
-		buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		buddyConnectResponseMessages[0]._links.keySet() == ["self", "edit", "yona:markRead", "yona:buddy", "yona:user"] as Set
 
 		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithBuddyData, buddyConnectResponseMessages[0]._links."yona:user".href, richard.password)
 
@@ -628,13 +626,12 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"
 		buddyDisconnectMessages[0].nickname == "${bob.nickname}"
 		buddyDisconnectMessages[0]._embedded?."yona:user"?.firstName == "Bob"
-		buddyDisconnectMessages[0]._links."yona:user" == null
+		buddyDisconnectMessages[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		assertEquals(buddyDisconnectMessages[0].creationTime, YonaServer.now)
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
-		buddyDisconnectMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
-		richard.buddies.size() == 0 // Buddy not yet removed for Richard (not processed yet)
+		richard.buddies.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)

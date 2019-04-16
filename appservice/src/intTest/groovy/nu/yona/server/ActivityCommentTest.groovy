@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -8,7 +8,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.Goal
@@ -16,6 +15,8 @@ import nu.yona.server.test.User
 
 class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 {
+	final static def BASE_LINKS = ["self", "edit", "yona:user", "yona:markRead", "yona:threadHead"] as Set
+
 	def 'Comment on buddy day activity'()
 	{
 		given:
@@ -474,14 +475,14 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def expectedData3 = [[nickname: richard.nickname, message: "You're quiet!"], [nickname: bob.nickname, message: "My battery died :)"], [nickname: richard.nickname, message: "Too bad!"],]
 		def responseSecondGetCommentMessagesSeenByBob = getActivityDetailMessages(appService, responseDetailsBob, bob, expectedData3)
 		def secondReplyMessagesSeenByBob = responseSecondGetCommentMessagesSeenByBob.responseData._embedded."yona:messages"
-		assertCommentMessageDetails(secondReplyMessagesSeenByBob[2], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!", secondReplyMessagesSeenByBob[0])
+		assertCommentMessageDetails(secondReplyMessagesSeenByBob[2], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!", secondReplyMessagesSeenByBob[0], secondReplyMessagesSeenByBob[1])
 
 		replyToMessage(appService, secondReplyMessagesSeenByBob[2], bob, "Yes, it is...", isWeek, responseDetailsBob, secondReplyMessagesSeenByBob[0])
 
 		def expectedData4 = [[nickname: richard.nickname, message: "You're quiet!"], [nickname: bob.nickname, message: "My battery died :)"], [nickname: richard.nickname, message: "Too bad!"], [nickname: bob.nickname, message: "Yes, it is..."]]
 		def responseThirdGetCommentMessagesSeenByRichard = getActivityDetailMessages(appService, responseDetailsBobAsBuddy, richard, expectedData4)
 		def replyToReplyMessagesSeenByRichard = responseThirdGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"
-		assertCommentMessageDetails(replyToReplyMessagesSeenByRichard[3], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...", replyToReplyMessagesSeenByRichard[0])
+		assertCommentMessageDetails(replyToReplyMessagesSeenByRichard[3], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...", replyToReplyMessagesSeenByRichard[0], replyToReplyMessagesSeenByRichard[2])
 
 		replyToMessage(appService, replyToReplyMessagesSeenByRichard[3], richard, "No budget for a new one?", isWeek, responseDetailsBobAsBuddy, replyToReplyMessagesSeenByRichard[0])
 
@@ -505,14 +506,14 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def allMessagesRichardResponse = appService.getMessages(richard)
 		assert allMessagesRichardResponse.responseData._embedded?."yona:messages".findAll{ it."@type" == "ActivityCommentMessage"}.size() == 2
 		def activityCommentMessagesRichard = allMessagesRichardResponse.responseData._embedded?."yona:messages".findAll{ it."@type" == "ActivityCommentMessage"}
-		assertCommentMessageDetails(activityCommentMessagesRichard[0], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...", messagesRichard[0])
-		assertCommentMessageDetails(activityCommentMessagesRichard[1], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)", messagesRichard[0])
+		assertCommentMessageDetails(activityCommentMessagesRichard[0], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...", messagesRichard[0], messagesRichard[2])
+		assertCommentMessageDetails(activityCommentMessagesRichard[1], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)", messagesRichard[0], messagesRichard[0])
 
 		def allMessagesBobResponse = appService.getMessages(bob)
 		assert allMessagesBobResponse.responseData._embedded?."yona:messages".findAll{ it."@type" == "ActivityCommentMessage"}.size() == 3
 		def activityCommentMessagesBob = allMessagesBobResponse.responseData._embedded?."yona:messages".findAll{ it."@type" == "ActivityCommentMessage"}
-		assertCommentMessageDetails(activityCommentMessagesBob[0], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "No budget for a new one?", activityCommentMessagesBob[2])
-		assertCommentMessageDetails(activityCommentMessagesBob[1], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!", activityCommentMessagesBob[2])
+		assertCommentMessageDetails(activityCommentMessagesBob[0], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "No budget for a new one?", activityCommentMessagesBob[2], messagesBob[3])
+		assertCommentMessageDetails(activityCommentMessagesBob[1], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!", activityCommentMessagesBob[2], messagesBob[1])
 		assertCommentMessageDetails(activityCommentMessagesBob[2], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "You're quiet!", activityCommentMessagesBob[2])
 	}
 
@@ -587,28 +588,33 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		assert message._links?.edit?.href == message._links.self.href
 		assert message._links?."yona:threadHead"?.href == threadHeadMessage._links.self.href
 
+		def expectedLinks = BASE_LINKS
+
 		if (repliedMessage)
 		{
 			assert repliedMessage._links.self.href == message._links?."yona:repliedMessage"?.href
+			expectedLinks += "yona:repliedMessage"
 		}
 
 		if (isWeek)
 		{
+			expectedLinks += "yona:weekDetails"
 			assert message._links?."yona:weekDetails"?.href == expectedDetailsUrl
-			assert message._links?."yona:dayDetails"?.href == null
 		} else
 		{
-			assert message._links?."yona:weekDetails"?.href == null
+			expectedLinks += "yona:dayDetails"
 			assert message._links?."yona:dayDetails"?.href == expectedDetailsUrl
 		}
 		if (sender instanceof Buddy)
 		{
+			expectedLinks += ["yona:buddy", "yona:reply"]
 			assert message._links?."yona:buddy"?.href == sender.url
 			assert message._links?."yona:reply"?.href.startsWith(YonaServer.stripQueryString(user.url))
 		} else
 		{
 			assert message._links?."yona:user"?.href == sender.url - ~/\&requestingDeviceId.*/
-			assert message._links?."yona:reply"?.href == null
 		}
+
+		assert message._links.keySet() - "curies" == expectedLinks
 	}
 }
