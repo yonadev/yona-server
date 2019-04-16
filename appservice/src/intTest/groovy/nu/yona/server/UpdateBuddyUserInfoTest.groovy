@@ -8,7 +8,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
 
@@ -34,8 +33,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		bobAfterUpdate.url == bob.url
 
 		buddyInfoUpdateMessages.size() == 1
-		buddyInfoUpdateMessages[0]._links.self != null
-		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		buddyInfoUpdateMessages[0]._links.keySet() == ["self", "edit", "yona:user", "yona:buddy", "yona:markRead"] as Set
 		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richard.buddies[0].url
 		buddyInfoUpdateMessages[0].nickname == "Bobby"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"

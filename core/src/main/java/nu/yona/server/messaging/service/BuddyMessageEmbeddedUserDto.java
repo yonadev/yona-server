@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,6 +28,13 @@ public abstract class BuddyMessageEmbeddedUserDto extends BuddyMessageDto
 			String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isToIncludeSenderUserLink()
+	{
+		return false; // User is embedded
 	}
 
 	@JsonProperty("_embedded")

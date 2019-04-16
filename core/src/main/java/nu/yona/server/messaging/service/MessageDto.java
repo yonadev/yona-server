@@ -143,6 +143,12 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonIgnore
+	public boolean isToIncludeSenderUserLink()
+	{
+		return getSenderBuddyId().isPresent();
+	}
+
+	@JsonIgnore
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = new HashSet<>();

@@ -39,7 +39,6 @@ import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.subscriptions.rest.BuddyController;
-import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
@@ -198,21 +197,8 @@ abstract class ActivityControllerBase extends ControllerBase
 		{
 			addDayDetailsLink(linkProvider, activity, message);
 		}
-		if (!message.getSenderUser().get().getId().equals(goalIdMapping.getUserId()))
-		{
-			UUID buddyId = determineBuddyId(goalIdMapping, message);
-			addBuddyLink(goalIdMapping.getUserId(), buddyId, message);
-		}
 		addThreadHeadMessageLink(goalIdMapping.getUserId(), message);
 		message.getRepliedMessageId().ifPresent(rmid -> addRepliedMessageLink(goalIdMapping.getUserId(), message));
-	}
-
-	private UUID determineBuddyId(GoalIdMapping goalIdMapping, ActivityCommentMessageDto message)
-	{
-		return goalIdMapping.getUser().getOwnPrivateData().getBuddies().stream()
-				.filter(b -> b.getUser().getId().equals(message.getSenderUser().get().getId())).map(BuddyDto::getId).findAny()
-				.orElseThrow(() -> new IllegalArgumentException(
-						"User with ID " + message.getSenderUser().get().getId() + "is not a buddy"));
 	}
 
 	private void addWeekDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDto message)
@@ -239,11 +225,6 @@ abstract class ActivityControllerBase extends ControllerBase
 	{
 		message.add(MessageController.getAnonymousMessageLinkBuilder(userId, message.getRepliedMessageId().get())
 				.withRel("repliedMessage"));
-	}
-
-	private void addBuddyLink(UUID userId, UUID buddyId, ActivityCommentMessageDto message)
-	{
-		message.add(BuddyController.getBuddyLinkBuilder(userId, buddyId).withRel(BuddyController.BUDDY_LINK));
 	}
 
 	interface LinkProvider

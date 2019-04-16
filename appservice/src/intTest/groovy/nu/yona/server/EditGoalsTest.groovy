@@ -12,7 +12,6 @@ import java.time.Duration
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
-import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.CommonAssertions
@@ -379,6 +378,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		{ it."@type" == "GoalChangeMessage" }
 		goalChangeMessages.size() == 2
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
+		goalChangeMessages[0]._links.keySet() == ["self", "edit", "related", "yona:user", "yona:buddy", "yona:markRead"] as Set
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
 		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))

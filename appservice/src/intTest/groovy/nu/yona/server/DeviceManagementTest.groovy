@@ -9,7 +9,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
@@ -107,8 +106,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
-		deviceChangeMessages[0]._links.self != null
-		deviceChangeMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		deviceChangeMessages[0]._links.keySet() == ["self", "edit", "yona:markRead", "yona:buddy", "yona:user"] as Set
 		deviceChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
 		deviceChangeMessages[0].message == "User added a device named '$newDeviceName'"
 

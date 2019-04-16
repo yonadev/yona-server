@@ -8,8 +8,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
-
 class SystemMessageTest extends AbstractAppServiceIntegrationTest
 {
 	def 'A system message gets received by both Bob and Richard'()
@@ -33,16 +31,14 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		systemMessagesRichard.size() == 1
 		systemMessagesRichard[0].message == "Hi there!"
 		systemMessagesRichard[0].nickname == "Yona"
+		systemMessagesRichard[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesRichard[0]._links?.self?.href?.startsWith(richard.messagesUrl)
-		systemMessagesRichard[0]._links?.edit
-		systemMessagesRichard[0]._links?."yona:markRead"
 		def systemMessagesBob = messagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		systemMessagesBob.size() == 1
 		systemMessagesBob[0].message == "Hi there!"
 		systemMessagesBob[0].nickname == "Yona"
+		systemMessagesBob[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesBob[0]._links?.self?.href?.startsWith(bob.messagesUrl)
-		systemMessagesBob[0]._links?.edit
-		systemMessagesBob[0]._links?."yona:markRead"
 
 		cleanup:
 		appService.deleteUser(richard)

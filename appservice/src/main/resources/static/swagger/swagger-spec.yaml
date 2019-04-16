@@ -2427,6 +2427,7 @@ definitions:
         - DisclosureResponseMessage
         - ActivityCommentMessage
         - SystemMessage
+        - BuddyVpnConnectionStatusChangeMessage
       _links:
          allOf:
            - $ref: '#/definitions/Curies'
@@ -2680,6 +2681,7 @@ definitions:
             allOf:
               - $ref: '#/definitions/Curies'
               - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/BuddyLink'
               - $ref: '#/definitions/UserLink'
               - $ref: '#/definitions/EditLink'
               - $ref: '#/definitions/MarkReadLink'
@@ -2702,6 +2704,7 @@ definitions:
             allOf:
               - $ref: '#/definitions/Curies'
               - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/BuddyLink'
               - $ref: '#/definitions/UserLink'
               - $ref: '#/definitions/EditLink'
               - $ref: '#/definitions/MarkReadLink'
@@ -2741,6 +2744,20 @@ definitions:
         example: Good job!
     required:
       - message
+  BuddyVpnConnectionStatusChangeMessage:
+    allOf:
+      - $ref: '#/definitions/Message'
+      - type: object
+        properties:
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/BuddyLink'
+              - $ref: '#/definitions/UserLink'
+        required:
+          - _links
   PagedWeekActivityOverviews:
     allOf:
       - $ref: '#/definitions/Page'
