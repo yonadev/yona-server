@@ -16,8 +16,8 @@ public class SecurityProperties
 	private int passwordLength = 32;
 	private Duration dosProtectionWindow = Duration.ofMinutes(5);
 	private boolean isDosProtectionEnabled = false;
-	private int maxCreateUserAttemptsPerTimeWindow = 1;
-	private int maxUpdateUserAttemptsPerTimeWindow = 1;
+	private int maxCreateUserAttemptsPerTimeWindow = 5;
+	private int maxUpdateUserAttemptsPerTimeWindow = 5;
 	private String sslRootCertFile;
 	private String ovpnProfileFile;
 
