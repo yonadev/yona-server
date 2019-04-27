@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -15,7 +15,6 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.SignStyle
 import java.time.temporal.IsoFields
 
-import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.CommonAssertions
@@ -1262,6 +1261,30 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:activities"[1].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(netActStartTime))
 		response.responseData._embedded."yona:activities"[1].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(netActStartTime).plusMinutes(1))
 		response.responseData._embedded."yona:activities"[1].app == ""
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try get raw activities with an invalid date'()
+	{
+		given:
+		def richard = addRichard()
+
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+
+		def goalId = richard.findActiveGoal(NEWS_ACT_CAT_URL).getId()
+		def lastWednesdayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Wed 09:00"))
+		def invalidDate = lastWednesdayDate + "1234"
+		def detailsUrl = YonaServer.stripQueryString(richard.url) + "/activity/days/$invalidDate/details/$goalId"
+
+		when:
+		def response = appService.getResourceWithPassword(detailsUrl + "/raw/", richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.invalid.date"
 
 		cleanup:
 		appService.deleteUser(richard)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -7,6 +7,7 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.entities.EntityUtil;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.GoalDto;
@@ -78,7 +80,14 @@ public class DayActivityDto extends IntervalActivityDto
 
 	public static LocalDate parseDate(String iso8601)
 	{
-		return LocalDate.parse(iso8601, ISO8601_DAY_FORMATTER);
+		try
+		{
+			return LocalDate.parse(iso8601, ISO8601_DAY_FORMATTER);
+		}
+		catch (DateTimeParseException e)
+		{
+			throw InvalidDataException.invalidDate(e, iso8601);
+		}
 	}
 
 	public static String formatDate(LocalDate date)

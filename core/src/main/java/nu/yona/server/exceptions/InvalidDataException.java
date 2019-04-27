@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
 import java.io.Serializable;
+import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
 /**
@@ -18,6 +19,11 @@ public class InvalidDataException extends YonaException
 	private InvalidDataException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
+	}
+
+	private InvalidDataException(Throwable t, String messageId, Serializable... parameters)
+	{
+		super(t, messageId, parameters);
 	}
 
 	public static InvalidDataException userAnonymizedIdNotFound(UUID id)
@@ -130,8 +136,13 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.missing.entity", clazz.getName(), id);
 	}
 
-	public static InvalidDataException invalidUuid(String uuid)
+	public static InvalidDataException invalidUuid(IllegalArgumentException exception, String uuid)
 	{
-		return new InvalidDataException("error.invalid.uuid", uuid);
+		return new InvalidDataException(exception, "error.invalid.uuid", uuid);
+	}
+
+	public static InvalidDataException invalidDate(DateTimeParseException exception, String date)
+	{
+		return new InvalidDataException(exception, "error.invalid.date", date);
 	}
 }
