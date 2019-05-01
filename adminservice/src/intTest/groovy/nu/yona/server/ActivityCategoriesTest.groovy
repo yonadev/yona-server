@@ -27,7 +27,6 @@ class ActivityCategoriesTest extends Specification
 	@Shared
 	def AppService appService = new AppService()
 
-	// NOTE: This test assumes that en-US is the client language
 	def 'App service should sync activity categories cache with admin service'()
 	{
 		given:
