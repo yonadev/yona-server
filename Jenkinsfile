@@ -39,7 +39,7 @@ pipeline {
 						scm: scm])
 				}
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed"
 				}
 			}
 		}
@@ -60,7 +60,7 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to integration test server"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to integration test server"
 				}
 			}
 		}
@@ -74,10 +74,10 @@ pipeline {
 					junit testResults: '**/build/test-results/*/*.xml', keepLongStdio: true
 				}
 				success {
-					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} passed all tests on build ${env.BUILD_NUMBER_TO_DEPLOY}"
+					slackSend color: 'good', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> passed all tests on build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed integration test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed integration test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 			}
 		}
@@ -89,7 +89,7 @@ pipeline {
 							submitter: 'authenticated',
 							parameters: [choice(name: 'Deploy to the test servers', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the test servers')]
 					if (env.DEPLOY_TO_TEST_SERVERS == 'no') {
-						slackSend color: 'warning', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} skips all further steps"
+						slackSend color: 'warning', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> skips all further steps"
 					}
 				}
 			}
@@ -114,7 +114,7 @@ pipeline {
 					}
 				}
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to beta"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to beta"
 				}
 			}
 		}
@@ -136,7 +136,7 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to load test"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to load test"
 				}
 			}
 		}
@@ -146,7 +146,7 @@ pipeline {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to start load test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
+				slackSend color: 'good', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> ready to start load test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				script {
 					env.RUN_LOAD_TEST = input message: 'User input required',
 					submitter: 'authenticated',
@@ -176,7 +176,7 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed in load test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed in load test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 			}
 		}
@@ -187,13 +187,13 @@ pipeline {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} ready to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
+				slackSend color: 'good', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> ready to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
 				script {
 					env.DEPLOY_TO_PRD = input message: 'User input required',
 					submitter: 'authenticated',
 					parameters: [choice(name: 'Deploy to production server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the production server')]
 					if (env.DEPLOY_TO_PRD == 'no') {
-						slackSend color: 'warning', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} skips all further steps"
+						slackSend color: 'warning', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> skips all further steps"
 					}
 				}
 			}
@@ -210,7 +210,7 @@ pipeline {
 			}
 			post {
 				success {
-					slackSend color: 'good', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
+					slackSend color: 'good', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
 					script {
 						jiraIssueSelector(issueSelector: [$class: 'DefaultIssueSelector']).each {
 							id -> jiraComment(issueKey: id,
@@ -219,7 +219,7 @@ pipeline {
 					}
 				}
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
 				}
 			}
 		}
