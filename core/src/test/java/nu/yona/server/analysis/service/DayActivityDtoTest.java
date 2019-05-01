@@ -6,10 +6,13 @@ package nu.yona.server.analysis.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
+
+import nu.yona.server.exceptions.InvalidDataException;
 
 public class DayActivityDtoTest
 {
@@ -19,6 +22,15 @@ public class DayActivityDtoTest
 		LocalDate parsedDate = DayActivityDto.parseDate("2016-01-11");
 
 		assertThat(parsedDate, equalTo(LocalDate.of(2016, 1, 11)));
+	}
+
+	@Test
+	public void parseDate_invalidDateFormat_throwsInvalidDataException()
+	{
+		InvalidDataException ex = assertThrows(InvalidDataException.class, () -> DayActivityDto.parseDate("2016-01-abc"));
+
+		assertThat(ex.getMessageId(), equalTo("error.invalid.date"));
+
 	}
 
 	@Test
