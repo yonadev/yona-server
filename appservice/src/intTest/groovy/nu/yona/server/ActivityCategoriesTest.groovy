@@ -17,7 +17,7 @@ class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
 		given:
 
 		when:
-		def response = appService.getAllActivityCategories()
+		def response = appService.getAllActivityCategoriesWithLanguage("en-US")
 
 		then:
 		assertResponseStatusOk(response)

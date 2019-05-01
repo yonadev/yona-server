@@ -50,7 +50,7 @@ class ActivityCategoriesTest extends Specification
 		waitForCachePropagation("Gardening", "Reading about gardening")
 		
 		then:
-		def getAllResponse = appService.getAllActivityCategories()
+		def getAllResponse = appService.getAllActivityCategoriesWithLanguage("en-US")
 		def programmingCategory = appServicefindActivityCategoryByName(getAllResponse, "Programming")
 		programmingCategory == null
 		def chessCategory = appServicefindActivityCategoryByName(getAllResponse, "Chess")
@@ -296,7 +296,7 @@ class ActivityCategoriesTest extends Specification
 	{
 		for (int i = 0; i < cachePropagationTimeoutSeconds; i++)
 		{
-			def response = appService.getAllActivityCategories()
+			def response = appService.getAllActivityCategoriesWithLanguage("en-US")
 			assertResponseStatusOk(response)
 			if (response.responseData._embedded."yona:activityCategories".size() != originalCount)
 			{
@@ -310,7 +310,7 @@ class ActivityCategoriesTest extends Specification
 	{
 		for (int i = 0; i < cachePropagationTimeoutSeconds; i++)
 		{
-			def response = appService.getAllActivityCategories()
+			def response = appService.getAllActivityCategoriesWithLanguage("en-US")
 			assertResponseStatusOk(response)
 			def category = appServicefindActivityCategoryByName(response, englishName)
 			if (category != null && category.description == englishDescription)
