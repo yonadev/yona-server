@@ -105,17 +105,6 @@ public class ActivityCategoryService
 						(Comparator<ActivityCategoryDto> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
 	}
 
-	// Added to analyse randomly failing ActivityCategoriesTest
-	@SuppressWarnings("unchecked") // The cast to serializable is necessary to ensure a serializable/cacheable result
-	@Transactional
-	public Set<ActivityCategoryDto> getAllActivityCategoriesSkipCache()
-	{
-		// Sort the collection to make it simpler to compare the activity categories
-		return StreamSupport.stream(repository.findAll().spliterator(), false).map(ActivityCategoryDto::createInstance)
-				.collect(Collectors.toCollection(() -> new TreeSet<>(
-						(Comparator<ActivityCategoryDto> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
-	}
-
 	@CacheEvict(key = "'instance'")
 	@Transactional
 	public ActivityCategoryDto addActivityCategory(ActivityCategoryDto activityCategoryDto)
