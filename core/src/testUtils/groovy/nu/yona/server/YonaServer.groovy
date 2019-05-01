@@ -250,7 +250,10 @@ class YonaServer
 				parsedFields++
 			// Fall through
 			case 2:
-				int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK))
+				int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee")
+					.withLocale(Locale.forLanguageTag("en-US"))
+					.parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK)
+				)
 				dayOffset = weekDay - getDayOfWeek(now)
 				parsedFields++
 			// Fall through
@@ -282,7 +285,10 @@ class YonaServer
 	 */
 	static def relativeDateStringToDaysOffset(int weeksBack, String shortDay)
 	{
-		int targetWeekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(shortDay).get(ChronoField.DAY_OF_WEEK))
+		int targetWeekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee")
+			.withLocale(Locale.forLanguageTag("en-US"))
+			.parse(shortDay).get(ChronoField.DAY_OF_WEEK)
+		)
 		int currentWeekDay = now.dayOfWeek.value
 		int dayOffset = currentWeekDay - targetWeekDay
 		return weeksBack * 7 + dayOffset
