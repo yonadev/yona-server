@@ -47,11 +47,12 @@ import nu.yona.server.util.LockPool;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.properties" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.PrivateUserDataMigrationService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.MockMigrationStep1", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.MockMigrationStep2", type = FilterType.REGEX) })
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.MockMigrationStep2", type = FilterType.REGEX) }, excludeFilters = {
+						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class PrivateUserDataMigrationServiceIntegrationTestConfiguration extends UserRepositoriesConfiguration
 {
 }

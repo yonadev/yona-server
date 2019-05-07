@@ -13,7 +13,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.entity.mime.content.InputStreamBody
 import org.codehaus.groovy.runtime.MethodClosure
 
-import groovy.json.*
 import nu.yona.server.test.User
 
 class UserPhotoTest extends AbstractAppServiceIntegrationTest

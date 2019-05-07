@@ -30,8 +30,9 @@ import nu.yona.server.util.LockPool;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.properties" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
+				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) }, excludeFilters = {
+						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class UserServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 }
@@ -67,6 +68,6 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	{
 		UserDto user = new UserDto("John", "Doe", "john@doe.net", "+31612345678", "jd");
 
-		service.assertValidUserFields(user, UserPurpose.BUDDY);
+		service.assertValidUserFields(user, UserService.UserPurpose.BUDDY);
 	}
 }

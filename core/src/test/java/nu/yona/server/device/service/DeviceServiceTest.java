@@ -90,11 +90,11 @@ import nu.yona.server.util.TimeUtil;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.device.service",
 		"nu.yona.server.subscriptions.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserAnonymizedService", type = FilterType.REGEX),
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
+				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) }, excludeFilters = {
+						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";

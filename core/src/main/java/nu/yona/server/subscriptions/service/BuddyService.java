@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -61,7 +61,6 @@ import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 import nu.yona.server.subscriptions.entities.BuddyRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.util.Require;
 import nu.yona.server.util.TransactionHelper;
 
@@ -193,7 +192,7 @@ public class BuddyService
 
 	private void assertValidBuddy(UserDto requestingUser, BuddyDto buddy)
 	{
-		userService.assertValidUserFields(buddy.getUser(), UserPurpose.BUDDY);
+		userService.assertValidUserFields(buddy.getUser(), UserService.UserPurpose.BUDDY);
 		Require.that(buddy.getSendingStatus() == Status.REQUESTED && buddy.getReceivingStatus() == Status.REQUESTED,
 				BuddyServiceException::onlyTwoWayBuddiesAllowed);
 		String buddyMobileNumber = buddy.getUser().getMobileNumber();
