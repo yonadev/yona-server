@@ -157,9 +157,9 @@ public class UserAdditionService
 			return Optional.empty();
 		}
 
-		Optional<ConfirmationCode> confirmationCode = Optional.of(userUpdateService.createConfirmationCode());
-		userEntity.setMobileNumberConfirmationCode(confirmationCode.get());
-		return confirmationCode;
+		ConfirmationCode confirmationCode = userUpdateService.createConfirmationCode();
+		userEntity.setMobileNumberConfirmationCode(confirmationCode);
+		return Optional.of(confirmationCode);
 	}
 
 	private void addMandatoryGoals(User userEntity)
