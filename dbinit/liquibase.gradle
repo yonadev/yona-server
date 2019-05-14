@@ -3,7 +3,7 @@ configurations {
 }
 
 dependencies {
-	liquibase "org.liquibase.ext:liquibase-hibernate5:3.6"
+	liquibase "org.liquibase.ext:liquibase-hibernate5:3.7"
 }
 
 //loading properties file.
@@ -28,7 +28,7 @@ task liquibasePathingJar(type: Jar) {
 	appendix = 'pathing'
 	doFirst {
 		manifest {
-			attributes "Class-Path": configurations.runtime.files.collect {
+			attributes "Class-Path": (configurations.runtime.files + configurations.liquibase.files).collect {
 				it.toURL().toString().replaceFirst(/file:\/+/, '/')
 			}.join(' ')
 		}
@@ -68,10 +68,12 @@ task liquibaseDiffChangelog(type: JavaExec) {
 	group = "liquibase"
 	dependsOn liquibasePathingJar
 
+	workingDir = "${changeLogPath}"
+
 	classpath = files(liquibasePathingJar.archivePath)
 	main = "liquibase.integration.commandline.Main"
 
-	args "--changeLogFile=${changeLogPath}/updates/changelog-0000-yd-000.yml"
+	args "--changeLogFile=updates/changelog-0000-yd-000.yml"
 	args "--referenceUrl=${hibernateUrl}"
 	args "--url=${databaseUrl}"
 	args "--driver=${jdbcDriver}"
