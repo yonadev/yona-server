@@ -72,7 +72,7 @@ public class UserUpdateService
 	private MessageService messageService;
 
 	@Autowired(required = false)
-	private UserRetrievalService userRetrievalService;
+	private UserLookupService userLookupService;
 
 	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, SmsTemplate template)
 	{
@@ -96,7 +96,7 @@ public class UserUpdateService
 	@Transactional
 	public void setOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		updateUser(UserRetrievalService.findUserByMobileNumber(mobileNumber).getId(), existingUserEntity -> {
+		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(), existingUserEntity -> {
 			ConfirmationCode confirmationCode = createConfirmationCode();
 			existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
 			sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
@@ -109,7 +109,7 @@ public class UserUpdateService
 	public UserDto updateUser(UUID id, UserDto user)
 	{
 		User updatedUserEntity = updateUser(id, userEntity -> {
-			UserDto originalUser = userRetrievalService.createUserDtoWithPrivateData(userEntity);
+			UserDto originalUser = userLookupService.createUserDtoWithPrivateData(userEntity);
 			assertValidUpdateRequest(user, originalUser, userEntity);
 
 			user.updateUser(userEntity);
@@ -119,11 +119,11 @@ public class UserUpdateService
 				sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
 						SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
 			}
-			UserDto userDto = userRetrievalService.createUserDtoWithPrivateData(userEntity);
+			UserDto userDto = userLookupService.createUserDtoWithPrivateData(userEntity);
 			logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
 			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
 		});
-		return userRetrievalService.createUserDtoWithPrivateData(updatedUserEntity);
+		return userLookupService.createUserDtoWithPrivateData(updatedUserEntity);
 	}
 
 	/**
@@ -143,7 +143,7 @@ public class UserUpdateService
 	{
 		// We add a lock here to prevent concurrent user updates.
 		// The lock is per user, so concurrency is not an issue.
-		return userRetrievalService.withLockOnUser(id, user -> {
+		return userLookupService.withLockOnUser(id, user -> {
 			updateAction.accept(user);
 			if (user.canAccessPrivateData())
 			{
@@ -159,9 +159,9 @@ public class UserUpdateService
 	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
 	{
 		User updatedUserEntity = updateUser(id, userEntity -> {
-			UserDto originalUser = userRetrievalService.createUserDtoWithPrivateData(userEntity);
+			UserDto originalUser = userLookupService.createUserDtoWithPrivateData(userEntity);
 			userEntity.setUserPhotoId(userPhotoId);
-			UserDto userDto = userRetrievalService.createUserDtoWithPrivateData(userEntity);
+			UserDto userDto = userLookupService.createUserDtoWithPrivateData(userEntity);
 			if (userPhotoId.isPresent())
 			{
 				logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
@@ -174,7 +174,7 @@ public class UserUpdateService
 			}
 			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
 		});
-		return userRetrievalService.createUserDtoWithPrivateData(updatedUserEntity);
+		return userLookupService.createUserDtoWithPrivateData(updatedUserEntity);
 	}
 
 	private void assertValidUpdateRequest(UserDto user, UserDto originalUser, User originalUserEntity)
@@ -186,7 +186,7 @@ public class UserUpdateService
 		}
 		if (isMobileNumberDifferent(user, originalUser))
 		{
-			userRetrievalService.assertUserDoesNotExist(user.getMobileNumber());
+			userLookupService.assertUserDoesNotExist(user.getMobileNumber());
 		}
 	}
 
@@ -210,7 +210,7 @@ public class UserUpdateService
 	@Transactional
 	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto user)
 	{
-		User originalUserEntity = userRetrievalService.getUserEntityById(id);
+		User originalUserEntity = userLookupService.getUserEntityById(id);
 		// security check: should not be able to replace the password on an existing user
 		Require.that(originalUserEntity.isCreatedOnBuddyRequest(), () -> UserServiceException.userNotCreatedOnBuddyRequest(id));
 
@@ -218,7 +218,7 @@ public class UserUpdateService
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
 		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
-		UserDto userDto = userRetrievalService.createUserDtoWithPrivateData(savedUserEntity);
+		UserDto userDto = userLookupService.createUserDtoWithPrivateData(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
 				userDto.getId());
 		return userDto;
@@ -228,7 +228,7 @@ public class UserUpdateService
 	{
 		// use a separate crypto session to read the data based on the temporary password
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
-				() -> userRetrievalService.doPreparationsAndCheckCanAccessPrivateData(originalUserEntity.getId())))
+				() -> userLookupService.doPreparationsAndCheckCanAccessPrivateData(originalUserEntity.getId())))
 		{
 			return retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity);
 		}
@@ -251,7 +251,7 @@ public class UserUpdateService
 		Require.that(buddy != null && buddy.getId() != null, InvalidDataException::emptyBuddyId);
 
 		updateUser(user.getId(), userEntity -> {
-			userRetrievalService.assertValidatedUser(userEntity);
+			userLookupService.assertValidatedUser(userEntity);
 
 			Buddy buddyEntity = buddyRepository.findById(buddy.getId())
 					.orElseThrow(() -> InvalidDataException.missingEntity(Buddy.class, buddy.getId()));

@@ -32,7 +32,7 @@ import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.util.Require;
 
 @Service
-public class UserRetrievalService
+public class UserLookupService
 {
 	/**
 	 * Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers

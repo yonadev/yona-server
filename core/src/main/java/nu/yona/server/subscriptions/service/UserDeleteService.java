@@ -31,9 +31,9 @@ import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @Service
-class UserDeletionService
+class UserDeleteService
 {
-	private static final Logger logger = LoggerFactory.getLogger(UserDeletionService.class);
+	private static final Logger logger = LoggerFactory.getLogger(UserDeleteService.class);
 
 	@Autowired(required = false)
 	private UserRepository userRepository;

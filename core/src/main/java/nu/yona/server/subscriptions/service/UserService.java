@@ -37,51 +37,51 @@ public class UserService
 	private YonaProperties yonaProperties;
 
 	@Autowired
-	private UserRetrievalService userRetrievalService;
+	private UserLookupService userLookupService;
 
 	@Autowired
 	private UserUpdateService userUpdateService;
 
 	@Autowired
-	private UserAdditionService userAdditionService;
+	private UserAddService userAddService;
 
 	@Autowired
-	private UserDeletionService userDeletionService;
+	private UserDeleteService userDeleteService;
 
 	@Transactional
 	public boolean doPreparationsAndCheckCanAccessPrivateData(UUID id)
 	{
-		return userRetrievalService.doPreparationsAndCheckCanAccessPrivateData(id);
+		return userLookupService.doPreparationsAndCheckCanAccessPrivateData(id);
 	}
 
 	@Transactional
 	public UserDto getPublicUser(UUID id)
 	{
-		return userRetrievalService.getPublicUser(id);
+		return userLookupService.getPublicUser(id);
 	}
 
 	@Transactional
 	public UserDto getPrivateUser(UUID id)
 	{
-		return userRetrievalService.getPrivateUser(id);
+		return userLookupService.getPrivateUser(id);
 	}
 
 	@Transactional
 	public UserDto getPrivateUser(UUID id, boolean isCreatedOnBuddyRequest)
 	{
-		return userRetrievalService.getPrivateUser(id, isCreatedOnBuddyRequest);
+		return userLookupService.getPrivateUser(id, isCreatedOnBuddyRequest);
 	}
 
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
-		return userRetrievalService.getPrivateValidatedUser(id);
+		return userLookupService.getPrivateValidatedUser(id);
 	}
 
 	@Transactional
 	public User getPrivateValidatedUserEntity(UUID id)
 	{
-		return userRetrievalService.getPrivateValidatedUserEntity(id);
+		return userLookupService.getPrivateValidatedUserEntity(id);
 	}
 
 	@Transactional
@@ -93,12 +93,12 @@ public class UserService
 	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
-		return userAdditionService.addUser(user, overwriteUserConfirmationCode);
+		return userAddService.addUser(user, overwriteUserConfirmationCode);
 	}
 
 	public UserDto createUserDtoWithPrivateData(User user)
 	{
-		return userRetrievalService.createUserDtoWithPrivateData(user);
+		return userLookupService.createUserDtoWithPrivateData(user);
 	}
 
 	@Transactional(dontRollbackOn = MobileNumberConfirmationException.class)
@@ -107,7 +107,7 @@ public class UserService
 		User updatedUserEntity = updateUser(userId, userEntity -> {
 			ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
-			userAdditionService.assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
+			userAddService.assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 					() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
 					r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
 							userProvidedConfirmationCode, r),
@@ -143,7 +143,7 @@ public class UserService
 	@Transactional
 	UserDto addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
-		return userAdditionService.addUserCreatedOnBuddyRequest(buddyUserResource);
+		return userAddService.addUserCreatedOnBuddyRequest(buddyUserResource);
 	}
 
 	@Transactional
@@ -191,7 +191,7 @@ public class UserService
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
-		userRetrievalService.withLockOnUser(id, userEntity -> userDeletionService.deleteUser(userEntity, message));
+		userLookupService.withLockOnUser(id, userEntity -> userDeleteService.deleteUser(userEntity, message));
 	}
 
 	@Transactional
@@ -207,12 +207,12 @@ public class UserService
 
 	static User findUserByMobileNumber(String mobileNumber)
 	{
-		return UserRetrievalService.findUserByMobileNumber(mobileNumber);
+		return UserLookupService.findUserByMobileNumber(mobileNumber);
 	}
 
 	public static String getPassword(Optional<String> password)
 	{
-		return UserRetrievalService.getPassword(password);
+		return UserLookupService.getPassword(password);
 	}
 
 	/**
@@ -225,12 +225,12 @@ public class UserService
 	@Transactional
 	public User getUserEntityById(UUID id)
 	{
-		return userRetrievalService.getUserEntityById(id);
+		return userLookupService.getUserEntityById(id);
 	}
 
 	public UserDto getUserByMobileNumber(String mobileNumber)
 	{
-		return userRetrievalService.getUserByMobileNumber(mobileNumber);
+		return userLookupService.getUserByMobileNumber(mobileNumber);
 	}
 
 	/**
@@ -242,18 +242,18 @@ public class UserService
 	@Transactional
 	public User getValidatedUserById(UUID id)
 	{
-		return userRetrievalService.getValidatedUserById(id);
+		return userLookupService.getValidatedUserById(id);
 	}
 
 	@Transactional
 	public UUID getUserAnonymizedId(UUID userId)
 	{
-		return userRetrievalService.getUserAnonymizedId(userId);
+		return userLookupService.getUserAnonymizedId(userId);
 	}
 
 	public void assertValidatedUser(User user)
 	{
-		userRetrievalService.assertValidatedUser(user);
+		userLookupService.assertValidatedUser(user);
 	}
 
 	public String generateConfirmationCode()
@@ -268,21 +268,21 @@ public class UserService
 
 	void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
 	{
-		UserRetrievalService.assertValidUserFields(user, purpose);
+		UserLookupService.assertValidUserFields(user, purpose);
 	}
 
 	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
 	{
-		userAdditionService.registerFailedAttempt(userEntity, confirmationCode);
+		userAddService.registerFailedAttempt(userEntity, confirmationCode);
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		UserRetrievalService.assertValidMobileNumber(mobileNumber);
+		UserLookupService.assertValidMobileNumber(mobileNumber);
 	}
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		UserRetrievalService.assertValidEmailAddress(emailAddress);
+		UserLookupService.assertValidEmailAddress(emailAddress);
 	}
 }

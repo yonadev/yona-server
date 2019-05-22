@@ -43,14 +43,14 @@ import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
 
 @Service
-public class UserAdditionService
+public class UserAddService
 {
 	private enum UserSignUp
 	{
 		INVITED, FREE
 	}
 
-	private static final Logger logger = LoggerFactory.getLogger(UserAdditionService.class);
+	private static final Logger logger = LoggerFactory.getLogger(UserAddService.class);
 
 	@Autowired(required = false)
 	private UserRepository userRepository;
@@ -68,7 +68,7 @@ public class UserAdditionService
 	private WhiteListedNumberService whiteListedNumberService;
 
 	@Autowired(required = false)
-	private UserRetrievalService userRetrievalService;
+	private UserLookupService userLookupService;
 
 	@Autowired(required = false)
 	private UserUpdateService userUpdateService;
@@ -89,7 +89,7 @@ public class UserAdditionService
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
 		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
-		UserRetrievalService.assertValidUserFields(user, UserService.UserPurpose.USER);
+		UserLookupService.assertValidUserFields(user, UserService.UserPurpose.USER);
 
 		handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
 
@@ -97,7 +97,7 @@ public class UserAdditionService
 		addDevicesToEntity(user, userEntity);
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNeeded(overwriteUserConfirmationCode, userEntity);
 		userEntity = userRepository.save(userEntity);
-		UserDto userDto = userRetrievalService.createUserDtoWithPrivateData(userEntity);
+		UserDto userDto = userLookupService.createUserDtoWithPrivateData(userEntity);
 		if (confirmationCode.isPresent())
 		{
 			userUpdateService.sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
@@ -182,7 +182,7 @@ public class UserAdditionService
 		}
 		else
 		{
-			userRetrievalService.assertUserDoesNotExist(mobileNumber);
+			userLookupService.assertUserDoesNotExist(mobileNumber);
 			assertUserIsAllowed(mobileNumber, UserSignUp.FREE);
 		}
 	}
@@ -215,7 +215,7 @@ public class UserAdditionService
 
 	private void deleteExistingUserToOverwriteIt(String mobileNumber, String userProvidedConfirmationCode)
 	{
-		User existingUserEntity = UserRetrievalService.findUserByMobileNumber(mobileNumber);
+		User existingUserEntity = UserLookupService.findUserByMobileNumber(mobileNumber);
 		ConfirmationCode confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
 
 		assertValidConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
@@ -243,7 +243,7 @@ public class UserAdditionService
 		User savedUser = userRepository.save(newUser);
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
 				savedUser.getId());
-		return userRetrievalService.createUserDtoWithPrivateData(savedUser);
+		return userLookupService.createUserDtoWithPrivateData(savedUser);
 	}
 
 	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
