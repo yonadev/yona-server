@@ -1599,9 +1599,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		where:
 		operatingSystem | budget | expectedValue
 		"ANDROID" | 0 | [ 13 : 4]
-		"ANDROID" | 60 | [ : ]
+		"ANDROID" | 60 | [ : ] // We only track no-go goals on Android, as app activity monitoring provides much better measurements
 		"IOS" | 0 | [13 : 4]
-		"IOS" | 60 | [13 : 4]
+		"IOS" | 60 | [13 : 4] // App activity monitoring is not possible on iOS, so we also track budget goals
 	}
 
 	private def getRawActivityData(User user, relativeDate, goal) {
