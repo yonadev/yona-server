@@ -1558,7 +1558,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Mon 03:24")
 
 		def expectedGoalAccomplished = budget > 0
-		def expectedMinutesBeyondGoal = expectedGoalAccomplished ? 0 : expectedValue.size() == 0 ? 0 :  expectedValue.entrySet().iterator().next().value
+		def expectedMinutesBeyondGoal = expectedGoalAccomplished || expectedValue.size() == 0 ? 0 :  expectedValue.entrySet().iterator().next().value
 		def expectedValuesRichardLastWeek = [
 			"Mon" : [[goal:budgetGoalSocialRichard, data: [goalAccomplished: expectedGoalAccomplished, minutesBeyondGoal: expectedMinutesBeyondGoal, spread: expectedValue]]],
 			"Tue" : [[goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
