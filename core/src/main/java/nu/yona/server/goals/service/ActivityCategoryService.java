@@ -144,6 +144,12 @@ public class ActivityCategoryService
 		deleteActivityCategory(getEntityById(id));
 	}
 
+	@Transactional
+	public ActivityCategory getActivityCategoryEntity(UUID id)
+	{
+		return getEntityById(id);
+	}
+
 	private void deleteActivityCategory(ActivityCategory entity)
 	{
 		logger.info("Deleting activity category '{}' with ID '{}'", getName(entity), entity.getId());

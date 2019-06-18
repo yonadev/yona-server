@@ -5,8 +5,8 @@
 package nu.yona.server.subscriptions.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,9 +68,10 @@ import nu.yona.server.util.TransactionHelper;
 		"nu.yona.server.messaging.service", "nu.yona.server.properties" }, includeFilters = {
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyDeviceChangeMessageDto.Manager", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.SenderInfo.Factory", type = FilterType.REGEX) })
+				@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.SenderInfo.Factory", type = FilterType.REGEX) }, excludeFilters = {
+						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class BuddyDeviceChangeMessageDtoTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";
