@@ -37,6 +37,9 @@ public class UserService
 	private YonaProperties yonaProperties;
 
 	@Autowired
+	private UserAssertionService userAssertionService;
+
+	@Autowired
 	private UserLookupService userLookupService;
 
 	@Autowired
@@ -253,7 +256,7 @@ public class UserService
 
 	public void assertValidatedUser(User user)
 	{
-		userLookupService.assertValidatedUser(user);
+		userAssertionService.assertValidatedUser(user);
 	}
 
 	public String generateConfirmationCode()
@@ -268,7 +271,7 @@ public class UserService
 
 	void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
 	{
-		UserLookupService.assertValidUserFields(user, purpose);
+		UserAssertionService.assertValidUserFields(user, purpose);
 	}
 
 	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
@@ -278,11 +281,11 @@ public class UserService
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		UserLookupService.assertValidMobileNumber(mobileNumber);
+		UserAssertionService.assertValidMobileNumber(mobileNumber);
 	}
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		UserLookupService.assertValidEmailAddress(emailAddress);
+		UserAssertionService.assertValidEmailAddress(emailAddress);
 	}
 }

@@ -72,6 +72,9 @@ public class UserUpdateService
 	private MessageService messageService;
 
 	@Autowired(required = false)
+	private UserAssertionService userAssertionService;
+
+	@Autowired(required = false)
 	private UserLookupService userLookupService;
 
 	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, SmsTemplate template)
@@ -186,7 +189,7 @@ public class UserUpdateService
 		}
 		if (isMobileNumberDifferent(user, originalUser))
 		{
-			userLookupService.assertUserDoesNotExist(user.getMobileNumber());
+			userAssertionService.assertUserDoesNotExist(user.getMobileNumber());
 		}
 	}
 
@@ -251,7 +254,7 @@ public class UserUpdateService
 		Require.that(buddy != null && buddy.getId() != null, InvalidDataException::emptyBuddyId);
 
 		updateUser(user.getId(), userEntity -> {
-			userLookupService.assertValidatedUser(userEntity);
+			userAssertionService.assertValidatedUser(userEntity);
 
 			Buddy buddyEntity = buddyRepository.findById(buddy.getId())
 					.orElseThrow(() -> InvalidDataException.missingEntity(Buddy.class, buddy.getId()));

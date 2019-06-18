@@ -68,6 +68,9 @@ public class UserAddService
 	private WhiteListedNumberService whiteListedNumberService;
 
 	@Autowired(required = false)
+	private UserAssertionService userAssertionService;
+
+	@Autowired(required = false)
 	private UserLookupService userLookupService;
 
 	@Autowired(required = false)
@@ -89,7 +92,7 @@ public class UserAddService
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
 		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
-		UserLookupService.assertValidUserFields(user, UserService.UserPurpose.USER);
+		UserAssertionService.assertValidUserFields(user, UserService.UserPurpose.USER);
 
 		handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
 
@@ -182,7 +185,7 @@ public class UserAddService
 		}
 		else
 		{
-			userLookupService.assertUserDoesNotExist(mobileNumber);
+			userAssertionService.assertUserDoesNotExist(mobileNumber);
 			assertUserIsAllowed(mobileNumber, UserSignUp.FREE);
 		}
 	}
