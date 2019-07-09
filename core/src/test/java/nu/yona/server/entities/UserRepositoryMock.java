@@ -64,4 +64,10 @@ public class UserRepositoryMock extends MockJpaRepositoryEntityWithUuid<User> im
 	{
 		throw new NotImplementedException();
 	}
+
+	@Override
+	public int countByNumberOfDaysAppOpenedAfterInstallation(int minNumberOfDays, int maxNumberOfDays)
+	{
+		throw new NotImplementedException();
+	}
 }
