@@ -1,14 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.admin;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
 
@@ -29,6 +31,15 @@ public class DashboardController
 {
 	private static final LocalDate LONG_AGO = LocalDate.of(2000, 1, 1);
 
+	private static final List<Integer> DAYS_APP_OPENED_SCALE = Arrays.asList(0, 1, 2, 3, 4, 30, 90, 180, 365,
+			Integer.MAX_VALUE);
+
+	private static final List<String> DAYS_APP_OPENED_LABELS = Arrays.asList("Never opened",
+			"On day of installation", "1 day", "2 days", "3 days", "4 to 30 days", "31 to 90 days", "91 to 180 days",
+			"181 to 365 days", "More than 365 days");
+
+	private static final List<Integer> HISTORY_SCALE = Arrays.asList(1, 2, 7, 14, 30, 60);
+
 	@Autowired
 	private UserRepository userRepository;
 
@@ -45,11 +56,11 @@ public class DashboardController
 	@Transactional
 	public String getIndexPage(Model model)
 	{
-		List<Integer> intervalEndOffsets = Arrays.asList(1, 2, 7, 14, 30, 60);
-		List<HistoryInterval> intervals = determineIntervals(intervalEndOffsets);
+		List<HistoryInterval> intervals = determineIntervals(HISTORY_SCALE);
 
 		List<Integer> appOpenedCounts = calculateAppOpenedCounts(intervals);
 		List<Integer> lastMonitoredActivityCounts = calculateLastMonitoredActivityCounts(intervals);
+		List<Integer> daysAppOpenedCounts = calculateDaysAppOpenedCounts();
 		model.addAttribute("maxNumOfUsers", yonaProperties.getMaxUsers());
 		model.addAttribute("totalNumOfUsers", userRepository.count());
 		model.addAttribute("numOfUsersWithConfirmedNumbers", userRepository.countByMobileNumberConfirmationCodeIsNull());
@@ -67,6 +78,12 @@ public class DashboardController
 		model.addAttribute("lastMonitoredActivitySumLast30Days",
 				userAnonymizedRepository.countByLastMonitoredActivityDateBetween(LocalDate.now().minusDays(29), LocalDate.now()));
 		model.addAttribute("buildNumber", buildProperties.get("buildNumber"));
+		model.addAttribute("daysAppOpenedLabels", DAYS_APP_OPENED_LABELS);
+		model.addAttribute("daysAppOpenedCounts", daysAppOpenedCounts);
+		model.addAttribute("daysAppOpenedPercentages",
+				absoluteValuesToPercentages(daysAppOpenedCounts));
+		model.addAttribute("daysAppOpenedCumulativePercentages",
+				cumulativeValues(absoluteValuesToPercentages(daysAppOpenedCounts)));
 
 		return "dashboard";
 	}
@@ -92,13 +109,36 @@ public class DashboardController
 				userAnonymizedRepository.countByLastMonitoredActivityDateIsNull());
 	}
 
+	private List<Integer> calculateDaysAppOpenedCounts()
+	{
+		List<Integer> counts = IntStream.range(0, DAYS_APP_OPENED_SCALE.size() - 1)
+				.mapToObj(i -> userRepository.countByNumberOfDaysAppOpenedAfterInstallation(
+						DAYS_APP_OPENED_SCALE.get(i), DAYS_APP_OPENED_SCALE.get(i + 1)))
+				.collect(Collectors.toList());
+		int neverOpenedCount = userRepository.countByAppLastOpenedDateIsNull();
+		counts.add(0, neverOpenedCount);
+		return counts;
+	}
+
 	private List<Integer> calculateCounts(List<HistoryInterval> intervals, Function<HistoryInterval, Integer> countRetriever,
 			int neverUsedCount)
 	{
-		List<Integer> appOpenedCounts = intervals.stream().map(countRetriever).collect(Collectors.toList());
-		appOpenedCounts.add(neverUsedCount);
+		List<Integer> counts = intervals.stream().map(countRetriever).collect(Collectors.toList());
+		counts.add(neverUsedCount);
 
-		return appOpenedCounts;
+		return counts;
+	}
+
+	private List<Integer> cumulativeValues(List<Integer> values)
+	{
+		List<Integer> results = new ArrayList<>();
+		int sum = 0;
+		for (int i = 0; i < values.size(); i++)
+		{
+			sum += values.get(i);
+			results.add(sum);
+		}
+		return results;
 	}
 
 	private List<Integer> absoluteValuesToPercentages(List<Integer> values)
@@ -111,12 +151,6 @@ public class DashboardController
 	{
 		int percentage = Math.round(((float) value) / sum * 100);
 		return value > 0 ? Math.max(percentage, 1) : percentage;
-	}
-
-	@FunctionalInterface
-	private interface Getter
-	{
-		int count(LocalDate start, LocalDate end);
 	}
 
 	/**
