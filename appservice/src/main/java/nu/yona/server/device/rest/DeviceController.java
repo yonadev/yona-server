@@ -167,6 +167,7 @@ public class DeviceController extends ControllerBase
 			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) String newDeviceRequestPassword,
 			@PathVariable UUID userId, @RequestBody DeviceRegistrationRequestDto request)
 	{
+		assertValidDeviceDataForRegister(request);
 		NewDeviceRequestDto newDeviceRequest = newDeviceRequestService.getNewDeviceRequestForUser(userId,
 				Optional.of(newDeviceRequestPassword));
 		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequest.getYonaPassword(),
@@ -177,6 +178,15 @@ public class DeviceController extends ControllerBase
 			return createResponse(userService.getPrivateUser(userId, false), HttpStatus.CREATED,
 					userController.createResourceAssemblerForOwnUser(userId, Optional.of(newDevice.getId())));
 		}
+	}
+
+	private static void assertValidDeviceDataForRegister(DeviceRegistrationRequestDto requestDto)
+	{
+		String hint = "All properties are manadatory, except for the FireBase ID";
+		Require.isNonNull(requestDto.name, () -> InvalidDataException.missingProperty("name", hint));
+		Require.isNonNull(requestDto.operatingSystemStr, () -> InvalidDataException.missingProperty("operatingSystem", hint));
+		Require.isNonNull(requestDto.appVersion, () -> InvalidDataException.missingProperty("appVersion", hint));
+		Require.that(requestDto.appVersionCode != 0, () -> InvalidDataException.missingProperty("appVersionCode", hint));
 	}
 
 	@PostMapping(value = "/{deviceId}/openApp")
@@ -253,12 +263,19 @@ public class DeviceController extends ControllerBase
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr,
 			@RequestBody DeviceUpdateRequestDto request)
 	{
+		assertValidDeviceDataForUpdate(request);
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.updateDevice(userId, deviceId, request),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
 		}
+	}
+
+	private static void assertValidDeviceDataForUpdate(DeviceUpdateRequestDto requestDto)
+	{
+		String hint = "The name is mandatory and the FireBase ID optional";
+		Require.isNonNull(requestDto.name, () -> InvalidDataException.missingProperty("name", hint));
 	}
 
 	@DeleteMapping(value = "/{deviceId}")
