@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.time.format.SignStyle;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.IsoFields;
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -72,9 +74,17 @@ public class WeekActivityDto extends IntervalActivityDto
 
 	public static LocalDate parseDate(String iso8601)
 	{
-		// ISO treats Monday as first day of the week, so our formatter defaults the day as Monday and here we subtract one day to
-		// return the preceding Sunday.
-		return LocalDate.parse(iso8601, ISO8601_WEEK_FORMATTER).minusDays(1);
+		try
+		{
+			// ISO treats Monday as first day of the week, so our formatter defaults the day as Monday and here we subtract one
+			// day to
+			// return the preceding Sunday.
+			return LocalDate.parse(iso8601, ISO8601_WEEK_FORMATTER).minusDays(1);
+		}
+		catch (DateTimeParseException e)
+		{
+			throw InvalidDataException.invalidDate(e, iso8601);
+		}
 	}
 
 	public static String formatDate(LocalDate sundayDate)

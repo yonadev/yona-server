@@ -33,7 +33,7 @@ pipeline {
 						scm: scm])
 				}
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} failed"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|YD-622 NAPI Server build ${env.BUILD_NUMBER}> failed"
 				}
 			}
 		}
@@ -54,7 +54,7 @@ pipeline {
 			}
 			post {
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to integration test server"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|YD-622 NAPI Server build ${env.BUILD_NUMBER}> failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to integration test server"
 				}
 			}
 		}
@@ -68,10 +68,10 @@ pipeline {
 					junit testResults: '**/build/test-results/*/*.xml', keepLongStdio: true
 				}
 				success {
-					slackSend color: 'good', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} passed all tests on build ${env.BUILD_NUMBER_TO_DEPLOY}"
+					slackSend color: 'good', channel: '#devops', message: "<${currentBuild.absoluteUrl}|YD-622 NAPI Server build ${env.BUILD_NUMBER}> passed all tests on build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} failed integration test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|YD-622 NAPI Server build ${env.BUILD_NUMBER}> failed integration test of build ${env.BUILD_NUMBER_TO_DEPLOY}"
 				}
 			}
 		}
@@ -88,10 +88,10 @@ pipeline {
 			}
 			post {
 				success {
-					slackSend color: 'good', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to the test server"
+					slackSend color: 'good', channel: '#devops', message: "<${currentBuild.absoluteUrl}|YD-622 NAPI Server build ${env.BUILD_NUMBER}> successfully deployed build ${env.BUILD_NUMBER_TO_DEPLOY} to the test server"
 				}
 				failure {
-					slackSend color: 'danger', channel: '#devops', message: "YD-622 NAPI Server build ${env.BUILD_NUMBER} failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to the test server"
+					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|YD-622 NAPI Server build ${env.BUILD_NUMBER}> failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to the test server"
 				}
 			}
 		}

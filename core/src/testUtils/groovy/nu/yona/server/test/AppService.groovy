@@ -296,15 +296,9 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword(buddyEditUrl, password, ["message":message])
 	}
 
-	def getAllActivityCategories()
+	def getAllActivityCategoriesWithLanguage(language)
 	{
-		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH)
-	}
-
-	// Added to analyse randomly failing ActivityCategoriesTest
-	def getAllActivityCategoriesSkipCache()
-	{
-		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH + "skip-cache/")
+		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH, ["Accept-Language":language])
 	}
 
 	List<Buddy> getBuddies(User user)

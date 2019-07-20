@@ -154,7 +154,7 @@ abstract class ActivityControllerBase extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getPrivateValidatedUser(userId);
+			UserDto user = userService.getValidatedUser(userId);
 			return messageController.createOkResponse(user, messageSupplier.get(), pagedResourcesAssembler);
 		}
 	}

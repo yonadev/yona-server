@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service.migration;
 
@@ -62,10 +62,11 @@ import nu.yona.server.util.LockPool;
 		"nu.yona.server.device.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.util.TransactionHelper", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
+				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) }, excludeFilters = {
+						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class EncryptFirstAndLastNameTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";

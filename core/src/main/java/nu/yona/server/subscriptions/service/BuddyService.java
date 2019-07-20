@@ -60,7 +60,6 @@ import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 import nu.yona.server.subscriptions.entities.BuddyRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.util.Require;
 import nu.yona.server.util.TransactionHelper;
 
@@ -180,7 +179,7 @@ public class BuddyService
 
 	private void assertValidBuddy(UserDto requestingUser, BuddyDto buddy)
 	{
-		userService.assertValidUserFields(buddy.getUser(), UserPurpose.BUDDY);
+		userService.assertValidUserFields(buddy.getUser(), UserService.UserPurpose.BUDDY);
 		Require.that(buddy.getSendingStatus() == Status.REQUESTED && buddy.getReceivingStatus() == Status.REQUESTED,
 				BuddyServiceException::onlyTwoWayBuddiesAllowed);
 		String buddyMobileNumber = buddy.getUser().getMobileNumber();

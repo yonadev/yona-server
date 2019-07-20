@@ -9,7 +9,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.AppService
 import spock.lang.Shared
 import spock.lang.Specification
@@ -18,13 +17,60 @@ class ActivityCategoriesTest extends Specification
 {
 	// See https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#near-cache-invalidation
 	// Default batch invalidation frequency is 10 seconds
-	static final def cachePropagationTimeoutSeconds = 240
+	static final def cachePropagationTimeoutSeconds = 20
 
 	@Shared
 	def AdminService adminService = new AdminService()
 
 	@Shared
 	def AppService appService = new AppService()
+
+	def 'App service should sync activity categories cache with admin service'()
+	{
+		given:
+		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US" : "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US" : "Programming computers"])
+		def createProgrammingResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
+		assertResponseStatusOk(createProgrammingResponse)
+		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Schaken", "en-US" : "Chess"], false, ["chess"], ["Chess Free", "Analyze This", "Chess Opening Blunders"], ["nl-NL": "Schaken tegen mensen", "en-US" : "Chess against humans"])
+		String cookingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Koken", "en-US" : "Cooking"], false, ["cooking"], [], ["nl-NL": "Raadplegen van websites over koken", "en-US" : "Reading about cooking"])
+		def createCookingResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, cookingActivityCategoryJson)
+		assertResponseStatusOk(createCookingResponse)
+		String gardeningActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Tuinieren", "en-US" : "Gardening"], false, ["gardening"], [], ["nl-NL": "Raadplegen van websites over tuinieren", "en-US" : "Reading about gardening"])
+
+		when:
+		def updateResponse = adminService.yonaServer.updateResource(createProgrammingResponse.responseData._links.self.href, chessActivityCategoryJson)
+		assertResponseStatusOk(updateResponse)
+		def deleteResponse = adminService.yonaServer.deleteResource(createCookingResponse.responseData._links.self.href)
+		assertResponseStatusNoContent(deleteResponse)
+		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, gardeningActivityCategoryJson)
+		assertResponseStatusOk(createResponse)
+		waitForCachePropagation("Gardening", "Reading about gardening")
+
+		then:
+		def getAllResponse = appService.getAllActivityCategoriesWithLanguage("en-US")
+		def programmingCategory = appServicefindActivityCategoryByName(getAllResponse, "Programming")
+		programmingCategory == null
+		def chessCategory = appServicefindActivityCategoryByName(getAllResponse, "Chess")
+		chessCategory != null
+		def gardeningCategory = appServicefindActivityCategoryByName(getAllResponse, "Gardening")
+		gardeningCategory != null
+		def cookingCategory = appServicefindActivityCategoryByName(getAllResponse, "Cooking")
+		cookingCategory == null
+
+		cleanup:
+		if (createCookingResponse?.status == 200)
+		{
+			adminService.yonaServer.deleteResource(createCookingResponse.responseData._links.self.href)
+		}
+		if (createProgrammingResponse?.status == 200)
+		{
+			adminService.yonaServer.deleteResource(createProgrammingResponse.responseData._links.self.href)
+		}
+		if (createResponse?.status == 200)
+		{
+			adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
+		}
+	}
 
 	def 'Get all activity categories loaded from file'()
 	{
@@ -65,8 +111,6 @@ class ActivityCategoriesTest extends Specification
 		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US" : englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US" : englishDescription])
 		def numActivityCategoriesBeforeAdd = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
 
-		println "Admin service number of activity categories before add: $numActivityCategoriesBeforeAdd"
-
 		when:
 		def response = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 
@@ -92,17 +136,12 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.localizableDescription["en-US"] == englishDescription
 		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
 
-		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
-
-		def appServiceSkipCacheResponse = appService.getAllActivityCategoriesSkipCache()
-		def appServiceSkipCacheNumOfCategories = appServiceSkipCacheResponse.responseData._embedded."yona:activityCategories".size()
-		println "App service skip cache size after add: $appServiceSkipCacheNumOfCategories"
-
-		waitForCachePropagation(numActivityCategoriesBeforeAdd)
-		def appServiceGetResponse = appService.getAllActivityCategories()
-		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
-		def programmingCategory = findActivityCategoryByName(appServiceGetResponse, englishName)
-		programmingCategory.description == englishDescription
+		def getAllResponse = adminService.getAllActivityCategories()
+		getAllResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
+		def programmingCategory = findActivityCategoryByName(getAllResponse, englishName)
+		programmingCategory != null
+		programmingCategory.applications as Set == apps
+		programmingCategory.localizableDescription["en-US"] == englishDescription
 
 		cleanup:
 		if (response?.status == 200)
@@ -125,7 +164,7 @@ class ActivityCategoriesTest extends Specification
 		String englishDescription = "Chess against humans"
 		String dutchDescription = "Schaken tegen mensen"
 		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US" : englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US" : englishDescription])
-		def programmingCategory = findActivityCategoryByName(appService.getAllActivityCategories(), "Programming")
+		def programmingCategory = findActivityCategoryByName(adminService.getAllActivityCategories(), "Programming")
 
 		when:
 		def response = adminService.yonaServer.updateResource(createResponse.responseData._links.self.href, chessActivityCategoryJson)
@@ -155,15 +194,9 @@ class ActivityCategoriesTest extends Specification
 		def getAllResponse = adminService.getAllActivityCategories()
 		def chessCategory = getAllResponse.responseData._embedded."yona:activityCategories".find{ it.localizableName["en-US"] == englishName }
 		chessCategory != null
-
-		def chessCategoryAppServiceSkipCache = findActivityCategoryByName(appService.getAllActivityCategoriesSkipCache(), englishName)
-		println "App service skip cache chess category after update: $chessCategoryAppServiceSkipCache"
-
-		waitForCachePropagation(englishName, englishDescription)
-		def chessCategoryAppService = findActivityCategoryByName(appService.getAllActivityCategories(), englishName)
-		chessCategoryAppService != null
-		chessCategoryAppService._links.self.href == programmingCategory._links.self.href
-		chessCategoryAppService.description == englishDescription
+		chessCategory._links.self.href == programmingCategory._links.self.href
+		chessCategory.applications as Set == apps
+		chessCategory.localizableDescription["en-US"] == englishDescription
 
 		cleanup:
 		if (createResponse?.status == 200)
@@ -180,23 +213,15 @@ class ActivityCategoriesTest extends Specification
 		assertResponseStatusOk(createResponse)
 		def numActivityCategoriesBeforeDelete = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
 
-		println "Admin service number of activity categories before delete: $numActivityCategoriesBeforeDelete"
-
 		when:
 		def response = adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
 
 		then:
 		assertResponseStatusNoContent(response)
-		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1
 
-		def appServiceSkipCacheResponse = appService.getAllActivityCategoriesSkipCache()
-		def appServiceSkipCacheNumOfCategories = appServiceSkipCacheResponse.responseData._embedded."yona:activityCategories".size()
-		println "App service skip cache size after delete: $appServiceSkipCacheNumOfCategories"
-
-		waitForCachePropagation(numActivityCategoriesBeforeDelete)
-		def appServiceGetResponse = appService.getAllActivityCategories()
-		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1
-		findActivityCategoryByName(appServiceGetResponse, "Programming") == null
+		def getAllResponse = adminService.getAllActivityCategories()
+		getAllResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1
+		findActivityCategoryByName(getAllResponse, "Programming") == null
 	}
 
 	def 'Try add duplicate English name' ()
@@ -254,16 +279,21 @@ class ActivityCategoriesTest extends Specification
 		return json
 	}
 
-	private findActivityCategoryByName(response, name)
+	private findActivityCategoryByName(getAllResponse, englishName)
 	{
-		response.responseData._embedded."yona:activityCategories".find{ it.name == name }
+		getAllResponse.responseData._embedded."yona:activityCategories".find{ it.localizableName["en-US"] == englishName }
+	}
+
+	private appServicefindActivityCategoryByName(getAllResponse, englishName)
+	{
+		getAllResponse.responseData._embedded."yona:activityCategories".find{ it.name == englishName }
 	}
 
 	private void waitForCachePropagation(originalCount)
 	{
 		for (int i = 0; i < cachePropagationTimeoutSeconds; i++)
 		{
-			def response = appService.getAllActivityCategories()
+			def response = appService.getAllActivityCategoriesWithLanguage("en-US")
 			assertResponseStatusOk(response)
 			if (response.responseData._embedded."yona:activityCategories".size() != originalCount)
 			{
@@ -277,9 +307,9 @@ class ActivityCategoriesTest extends Specification
 	{
 		for (int i = 0; i < cachePropagationTimeoutSeconds; i++)
 		{
-			def response = appService.getAllActivityCategories()
+			def response = appService.getAllActivityCategoriesWithLanguage("en-US")
 			assertResponseStatusOk(response)
-			def category = findActivityCategoryByName(response, englishName)
+			def category = appServicefindActivityCategoryByName(response, englishName)
 			if (category != null && category.description == englishDescription)
 			{
 				return

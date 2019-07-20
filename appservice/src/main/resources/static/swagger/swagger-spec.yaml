@@ -2219,7 +2219,7 @@ definitions:
             type: array
             items:
               type: string
-              example: "8:00-17:00"
+              example: "08:00-17:00"
             description: The zones for this goal
           spreadCells:
             type: array

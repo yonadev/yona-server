@@ -167,6 +167,26 @@
 		<li>Users that had activity monitored in the last 30 days: <span th:text="${lastMonitoredActivitySumLast30Days}">1</span></li>
 	</ul></p>
 	<div id="chart" style="width: 320px; height: 600px"></div>
+	<p>
+		<table>
+			<thead>
+				<tr>
+					<th>Days app opened after installation</th>
+					<th>Number of users</th>
+					<th>%</th>
+					<th>Cumulative %</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="label,iter : ${daysAppOpenedLabels}">
+					<td th:text="${label}">1 day</td>
+					<td th:text="${daysAppOpenedCounts[iter.index]}">300</td>
+					<td th:text="${daysAppOpenedPercentages[iter.index]}">0.1%</td>
+					<td th:text="${daysAppOpenedCumulativePercentages[iter.index]}">0.1%</td>
+				</tr>
+			</tbody>
+		</table>
+	</p>
 	<p>Build number: <span th:text="${buildNumber}">123</span><br/>
 </body>
 </html>

@@ -13,6 +13,8 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
+import nu.yona.server.exceptions.InvalidDataException;
+
 public class WeekActivityDtoTest
 {
 	@Test
@@ -22,6 +24,15 @@ public class WeekActivityDtoTest
 
 		assertThat(parsedDate.getDayOfWeek(), equalTo(DayOfWeek.SUNDAY));
 		assertThat(parsedDate, equalTo(LocalDate.of(2016, 1, 10)));
+	}
+
+	@Test
+	public void parseDate_invalidDateFormat_throwsInvalidDataException()
+	{
+		InvalidDataException ex = assertThrows(InvalidDataException.class, () -> WeekActivityDto.parseDate("2016-Wabc"));
+
+		assertThat(ex.getMessageId(), equalTo("error.invalid.date"));
+
 	}
 
 	@Test

@@ -15,7 +15,6 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.SignStyle
 import java.time.temporal.IsoFields
 
-import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.CommonAssertions
@@ -1267,6 +1266,30 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Try get raw activities with an invalid date'()
+	{
+		given:
+		def richard = addRichard()
+
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+
+		def goalId = richard.findActiveGoal(NEWS_ACT_CAT_URL).getId()
+		def lastWednesdayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Wed 09:00"))
+		def invalidDate = lastWednesdayDate + "1234"
+		def detailsUrl = YonaServer.stripQueryString(richard.url) + "/activity/days/$invalidDate/details/$goalId"
+
+		when:
+		def response = appService.getResourceWithPassword(detailsUrl + "/raw/", richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.invalid.date"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Richard\'s goals are only included when a buddy has that goal too'()
 	{
 		given:
@@ -1521,25 +1544,28 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richardDefault)
 	}
 
-	def 'Richard\'s \'non-no-go\' network activity is measured on iOS only'(def operatingSystem, def expectedValue)
+	def 'Richard\'s network activity is measured properly on different OSes and different budget goals'(def operatingSystem, def budget, def expectedValue)
 	{
 		given:
 		User richard = addRichard(false, operatingSystem)
 		setCreationTimeOfMandatoryGoalsToNow(richard)
-		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["01:00-12:00"], "W-1 Mon 02:18")
+		addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, budget, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
-		Goal timeZoneGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
+		BudgetGoal budgetGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
 		// Activities on default device
 		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Mon 03:20")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Mon 03:24")
 
+		def expectedGoalAccomplished = budget > 0
+		def expectedMinutesBeyondGoal = expectedGoalAccomplished || expectedValue.size() == 0 ? 0 :  expectedValue.entrySet().iterator().next().value
 		def expectedValuesRichardLastWeek = [
-			"Mon" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: expectedValue]]],
-			"Tue" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Wed" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Thu" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Fri" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Sat" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+			"Mon" : [[goal:budgetGoalSocialRichard, data: [goalAccomplished: expectedGoalAccomplished, minutesBeyondGoal: expectedMinutesBeyondGoal, spread: expectedValue]]],
+			"Tue" : [[goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Wed" : [[goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Thu" : [[goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Fri" : [[goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Sat" : [[goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + currentDayOfWeek + 1
@@ -1556,24 +1582,26 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
 
-		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialRichard, 6)
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalSocialRichard, 6)
 
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalSocialRichard, expectedValuesRichardLastWeek, "Mon")
 
-		assertWeekDetailForGoal(richard, weekOverviewLastWeek, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek)
+		assertWeekDetailForGoal(richard, weekOverviewLastWeek, budgetGoalSocialRichard, expectedValuesRichardLastWeek)
 
 		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, 14)
-		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
 
-		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
 
 		cleanup:
 		appService.deleteUser(richard)
 
 		where:
-		operatingSystem | expectedValue
-		"ANDROID" | [ : ]
-		"IOS" | [13 : 1]
+		operatingSystem | budget | expectedValue
+		"ANDROID" | 0 | [ 13 : 4]
+		"ANDROID" | 60 | [ : ] // We only track no-go goals on Android, as app activity monitoring provides much better measurements
+		"IOS" | 0 | [13 : 4]
+		"IOS" | 60 | [13 : 4] // App activity monitoring is not possible on iOS, so we also track budget goals
 	}
 
 	private def getRawActivityData(User user, relativeDate, goal) {

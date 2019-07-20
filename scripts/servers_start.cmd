@@ -22,22 +22,22 @@ echo.
 call gradlew :dbinit:bootRun
 if ERRORLEVEL 1 goto error
 
-call gradlew adminservice:build && start "Admin service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8840,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar adminservice\build\libs\adminservice-0.0.8-SNAPSHOT-full.jar --server.port=8080 --management.server.port=9080 --spring.jpa.hibernate.ddl-auto=none
-call gradlew analysisservice:build && start "Analysis service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8841,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar analysisservice\build\libs\analysisservice-0.0.8-SNAPSHOT-full.jar --server.port=8081 --management.server.port=9081 --spring.jpa.hibernate.ddl-auto=none
-call gradlew appservice:build && start "App service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8842,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar appservice\build\libs\appservice-0.0.8-SNAPSHOT-full.jar --server.port=8082 --management.server.port=9082 --spring.jpa.hibernate.ddl-auto=none
-call gradlew batchservice:build && start "Batch service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8843,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar batchservice\build\libs\batchservice-0.0.8-SNAPSHOT-full.jar --server.port=8083 --management.server.port=9083 --spring.jpa.hibernate.ddl-auto=none
+call gradlew adminservice:build && start "Admin service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8840,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar adminservice\build\libs\adminservice-0.0.8-SNAPSHOT-full.jar --server.port=8180 --management.server.port=9080 --spring.jpa.hibernate.ddl-auto=none
+call gradlew analysisservice:build && start "Analysis service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8841,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar analysisservice\build\libs\analysisservice-0.0.8-SNAPSHOT-full.jar --server.port=8181 --management.server.port=9081 --spring.jpa.hibernate.ddl-auto=none
+call gradlew appservice:build && start "App service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8842,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar appservice\build\libs\appservice-0.0.8-SNAPSHOT-full.jar --server.port=8182 --management.server.port=9082 --spring.jpa.hibernate.ddl-auto=none
+call gradlew batchservice:build && start "Batch service" java -ea -Xdebug -Xrunjdwp:transport=dt_socket,address=8843,server=y,suspend=n -Dyona.enableHibernateStatsAllowed=true -jar batchservice\build\libs\batchservice-0.0.8-SNAPSHOT-full.jar --server.port=8183 --management.server.port=9083 --spring.jpa.hibernate.ddl-auto=none
 
 echo.
 echo Wait until all services are started.
 echo.
 set CURLOPT=-s --retry-connrefused --retry-delay 3 --retry 20
-curl %CURLOPT% http://localhost:8080/activityCategories/ > nul
+curl %CURLOPT% http://localhost:8180/activityCategories/ > nul
 if ERRORLEVEL 1 goto error
-curl %CURLOPT% http://localhost:8081/relevantSmoothwallCategories/ > nul
+curl %CURLOPT% http://localhost:8181/relevantSmoothwallCategories/ > nul
 if ERRORLEVEL 1 goto error
-curl %CURLOPT% http://localhost:8082/activityCategories/ > nul
+curl %CURLOPT% http://localhost:8182/activityCategories/ > nul
 if ERRORLEVEL 1 goto error
-curl %CURLOPT% http://localhost:8083/scheduler/jobs/ > nul
+curl %CURLOPT% http://localhost:8183/scheduler/jobs/ > nul
 if ERRORLEVEL 1 goto error
 
 if "%1"=="-keepDB" goto end
@@ -45,18 +45,18 @@ if "%1"=="-keepDB" goto end
 echo.
 echo Load the activity categories
 echo.
-curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/activityCategories.json http://localhost:8080/activityCategories/
+curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/activityCategories.json http://localhost:8180/activityCategories/
 if ERRORLEVEL 1 goto error
 
 echo.
 echo Load the Quartz jobs
 echo.
-curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/QuartzOtherJobs.json http://localhost:8083/scheduler/jobs/OTHER/
+curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/QuartzOtherJobs.json http://localhost:8183/scheduler/jobs/OTHER/
 
 echo.
 echo Load the Quartz cron triggers
 echo.
-curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/QuartzOtherCronTriggers.json http://localhost:8083/scheduler/triggers/cron/OTHER/
+curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/QuartzOtherCronTriggers.json http://localhost:8183/scheduler/triggers/cron/OTHER/
 
 echo.
 echo.
