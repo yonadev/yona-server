@@ -165,6 +165,53 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Try add device with null values'()
+	{
+		given:
+		User richard = addRichard()
+		def newDeviceRequestPassword = "Zomaar"
+		assertResponseStatusSuccess(appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword))
+
+		def getResponse = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
+		assertResponseStatusSuccess(getResponse)
+
+		when:
+		def response
+		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, null, "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.request.missing.property"
+		response.data.message ==~ /^Mandatory property 'name'.*/
+
+		when:
+		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", null, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.request.missing.property"
+		response.data.message ==~ /^Mandatory property 'operatingSystem'.*/
+
+		when:
+		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", "IOS", null, Device.SUPPORTED_APP_VERSION_CODE)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.request.missing.property"
+		response.data.message ==~ /^Mandatory property 'appVersion'.*/
+
+		when:
+		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", "IOS", Device.SOME_APP_VERSION, null)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.request.missing.property"
+		response.data.message ==~ /^Mandatory property 'appVersionCode'.*/
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Try get new device request with wrong information'()
 	{
 		given:
@@ -403,6 +450,27 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def 'Try update device name without name'()
+	{
+		given:
+		def ts = timestamp
+		User richard = addRichard()
+		Device deviceToUpdate = richard.devices[0]
+		def existingName = "Existing name"
+		appService.addDevice(richard, existingName, "ANDROID")
+
+		when:
+		def response = appService.updateResourceWithPassword(deviceToUpdate.editUrl, """{}""", richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.request.missing.property"
+		response.data.message ==~ /^Mandatory property 'name'.*/
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
 	def 'Try update device name to device name containing a colon'()
