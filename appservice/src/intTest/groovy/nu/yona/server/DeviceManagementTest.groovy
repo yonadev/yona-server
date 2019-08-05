@@ -514,6 +514,34 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Richard deletes a devices on which activities were done'()
+	{
+		given:
+		def ts = timestamp
+		User richardOnFirstDevice = addRichard()
+		setGoalCreationTime(richardOnFirstDevice, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		Device remainingDevice = richardOnFirstDevice.devices[0]
+		def deletedDeviceName = "Second device"
+		User richardOnSecondDevice = appService.addDevice(richardOnFirstDevice, deletedDeviceName, "ANDROID")
+		reportAppActivity(richardOnSecondDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+
+		Device deviceToDelete = richardOnSecondDevice.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
+
+		when:
+		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richardOnSecondDevice.password)
+
+		then:
+		assertResponseStatusNoContent(response)
+		def richardAfterReload = appService.reloadUser(richardOnFirstDevice, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+
+		richardAfterReload.devices.size == 1
+		richardAfterReload.devices[0].name == remainingDevice.name
+		richardAfterReload.devices[0].operatingSystem == remainingDevice.operatingSystem
+
+		cleanup:
+		appService.deleteUser(richardOnFirstDevice)
+	}
+
 	def 'Richard deletes one of his devices; Bob gets the update'()
 	{
 		given:
