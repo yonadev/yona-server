@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,7 +13,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.google.auth.oauth2.GoogleCredentials;
@@ -42,8 +42,9 @@ public class FirebaseService
 			return;
 		}
 
-		try (InputStream serviceAccount = new ClassPathResource(yonaProperties.getFirebase().getAdminServiceAccountKeyFile())
-				.getInputStream())
+		String fileName = yonaProperties.getFirebase().getAdminServiceAccountKeyFile();
+		logger.info("Reading the Firebase service account info from {}", fileName);
+		try (InputStream serviceAccount = new FileInputStream(fileName))
 		{
 			FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
 					.setDatabaseUrl(yonaProperties.getFirebase().getDatabaseUrl()).build();
