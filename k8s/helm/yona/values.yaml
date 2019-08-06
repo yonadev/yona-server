@@ -170,7 +170,7 @@ sms:
 firebase:
   enabled: false
   admin_service_account_key_filename: serviceAccountKey.json
-  service_account_secret_material: dummydummydummy
+  service_account_secret_material: ZHVtbXlkdW1teWR1bW15
   admin_service_account_key_file: firebase/serviceAccountKey.json
   database_url: "https://yona-app.firebaseio.com"
 
