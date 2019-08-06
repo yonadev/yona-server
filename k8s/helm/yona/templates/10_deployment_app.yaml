@@ -83,6 +83,8 @@ spec:
               mountPath: /opt/app/resources
             - name: apple-resources
               mountPath: /opt/app/apple
+            - name: firebase-resources
+              mountPath: /opt/app/firebase
           livenessProbe:
             httpGet:
               path: /actuator/health/
@@ -100,3 +102,6 @@ spec:
         - name: apple-resources
           secret:
             secretName: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-apple-bundle
+        - name: firebase-resources
+          secret:
+            secretName: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle

@@ -167,6 +167,13 @@ sms:
   plivo_auth_id: M1234123412341234123
   plivo_auth_token: N123412341234123412341234123412341234123
   
+firebase:
+  enabled: false
+  admin_service_account_key_filename: serviceAccountKey.json
+  service_account_secret_material: dummydummydummy
+  admin_service_account_key_file: firebase/serviceAccountKey.json
+  database_url: "https://yona-app.firebaseio.com"
+
 apple:
   enabled: false
   keystore_secret_filename: dummy.p12

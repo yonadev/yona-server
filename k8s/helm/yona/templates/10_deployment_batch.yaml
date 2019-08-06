@@ -68,6 +68,8 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /opt/app/config
+            - name: firebase-resources
+              mountPath: /opt/app/firebase
           livenessProbe:
             httpGet:
               path: /actuator/health/
@@ -79,3 +81,6 @@ spec:
         - name: config-volume
           configMap:
             name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-springboot
+        - name: firebase-resources
+          secret:
+            secretName: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle
