@@ -64,6 +64,9 @@ data:
     yona.sms.plivoUrl = {{ .Values.sms.plivo_url | default "https://api.plivo.com/v1/Account/{0}/Message/" }}
     yona.sms.plivoAuthId = {{ .Values.sms.plivo_auth_id | default "authidocde" }}
     yona.sms.plivoAuthToken = {{ .Values.sms.plivo_auth_token | default "authtoken" }}
+    yona.firebase.enabled = {{ .Values.firebase.enabled | default "false" }}
+    yona.firebase.adminServiceAccountKeyFile = {{ .Values.firebase.admin_service_account_key_file | default "firebase-adminsdk-serviceAccountKey.json" }}
+    yona.firebase.databaseUrl = {{ .Values.firebase.database_url | default "https://yona-app.firebaseio.com" }}
     yona.appleMobileConfig.signingEnabled = {{ required "True or False required for apple.enabled" .Values.apple.enabled }}
     yona.appleMobileConfig.signingKeyStoreFile = {{ .Values.apple.keystore_file | default "apple/dummy.p12" }}
     yona.appleMobileConfig.signingKeyStorePassword = {{ .Values.apple.keystore_password | default "DummyPwd" }}
