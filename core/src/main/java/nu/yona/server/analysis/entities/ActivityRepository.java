@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -29,4 +30,8 @@ public interface ActivityRepository extends CrudRepository<Activity, Long>
 			@Param("app") String app, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 
 	Set<Activity> findByDeviceAnonymized(DeviceAnonymized deviceAnonymized);
+
+	@Modifying
+	@Query("update Activity a set a.deviceAnonymized = null where a.deviceAnonymized.id = :deviceAnonymizedId")
+	void disconnectAllActivitiesFromDevice(@Param("deviceAnonymizedId") UUID deviceAnonymizedId);
 }

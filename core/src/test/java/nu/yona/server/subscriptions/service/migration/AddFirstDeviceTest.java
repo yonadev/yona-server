@@ -64,6 +64,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.LDAPUserService;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.InCryptoSession;
@@ -129,6 +130,9 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 
 	@MockBean
 	private UserService mockUserService;
+
+	@MockBean
+	private UserAnonymizedService mockUserAnonymizedService;
 
 	@MockBean
 	private LDAPUserService mockLdapUserService;

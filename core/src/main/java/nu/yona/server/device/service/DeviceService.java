@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
@@ -105,6 +105,7 @@ public class DeviceService
 		UserDevice deviceEntity = userDeviceRepository.save(UserDevice.createInstance(userEntity, deviceDto.getName(),
 				deviceAnonymized.getId(), userService.generatePassword()));
 		userEntity.addDevice(deviceEntity);
+		userAnonymizedService.updateUserAnonymized(userEntity.getAnonymized().getId());
 
 		ldapUserService.createVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), deviceEntity),
 				deviceEntity.getVpnPassword());
@@ -231,6 +232,7 @@ public class DeviceService
 			UUID deviceAnonymizedId = deviceEntity.getDeviceAnonymized().getId();
 
 			deleteDeviceWithoutBuddyNotification(userEntity, deviceEntity);
+			userAnonymizedService.updateUserAnonymized(userEntity.getAnonymized().getId());
 
 			sendDeviceChangeMessageToBuddies(DeviceChange.DELETE, userEntity, Optional.of(oldName), Optional.empty(),
 					deviceAnonymizedId);
@@ -246,6 +248,7 @@ public class DeviceService
 			throw DeviceServiceException.notFoundById(device.getId());
 		}
 		ldapUserService.deleteVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), device));
+		activityRepository.disconnectAllActivitiesFromDevice(device.getDeviceAnonymizedId());
 
 		deviceAnonymizedRepository.delete(device.getDeviceAnonymized());
 		deviceAnonymizedRepository.flush(); // Without this, the delete doesn't always occur
