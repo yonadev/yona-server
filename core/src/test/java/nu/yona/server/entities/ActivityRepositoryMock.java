@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.entities;
 
@@ -31,8 +31,19 @@ public class ActivityRepositoryMock extends MockCrudRepositoryEntityWithId<Activ
 	@Override
 	public Set<Activity> findByDeviceAnonymized(DeviceAnonymized deviceAnonymized)
 	{
+		return findByDeviceAnonymized(deviceAnonymized.getId());
+	}
+
+	private Set<Activity> findByDeviceAnonymized(UUID deviceAnonymizedId)
+	{
 		return StreamSupport.stream(findAll().spliterator(), false)
-				.filter(a -> a.getDeviceAnonymized().map(DeviceAnonymized::getId).orElse(null) == deviceAnonymized.getId())
+				.filter(a -> a.getDeviceAnonymized().map(DeviceAnonymized::getId).orElse(null) == deviceAnonymizedId)
 				.collect(Collectors.toSet());
+	}
+
+	@Override
+	public void disconnectAllActivitiesFromDevice(UUID deviceAnonymizedId)
+	{
+		deleteAll(findByDeviceAnonymized(deviceAnonymizedId));
 	}
 }
