@@ -11,6 +11,7 @@ import static nu.yona.server.test.CommonAssertions.*
 
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
+import nu.yona.server.test.Goal
 import nu.yona.server.test.User
 
 class DeviceManagementTest extends AbstractAppServiceIntegrationTest
@@ -519,11 +520,23 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		given:
 		def ts = timestamp
 		User richardOnFirstDevice = addRichard()
+		setCreationTimeOfMandatoryGoalsToNow(richardOnFirstDevice)
 		setGoalCreationTime(richardOnFirstDevice, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		Device remainingDevice = richardOnFirstDevice.devices[0]
 		def deletedDeviceName = "Second device"
 		User richardOnSecondDevice = appService.addDevice(richardOnFirstDevice, deletedDeviceName, "ANDROID")
 		reportAppActivity(richardOnSecondDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		Goal budgetGoalNewsRichard = richardOnFirstDevice.findActiveGoal(NEWS_ACT_CAT_URL)
+		def expectedValuesRichardLastWeek = [
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 6 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 2
 
 		Device deviceToDelete = richardOnSecondDevice.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
 
@@ -537,6 +550,19 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		richardAfterReload.devices.size == 1
 		richardAfterReload.devices[0].name == remainingDevice.name
 		richardAfterReload.devices[0].operatingSystem == remainingDevice.operatingSystem
+
+		when:
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richardOnFirstDevice)
+		//get all days at once (max 2 weeks) to make assertion easy
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(richardOnFirstDevice, ["size": 14])
+
+		then:
+		assertWeekOverviewBasics(responseWeekOverviews, [2, 1], expectedTotalWeeks)
+
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichard, 6)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek, "Tue")
 
 		cleanup:
 		appService.deleteUser(richardOnFirstDevice)
