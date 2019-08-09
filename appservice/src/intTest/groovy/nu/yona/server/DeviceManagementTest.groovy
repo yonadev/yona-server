@@ -522,7 +522,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		Device remainingDevice = richardOnFirstDevice.devices[0]
 		def deletedDeviceName = "Second device"
 		User richardOnSecondDevice = appService.addDevice(richardOnFirstDevice, deletedDeviceName, "ANDROID")
-		reportAppActivity(richardOnSecondDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		Device deviceToDelete = richardOnSecondDevice.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
+		reportAppActivity(richardOnSecondDevice, deviceToDelete, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 		Goal budgetGoalNewsRichard = richardOnFirstDevice.findActiveGoal(NEWS_ACT_CAT_URL)
 		def expectedValuesRichardLastWeek = [
 			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
@@ -535,14 +536,13 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def expectedTotalDays = 6 + currentDayOfWeek + 1
 		def expectedTotalWeeks = 2
 
-		Device deviceToDelete = richardOnSecondDevice.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
 
 		when:
 		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richardOnSecondDevice.password)
 
 		then:
 		assertResponseStatusNoContent(response)
-		def richardAfterReload = appService.reloadUser(richardOnFirstDevice, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		def richardAfterReload = appService.reloadUser(richardOnFirstDevice, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
 		richardAfterReload.devices[0].name == remainingDevice.name
