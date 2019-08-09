@@ -107,14 +107,32 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	private void assertInitialDeviceDetails(User johnAfterNumberConfirmation, name, operatingSystem)
+	def 'Create John Doe with an Android device with a Firebase instance ID'()
+	{
+		given:
+		def ts = timestamp
+		def firebaseInstanceId = "d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ"
+
+		when:
+		def johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID", firebaseInstanceId)
+
+		then:
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
+
+		assertInitialDeviceDetails(johnAfterNumberConfirmation, "My S8", "ANDROID", firebaseInstanceId)
+
+		cleanup:
+		appService.deleteUser(johnAsCreated)
+	}
+
+	private void assertInitialDeviceDetails(User johnAfterNumberConfirmation, name, operatingSystem, firebaseInstanceId = null)
 	{
 		assert johnAfterNumberConfirmation.devices.size == 1
 		assert johnAfterNumberConfirmation.requestingDevice.name == name
 		assert johnAfterNumberConfirmation.requestingDevice.operatingSystem == operatingSystem
 		assert johnAfterNumberConfirmation.requestingDevice.sslRootCertCn == "smoothwall003.yona"
 		assert johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl
-		assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId == null
+		assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId == firebaseInstanceId
 		assertEquals(johnAfterNumberConfirmation.requestingDevice.appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		def responseSslRootCert = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl)
@@ -334,10 +352,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		"IOS" | null | 50 | 400
 	}
 
-	private User createJohnDoe(ts, deviceName, deviceOperatingSystem)
+	private User createJohnDoe(ts, deviceName, deviceOperatingSystem, firebaseInstanceId = null)
 	{
 		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
-				makeMobileNumber(ts), deviceName, deviceOperatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
+				makeMobileNumber(ts), deviceName, deviceOperatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId)
 	}
 
 	private User createJohnDoe(ts)

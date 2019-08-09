@@ -1848,6 +1848,10 @@ definitions:
     type: integer
     description: The version code of the Yona app running on this device. This is a positive, monotonic increasing number, across releases
     example: 31
+  FirebaseInstanceId:
+    type: string
+    description: The Instance ID provided by Firebase to the app
+    example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
   DeviceRegistrationRequest:
     allOf:
       - $ref: '#/definitions/OpenAppEvent'
@@ -1858,9 +1862,7 @@ definitions:
             description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
             example: My S8
           firebaseInstanceId:
-            type: string
-            description: The Instance ID provided by Firebase to the app
-            example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
+            $ref: '#/definitions/FirebaseInstanceId'
     required:
       - name
       - operatingSystem
@@ -1874,9 +1876,7 @@ definitions:
         description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
         example: My S8
       firebaseInstanceId:
-        type: string
-        description: The Instance ID provided by Firebase to the app
-        example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
+        $ref: '#/definitions/FirebaseInstanceId'
     required:
       - name
   DeviceBase:
@@ -1917,9 +1917,7 @@ definitions:
           vpnProfile:
             $ref: '#/definitions/VPNProfile'
           firebaseInstanceId:
-            type: string
-            description: The Instance ID provided by Firebase to the app, if known to the server.
-            example: d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ
+            $ref: '#/definitions/FirebaseInstanceId'
           _links:
             allOf:
               - $ref: '#/definitions/Curies'
@@ -2005,6 +2003,8 @@ definitions:
             $ref: '#/definitions/DeviceAppVersion'
           deviceAppVersionCode:
             $ref: '#/definitions/DeviceAppVersionCode'
+          deviceFirebaseInstanceId:
+            $ref: '#/definitions/FirebaseInstanceId'
   UserWithPrivateData:
     allOf:
       - $ref: '#/definitions/BaseUser'
