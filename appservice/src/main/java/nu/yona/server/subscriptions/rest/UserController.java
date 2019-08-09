@@ -256,7 +256,8 @@ public class UserController extends ControllerBase
 	{
 		Optional<DeviceRegistrationRequestDto> deviceRegistration = postPutUser.deviceName == null ? Optional.empty()
 				: Optional.of(new DeviceRegistrationRequestDto(postPutUser.deviceName, postPutUser.deviceOperatingSystemStr,
-						postPutUser.deviceAppVersion, postPutUser.deviceAppVersionCode, Optional.empty()));
+						postPutUser.deviceAppVersion, postPutUser.deviceAppVersionCode,
+						Optional.ofNullable(postPutUser.deviceFirebaseInstanceId)));
 		return UserDto.createInstance(postPutUser.firstName, postPutUser.lastName, postPutUser.mobileNumber, postPutUser.nickname,
 				deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance));
 	}
@@ -502,10 +503,11 @@ public class UserController extends ControllerBase
 		private final String lastName;
 		private final String mobileNumber;
 		private final String nickname;
-		private String deviceName;
-		private String deviceOperatingSystemStr;
-		private String deviceAppVersion;
-		private Integer deviceAppVersionCode;
+		private final String deviceName;
+		private final String deviceOperatingSystemStr;
+		private final String deviceAppVersion;
+		private final Integer deviceAppVersionCode;
+		private final String deviceFirebaseInstanceId;
 
 		@JsonCreator
 		public PostPutUserDto(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
@@ -514,6 +516,7 @@ public class UserController extends ControllerBase
 				@JsonProperty(value = "deviceOperatingSystem", required = false) String deviceOperatingSystem,
 				@JsonProperty(value = "deviceAppVersion", required = false) String deviceAppVersion,
 				@JsonProperty(value = "deviceAppVersionCode", required = false) Integer deviceAppVersionCode,
+				@JsonProperty(value = "deviceFirebaseInstanceId", required = false) String deviceFirebaseInstanceId,
 				@JsonProperty("_links") Object ignored1, @JsonProperty("yonaPassword") Object ignored2)
 		{
 			this.firstName = firstName;
@@ -524,6 +527,7 @@ public class UserController extends ControllerBase
 			this.deviceOperatingSystemStr = deviceOperatingSystem;
 			this.deviceAppVersion = deviceAppVersion;
 			this.deviceAppVersionCode = deviceAppVersionCode;
+			this.deviceFirebaseInstanceId = deviceFirebaseInstanceId;
 		}
 	}
 

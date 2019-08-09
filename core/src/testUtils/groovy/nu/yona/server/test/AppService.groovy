@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -51,9 +51,9 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, parameters = [:])
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId = null, parameters = [:])
 	{
-		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode)
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId)
 		def response = addUser(jsonStr, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
