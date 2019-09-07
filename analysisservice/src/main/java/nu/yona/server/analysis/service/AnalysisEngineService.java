@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.LocaleContextHelper;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.analysis.entities.DayActivity;
@@ -174,31 +173,23 @@ public class AnalysisEngineService
 	private void analyzeInsideLock(List<ActivityPayload> payloads, UserAnonymizedDto userAnonymized,
 			UserAnonymizedEntityHolder userAnonymizedEntityHolder)
 	{
-		Optional<LocalDate> lastActivityEndTime = payloads.stream().map(payload -> payload.endTime).max(ZonedDateTime::compareTo)
-				.map(ZonedDateTime::toLocalDate);
 		for (ActivityPayload payload : payloads)
 		{
-			LocaleContextHelper.inLocaleContext(
-					() -> analyzeInsideLock(payload, userAnonymized, userAnonymizedEntityHolder, lastActivityEndTime),
-					payload.deviceAnonymized.getLocale());
+			updateLastMonitoredActivityDateIfRelevant(payloads, userAnonymized, userAnonymizedEntityHolder);
+
+			Set<GoalDto> goals = determineRelevantGoals(payload);
+			for (GoalDto goal : goals)
+			{
+				addOrUpdateActivity(payload, goal, userAnonymizedEntityHolder);
+			}
 		}
 	}
 
-	private void analyzeInsideLock(ActivityPayload payload, UserAnonymizedDto userAnonymized,
-			UserAnonymizedEntityHolder userAnonymizedEntityHolder, Optional<LocalDate> lastActivityEndTime)
+	private void updateLastMonitoredActivityDateIfRelevant(List<ActivityPayload> payloads, UserAnonymizedDto userAnonymized,
+			UserAnonymizedEntityHolder userAnonymizedEntityHolder)
 	{
-		updateLastMonitoredActivityDateIfRelevant(userAnonymized, userAnonymizedEntityHolder, lastActivityEndTime);
-
-		Set<GoalDto> goals = determineRelevantGoals(payload);
-		for (GoalDto goal : goals)
-		{
-			addOrUpdateActivity(payload, goal, userAnonymizedEntityHolder);
-		}
-	}
-
-	private void updateLastMonitoredActivityDateIfRelevant(UserAnonymizedDto userAnonymized,
-			UserAnonymizedEntityHolder userAnonymizedEntityHolder, Optional<LocalDate> lastActivityEndTime)
-	{
+		Optional<LocalDate> lastActivityEndTime = payloads.stream().map(payload -> payload.endTime).max(ZonedDateTime::compareTo)
+				.map(ZonedDateTime::toLocalDate);
 		Optional<LocalDate> lastMonitoredActivityDate = userAnonymized.getLastMonitoredActivityDate();
 		if (lastActivityEndTime.isPresent()
 				&& lastMonitoredActivityDate.map(d -> d.isBefore(lastActivityEndTime.get())).orElse(true))
