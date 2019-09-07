@@ -2435,6 +2435,11 @@ definitions:
            - $ref: '#/definitions/Curies'
            - $ref: '#/definitions/SelfLink'
            - $ref: '#/definitions/UserPhotoLink'
+      messageId:
+        type: integer
+        format: long
+        description: The ID of this message. It allows finding a message for a Firebase push notification, as the message ID is included in the data of such a notification.
+        example: 983478945
       nickname:
         type: string
         description: The nickname of the buddy, or a self or system sender placeholder

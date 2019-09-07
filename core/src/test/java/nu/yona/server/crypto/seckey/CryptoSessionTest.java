@@ -44,11 +44,13 @@ public class CryptoSessionTest
 		return String.valueOf(chars);
 	}
 
+	@Test
 	public void getCurrent_noCurrentSession_throws()
 	{
 		assertThrows(CryptoException.class, () -> CryptoSession.getCurrent());
 	}
 
+	@Test
 	public void start_emptyPassword_throws()
 	{
 		assertThrows(WrongPasswordException.class, () -> {
@@ -83,6 +85,7 @@ public class CryptoSessionTest
 		assertThat(result, equalTo(plaintext));
 	}
 
+	@Test
 	public void decrypt_invalidCryptoVariantNumber_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
@@ -93,6 +96,7 @@ public class CryptoSessionTest
 				() -> decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector));
 	}
 
+	@Test
 	public void decrypt_invalidPassword_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];

@@ -5,9 +5,11 @@
 package nu.yona.server.device.service;
 
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
+import nu.yona.server.Translator;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 
@@ -60,5 +62,10 @@ public class DeviceAnonymizedDto implements Serializable
 	public Optional<String> getFirebaseInstanceId()
 	{
 		return Optional.ofNullable(firebaseInstanceId);
+	}
+
+	public Locale getLocale()
+	{
+		return Translator.EN_US_LOCALE; // TODO: Take this from the entity
 	}
 }
