@@ -113,6 +113,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == "Richard"
 		buddyConnectRequestMessages[0]._links.keySet() == ["self", "yona:accept", "yona:reject", "yona:markRead"] as Set
 		buddyConnectRequestMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
+		buddyConnectRequestMessages[0]._links.self.href.endsWith(buddyConnectRequestMessages[0].messageId.toString())
 		buddyConnectRequestMessages[0]._links."yona:accept".href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
 
 		// Bob didn't accept the buddy request, nor initiate it, so he has no access to Richard's user entity

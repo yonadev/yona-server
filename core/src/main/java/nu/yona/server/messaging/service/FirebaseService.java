@@ -7,6 +7,7 @@ package nu.yona.server.messaging.service;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
 
@@ -23,6 +24,7 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 
+import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 
@@ -30,6 +32,9 @@ import nu.yona.server.properties.YonaProperties;
 public class FirebaseService
 {
 	private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
+
+	@Autowired
+	private Translator translator;
 
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -64,13 +69,20 @@ public class FirebaseService
 		{
 			return;
 		}
-
-		// TODO: YD-604: Add message URL to push notification
-		// It is hard to add a message URL here, as only the app service is able to build it, and messages are sent from other
-		// services as well
-		Message firebaseMessage = Message.builder().setNotification(new Notification("Yona", "Check the app"))
+		// The message URL might seem useful notification payload, but that is not possible as messages can be sent from anonymous
+		// contexts, while the URL requires the user ID.
+		String title = translator.getLocalizedMessage("notification.message.title");
+		String body = translator.getLocalizedMessage("notification.message.body");
+		Message firebaseMessage = Message.builder().setNotification(new Notification(title, body))
 				.putData("messageId", Long.toString(message.getId())).setToken(registrationToken).build();
 
+		// Sending takes quite a bit of time, so do it asynchronously
+		CompletableFuture.runAsync(() -> sendMessage(firebaseMessage))
+				.whenCompleteAsync((r, t) -> logIfCompletedWithException(t));
+	}
+
+	private void sendMessage(Message firebaseMessage)
+	{
 		try
 		{
 			FirebaseMessaging.getInstance().send(firebaseMessage);
@@ -78,6 +90,14 @@ public class FirebaseService
 		catch (FirebaseMessagingException e)
 		{
 			throw FirebaseServiceException.couldNotSendMessage(e);
+		}
+	}
+
+	private void logIfCompletedWithException(Throwable throwable)
+	{
+		if (throwable != null)
+		{
+			logger.error("Fatal error: Exception while sending Firebase message", throwable);
 		}
 	}
 }

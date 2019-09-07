@@ -82,7 +82,6 @@ public abstract class MessageDto extends PolymorphicDto
 		this.relatedMessageId = relatedMessageId;
 	}
 
-	@JsonIgnore
 	public long getMessageId()
 	{
 		return id;
