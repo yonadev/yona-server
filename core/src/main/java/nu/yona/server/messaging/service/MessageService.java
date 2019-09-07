@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -25,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.LocaleContextHelper;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -331,8 +331,15 @@ public class MessageService
 
 	private void sendFirebaseNotification(Message message, UserAnonymizedDto toUser)
 	{
-		toUser.getDevicesAnonymized().stream().map(DeviceAnonymizedDto::getFirebaseInstanceId).filter(Optional::isPresent)
-				.forEach(firebaseInstanceId -> firebaseService.sendMessage(firebaseInstanceId.get(), message));
+		toUser.getDevicesAnonymized().stream().filter(da -> da.getFirebaseInstanceId().isPresent())
+				.forEach(deviceAnonymized -> this.sendFirebaseNotification(deviceAnonymized, message));
+	}
+
+	private void sendFirebaseNotification(DeviceAnonymizedDto deviceAnonymized, Message message)
+	{
+		LocaleContextHelper.inLocaleContext(
+				() -> firebaseService.sendMessage(deviceAnonymized.getFirebaseInstanceId().get(), message),
+				deviceAnonymized.getLocale());
 	}
 
 	@Transactional
