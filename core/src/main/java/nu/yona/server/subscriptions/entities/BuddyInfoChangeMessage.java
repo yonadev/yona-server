@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
@@ -28,6 +29,7 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	@Transient
 	private Optional<UUID> newUserPhotoId;
 	private byte[] newUserPhotoIdCiphertext;
+	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
 
 	public BuddyInfoChangeMessage(BuddyInfoParameters buddyInfoParameters, String message, String newFirstName,
