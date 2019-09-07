@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
@@ -21,6 +21,7 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
@@ -67,8 +68,8 @@ public class FirebaseService
 		// TODO: YD-604: Add message URL to push notification
 		// It is hard to add a message URL here, as only the app service is able to build it, and messages are sent from other
 		// services as well
-		Message firebaseMessage = Message.builder().putData("messageId", Long.toString(message.getId()))
-				.setToken(registrationToken).build();
+		Message firebaseMessage = Message.builder().setNotification(new Notification("Yona", "Check the app"))
+				.putData("messageId", Long.toString(message.getId())).setToken(registrationToken).build();
 
 		try
 		{
