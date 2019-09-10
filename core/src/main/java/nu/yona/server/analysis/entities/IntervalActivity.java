@@ -20,6 +20,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +33,9 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
-@Table(name = "INTERVAL_ACTIVITIES")
+@Table(name = "INTERVAL_ACTIVITIES", uniqueConstraints = @UniqueConstraint(name = "no_duplicate_activities", columnNames = {
+		"dtype", "user_anonymized_id", "startDate", "goal_id" }))
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-// We used to have a unique constraint defined here: @UniqueConstraint(columnNames = { "dtype", "user_anonymized", "startDate",
-// "goal" })
-// Due to an inconsistency between Liquibase and JPA, we have moved this to Liquibase (extra.yml)
 public abstract class IntervalActivity extends EntityWithId
 {
 	private static final Logger logger = LoggerFactory.getLogger(IntervalActivity.class);
