@@ -277,7 +277,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		assert response.responseData.code == "error.device.app.version.not.supported"
-		assert response.responseData.message == "Yona app is out of date and must be updated. Actual version is '$appVersion' but oldest supported version for 'IOS' is '1.0.1'"
+		assert response.responseData.message == "Yona app is out of date and must be updated. Actual version is '$appVersion' but oldest supported version for 'IOS' is '1.2'"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -331,14 +331,14 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		where:
 		operatingSystem | appVersion | appVersionCode | responseStatus
-		"IOS" | "1.1" | 50 | 200
+		"IOS" | "1.1" | 5000 | 200
 		null | null | null | 200
 		"IOS" | null | null | 400
 		null | "1.1" | null | 400
-		null | null | 50 | 400
-		null | "1.1" | 50 | 400
+		null | null | 5000 | 400
+		null | "1.1" | 5000 | 400
 		"IOS" | "1.1" | null | 400
-		"IOS" | null | 50 | 400
+		"IOS" | null | 5000 | 400
 	}
 
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem, firebaseInstanceId = null)
