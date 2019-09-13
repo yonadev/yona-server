@@ -5,6 +5,7 @@
 package nu.yona.server.device.service;
 
 import java.time.LocalDate;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -14,6 +15,7 @@ import java.util.stream.IntStream;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.Translator;
@@ -100,7 +102,7 @@ public class DeviceService
 		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode());
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
 				deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode(),
-				deviceDto.getFirebaseInstanceId());
+				deviceDto.getFirebaseInstanceId(), LocaleContextHolder.getLocale());
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice deviceEntity = userDeviceRepository.save(UserDevice.createInstance(userEntity, deviceDto.getName(),
 				deviceAnonymized.getId(), userService.generatePassword()));
@@ -345,6 +347,7 @@ public class DeviceService
 			setAppLastOpenedDateIfNewer(userEntity, deviceEntity);
 			operatingSystem.ifPresent(os -> setOperatingSystemIfWasUnknown(deviceEntity, os));
 			setAppVersionIfDifferent(deviceAnonymizedEntity, appVersion, appVersionCode);
+			setLocaleIfDifferent(deviceAnonymizedEntity);
 		});
 	}
 
@@ -376,6 +379,15 @@ public class DeviceService
 		if (deviceAnonymizedEntity.getAppVersionCode() != appVersionCode)
 		{
 			deviceAnonymizedEntity.updateAppVersion(appVersion.get(), appVersionCode);
+		}
+	}
+
+	private void setLocaleIfDifferent(DeviceAnonymized deviceAnonymizedEntity)
+	{
+		Locale currentLocale = LocaleContextHolder.getLocale();
+		if (!currentLocale.equals(deviceAnonymizedEntity.getLocale()))
+		{
+			deviceAnonymizedEntity.setLocale(currentLocale);
 		}
 	}
 

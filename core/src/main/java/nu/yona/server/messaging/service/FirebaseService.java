@@ -7,6 +7,9 @@ package nu.yona.server.messaging.service;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
@@ -26,6 +29,7 @@ import com.google.firebase.messaging.Notification;
 
 import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.properties.YonaProperties;
 
 @Service
@@ -33,11 +37,16 @@ public class FirebaseService
 {
 	private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
 
+	private final Map<String, Message> lastMessageByRegistrationToken = new HashMap<>();
+
 	@Autowired
 	private Translator translator;
 
 	@Autowired
 	private YonaProperties yonaProperties;
+
+	@Autowired(required = false)
+	private MessageRepository messageRepository;
 
 	@PostConstruct
 	private void init()
@@ -65,20 +74,39 @@ public class FirebaseService
 
 	public void sendMessage(String registrationToken, nu.yona.server.messaging.entities.Message message)
 	{
-		if (!yonaProperties.getFirebase().isEnabled())
-		{
-			return;
-		}
 		// The message URL might seem useful notification payload, but that is not possible as messages can be sent from anonymous
 		// contexts, while the URL requires the user ID.
 		String title = translator.getLocalizedMessage("notification.message.title");
 		String body = translator.getLocalizedMessage("notification.message.body");
 		Message firebaseMessage = Message.builder().setNotification(new Notification(title, body))
-				.putData("messageId", Long.toString(message.getId())).setToken(registrationToken).build();
+				.putData("messageId", Long.toString(getMessageId(message))).setToken(registrationToken).build();
 
-		// Sending takes quite a bit of time, so do it asynchronously
-		CompletableFuture.runAsync(() -> sendMessage(firebaseMessage))
-				.whenCompleteAsync((r, t) -> logIfCompletedWithException(t));
+		if (yonaProperties.getFirebase().isEnabled())
+		{
+			// Sending takes quite a bit of time, so do it asynchronously
+			CompletableFuture.runAsync(() -> sendMessage(firebaseMessage))
+					.whenCompleteAsync((r, t) -> logIfCompletedWithException(t));
+		}
+		else
+		{
+			// Store for testability
+			lastMessageByRegistrationToken.put(registrationToken, firebaseMessage);
+		}
+	}
+
+	private long getMessageId(nu.yona.server.messaging.entities.Message message)
+	{
+		if (message.getId() == 0)
+		{
+			// Message is not persisted yet, so it didn't yet get an ID. Persist it now.
+			messageRepository.saveAndFlush(message);
+		}
+		return message.getId();
+	}
+
+	public Optional<Message> getLastMessage(String registrationToken)
+	{
+		return Optional.ofNullable(lastMessageByRegistrationToken.get(registrationToken));
 	}
 
 	private void sendMessage(Message firebaseMessage)

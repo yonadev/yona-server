@@ -57,6 +57,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.CoreConfiguration;
+import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -911,7 +912,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 			int appVersionCode)
 	{
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion,
-				appVersionCode, Optional.empty());
+				appVersionCode, Optional.empty(), Translator.EN_US_LOCALE);
 		UserDevice device = UserDevice.createInstance(richard, deviceName, deviceAnonymized.getId(), "topSecret");
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		userDeviceRepository.save(device);

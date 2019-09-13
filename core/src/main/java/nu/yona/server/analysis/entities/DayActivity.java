@@ -20,6 +20,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
@@ -45,6 +46,7 @@ public class DayActivity extends IntervalActivity
 							// so you get 4 goals * 1 day = 4 activity collections to be joined
 	private List<Activity> activities;
 
+	@Column(columnDefinition = "bit default false")
 	private boolean goalAccomplished;
 	private int totalMinutesBeyondGoal;
 

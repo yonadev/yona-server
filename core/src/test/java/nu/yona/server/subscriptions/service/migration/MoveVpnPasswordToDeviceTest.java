@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service.migration;
 
@@ -26,6 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.CoreConfiguration;
+import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
@@ -146,7 +147,7 @@ public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 	private UserDevice createDevice()
 	{
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "1.0.0", 2,
-				Optional.empty());
+				Optional.empty(), Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		return UserDevice.createInstance(richard, "Testing", deviceAnonymized.getId(), "toBeOverwritten");
 	}

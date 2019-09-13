@@ -6,7 +6,6 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
 import groovy.transform.ToString
 
 @ToString(includeNames=true)
@@ -51,9 +50,9 @@ class Device
 		this.firebaseInstanceId = json.firebaseInstanceId
 	}
 
-	def postOpenAppEvent(AppService appService, operatingSystem = this.operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE)
+	def postOpenAppEvent(AppService appService, operatingSystem = this.operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE, locale = "en-US")
 	{
-		appService.createResourceWithPassword(postOpenAppEventUrl, """{"operatingSystem":"$operatingSystem", "appVersion":"$appVersion", "appVersionCode":"$appVersionCode"}""", password)
+		appService.createResourceWithPassword(postOpenAppEventUrl, """{"operatingSystem":"$operatingSystem", "appVersion":"$appVersion", "appVersionCode":"$appVersionCode"}""", password, ["Accept-Language" : locale])
 	}
 
 	def postVpnStatus(AppService appService, boolean vpnConnected)

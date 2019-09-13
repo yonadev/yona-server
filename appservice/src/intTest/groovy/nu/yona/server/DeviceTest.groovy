@@ -114,7 +114,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def firebaseInstanceId = "d3cIznsu5VQ:APA91bGWLq7xBK1RDkpGURdliHb-S_nCBLqYnXhEWfGnItP_qGDZ6f2EF1mB66yHdBiicggV7APIWwkQXTUq_zJgwPkJtvcdqpUphYN7p8E8Sq02_ErljVApX8-n9-nvVxiyqmUg9ALZ"
 
 		when:
-		def johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID", firebaseInstanceId)
+		User johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID", firebaseInstanceId)
 
 		then:
 		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
@@ -132,7 +132,18 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		assert johnAfterNumberConfirmation.requestingDevice.operatingSystem == operatingSystem
 		assert johnAfterNumberConfirmation.requestingDevice.sslRootCertCn == "smoothwall003.yona"
 		assert johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl
-		assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId == firebaseInstanceId
+		if (firebaseInstanceId)
+		{
+			assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId == firebaseInstanceId
+		}
+		else if (name == "First device")
+		{
+			assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId == null
+		}
+		else
+		{
+			assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId ==~/$CommonAssertions.UUID_PATTERN/
+		}
 		assertEquals(johnAfterNumberConfirmation.requestingDevice.appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		def responseSslRootCert = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl)
@@ -158,7 +169,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = appService.addUser(
+		User johnAsCreated = appService.addUser(
 				{
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.unknown.operating.system"
@@ -175,7 +186,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = appService.addUser(
+		User johnAsCreated = appService.addUser(
 				{
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.unknown.operating.system"
@@ -192,7 +203,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = appService.addUser(
+		User johnAsCreated = appService.addUser(
 				{
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.invalid.device.name"
@@ -234,7 +245,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = appService.addUser(
+		User johnAsCreated = appService.addUser(
 				{
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.invalid.device.name"

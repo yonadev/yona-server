@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
@@ -11,6 +12,7 @@ import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 @Entity
 public class BuddyDisconnectMessage extends BuddyConnectionChangeMessage
 {
+	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
 	private DropBuddyReason reason;
 

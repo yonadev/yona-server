@@ -200,8 +200,20 @@ class CommonAssertions extends Service
 			assert device.keySet() == (isRequestingDevice) ? REQUESTING_DEVICE_PROPERTIES : COMMON_DEVICE_PROPERTIES
 			assert device._links.keySet() == (isRequestingDevice) ? REQUESTING_DEVICE_LINKS : COMMON_DEVICE_LINKS
 		}
-		assert device.name == "First device" || device.name ==~ /.*'s iPhone/
-		assert device.operatingSystem == "UNKNOWN" || device.operatingSystem == "IOS"
+		switch (device.operatingSystem)
+		{
+			case "UNKNOWN":
+				assert device.name == "First device"
+				break
+			case "IOS":
+				assert device.name ==~ /.*'s iPhone/
+				break
+			case "ANDROID":
+				assert device.name ==~ /.*'s S8/
+				break
+			default:
+				assert false, "Invalid operating system: '$device.operatingSystem'"
+		}
 		assertDateTimeFormat(device.registrationTime)
 		assertDateFormat(device.appLastOpenedDate)
 		assert device.vpnConnected == true || device.vpnConnected == false

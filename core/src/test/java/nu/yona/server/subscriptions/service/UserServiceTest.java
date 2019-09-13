@@ -23,7 +23,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
-import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.util.LockPool;
 

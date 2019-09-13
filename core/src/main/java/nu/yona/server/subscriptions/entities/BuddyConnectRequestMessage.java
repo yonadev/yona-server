@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 
 import nu.yona.server.device.entities.UserDevice;
@@ -16,7 +17,9 @@ import nu.yona.server.subscriptions.service.BuddyServiceException;
 @Entity
 public class BuddyConnectRequestMessage extends BuddyConnectMessage
 {
+	@Column(columnDefinition = "bit default false")
 	private boolean isRequestingSending;
+	@Column(columnDefinition = "bit default false")
 	private boolean isRequestingReceiving;
 
 	private Status status;

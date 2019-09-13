@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -71,24 +71,30 @@ abstract class Service
 		response.status >= 200 && response.status < 300
 	}
 
-	def createResourceWithPassword(path, jsonString, password, parameters = [:])
+	def createResourceWithPassword(path, jsonString, password, headers = [:], parameters = [:])
 	{
-		yonaServer.createResource(path, jsonString, ["Yona-Password": password], parameters)
+		def headersWithPassword = headers.clone()
+		headersWithPassword["Yona-Password"] = password
+		yonaServer.createResource(path, jsonString, headersWithPassword, parameters)
 	}
 
-	def updateResourceWithPassword(path, jsonString, password, parameters = [:])
+	def updateResourceWithPassword(path, jsonString, password, headers = [:], parameters = [:])
 	{
-		yonaServer.updateResource(path, jsonString, ["Yona-Password": password], parameters)
+		def headersWithPassword = headers.clone()
+		headersWithPassword["Yona-Password"] = password
+		yonaServer.updateResource(path, jsonString, headersWithPassword, parameters)
 	}
 
-	def deleteResourceWithPassword(path, password, parameters = [:])
+	def deleteResourceWithPassword(path, password, headers = [:], parameters = [:])
 	{
 		yonaServer.deleteResourceWithPassword(path, password, parameters)
 	}
 
-	def getResourceWithPassword(path, password, parameters = [:])
+	def getResourceWithPassword(path, password, headers = [:], parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(path, password, parameters)
+		def headersWithPassword = headers.clone()
+		headersWithPassword["Yona-Password"] = password
+		yonaServer.getResource(path, headersWithPassword, parameters)
 	}
 
 	def getResource(path, headers = [:], parameters = [:])

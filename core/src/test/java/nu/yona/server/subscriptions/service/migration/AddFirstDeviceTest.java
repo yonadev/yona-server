@@ -40,6 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.CoreConfiguration;
+import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
@@ -173,7 +174,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, SOME_APP_VERSION,
-				SUPPORTED_APP_VERSION_CODE, Optional.empty());
+				SUPPORTED_APP_VERSION_CODE, Optional.empty(), Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice device = UserDevice.createInstance(richard, deviceName, deviceAnonymized.getId(), "topSecret");
 		richard.addDevice(device);

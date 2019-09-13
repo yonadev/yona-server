@@ -97,6 +97,9 @@ class User
 
 	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null, boolean forceDeviceInfo = false)
 	{
+		if (deviceName && !firebaseInstanceId) {
+			firebaseInstanceId = UUID.randomUUID().toString()
+		}
 		def firebaseInstanceIdString = (firebaseInstanceId) ? """"deviceFirebaseInstanceId":"$firebaseInstanceId",""" : ""
 		def devicePropertiesString = (deviceName || forceDeviceInfo) ? """"deviceName":"$deviceName", "deviceOperatingSystem":"$deviceOperatingSystem", "deviceAppVersion":"$deviceAppVersion", "deviceAppVersionCode":"$deviceAppVersionCode",$firebaseInstanceIdString""" : ""
 		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""

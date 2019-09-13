@@ -12,7 +12,6 @@ import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.time.temporal.ChronoField
 
-import groovy.json.*
 import nu.yona.server.test.AdminService
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppActivity
@@ -69,33 +68,33 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	private def fullDay = [ Sun: "SUNDAY", Mon : "MONDAY", Tue : "TUESDAY", Wed : "WEDNESDAY", Thu : "THURSDAY", Fri: "FRIDAY", Sat: "SATURDAY" ]
 
-	User addRichard(boolean reload = true, def operatingSystem = "IOS")
+	User addRichard(boolean reload = true, def operatingSystem = "IOS", def language = "en-US")
 	{
 		def deviceName = makeDeviceName("Richard", operatingSystem)
 		User richard = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
-				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, null, ["Accept-Language" : language])
 		richard = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)
 		return reload ? appService.reloadUser(richard) : richard
 	}
 
-	User addBob(boolean reload = true, def operatingSystem = "IOS")
+	User addBob(boolean reload = true, def operatingSystem = "IOS", def language = "en-US")
 	{
 		def deviceName = makeDeviceName("Bob", operatingSystem)
 		User bob = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bob", "Dunn", "BD",
-				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, null, ["Accept-Language" : language])
 		bob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)
 		return reload? appService.reloadUser(bob) : bob
 	}
 
-	User addBea(boolean reload = true, def operatingSystem = "IOS")
+	User addBea(boolean reload = true, def operatingSystem = "IOS", def language = "en-US")
 	{
 		def deviceName = makeDeviceName("Bea", operatingSystem)
 		User bea = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bea", "Dundee", "BDD",
-				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, null, ["Accept-Language" : language])
 		bea = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bea)
 		return reload? appService.reloadUser(bea) : bea
 	}
