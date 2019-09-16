@@ -65,3 +65,6 @@ databaseChangeLog:
   - include:
       relativeToChangelogFile: true
       file: changelog-0021-yd-641.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0022-yd-642.yml

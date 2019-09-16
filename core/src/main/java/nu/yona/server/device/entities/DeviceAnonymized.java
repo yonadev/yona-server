@@ -1,11 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.entities;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +51,8 @@ public class DeviceAnonymized extends EntityWithUuid
 
 	private String firebaseInstanceId;
 
+	private Locale locale;
+
 	@OneToMany(mappedBy = "deviceAnonymized", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private Set<VpnStatusChangeEvent> vpnStatusChangeEvents;
 
@@ -65,7 +68,7 @@ public class DeviceAnonymized extends EntityWithUuid
 	}
 
 	private DeviceAnonymized(UUID id, int deviceIndex, OperatingSystem operatingSystem, String appVersion, int appVersionCode,
-			Optional<String> firebaseInstanceId)
+			Optional<String> firebaseInstanceId, Locale locale)
 	{
 		super(id);
 		this.deviceIndex = deviceIndex;
@@ -73,13 +76,14 @@ public class DeviceAnonymized extends EntityWithUuid
 		this.appVersion = Objects.requireNonNull(appVersion);
 		this.appVersionCode = appVersionCode;
 		this.firebaseInstanceId = firebaseInstanceId.orElse(null);
+		this.locale = locale;
 	}
 
 	public static DeviceAnonymized createInstance(int deviceIndex, OperatingSystem operatingSystem, String appVersion,
-			int appVersionCode, Optional<String> firebaseInstanceId)
+			int appVersionCode, Optional<String> firebaseInstanceId, Locale locale)
 	{
 		return new DeviceAnonymized(UUID.randomUUID(), deviceIndex, operatingSystem, appVersion, appVersionCode,
-				firebaseInstanceId);
+				firebaseInstanceId, locale);
 	}
 
 	public static DeviceAnonymizedRepository getRepository()
@@ -172,5 +176,15 @@ public class DeviceAnonymized extends EntityWithUuid
 	public void setFirebaseInstanceId(String firebaseInstanceId)
 	{
 		this.firebaseInstanceId = firebaseInstanceId;
+	}
+
+	public Locale getLocale()
+	{
+		return locale;
+	}
+
+	public void setLocale(Locale locale)
+	{
+		this.locale = locale;
 	}
 }

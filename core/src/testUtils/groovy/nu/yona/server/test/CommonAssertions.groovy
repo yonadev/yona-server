@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -10,7 +10,6 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-import groovy.json.*
 import nu.yona.server.YonaServer
 
 class CommonAssertions extends Service
@@ -210,8 +209,20 @@ class CommonAssertions extends Service
 			assert device.keySet() == (isRequestingDevice) ? REQUESTING_DEVICE_PROPERTIES : COMMON_DEVICE_PROPERTIES
 			assert device._links.keySet() == (isRequestingDevice) ? REQUESTING_DEVICE_LINKS : COMMON_DEVICE_LINKS
 		}
-		assert device.name == "First device" || device.name ==~ /.*'s iPhone/
-		assert device.operatingSystem == "UNKNOWN" || device.operatingSystem == "IOS"
+		switch (device.operatingSystem)
+		{
+			case "UNKNOWN":
+				assert device.name == "First device"
+				break
+			case "IOS":
+				assert device.name ==~ /.*'s iPhone/
+				break
+			case "ANDROID":
+				assert device.name ==~ /.*'s S8/
+				break
+			default:
+				assert false, "Invalid operating system: '$device.operatingSystem'"
+		}
 		assertDateTimeFormat(device.registrationTime)
 		assertDateFormat(device.appLastOpenedDate)
 		assert device.vpnConnected == true || device.vpnConnected == false

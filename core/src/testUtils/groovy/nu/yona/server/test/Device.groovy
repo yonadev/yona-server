@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
 import groovy.transform.ToString
 
 @ToString(includeNames=true)
@@ -53,9 +52,9 @@ class Device
 		this.firebaseInstanceId = json.firebaseInstanceId
 	}
 
-	def postOpenAppEvent(AppService appService, operatingSystem = this.operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE)
+	def postOpenAppEvent(AppService appService, operatingSystem = this.operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE, locale = "en-US")
 	{
-		appService.createResourceWithPassword(postOpenAppEventUrl, """{"operatingSystem":"$operatingSystem", "appVersion":"$appVersion", "appVersionCode":"$appVersionCode"}""", password)
+		appService.createResourceWithPassword(postOpenAppEventUrl, """{"operatingSystem":"$operatingSystem", "appVersion":"$appVersion", "appVersionCode":"$appVersionCode"}""", password, ["Accept-Language" : locale])
 	}
 
 	def postVpnStatus(AppService appService, boolean vpnConnected)

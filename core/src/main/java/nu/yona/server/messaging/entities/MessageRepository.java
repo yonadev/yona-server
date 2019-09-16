@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
@@ -12,15 +12,15 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
 
 @Repository
-public interface MessageRepository extends CrudRepository<Message, Long>
+public interface MessageRepository extends JpaRepository<Message, Long>
 {
 	@Query("select m from Message m, MessageDestination d where d.id = :destinationId and m member of d.messages order by m.creationTime desc")
 	Page<Message> findFromDestination(@Param("destinationId") UUID destinationId, Pageable pageable);

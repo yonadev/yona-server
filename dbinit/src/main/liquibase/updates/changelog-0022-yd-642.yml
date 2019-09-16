@@ -1,0 +1,11 @@
+databaseChangeLog:
+- changeSet:
+    id: 1568308373002-5
+    author: bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: locale
+            type: varchar(255)
+        tableName: devices_anonymized

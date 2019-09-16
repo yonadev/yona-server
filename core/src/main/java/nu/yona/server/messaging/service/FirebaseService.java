@@ -1,12 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
 
@@ -21,8 +25,11 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 
+import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.properties.YonaProperties;
 
 @Service
@@ -30,8 +37,16 @@ public class FirebaseService
 {
 	private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
 
+	private final Map<String, Message> lastMessageByRegistrationToken = new HashMap<>();
+
+	@Autowired
+	private Translator translator;
+
 	@Autowired
 	private YonaProperties yonaProperties;
+
+	@Autowired(required = false)
+	private MessageRepository messageRepository;
 
 	@PostConstruct
 	private void init()
@@ -59,17 +74,43 @@ public class FirebaseService
 
 	public void sendMessage(String registrationToken, nu.yona.server.messaging.entities.Message message)
 	{
-		if (!yonaProperties.getFirebase().isEnabled())
+		// The message URL might seem useful notification payload, but that is not possible as messages can be sent from anonymous
+		// contexts, while the URL requires the user ID.
+		String title = translator.getLocalizedMessage("notification.message.title");
+		String body = translator.getLocalizedMessage("notification.message.body");
+		Message firebaseMessage = Message.builder().setNotification(new Notification(title, body))
+				.putData("messageId", Long.toString(getMessageId(message))).setToken(registrationToken).build();
+
+		if (yonaProperties.getFirebase().isEnabled())
 		{
-			return;
+			// Sending takes quite a bit of time, so do it asynchronously
+			CompletableFuture.runAsync(() -> sendMessage(firebaseMessage))
+					.whenCompleteAsync((r, t) -> logIfCompletedWithException(t));
 		}
+		else
+		{
+			// Store for testability
+			lastMessageByRegistrationToken.put(registrationToken, firebaseMessage);
+		}
+	}
 
-		// TODO: YD-604: Add message URL to push notification
-		// It is hard to add a message URL here, as only the app service is able to build it, and messages are sent from other
-		// services as well
-		Message firebaseMessage = Message.builder().putData("messageId", Long.toString(message.getId()))
-				.setToken(registrationToken).build();
+	private long getMessageId(nu.yona.server.messaging.entities.Message message)
+	{
+		if (message.getId() == 0)
+		{
+			// Message is not persisted yet, so it didn't yet get an ID. Persist it now.
+			messageRepository.saveAndFlush(message);
+		}
+		return message.getId();
+	}
 
+	public Optional<Message> getLastMessage(String registrationToken)
+	{
+		return Optional.ofNullable(lastMessageByRegistrationToken.get(registrationToken));
+	}
+
+	private void sendMessage(Message firebaseMessage)
+	{
 		try
 		{
 			FirebaseMessaging.getInstance().send(firebaseMessage);
@@ -77,6 +118,14 @@ public class FirebaseService
 		catch (FirebaseMessagingException e)
 		{
 			throw FirebaseServiceException.couldNotSendMessage(e);
+		}
+	}
+
+	private void logIfCompletedWithException(Throwable throwable)
+	{
+		if (throwable != null)
+		{
+			logger.error("Fatal error: Exception while sending Firebase message", throwable);
 		}
 	}
 }

@@ -19,7 +19,8 @@ class AppService extends Service
 	static final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
 	static final USERS_PATH = "/users/"
 	static final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
-	static final LAST_EMAIL_PATH = "/emails/last"
+	static final LAST_EMAIL_PATH = "/test/emails/last"
+	static final LAST_EMAIL_FIREBASE_MESSAGE = "/test/firebase/messages/last"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -35,33 +36,33 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:])
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, headers = [:], parameters = [:])
 	{
 		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber)
-		def response = addUser(jsonStr, parameters)
+		def response = addUser(jsonStr, headers, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:]) // YD-544
+	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, headers = [:], parameters = [:]) // YD-544
 	{
 		def jsonStr = User.makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber)
-		def response = addUser(jsonStr, parameters)
+		def response = addUser(jsonStr, headers, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId = null, parameters = [:])
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId = null, headers = [:], parameters = [:])
 	{
 		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId)
-		def response = addUser(jsonStr, parameters)
+		def response = addUser(jsonStr, headers, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(jsonString, parameters = [:])
+	def addUser(jsonString, headers = [:], parameters = [:])
 	{
-		yonaServer.createResource(USERS_PATH, jsonString, [:], parameters)
+		yonaServer.createResource(USERS_PATH, jsonString, headers, parameters)
 	}
 
 	def getUser(Closure asserter, userUrl, boolean includePrivateData, password = null)
@@ -442,7 +443,8 @@ class AppService extends Service
 
 	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
 	{
-		def firebaseInstanceIdString = firebaseInstanceId ? "\"$firebaseInstanceId\"" : "null"
+		firebaseInstanceId = firebaseInstanceId ?: UUID.randomUUID().toString()
+		def firebaseInstanceIdString = "\"$firebaseInstanceId\""
 		def json = """{
 				"name": "$name",
 				"operatingSystem": "$operatingSystem",
@@ -538,5 +540,10 @@ class AppService extends Service
 	def getLastEmail()
 	{
 		getResource(LAST_EMAIL_PATH)
+	}
+
+	def getLastFirebaseMessage(def firebaseInstanceId)
+	{
+		getResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
 	}
 }
