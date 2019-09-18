@@ -47,10 +47,10 @@ public class DeviceService
 {
 	// When updating the minimum version, be sure to update the version code and the version.
 	// Minimal technical version codes, used to verify the minimum
-	private static final int ANDROID_MIN_APP_VERSION_CODE = 5;
-	private static final int IOS_MIN_APP_VERSION_CODE = ANDROID_MIN_APP_VERSION_CODE;
+	private static final int ANDROID_MIN_APP_VERSION_CODE = 218;
+	private static final int IOS_MIN_APP_VERSION_CODE = 166;
 	// User-friendly minimum version, used for error message
-	private static final String ANDROID_MIN_APP_VERSION = "1.0.1";
+	private static final String ANDROID_MIN_APP_VERSION = "1.2";
 	private static final String IOS_MIN_APP_VERSION = ANDROID_MIN_APP_VERSION;
 
 	@Autowired(required = false)
