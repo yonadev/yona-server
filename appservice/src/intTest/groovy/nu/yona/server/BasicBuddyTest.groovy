@@ -747,11 +747,13 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def relativeActivityDate = "W-1 Thu 15:00"
 		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
 		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
 		Buddy buddyBob = richard.buddies[0]
 
 		then:
 		assertEquals(buddyBob.user.appLastOpenedDate, YonaServer.now.toLocalDate())
 		buddyBob.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime(relativeActivityDate).toLocalDate()
+		buddyBob.lastMonitoredActivityDate == bob.devices[0].lastMonitoredActivityDate
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -770,11 +772,13 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
 		reportAppActivity(bob, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
 		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
 		Buddy buddyBob = richard.buddies[0]
 
 		then:
 		assertEquals(buddyBob.user.appLastOpenedDate, YonaServer.now.toLocalDate())
 		buddyBob.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime(relativeActivityDate).toLocalDate()
+		buddyBob.lastMonitoredActivityDate == bob.devices[0].lastMonitoredActivityDate
 
 		cleanup:
 		appService.deleteUser(richard)

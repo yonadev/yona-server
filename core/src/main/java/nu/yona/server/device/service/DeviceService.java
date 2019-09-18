@@ -95,6 +95,12 @@ public class DeviceService
 		return userDeviceRepository.findById(deviceId).orElseThrow(() -> DeviceServiceException.notFoundById(deviceId));
 	}
 
+	public DeviceAnonymized getDeviceAnonymizedEntity(UUID userAnonymizedId, UUID deviceAnonymizedId)
+	{
+		return deviceAnonymizedRepository.findById(deviceAnonymizedId)
+				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(userAnonymizedId, deviceAnonymizedId));
+	}
+
 	@Transactional
 	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
 	{

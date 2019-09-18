@@ -6,7 +6,10 @@
  *******************************************************************************/
 package nu.yona.server.test
 
+import java.time.LocalDate
+
 import groovy.transform.ToString
+import nu.yona.server.YonaServer
 
 @ToString(includeNames=true)
 class Device
@@ -21,6 +24,7 @@ class Device
 	final String name
 	final String operatingSystem
 	final String appLastOpenedDate
+	final LocalDate lastMonitoredActivityDate
 	final VPNProfile vpnProfile
 	final boolean vpnConnected
 	final boolean requestingDevice
@@ -37,6 +41,7 @@ class Device
 		this.name = json.name
 		this.operatingSystem = json.operatingSystem
 		this.appLastOpenedDate = json.appLastOpenedDate
+		this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 		this.url = json._links?.self?.href
 		this.editUrl = json._links?.edit?.href
 		this.ovpnProfileUrl = json._links?.ovpnProfile?.href

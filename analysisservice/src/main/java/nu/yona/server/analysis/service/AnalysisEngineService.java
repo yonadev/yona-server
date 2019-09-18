@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -26,6 +26,7 @@ import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
+import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.device.service.DeviceService;
@@ -188,14 +189,22 @@ public class AnalysisEngineService
 	private void updateLastMonitoredActivityDateIfRelevant(List<ActivityPayload> payloads, UserAnonymizedDto userAnonymized,
 			UserAnonymizedEntityHolder userAnonymizedEntityHolder)
 	{
-		Optional<LocalDate> lastActivityEndTime = payloads.stream().map(payload -> payload.endTime).max(ZonedDateTime::compareTo)
-				.map(ZonedDateTime::toLocalDate);
+		Optional<ActivityPayload> lastActivityPayload = payloads.stream().max((p1, p2) -> p1.endTime.compareTo(p2.endTime));
+		lastActivityPayload
+				.ifPresent(p -> updateLastMonitoredActivityDateIfRelevant(p, userAnonymized, userAnonymizedEntityHolder));
+	}
+
+	private void updateLastMonitoredActivityDateIfRelevant(ActivityPayload lastActivityPayload, UserAnonymizedDto userAnonymized,
+			UserAnonymizedEntityHolder userAnonymizedEntityHolder)
+	{
+		LocalDate lastActivityEndTime = lastActivityPayload.endTime.toLocalDate();
 		Optional<LocalDate> lastMonitoredActivityDate = userAnonymized.getLastMonitoredActivityDate();
-		if (lastActivityEndTime.isPresent()
-				&& lastMonitoredActivityDate.map(d -> d.isBefore(lastActivityEndTime.get())).orElse(true))
+		if (lastMonitoredActivityDate.map(d -> d.isBefore(lastActivityEndTime)).orElse(true))
 		{
-			activityUpdateService.updateLastMonitoredActivityDate(userAnonymizedEntityHolder.getEntity(),
-					lastActivityEndTime.get());
+			DeviceAnonymized deviceAnonymized = deviceService.getDeviceAnonymizedEntity(userAnonymized.getId(),
+					lastActivityPayload.deviceAnonymized.getId());
+			activityUpdateService.updateLastMonitoredActivityDate(userAnonymizedEntityHolder.getEntity(), deviceAnonymized,
+					lastActivityEndTime);
 		}
 	}
 

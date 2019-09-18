@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -60,9 +60,11 @@ class ActivityUpdateService
 	@Autowired
 	private ActivityCacheService cacheService;
 
-	public void updateLastMonitoredActivityDate(UserAnonymized userAnonymizedEntity, LocalDate activityEndTime)
+	public void updateLastMonitoredActivityDate(UserAnonymized userAnonymizedEntity, DeviceAnonymized deviceAnonymized,
+			LocalDate activityEndTime)
 	{
 		userAnonymizedEntity.setLastMonitoredActivityDate(activityEndTime);
+		deviceAnonymized.setLastMonitoredActivityDate(activityEndTime);
 	}
 
 	public void addActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload, GoalDto matchingGoal,
