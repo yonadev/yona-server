@@ -153,7 +153,7 @@ class User
 
 	Device getRequestingDevice()
 	{
-		devices.find{ it.url.contains(requestingDeviceId) }
+		devices.find{ it.requestingDevice }
 	}
 
 	static def getIdFromUrl(def url)
