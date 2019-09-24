@@ -5,5 +5,5 @@ buildversion = $(shell cat version)
 all: build
 
 build:
-	docker build --force-rm=true -t yonadev/yona-mariadb-liquibase-update:napi-build-$(buildversion) .
+	docker build --force-rm=true -t yonadev/yona-mariadb-liquibase-update:build-$(buildversion) .
 

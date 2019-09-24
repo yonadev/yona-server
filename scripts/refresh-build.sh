@@ -3,7 +3,7 @@ set -e # Fail on error
 my_dir=`readlink -f "$(dirname "$0")"`
 
 export COMPOSE_PROJECT_NAME=yona
-export yonatag=napi-build-$1
+export yonatag=build-$1
 export yona_db_user_name=$2
 export yona_db_password=$3
 export yona_db_url=$4

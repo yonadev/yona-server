@@ -35,7 +35,7 @@ public class ActivityCacheService
 			return Optional.empty();
 		}
 		// Return activity DTO, or empty, in case the DayActivity is created with inactivity
-		return lastDayActivityList.get(0).getLastActivity(deviceAnonymizedId).map(entity -> ActivityDto.createInstance(entity));
+		return lastDayActivityList.get(0).getLastActivity(deviceAnonymizedId).map(ActivityDto::createInstance);
 	}
 
 	@CachePut(key = "{#userAnonymizedId,#deviceAnonymizedId,#goalId}")
