@@ -9,14 +9,12 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.AppService
 import spock.lang.Shared
 import spock.lang.Specification
 
 class ActivityCategoriesTest extends Specification
 {
-
 	// See https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#near-cache-invalidation
 	// Default batch invalidation frequency is 10 seconds
 	static final def cachePropagationTimeoutSeconds = 20
@@ -43,11 +41,11 @@ class ActivityCategoriesTest extends Specification
 		def updateResponse = adminService.yonaServer.updateResource(createProgrammingResponse.responseData._links.self.href, chessActivityCategoryJson)
 		assertResponseStatusOk(updateResponse)
 		def deleteResponse = adminService.yonaServer.deleteResource(createCookingResponse.responseData._links.self.href)
-		assertResponseStatusOk(deleteResponse)
+		assertResponseStatusNoContent(deleteResponse)
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, gardeningActivityCategoryJson)
 		assertResponseStatusOk(createResponse)
 		waitForCachePropagation("Gardening", "Reading about gardening")
-		
+
 		then:
 		def getAllResponse = appService.getAllActivityCategoriesWithLanguage("en-US")
 		def programmingCategory = appServicefindActivityCategoryByName(getAllResponse, "Programming")
@@ -58,7 +56,7 @@ class ActivityCategoriesTest extends Specification
 		gardeningCategory != null
 		def cookingCategory = appServicefindActivityCategoryByName(getAllResponse, "Cooking")
 		cookingCategory == null
-		
+
 		cleanup:
 		if (createCookingResponse?.status == 200)
 		{
@@ -219,7 +217,7 @@ class ActivityCategoriesTest extends Specification
 		def response = adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getAllResponse = adminService.getAllActivityCategories()
 		getAllResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1

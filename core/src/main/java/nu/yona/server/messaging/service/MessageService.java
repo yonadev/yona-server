@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -84,7 +84,7 @@ public class MessageService
 	@Transactional
 	public Page<Message> getReceivedMessageEntities(UUID userId, Pageable pageable)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getValidatedUser(userId);
 
 		return getReceivedMessageEntities(user, false, pageable);
 	}
@@ -97,7 +97,7 @@ public class MessageService
 
 	public Page<Message> getReceivedMessageEntitiesSinceDate(UUID userId, LocalDateTime earliestDateTime, Pageable pageable)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getValidatedUser(userId);
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, earliestDateTime);
 	}
@@ -163,7 +163,7 @@ public class MessageService
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
 		for (long id : idsOfUnprocessedMessages)
 		{
-			UserDto userDto = userService.getPrivateUser(user.getId()); // Inside loop, as message processing might change it
+			UserDto userDto = userService.getUser(user.getId()); // Inside loop, as message processing might change it
 			handleMessageAction(userDto, id, "process", emptyPayload);
 		}
 	}
@@ -377,7 +377,7 @@ public class MessageService
 	@Transactional
 	public Page<MessageDto> getActivityRelatedMessages(UUID userId, IntervalActivity intervalActivityEntity, Pageable pageable)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getValidatedUser(userId);
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return wrapMessagesAsDtos(user, messageSource.getActivityRelatedMessages(intervalActivityEntity, pageable), pageable);
 	}

@@ -29,7 +29,7 @@ public class BatchTaskController
 	private BatchTaskService batchTaskService;
 
 	@PostMapping(value = "/sendPinResetConfirmationCode/")
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void requestPinResetConfirmationCode(
 			@RequestBody PinResetConfirmationCodeSendRequestDto pinResetConfirmationCodeSendRequest)
 	{
@@ -37,7 +37,7 @@ public class BatchTaskController
 	}
 
 	@PostMapping(value = "/sendSystemMessage/")
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void sendSystemMessage(@RequestBody SystemMessageSendRequestDto systemMessageSendRequest)
 	{
 		batchTaskService.sendSystemMessage(systemMessageSendRequest);

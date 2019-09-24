@@ -154,7 +154,7 @@ abstract class ActivityControllerBase extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getPrivateValidatedUser(userId);
+			UserDto user = userService.getValidatedUser(userId);
 			return messageController.createOkResponse(user, messageSupplier.get(), pagedResourcesAssembler);
 		}
 	}
@@ -181,7 +181,7 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	protected GoalIdMapping createGoalIdMapping(UUID userId)
 	{
-		return GoalIdMapping.createInstance(userService.getPrivateUser(userId));
+		return GoalIdMapping.createInstance(userService.getUser(userId));
 	}
 
 	public abstract void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDto message);

@@ -762,7 +762,7 @@ public class AnalysisEngineServiceTest
 		lenient().when(mockDayActivityRepository.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId()))
 				.thenReturn(dayActivity);
 		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, deviceAnonId, forGoal.getId()))
-				.thenReturn(existingActivity);
+				.thenReturn(Optional.of(existingActivity));
 		WeekActivity weekActivity = WeekActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,
 				TimeUtil.getStartOfWeek(startTime.toLocalDate()));
 		weekActivity.addDayActivity(dayActivity);

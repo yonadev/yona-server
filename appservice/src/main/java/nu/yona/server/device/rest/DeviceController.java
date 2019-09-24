@@ -175,7 +175,7 @@ public class DeviceController extends ControllerBase
 		{
 			UserDeviceDto newDevice = deviceService.addDeviceToUser(userId,
 					UserDeviceDto.createDeviceRegistrationInstance(request));
-			return createResponse(userService.getPrivateUser(userId, false), HttpStatus.CREATED,
+			return createResponse(userService.getUser(userId, false), HttpStatus.CREATED,
 					userController.createResourceAssemblerForOwnUser(userId, Optional.of(newDevice.getId())));
 		}
 	}
@@ -200,7 +200,7 @@ public class DeviceController extends ControllerBase
 			assertValidOpenAppEvent(request);
 			deviceService.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(),
 					Optional.ofNullable(request.appVersion), request.appVersionCode);
-			return createOkResponse();
+			return createNoContentResponse();
 		}
 	}
 
@@ -315,12 +315,12 @@ public class DeviceController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto userDto = userService.getPrivateUser(userId);
+			UserDto userDto = userService.getUser(userId);
 			autoregisterAndroid(userDto, deviceId);
 			UUID userAnonymizedId = userDto.getOwnPrivateData().getUserAnonymizedId();
 			UUID deviceAnonymizedId = deviceService.getDeviceAnonymizedId(userDto, deviceId);
 			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, deviceAnonymizedId, appActivities);
-			return createOkResponse();
+			return createNoContentResponse();
 		}
 	}
 

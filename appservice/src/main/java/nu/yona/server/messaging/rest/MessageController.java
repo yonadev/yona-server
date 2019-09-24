@@ -98,7 +98,7 @@ public class MessageController extends ControllerBase
 	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getValidatedUser(userId);
 		Page<MessageDto> messages = messageService.getReceivedMessages(user, onlyUnreadMessages, pageable);
 		return createOkResponse(user, messages, pagedResourcesAssembler);
 	}
@@ -111,7 +111,7 @@ public class MessageController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getPrivateValidatedUser(userId);
+			UserDto user = userService.getValidatedUser(userId);
 			return createOkResponse(user, messageService.getMessage(user, messageId));
 		}
 	}
@@ -141,7 +141,7 @@ public class MessageController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getPrivateValidatedUser(userId);
+			UserDto user = userService.getValidatedUser(userId);
 
 			return createOkResponse(new MessageActionResource(curieProvider,
 					messageService.handleMessageAction(user, id, action, requestPayload), createGoalIdMapping(user), this));
@@ -157,7 +157,7 @@ public class MessageController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getPrivateValidatedUser(userId);
+			UserDto user = userService.getValidatedUser(userId);
 			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(user, messageId),
 					createGoalIdMapping(user), this));
 		}

@@ -112,7 +112,7 @@ public class UserUpdateService
 	public UserDto updateUser(UUID id, UserDto user)
 	{
 		User updatedUserEntity = updateUser(id, userEntity -> {
-			UserDto originalUser = userLookupService.createUserDtoWithPrivateData(userEntity);
+			UserDto originalUser = userLookupService.createUserDto(userEntity);
 			assertValidUpdateRequest(user, originalUser, userEntity);
 
 			user.updateUser(userEntity);
@@ -122,11 +122,11 @@ public class UserUpdateService
 				sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
 						SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
 			}
-			UserDto userDto = userLookupService.createUserDtoWithPrivateData(userEntity);
+			UserDto userDto = userLookupService.createUserDto(userEntity);
 			logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
 			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
 		});
-		return userLookupService.createUserDtoWithPrivateData(updatedUserEntity);
+		return userLookupService.createUserDto(updatedUserEntity);
 	}
 
 	/**
@@ -162,9 +162,9 @@ public class UserUpdateService
 	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
 	{
 		User updatedUserEntity = updateUser(id, userEntity -> {
-			UserDto originalUser = userLookupService.createUserDtoWithPrivateData(userEntity);
+			UserDto originalUser = userLookupService.createUserDto(userEntity);
 			userEntity.setUserPhotoId(userPhotoId);
-			UserDto userDto = userLookupService.createUserDtoWithPrivateData(userEntity);
+			UserDto userDto = userLookupService.createUserDto(userEntity);
 			if (userPhotoId.isPresent())
 			{
 				logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
@@ -177,7 +177,7 @@ public class UserUpdateService
 			}
 			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
 		});
-		return userLookupService.createUserDtoWithPrivateData(updatedUserEntity);
+		return userLookupService.createUserDto(updatedUserEntity);
 	}
 
 	private void assertValidUpdateRequest(UserDto user, UserDto originalUser, User originalUserEntity)
@@ -221,7 +221,7 @@ public class UserUpdateService
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
 		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
-		UserDto userDto = userLookupService.createUserDtoWithPrivateData(savedUserEntity);
+		UserDto userDto = userLookupService.createUserDto(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
 				userDto.getId());
 		return userDto;

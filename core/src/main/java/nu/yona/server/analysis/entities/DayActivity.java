@@ -15,6 +15,7 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -92,11 +93,11 @@ public class DayActivity extends IntervalActivity
 		return Collections.unmodifiableList(activities);
 	}
 
-	public Activity getLastActivity(UUID deviceAnonymizedId)
+	public Optional<Activity> getLastActivity(UUID deviceAnonymizedId)
 	{
 		return this.activities.stream().filter(
 				a -> a.getDeviceAnonymized().map(DeviceAnonymized::getId).map(id -> id.equals(deviceAnonymizedId)).orElse(false))
-				.max((a, b) -> a.getEndTime().compareTo(b.getEndTime())).orElse(null);
+				.max((a, b) -> a.getEndTime().compareTo(b.getEndTime()));
 	}
 
 	public void addActivity(Activity activity)

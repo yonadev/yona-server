@@ -58,31 +58,31 @@ public class UserService
 	}
 
 	@Transactional
-	public UserDto getPublicUser(UUID id)
+	public UserDto getUserWithoutPrivateData(UUID id)
 	{
-		return userLookupService.getPublicUser(id);
+		return userLookupService.getUserWithoutPrivateData(id);
 	}
 
 	@Transactional
-	public UserDto getPrivateUser(UUID id)
+	public UserDto getUser(UUID id)
 	{
-		return userLookupService.getPrivateUser(id);
+		return userLookupService.getUser(id);
 	}
 
 	@Transactional
-	public UserDto getPrivateUser(UUID id, boolean isCreatedOnBuddyRequest)
+	public UserDto getUser(UUID id, boolean isCreatedOnBuddyRequest)
 	{
 		return userLookupService.getPrivateUser(id, isCreatedOnBuddyRequest);
 	}
 
 	@Transactional
-	public UserDto getPrivateValidatedUser(UUID id)
+	public UserDto getValidatedUser(UUID id)
 	{
 		return userLookupService.getPrivateValidatedUser(id);
 	}
 
 	@Transactional
-	public User getPrivateValidatedUserEntity(UUID id)
+	public User getValidatedUserEntity(UUID id)
 	{
 		return userLookupService.getPrivateValidatedUserEntity(id);
 	}
@@ -99,9 +99,9 @@ public class UserService
 		return userAddService.addUser(user, overwriteUserConfirmationCode);
 	}
 
-	public UserDto createUserDtoWithPrivateData(User user)
+	public UserDto createUserDto(User user)
 	{
-		return userLookupService.createUserDtoWithPrivateData(user);
+		return userLookupService.createUserDto(user);
 	}
 
 	@Transactional(dontRollbackOn = MobileNumberConfirmationException.class)
@@ -127,7 +127,7 @@ public class UserService
 			logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
 					userEntity.getMobileNumber(), userEntity.getId());
 		});
-		return createUserDtoWithPrivateData(updatedUserEntity);
+		return createUserDto(updatedUserEntity);
 	}
 
 	@Transactional

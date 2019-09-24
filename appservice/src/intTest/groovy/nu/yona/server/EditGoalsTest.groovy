@@ -722,7 +722,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def responseGoalsAfterDelete = appService.getGoals(richard)
 		assertResponseStatusOk(responseGoalsAfterDelete)
@@ -757,7 +757,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
-		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		def postToAeResponse = analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		assertResponseStatusNoContent(postToAeResponse)
 		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardBeforeGoalDeleteResponse)
@@ -772,7 +772,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, newsGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getMessagesRichardAfterGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardAfterGoalDeleteResponse)
@@ -793,7 +793,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
-		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		def postToAeResponse = analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		assertResponseStatusNoContent(postToAeResponse)
 		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardBeforeGoalDeleteResponse)
@@ -802,7 +802,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(getMessagesBobBeforeGoalDeleteResponse)
 		getMessagesBobBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
 
-		assertResponseStatusOk(appService.removeBuddy(bob, bob.buddies[0], "Richard, as you know our ways parted, so I'll remove you as buddy."))
+		assertResponseStatusNoContent(appService.removeBuddy(bob, bob.buddies[0], "Richard, as you know our ways parted, so I'll remove you as buddy."))
 
 		Goal newsGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 
@@ -810,7 +810,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, newsGoal, "Don't want to monitor my social time anymore")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getMessagesRichardAfterGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardAfterGoalDeleteResponse)
@@ -849,6 +849,6 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 	{
 		def startTime = YonaServer.now.minus(Duration.ofHours(1))
 		def endTime = YonaServer.now
-		appService.postAppActivityToAnalysisEngine(user, AppActivity.singleActivity("Facebook", startTime, endTime))
+		appService.postAppActivityToAnalysisEngine(user, user.requestingDevice, AppActivity.singleActivity("Facebook", startTime, endTime))
 	}
 }

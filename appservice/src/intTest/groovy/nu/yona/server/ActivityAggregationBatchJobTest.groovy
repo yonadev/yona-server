@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -25,10 +25,10 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(batchService.triggerActivityAggregationBatchJob())
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:55")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
+		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
 
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -84,7 +84,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(batchService.triggerActivityAggregationBatchJob())
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:49")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:49")
 		def firstAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assertResponseStatusOk(firstAggregationResponse)
 		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 1
@@ -102,7 +102,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		assertActivityValues(richard, 1, expectedValuesFirstAggregation, 2)
 
 		when:
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:49", "W-1 Tue 00:05")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 23:49", "W-1 Tue 00:05")
 
 		then:
 		def expectedValuesSecondAggregation = [
@@ -136,7 +136,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(batchService.triggerActivityAggregationBatchJob())
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:05")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:05")
 		def firstAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assertResponseStatusOk(firstAggregationResponse)
 		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 1
@@ -154,7 +154,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		assertActivityValues(richard, 1, expectedValuesFirstAggregation, 2)
 
 		when:
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:50", "W-1 Mon 23:59")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 23:50", "W-1 Mon 23:59")
 
 		then:
 		def expectedValuesSecondAggregation = [

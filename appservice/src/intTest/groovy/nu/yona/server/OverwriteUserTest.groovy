@@ -43,7 +43,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def response = appService.requestOverwriteUser(richard.mobileNumber)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -55,7 +55,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
@@ -198,8 +198,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged
 		richardChanged.firstName == "${richard.firstName}Changed"
 
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
-		analysisService.postToAnalysisEngine(richardChanged, "news/media", "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richardChanged.requestingDevice, "news/media", "http://www.refdag.nl")
 
 		def getMessagesRichardResponse = appService.getMessages(richardChanged)
 		assertResponseStatusOk(getMessagesRichardResponse)
@@ -244,7 +244,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 				["overwriteUserConfirmationCode": "1234"])
 
 		when:
-		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		def response = analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
 
 		def getMessagesResponse = appService.getMessages(richardChanged)
 		assertResponseStatusOk(getMessagesResponse)
@@ -262,9 +262,9 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		assertResponseStatusOk(appService.requestOverwriteUser(richard.mobileNumber))
-		assertResponseStatusOk(appService.requestOverwriteUser(richard.mobileNumber))
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
+		assertResponseStatusNoContent(appService.requestOverwriteUser(richard.mobileNumber))
+		assertResponseStatusNoContent(appService.requestOverwriteUser(richard.mobileNumber))
 
 		when:
 		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
@@ -336,6 +336,6 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	private def assertUserOverwriteResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
-		assertUserWithPrivateData(response.responseData)
+		assertUser(response.responseData)
 	}
 }

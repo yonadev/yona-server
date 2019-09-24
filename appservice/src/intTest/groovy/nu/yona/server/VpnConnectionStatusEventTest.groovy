@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018,. 2019 Stichting Yona Foundation
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -22,15 +22,15 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
-		def response = richard.devices[0].postVpnStatus(appService, true)
+		def response = richard.requestingDevice.postVpnStatus(appService, true)
 
 		then:
 		assertResponseStatusNoContent(response)
 
 		User richardAfterReload = appService.reloadUser(richard)
 		User bobAfterReload = appService.reloadUser(bob)
-		!richard.devices[0].vpnConnected
-		richardAfterReload.devices[0].vpnConnected
+		!richard.requestingDevice.vpnConnected
+		richardAfterReload.requestingDevice.vpnConnected
 		!bob.buddies[0].user.devices[0].vpnConnected
 		bobAfterReload.buddies[0].user.devices[0].vpnConnected
 
@@ -41,7 +41,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		vpnConnectionStatusChangeMessages.size() == 1
 		vpnConnectionStatusChangeMessages[0]._links.keySet() == ["self", "edit", "yona:buddy", "yona:user", "yona:markRead"] as Set
 		vpnConnectionStatusChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
-		vpnConnectionStatusChangeMessages[0].message == "User connected VPN on device '${richard.devices[0].name}'"
+		vpnConnectionStatusChangeMessages[0].message == "User connected VPN on device '${richard.requestingDevice.name}'"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -54,20 +54,20 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		assertResponseStatusNoContent(richard.devices[0].postVpnStatus(appService, true))
+		assertResponseStatusNoContent(richard.requestingDevice.postVpnStatus(appService, true))
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
 
 		when:
-		def response = richard.devices[0].postVpnStatus(appService, false)
+		def response = richard.requestingDevice.postVpnStatus(appService, false)
 
 		then:
 		assertResponseStatusNoContent(response)
 
 		User richardAfterReload = appService.reloadUser(richard)
 		User bobAfterReload = appService.reloadUser(bob)
-		richard.devices[0].vpnConnected
-		!richardAfterReload.devices[0].vpnConnected
+		richard.requestingDevice.vpnConnected
+		!richardAfterReload.requestingDevice.vpnConnected
 		bob.buddies[0].user.devices[0].vpnConnected
 		!bobAfterReload.buddies[0].user.devices[0].vpnConnected
 
@@ -78,11 +78,11 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		vpnConnectionStatusChangeMessages.size() == 2
 		vpnConnectionStatusChangeMessages[0]._links.self != null
 		vpnConnectionStatusChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
-		vpnConnectionStatusChangeMessages[0].message == "User disconnected VPN on device '${richard.devices[0].name}'"
+		vpnConnectionStatusChangeMessages[0].message == "User disconnected VPN on device '${richard.requestingDevice.name}'"
 
 		vpnConnectionStatusChangeMessages[1]._links.self != null
 		vpnConnectionStatusChangeMessages[1]._links."yona:user".href == bob.buddies[0].user.url
-		vpnConnectionStatusChangeMessages[1].message == "User connected VPN on device '${richard.devices[0].name}'"
+		vpnConnectionStatusChangeMessages[1].message == "User connected VPN on device '${richard.requestingDevice.name}'"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -94,10 +94,10 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
-		Device richardFirstDevice = richard.devices[0]
+		Device richardFirstDevice = richard.requestingDevice
 		User bob = richardAndBob.bob
 		Device richardSecondDevice = addDevice(richard, "My S9", "ANDROID")
-		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		bob = appService.reloadUser(bob)
 
 		def bobInitialMessagesResponse = appService.getMessages(bob) // Get will do auto-processing, making Richard's device visible to Bob
@@ -136,7 +136,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 	{
 		assertResponseStatusNoContent(response)
 
-		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		Device richardFirstDevice = richard.devices.find { it.name == "Richard's iPhone" }
 		Device richardSecondDevice = richard.devices.find { it.name == "My S9" }
 
@@ -164,7 +164,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 	{
 		def newDeviceRequestPassword = "Temp password"
 		def response = appService.setNewDeviceRequest(user.mobileNumber, user.password, newDeviceRequestPassword)
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		def getResponseAfter = appService.getNewDeviceRequest(user.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
@@ -195,15 +195,15 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		def initialVpnConnectionStatusChangeMessages = bobInitialMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyVpnConnectionStatusChangeMessage"}
 
 		when:
-		def response = richard.devices[0].postVpnStatus(appService, false)
+		def response = richard.requestingDevice.postVpnStatus(appService, false)
 
 		then:
 		assertResponseStatusNoContent(response)
 
 		User richardAfterReload = appService.reloadUser(richard)
 		User bobAfterReload = appService.reloadUser(bob)
-		!richard.devices[0].vpnConnected
-		!richardAfterReload.devices[0].vpnConnected
+		!richard.requestingDevice.vpnConnected
+		!richardAfterReload.requestingDevice.vpnConnected
 		!bob.buddies[0].user.devices[0].vpnConnected
 		!bobAfterReload.buddies[0].user.devices[0].vpnConnected
 
@@ -224,7 +224,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		assertResponseStatusNoContent(richard.devices[0].postVpnStatus(appService, true))
+		assertResponseStatusNoContent(richard.requestingDevice.postVpnStatus(appService, true))
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
 		def bobInitialMessagesResponse = appService.getMessages(bob)
@@ -232,15 +232,15 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		def initialVpnConnectionStatusChangeMessages = bobInitialMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyVpnConnectionStatusChangeMessage"}
 
 		when:
-		def response = richard.devices[0].postVpnStatus(appService, true)
+		def response = richard.requestingDevice.postVpnStatus(appService, true)
 
 		then:
 		assertResponseStatusNoContent(response)
 
 		User richardAfterReload = appService.reloadUser(richard)
 		User bobAfterReload = appService.reloadUser(bob)
-		richard.devices[0].vpnConnected
-		richardAfterReload.devices[0].vpnConnected
+		richard.requestingDevice.vpnConnected
+		richardAfterReload.requestingDevice.vpnConnected
 		bob.buddies[0].user.devices[0].vpnConnected
 		bobAfterReload.buddies[0].user.devices[0].vpnConnected
 

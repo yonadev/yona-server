@@ -26,7 +26,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(bob, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
+		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
 
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -50,7 +50,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		reportAppActivity(bob, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
+		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
 
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -405,7 +405,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, richardGoal, "Don't want to monitor my news time anymore")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -580,9 +580,10 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 	private static void assertCommentMessageDetails(message, User user, boolean isWeek, sender, expectedDetailsUrl, expectedText, threadHeadMessage, repliedMessage = null)
 	{
+		def expectedNickname = (sender instanceof User) ? sender.nickname : sender.user.nickname
 		assert message."@type" == "ActivityCommentMessage"
 		assert message.message == expectedText
-		assert message.nickname == ((user.url == sender.url) ? (sender.nickname + " (me)") : sender.nickname)
+		assert message.nickname == ((user.url == sender.url) ? (expectedNickname + " (me)") : expectedNickname)
 
 		assert message._links?.self?.href?.startsWith(YonaServer.stripQueryString(user.messagesUrl))
 		assert message._links?.edit?.href == message._links.self.href

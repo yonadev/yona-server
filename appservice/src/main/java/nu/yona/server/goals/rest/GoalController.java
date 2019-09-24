@@ -71,10 +71,10 @@ public class GoalController extends ControllerBase
 	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = false) String requestingUserIdStr,
+			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = true) String requestingUserIdStr,
 			@PathVariable UUID userId)
 	{
-		UUID requestingUserId = determineRequestingUserId(userId, requestingUserIdStr);
+		UUID requestingUserId = RestUtil.parseUuid(requestingUserIdStr);
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
@@ -93,10 +93,10 @@ public class GoalController extends ControllerBase
 	@GetMapping(value = "/{goalId}")
 	@ResponseBody
 	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = false) String requestingUserIdStr,
+			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = true) String requestingUserIdStr,
 			@PathVariable UUID userId, @PathVariable UUID goalId)
 	{
-		UUID requestingUserId = determineRequestingUserId(userId, requestingUserIdStr);
+		UUID requestingUserId = RestUtil.parseUuid(requestingUserIdStr);
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
@@ -110,11 +110,6 @@ public class GoalController extends ControllerBase
 	{
 		return getGoalsOfBuddyUser(requestingUserId, userId).stream().filter(g -> g.getGoalId().equals(goalId)).findFirst()
 				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUser(userId, goalId));
-	}
-
-	private UUID determineRequestingUserId(UUID userId, String requestingUserIdStr)
-	{
-		return (requestingUserIdStr == null) ? userId : UUID.fromString(requestingUserIdStr);
 	}
 
 	@PostMapping(value = "/")
@@ -149,7 +144,7 @@ public class GoalController extends ControllerBase
 
 	@DeleteMapping(value = "/{goalId}")
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void removeGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID goalId, @RequestParam(value = "message", required = false) String messageStr)
 	{

@@ -64,7 +64,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def inviteUrl = getInviteUrl()
 
 		when:
-		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 
 		then:
 		bob.firstName == "Bobby"
@@ -84,7 +84,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
 		def inviteUrl = getInviteUrl()
-		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 
 		when:
 		def newFirstName = "Bob"
@@ -103,7 +103,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		updatedBob.nickname == newNickname
 		!(updatedBob.url ==~ /tempPassword/)
 
-		def getUserResponse = appService.getUser(inviteUrl, true, null)
+		def getUserResponse = appService.getUser(inviteUrl, null)
 		assertResponseStatus(getUserResponse, 400)
 		getUserResponse.responseData.code == "error.decrypting.data"
 
@@ -132,7 +132,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
 		def inviteUrl = getInviteUrl()
-		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 
 		when:
 		def updatedBobJson = bob.convertToJson()
@@ -150,8 +150,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def bobWithConfirmedNumber = appService.confirmMobileNumber({ assertResponseStatusSuccess(it)}, updatedBob)
 		bobWithConfirmedNumber.devices.size() == 1
-		bobWithConfirmedNumber.devices[0].name == "My S8"
-		bobWithConfirmedNumber.devices[0].operatingSystem == "ANDROID"
+		bobWithConfirmedNumber.requestingDevice.name == "My S8"
+		bobWithConfirmedNumber.requestingDevice.operatingSystem == "ANDROID"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -165,14 +165,14 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
 		def inviteUrl = getInviteUrl()
-		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.yonaPassword = newPassword
 		updatedBobJson.nickname = newNickname
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
-		def bobFromGetAfterUpdate = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, updatedBob.password)
+		def bobFromGetAfterUpdate = appService.getUser(CommonAssertions.&assertUserGetResponseDetails, bob.url, true, updatedBob.password)
 
 		when:
 		def againChangedNickname = "Robert"
@@ -195,7 +195,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
 		def inviteUrl = getInviteUrl()
-		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
@@ -207,7 +207,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		updatedBob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, updatedBob)
 
 		then:
-		def getUserResponse = appService.getUser(updatedBob.url, true, updatedBob.password)
+		def getUserResponse = appService.getUser(updatedBob.url, updatedBob.password)
 		assertResponseStatusOk(getUserResponse)
 		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:goals"
 		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:goals".size() == 1 //mandatory goal
@@ -227,7 +227,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
 		def inviteUrl = getInviteUrl()
-		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newFirstName = "Bob"
 		def newLastName= "Dunn"
 		def newNickname = "BD"
@@ -265,7 +265,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
 		def inviteUrl = getInviteUrl()
-		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newFirstName = "Bob"
 		def newLastName= "Dunn"
 		def newNickname = "BD"
@@ -317,7 +317,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
 		def inviteUrl = getInviteUrl()
-		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
@@ -330,7 +330,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		assert appService.fetchBuddyConnectResponseMessage(richard).processUrl == null // Processing happens automatically these days
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
@@ -438,11 +438,11 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		def responseAddBuddy = sendBuddyRequestForBobby(richard, mobileNumberBob)
-		def bobUrl = responseAddBuddy.responseData._embedded."yona:user"._links.self.href
-		def urlToTry = bobUrl.replaceAll(richard.getId(), User.getIdFromUrl(bobUrl)) // Correct requestingUserId
+		// Take invite URL and remove "tempPassword=abcd&" or "&tempPassword=abcd" (varying order occurs)
+		def urlToTry = getInviteUrl().replaceFirst(/tempPassword=[^&]*&/, "").replaceFirst(/&tempPassword=[^&]*/, "")
 
 		when:
-		def response = appService.getUser(urlToTry, true, dummyTempPassword)
+		def response = appService.getUser(urlToTry, dummyTempPassword)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -486,7 +486,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def response = appService.requestOverwriteUser(mobileNumberBob)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "Bob Changed",
 				"Dunn Changed", "BD Changed", mobileNumberBob, [:], ["overwriteUserConfirmationCode": "1234"])
@@ -538,7 +538,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		appService.makeBuddies(richard, bob)
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		then:
 
@@ -580,7 +580,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	def assertUserOverwriteResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
-		assertUserWithPrivateData(response.responseData)
+		assertUser(response.responseData)
 	}
 
 	def sendBuddyRequestForBobby(User user, String mobileNumber)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -26,7 +26,6 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import nu.yona.server.Constants;
 import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.service.GoalDto;
@@ -53,11 +52,11 @@ public class UserDto
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed,
 			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
-			Set<BuddyDto> buddies, UUID userAnonymizedId, Optional<VPNProfileDto> vpnProfile, Set<UserDeviceDto> devices)
+			Set<BuddyDto> buddies, UUID userAnonymizedId, Set<UserDeviceDto> devices)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest,
 				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, firstName, lastName, nickname, userPhotoId,
-						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, vpnProfile, devices));
+						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, devices));
 	}
 
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String mobileNumber,
@@ -155,10 +154,6 @@ public class UserDto
 	@JsonIgnore
 	public OwnUserPrivateDataDto getOwnPrivateData()
 	{
-		if (privateData == null)
-		{
-			return null; // TODO: Remove this when we don't support fetching the public user anymore
-		}
 		if (privateData instanceof OwnUserPrivateDataDto)
 		{
 			return (OwnUserPrivateDataDto) privateData;
@@ -186,27 +181,7 @@ public class UserDto
 		originalUserEntity.setNickname(privateData.getNickname());
 	}
 
-	/**
-	 * Creates a {@link UserDto} with the public data of the user, if the user is not {@code null}. This method is provided
-	 * because the related user may be removed in the meantime. In that case the passed {@code userEntity} will be {@code null}
-	 * and the method returns {@code null}.
-	 * 
-	 * @param userEntity
-	 * @return
-	 */
-	public static Optional<UserDto> createInstance(Optional<User> userEntity)
-	{
-		return userEntity.map(UserDto::createInstance);
-	}
-
-	/**
-	 * Creates a {@link UserDto} with the public data of the user. Please use {@link #createInstance(User)} if {@code userEntity}
-	 * may be {@code null}. Use {@link #createInstanceWithPrivateData(User)} to include private data of the user.
-	 * 
-	 * @param userEntity
-	 * @return
-	 */
-	static UserDto createInstance(User userEntity)
+	static UserDto createInstanceWithoutPrivateData(User userEntity)
 	{
 		Objects.requireNonNull(userEntity, "userEntity cannot be null");
 
@@ -214,7 +189,7 @@ public class UserDto
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
 	}
 
-	public static UserDto createInstanceWithPrivateData(User userEntity, Set<BuddyDto> buddies)
+	public static UserDto createInstance(User userEntity, Set<BuddyDto> buddies)
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
@@ -222,22 +197,11 @@ public class UserDto
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
 				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(),
 				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
-				userEntity.getUserAnonymizedId(), createVpnProfileDto(userEntity),
+				userEntity.getUserAnonymizedId(),
 				userEntity.getDevices().stream().map(UserDeviceDto::createInstance).collect(Collectors.toSet()));
 	}
 
-	// YD-541: Remove this method
-	private static Optional<VPNProfileDto> createVpnProfileDto(User userEntity)
-	{
-		return determineDefaultDevice(userEntity).map(VPNProfileDto::createInstance);
-	}
-
-	private static Optional<UserDevice> determineDefaultDevice(User userEntity)
-	{
-		return userEntity.getDevices().stream().filter(d -> d.getDeviceAnonymized().getDeviceIndex() == 0).findAny();
-	}
-
-	public static UserDto createInstanceWithBuddyData(User userEntity, BuddyUserPrivateDataDto buddyData)
+	public static UserDto createInstance(User userEntity, BuddyUserPrivateDataDto buddyData)
 	{
 		return new UserDto(userEntity.getId(), Optional.of(userEntity.getCreationTime()), userEntity.getAppLastOpenedDate(), null,
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
