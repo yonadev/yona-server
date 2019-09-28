@@ -4,8 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.test.util;
 
-import static com.spencerwi.hamcrestJDK8Time.matchers.IsAfter.after;
-import static org.junit.Assume.assumeThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -129,6 +128,6 @@ public class JUnitUtil
 
 	public static void skipBefore(String description, ZonedDateTime now, int hour, int minute)
 	{
-		assumeThat(description, now, after(now.withHour(hour).withMinute(minute).withSecond(0)));
+		assumeTrue(now.isAfter(now.withHour(hour).withMinute(minute).withSecond(0)), description);
 	}
 }
