@@ -549,12 +549,13 @@ public class BuddyService
 		{
 			String subjectTemplateName = "buddy-invitation-subject";
 			String bodyTemplateName = "buddy-invitation-body";
-			String requestingUserName = getFullName(requestingUser.getPrivateData());
+			String requestingUserFullName = getFullName(requestingUser.getPrivateData());
 			String requestingUserMobileNumber = requestingUser.getMobileNumber();
 			String buddyName = getFullName(buddy.getUser().getPrivateData());
 			String buddyMobileNumber = buddy.getUser().getMobileNumber();
-			Map<String, Object> templateParams = fillTemplateParams(requestingUser, buddy, inviteUrl, requestingUserMobileNumber);
-			emailService.sendEmail(requestingUserName, new InternetAddress(buddy.getUser().getEmailAddress(), buddyName),
+			Map<String, Object> templateParams = fillTemplateParams(requestingUser, buddy, inviteUrl, requestingUserFullName,
+					requestingUserMobileNumber);
+			emailService.sendEmail(requestingUserFullName, new InternetAddress(buddy.getUser().getEmailAddress(), buddyName),
 					subjectTemplateName, bodyTemplateName, templateParams);
 			smsService.send(buddyMobileNumber, SmsTemplate.BUDDY_INVITE, templateParams);
 		}
@@ -570,10 +571,11 @@ public class BuddyService
 	}
 
 	private Map<String, Object> fillTemplateParams(UserDto requestingUser, BuddyDto buddy, String inviteUrl,
-			String requestingUserMobileNumber)
+			String requestingUserFullName, String requestingUserMobileNumber)
 	{
 		Map<String, Object> templateParams = new HashMap<>();
 		templateParams.put("inviteUrl", inviteUrl);
+		templateParams.put("requestingUserFullName", requestingUserFullName);
 		templateParams.put("requestingUserFirstName", requestingUser.getPrivateData().getFirstName());
 		templateParams.put("requestingUserLastName", requestingUser.getPrivateData().getLastName());
 		templateParams.put("requestingUserMobileNumber", requestingUserMobileNumber);
