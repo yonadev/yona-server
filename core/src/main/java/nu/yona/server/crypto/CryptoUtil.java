@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -30,7 +30,7 @@ public class CryptoUtil
 	public static String getRandomString(int length)
 	{
 		byte[] bytes = getRandomBytes(length * 256 / 64);
-		String randomString = Base64.getEncoder().encodeToString(bytes);
+		String randomString = Base64.getEncoder().encodeToString(bytes).replace('+', '-').replace('/', '.');
 		return randomString.substring(0, Math.min(length, randomString.length()));
 	}
 
