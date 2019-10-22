@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
@@ -12,6 +12,8 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
@@ -32,6 +34,7 @@ public class UserDeviceDto extends DeviceBaseDto
 	private final int appVersionCode;
 	private final Optional<String> firebaseInstanceId;
 	private final LocalDate appLastOpenedDate;
+	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final UUID deviceAnonymizedId;
 	private final VPNProfileDto vpnProfile;
 
@@ -44,12 +47,13 @@ public class UserDeviceDto extends DeviceBaseDto
 			Optional<String> firebaseInstanceId)
 	{
 		this(null, name, operatingSystem, appVersion, appVersionCode, firebaseInstanceId, true, LocalDateTime.now(),
-				LocalDate.now(), null, null);
+				LocalDate.now(), Optional.empty(), null, null);
 	}
 
 	private UserDeviceDto(UUID id, String name, OperatingSystem operatingSystem, String appVersion, int appVersionCode,
 			Optional<String> firebaseInstanceId, boolean isVpnConnected, LocalDateTime registrationTime,
-			LocalDate appLastOpenedDate, UUID deviceAnonymizedId, VPNProfileDto vpnProfile)
+			LocalDate appLastOpenedDate, Optional<LocalDate> lastMonitoredActivityDate, UUID deviceAnonymizedId,
+			VPNProfileDto vpnProfile)
 	{
 		super(id, name, isVpnConnected);
 		this.operatingSystem = operatingSystem;
@@ -58,6 +62,7 @@ public class UserDeviceDto extends DeviceBaseDto
 		this.firebaseInstanceId = firebaseInstanceId;
 		this.registrationTime = registrationTime;
 		this.appLastOpenedDate = appLastOpenedDate;
+		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.deviceAnonymizedId = deviceAnonymizedId;
 		this.vpnProfile = vpnProfile;
 	}
@@ -98,6 +103,13 @@ public class UserDeviceDto extends DeviceBaseDto
 		return appLastOpenedDate;
 	}
 
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonInclude(Include.NON_EMPTY)
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return lastMonitoredActivityDate;
+	}
+
 	@JsonIgnore
 	public UUID getDeviceAnonymizedId()
 	{
@@ -110,7 +122,8 @@ public class UserDeviceDto extends DeviceBaseDto
 		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(), deviceAnonymized.getOperatingSystem(),
 				deviceAnonymized.getAppVersion(), deviceAnonymized.getAppVersionCode(), deviceAnonymized.getFirebaseInstanceId(),
 				deviceEntity.isVpnConnected(), deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(),
-				deviceEntity.getDeviceAnonymizedId(), VPNProfileDto.createInstance(deviceEntity));
+				deviceAnonymized.getLastMonitoredActivityDate(), deviceEntity.getDeviceAnonymizedId(),
+				VPNProfileDto.createInstance(deviceEntity));
 	}
 
 	public static UserDeviceDto createDeviceRegistrationInstance(DeviceRegistrationRequestDto deviceRegistration)

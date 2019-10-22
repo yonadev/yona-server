@@ -1905,6 +1905,11 @@ definitions:
             format: date
             description: The date the Yona app was last opened on this device
             example: 2017-11-21
+          lastMonitoredActivityDate:
+            type: string
+            format: date
+            description: The date of the last monitored activity for this device
+            example: 2017-11-21
           requestingDevice:
             type: string
             format: boolean

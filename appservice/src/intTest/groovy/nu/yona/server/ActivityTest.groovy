@@ -1450,10 +1450,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Mon 04:10", "W-1 Mon 04:20") // Partial overlap
 		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Mon 05:20", "W-1 Mon 05:30") // Full overlap
 		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Mon 06:15", "W-1 Mon 06:35") // No overlap at all
+		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Tue 07:53", "W-1 Tue 08:11") // Next day, so different last monitored activity dates for the devices
 
 		def expectedValuesRichardLastWeek = [
 			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 86, spread: [13 : 15, 14 : 6, 15 : 0, 16 : 5, 17 : 15, 18 : 5, 19 : 0, 20 : 0, 21 : 15, 22 : 5, 23 : 0, 24 : 0, 25 : 15, 26 : 5]]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [13 : 1, 14 : 1]]]],
-			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 18, spread: [31 : 7, 32 : 11]]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
 			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
 			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
 			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
@@ -1511,6 +1512,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseWeekOverviews = appService.getWeekActivityOverviews(richardDefault)
 		//get all days at once (max 2 weeks) to make assertion easy
 		def responseDayOverviewsAll = appService.getDayActivityOverviews(richardDefault, ["size": 14])
+		richardDefault = appService.reloadUser(richardDefault, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
+		richardIphone = appService.reloadUser(richardIphone, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
 		then:
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 2], expectedTotalWeeks)
@@ -1539,6 +1542,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		def responseRawDataSocial = getRawActivityData(richardDefault, "W-1 Mon 00:00", timeZoneGoalSocialRichard)
 		assertRawActivityData(responseRawDataSocial.responseData._embedded."yona:activities", expectedRawValuesSocialMon)
+
+		richardDefault.requestingDevice.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 00:00").toLocalDate()
+		richardIphone.requestingDevice.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Tue 00:00").toLocalDate()
 
 		cleanup:
 		appService.deleteUser(richardDefault)

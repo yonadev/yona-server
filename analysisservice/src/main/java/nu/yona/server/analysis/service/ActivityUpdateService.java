@@ -60,9 +60,11 @@ class ActivityUpdateService
 	@Autowired
 	private ActivityCacheService cacheService;
 
-	public void updateLastMonitoredActivityDate(UserAnonymized userAnonymizedEntity, LocalDate activityEndTime)
+	public void updateLastMonitoredActivityDate(UserAnonymized userAnonymizedEntity, DeviceAnonymized deviceAnonymized,
+			LocalDate activityEndTime)
 	{
 		userAnonymizedEntity.setLastMonitoredActivityDate(activityEndTime);
+		deviceAnonymized.setLastMonitoredActivityDate(activityEndTime);
 	}
 
 	public void addActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload, GoalDto matchingGoal,

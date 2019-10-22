@@ -6,7 +6,6 @@
  *******************************************************************************/
 package nu.yona.server
 
-import groovy.json.*
 import nu.yona.server.test.User
 import spock.lang.Shared
 
@@ -60,7 +59,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.entityFetchCount == 1
 		stats.entityInsertCount == 0
 		stats.entityLoadCount == 9
-		stats.entityUpdateCount == 1 // TODO: Should be 0
+		stats.entityUpdateCount == 2 // To set the last monitored activity date on the user and the device
 		stats.transactionCount == 2
 	}
 
