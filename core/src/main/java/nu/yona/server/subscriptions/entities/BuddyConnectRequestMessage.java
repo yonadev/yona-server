@@ -52,6 +52,12 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 				isRequestingReceiving);
 	}
 
+	@Override
+	public boolean isUserFetchable()
+	{
+		return status == Status.ACCEPTED;
+	}
+
 	public boolean requestingSending()
 	{
 		return isRequestingSending;

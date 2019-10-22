@@ -796,8 +796,8 @@
    {
       "id": "743738fd-052f-4532-a2a3-ba60dcb1adbf",
       "localizableName": {
-         "en-US": "Reading & reference",
-         "nl-NL": "Lezen en naslag"
+         "en-US": "News, reading & reference",
+         "nl-NL": "Nieuws, lezen en naslag"
       },
       "mandatoryNoGo": false,
       "smoothwallCategories": [

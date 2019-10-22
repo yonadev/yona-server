@@ -32,6 +32,7 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
@@ -42,7 +43,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @RequestMapping(value = "/users/{userId}/pinResetRequest", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class PinResetRequestController
+public class PinResetRequestController extends ControllerBase
 {
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -84,7 +85,7 @@ public class PinResetRequestController
 		{
 
 			pinResetRequestService.verifyPinResetConfirmationCode(userId, confirmationCode.getCode());
-			return new ResponseEntity<>(HttpStatus.OK);
+			return createNoContentResponse();
 		}
 	}
 
@@ -97,7 +98,7 @@ public class PinResetRequestController
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.resendPinResetConfirmationCode(userId);
-			return new ResponseEntity<>(HttpStatus.OK);
+			return createNoContentResponse();
 		}
 	}
 
@@ -110,7 +111,7 @@ public class PinResetRequestController
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.clearPinResetRequest(userId);
-			return new ResponseEntity<>(HttpStatus.OK);
+			return createNoContentResponse();
 		}
 	}
 

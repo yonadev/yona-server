@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -24,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.Constants;
 import nu.yona.server.Translator;
-import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.util.TimeUtil;
@@ -40,51 +38,37 @@ public class BuddyDto
 	private final UUID id;
 	private final UserDto user;
 	private final String personalInvitationMessage;
-	private final String nickname;
 	private final Optional<UUID> userAnonymizedId;
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final Status sendingStatus;
 	private final Status receivingStatus;
-	private final Optional<Set<GoalDto>> goals;
 	private final LocalDateTime lastStatusChangeTime;
 
-	public BuddyDto(UUID id, UserDto user, String nickname, Optional<UUID> userAnonymizedId,
-			Optional<LocalDate> lastMonitoredActivityDate, Status sendingStatus, Status receivingStatus,
-			LocalDateTime lastStatusChangeTime)
+	public BuddyDto(UUID id, UserDto user, Optional<UUID> userAnonymizedId, Optional<LocalDate> lastMonitoredActivityDate,
+			Status sendingStatus, Status receivingStatus, LocalDateTime lastStatusChangeTime)
 	{
-		this(id, user, null, nickname, userAnonymizedId, lastMonitoredActivityDate, sendingStatus, receivingStatus,
-				lastStatusChangeTime, Optional.empty());
+		this(id, user, null, userAnonymizedId, lastMonitoredActivityDate, sendingStatus, receivingStatus, lastStatusChangeTime);
 	}
 
 	public BuddyDto(UserDto user, String personalInvitationMessage, Status sendingStatus, Status receivingStatus,
 			LocalDateTime lastStatusChangeTime)
 	{
-		this(null, user, personalInvitationMessage, null, Optional.empty(), Optional.empty(), sendingStatus, receivingStatus,
-				lastStatusChangeTime, Optional.empty());
+		this(null, user, personalInvitationMessage, Optional.empty(), Optional.empty(), sendingStatus, receivingStatus,
+				lastStatusChangeTime);
 	}
 
-	private BuddyDto(UUID id, UserDto user, String nickname, Optional<UUID> userAnonymizedId,
+	private BuddyDto(UUID id, UserDto user, String personalInvitationMessage, Optional<UUID> userAnonymizedId,
 			Optional<LocalDate> lastMonitoredActivityDate, Status sendingStatus, Status receivingStatus,
-			LocalDateTime lastStatusChangeTime, Set<GoalDto> goals)
-	{
-		this(id, user, null, nickname, userAnonymizedId, lastMonitoredActivityDate, sendingStatus, receivingStatus,
-				lastStatusChangeTime, Optional.of(goals));
-	}
-
-	private BuddyDto(UUID id, UserDto user, String personalInvitationMessage, String nickname, Optional<UUID> userAnonymizedId,
-			Optional<LocalDate> lastMonitoredActivityDate, Status sendingStatus, Status receivingStatus,
-			LocalDateTime lastStatusChangeTime, Optional<Set<GoalDto>> goals)
+			LocalDateTime lastStatusChangeTime)
 	{
 		this.id = id;
 		this.user = Objects.requireNonNull(user);
 		this.personalInvitationMessage = personalInvitationMessage;
-		this.nickname = nickname;
 		this.userAnonymizedId = userAnonymizedId;
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
 		this.lastStatusChangeTime = lastStatusChangeTime;
-		this.goals = goals;
 	}
 
 	@JsonIgnore
@@ -121,35 +105,21 @@ public class BuddyDto
 	public static BuddyDto createInstance(Buddy buddyEntity)
 	{
 		return new BuddyDto(buddyEntity.getId(),
-				UserDto.createInstanceWithBuddyData(buddyEntity.getUser(), BuddyUserPrivateDataDto.createInstance(buddyEntity)),
-				buddyEntity.getNickname(), getBuddyUserAnonymizedId(buddyEntity), getLastMonitoredActivityDate(buddyEntity),
-				buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
-	}
-
-	public static BuddyDto createInstance(Buddy buddyEntity, Set<GoalDto> goals)
-	{
-		return new BuddyDto(buddyEntity.getId(),
-				UserDto.createInstanceWithBuddyData(buddyEntity.getUser(), BuddyUserPrivateDataDto.createInstance(buddyEntity)),
-				buddyEntity.getNickname(), getBuddyUserAnonymizedId(buddyEntity), getLastMonitoredActivityDate(buddyEntity),
-				buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime(), goals);
+				UserDto.createInstance(buddyEntity.getUser(), BuddyUserPrivateDataDto.createInstance(buddyEntity)),
+				getBuddyUserAnonymizedId(buddyEntity), getLastMonitoredActivityDate(buddyEntity), buddyEntity.getSendingStatus(),
+				buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
 	}
 
 	private static Optional<UUID> getBuddyUserAnonymizedId(Buddy buddyEntity)
 	{
-		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedId() : Optional.empty();
+		return BuddyUserPrivateDataDto.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedId() : Optional.empty();
 	}
 
 	private static Optional<LocalDate> getLastMonitoredActivityDate(Buddy buddyEntity)
 	{
-		return BuddyService.canIncludePrivateData(buddyEntity)
+		return BuddyUserPrivateDataDto.canIncludePrivateData(buddyEntity)
 				? buddyEntity.getBuddyAnonymized().getUserAnonymized().getLastMonitoredActivityDate()
 				: Optional.empty();
-	}
-
-	@JsonInclude(Include.NON_EMPTY)
-	public String getNickname()
-	{
-		return nickname;
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
@@ -191,11 +161,5 @@ public class BuddyDto
 	public Optional<UUID> getUserAnonymizedId()
 	{
 		return userAnonymizedId;
-	}
-
-	@JsonIgnore
-	public Optional<Set<GoalDto>> getGoals()
-	{
-		return goals;
 	}
 }

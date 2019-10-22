@@ -26,7 +26,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = createJohnDoe(ts)
 
 		then:
-		testUser(john, true, false, ts)
+		testUser(john, false, ts)
 		def baseUserUrl = YonaServer.stripQueryString(john.url)
 		// The below asserts checks returned URLs match the request URL. This is important when going through a proxy
 		baseUserUrl.startsWith(appService.url)
@@ -50,22 +50,19 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated)
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertUserGetResponseDetails, johnAsCreated)
 
 		then:
 		User john = appService.reloadUser(johnAfterNumberConfirmation)
-		testUser(john, true, true, ts)
+		testUser(john, true, ts)
 		john.mobileNumberConfirmationUrl == null
 
 		def baseUserUrl = YonaServer.stripQueryString(john.url)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
-		john.postOpenAppEventUrl == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/openApp"
 		john.buddiesUrl == baseUserUrl + "/buddies/"
 		YonaServer.stripQueryString(john.goalsUrl) == baseUserUrl + "/goals/"
 		john.messagesUrl == baseUserUrl + "/messages/"
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
-		john.appActivityUrl == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/appActivity/"
-		john.appleMobileConfig == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/apple.mobileconfig"
 		john.pinResetRequestUrl == baseUserUrl + "/pinResetRequest/request"
 		john.dailyActivityReportsUrl == baseUserUrl + "/activity/days/"
 		john.dailyActivityReportsWithBuddiesUrl == baseUserUrl + "/activity/withBuddies/days/?requestingDeviceId=" + john.getRequestingDeviceId()
@@ -85,8 +82,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def response = appService.deleteUser(john)
 
 		then:
-		assertResponseStatusOk(response)
-		def getUserResponse = appService.getUser(john.url, false)
+		assertResponseStatusNoContent(response)
+		def getUserResponse = appService.getUser(john.url)
 		getUserResponse.status == 400 || getUserResponse.status == 404
 	}
 
@@ -141,7 +138,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
 		response1TimeWrong.responseData.remainingAttempts == 4
 
-		assertResponseStatusOk(responseRequestResend)
+		assertResponseStatusNoContent(responseRequestResend)
 
 		def response1TimeWrongAgain = confirmMobileNumber(john, "12341")
 		assertResponseStatus(response1TimeWrongAgain, 400)
@@ -154,7 +151,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(john)
 	}
 
-	def 'Get John Doe with private data'()
+	def 'Get John Doe'()
 	{
 		given:
 		def ts = timestamp
@@ -164,54 +161,20 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = appService.reloadUser(johnAsCreated)
 
 		then:
-		testUser(john, true, false, ts)
+		testUser(john, false, ts)
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
 	}
 
-	def 'Get John Doe with private data using legacy includePrivateData param'()
-	{
-		given:
-		def ts = timestamp
-		User johnAsCreated = createJohnDoe(ts)
-
-		when:
-		def response = appService.yonaServer.getResourceWithPassword(YonaServer.stripQueryString(johnAsCreated.url), johnAsCreated.password, ["includePrivateData": "true"])
-
-		then:
-		assertResponseStatusOk(response)
-		testUser(new User(response.responseData), true, false, ts)
-
-		cleanup:
-		appService.deleteUser(johnAsCreated)
-	}
-
-	def 'Get John Doe without private data using legacy includePrivateData param'()
-	{
-		given:
-		def ts = timestamp
-		User johnAsCreated = createJohnDoe(ts)
-
-		when:
-		def response = appService.yonaServer.getResourceWithPassword(YonaServer.stripQueryString(johnAsCreated.url), johnAsCreated.password, ["includePrivateData": "false"])
-
-		then:
-		assertResponseStatusOk(response)
-		testUser(new User(response.responseData), false, false, ts)
-
-		cleanup:
-		appService.deleteUser(johnAsCreated)
-	}
-
-	def 'Try to get John Doe\'s private data with a bad password'()
+	def 'Try to get John Doe\'s data with a bad password'()
 	{
 		given:
 		def ts = timestamp
 		def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def response = appService.getUser(johnAsCreated.url, true, "nonsense")
+		def response = appService.getUser(johnAsCreated.url, "nonsense")
 
 		then:
 		assertResponseStatus(response, 400)
@@ -221,17 +184,35 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(johnAsCreated)
 	}
 
-	def 'Get John Doe without private data'()
+	def 'Try to get John Doe \'without private data\''()
 	{
 		given:
 		def ts = timestamp
-		def johnAsCreated = createJohnDoe(ts)
+		User johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def john = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(johnAsCreated.url))
+		def response = appService.getUser(YonaServer.stripQueryString(johnAsCreated.url), johnAsCreated.password)
 
 		then:
-		testUser(john, false, false, ts)
+		assertResponseStatus(response, 400)
+		response.responseData.message ==~ /.*'requestingUserId' is not present.*/
+
+		cleanup:
+		appService.deleteUser(johnAsCreated)
+	}
+
+	def 'Try to get John Doe without Yona password header'()
+	{
+		given:
+		def ts = timestamp
+		User johnAsCreated = createJohnDoe(ts)
+
+		when:
+		def response = appService.getUser(johnAsCreated.url)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.missing.password.header"
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -310,69 +291,11 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def response = appService.getUser(richard.url.replaceFirst(/requestingUserId=..../, "requestingUserId=QQQQ"), false)
+		def response = appService.getUser(richard.url.replaceFirst(/requestingUserId=..../, "requestingUserId=QQQQ"))
 
 		then:
 		assertResponseStatus(response, 400)
 		assert response.responseData.code == "error.invalid.uuid"
-
-		cleanup:
-		appService.deleteUser(richard)
-	}
-
-	def 'Retrieve OVPN profile and SSL root certificate (YD-541, YD-544)'()
-	{
-		given:
-		User richard = addRichard()
-
-		when:
-		assert richard.vpnProfile.ovpnProfileUrl
-		assert richard.sslRootCertUrl
-		def responseOvpnProfile = appService.yonaServer.restClient.get(path: richard.vpnProfile.ovpnProfileUrl)
-		def responseSslRootCert = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl)
-
-		then:
-		assertResponseStatusOk(responseOvpnProfile)
-		responseOvpnProfile.contentType == "application/x-openvpn-profile"
-		assertResponseStatusOk(responseSslRootCert)
-		responseSslRootCert.contentType == "application/pkix-cert"
-		richard.sslRootCertCn == "smoothwall003.yona"
-
-		cleanup:
-		appService.deleteUser(richard)
-	}
-
-	def 'Retrieve appleMobileConfig (YD-544)'()
-	{
-		given:
-		User richard = addRichard()
-
-		when:
-		assert richard.appleMobileConfig
-		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: richard.appleMobileConfig, headers: ["Yona-Password":richard.password])
-
-		then:
-		assertResponseStatusOk(responseAppleMobileConfig)
-		responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
-		def appleMobileConfig = responseAppleMobileConfig.responseData.text
-		appleMobileConfig.contains("<string>${richard.vpnProfile.vpnLoginId}\\n${richard.vpnProfile.vpnPassword}</string>")
-
-		cleanup:
-		appService.deleteUser(richard)
-	}
-
-	def 'Retrieve SSL root certificate'()
-	{
-		given:
-		User richard = addRichard()
-
-		when:
-		assert richard.sslRootCertUrl
-		def responseSslRootCertUrl = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl, headers: ["Yona-Password":richard.password])
-
-		then:
-		assertResponseStatusOk(responseSslRootCertUrl)
-		responseSslRootCertUrl.contentType == "application/pkix-cert"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -411,7 +334,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def relativeActivityDate = "W-1 Thu 15:00"
-		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
+		reportNetworkActivity(richard.requestingDevice, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
 		richard = appService.reloadUser(richard)
 
 		then:
@@ -428,8 +351,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def relativeActivityDate = "W-1 Sat 00:10"
-		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
-		reportAppActivity(richard, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
+		reportNetworkActivity(richard.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
+		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
 		richard = appService.reloadUser(richard)
 
 		then:
@@ -482,44 +405,30 @@ class UserTest extends AbstractAppServiceIntegrationTest
 				makeMobileNumber(ts))
 	}
 
-	private void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
+	private void testUser(User user, mobileNumberConfirmed, timestamp)
 	{
 		assert user.mobileNumber == makeMobileNumber(timestamp)
 		assertEquals(user.creationTime, YonaServer.now)
 		assertEquals(user.appLastOpenedDate, YonaServer.now.toLocalDate())
 
-		if (includePrivateData)
+		assertUser(user)
+		assert user.firstName == "John"
+		assert user.lastName == "Doe"
+		assert user.nickname == "JD"
+
+		assert user.buddies != null
+		assert user.buddies.size() == 0
+		if (mobileNumberConfirmed)
 		{
-			assertUserWithPrivateData(user)
-			assert user.firstName == "John"
-			assert user.lastName == "Doe"
-			assert user.nickname == "JD"
-
-			assert user.buddies != null
-			assert user.buddies.size() == 0
-			if (mobileNumberConfirmed)
-			{
-				assert user.vpnProfile.vpnLoginId ==~ /$CommonAssertions.VPN_LOGIN_ID_PATTERN/
-				assert user.vpnProfile.vpnPassword.length() == 32
-				assert user.vpnProfile.ovpnProfileUrl
-
-				assert user.goals.size() == 1 // Mandatory goal added
-				assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
-				assert user.devices.size() == 1 // Default device
-				assert user.devices[0].name == "First device"
-			}
-			else
-			{
-				assert user.goals == null
-				assert user.devices == null
-			}
+			assert user.goals.size() == 1 // Mandatory goal added
+			assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
+			assert user.devices.size() == 1 // Default device
+			assert user.requestingDevice.name == "First device"
 		}
 		else
 		{
-			assert user.firstName == null
-			assert user.lastName == null
-			assert user.nickname == null
 			assert user.goals == null
+			assert user.devices == null
 		}
 	}
 }

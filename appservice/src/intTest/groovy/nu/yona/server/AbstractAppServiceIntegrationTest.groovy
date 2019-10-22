@@ -30,9 +30,6 @@ import spock.lang.Specification
 abstract class AbstractAppServiceIntegrationTest extends Specification
 {
 	@Shared
-	def printErr = System.err.&println
-
-	@Shared
 	def AnalysisService analysisService = new AnalysisService()
 
 	@Shared
@@ -255,9 +252,9 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		appService.updateGoal(CommonAssertions.&assertResponseStatusSuccess, user, updatedGoal.editUrl, BudgetGoal.createInstance(updatedGoal, YonaServer.now, maxDurationMinutes))
 	}
 
-	void reportAppActivity(User user, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
+	void reportAppActivity(User user, Device device, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
 	{
-		reportAppActivities(user, createAppActivity(appName, relativeStartDateTimeString, relativeEndDateTimeString))
+		reportAppActivities(user, device, createAppActivity(appName, relativeStartDateTimeString, relativeEndDateTimeString))
 	}
 
 	AppActivity createAppActivity(def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
@@ -267,21 +264,21 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		AppActivity.singleActivity(appName, startDateTime, endDateTime)
 	}
 
-	void reportAppActivities(User user, def appActivities)
+	void reportAppActivities(User user, Device device, def appActivities)
 	{
 		appActivities.collect
 		{
-			def response = appService.postAppActivityToAnalysisEngine(user, it)
-			assertResponseStatusOk(response)
+			def response = appService.postAppActivityToAnalysisEngine(user, device, it)
+			assertResponseStatusNoContent(response)
 		}
 	}
-	void reportNetworkActivity(User user, def categories, def url)
+	void reportNetworkActivity(Device device, def categories, def url)
 	{
-		analysisService.postToAnalysisEngine(user, categories, url)
+		analysisService.postToAnalysisEngine(device, categories, url)
 	}
-	void reportNetworkActivity(User user, def categories, def url, relativeDateTimeString)
+	void reportNetworkActivity(Device device, def categories, def url, relativeDateTimeString)
 	{
-		def response = analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
+		def response = analysisService.postToAnalysisEngine(device, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
 		assertResponseStatusNoContent(response)
 	}
 
@@ -589,7 +586,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 			dayActivityOverviewForUser = dayActivitiesForCategory.dayActivitiesForUsers.find{it._links."yona:buddy"?.href == buddyToAssert.url}
 			dayDetailsUrlPrefix = buddyToAssert.url
 			assert dayActivityOverviewForUser._links."yona:user" == null
-			assert buddyToAssert.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
+			assert buddyToAssert.user.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
 		}
 		assert dayActivityOverviewForUser.totalActivityDurationMinutes == calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedValuesForDayAndActivityCategory.data.spread))
 		assert dayActivityOverviewForUser.goalAccomplished == expectedValuesForDayAndActivityCategory.data.goalAccomplished

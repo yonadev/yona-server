@@ -44,7 +44,7 @@ abstract class Service
 	void setEnableStatistics(def enable)
 	{
 		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
-		assert response.status == 200 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
+		assert response.status == 204 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
 	}
 
 	void resetStatistics()
@@ -56,7 +56,7 @@ abstract class Service
 	void clearCaches()
 	{
 		def response = yonaServer.createResource("/hibernateStatistics/clearCaches/", "{}", [:], [:])
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 	}
 
 	def getStatistics()

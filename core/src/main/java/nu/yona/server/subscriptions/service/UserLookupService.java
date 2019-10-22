@@ -101,29 +101,29 @@ public class UserLookupService
 	}
 
 	@Transactional
-	public UserDto getPublicUser(UUID id)
+	public UserDto getUserWithoutPrivateData(UUID id)
 	{
-		return UserDto.createInstance(getUserEntityById(id));
+		return UserDto.createInstanceWithoutPrivateData(getUserEntityById(id));
 	}
 
 	@Transactional
-	public UserDto getPrivateUser(UUID id)
+	public UserDto getUser(UUID id)
 	{
-		return getPrivateUser(id, u -> { // Nothing required here
+		return getUser(id, u -> { // Nothing required here
 		});
 	}
 
 	@Transactional
 	public UserDto getPrivateUser(UUID id, boolean isCreatedOnBuddyRequest)
 	{
-		return getPrivateUser(id, u -> assertCreatedOnBuddyRequestStatus(u, isCreatedOnBuddyRequest));
+		return getUser(id, u -> assertCreatedOnBuddyRequestStatus(u, isCreatedOnBuddyRequest));
 	}
 
-	private UserDto getPrivateUser(UUID id, Consumer<User> userStatusAsserter)
+	private UserDto getUser(UUID id, Consumer<User> userStatusAsserter)
 	{
 		User user = getUserEntityById(id);
 		userStatusAsserter.accept(user);
-		return createUserDtoWithPrivateData(user);
+		return createUserDto(user);
 	}
 
 	private void assertCreatedOnBuddyRequestStatus(User user, boolean isCreatedOnBuddyRequest)
@@ -148,7 +148,7 @@ public class UserLookupService
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
-		return createUserDtoWithPrivateData(getPrivateValidatedUserEntity(id));
+		return createUserDto(getPrivateValidatedUserEntity(id));
 	}
 
 	@Transactional
@@ -157,9 +157,9 @@ public class UserLookupService
 		return getValidatedUserById(id);
 	}
 
-	public UserDto createUserDtoWithPrivateData(User user)
+	public UserDto createUserDto(User user)
 	{
-		return UserDto.createInstanceWithPrivateData(user, buddyService.getBuddyDtos(user.getBuddies()));
+		return UserDto.createInstance(user, buddyService.getBuddyDtos(user.getBuddies()));
 	}
 
 	<T> T withLockOnUser(UUID userId, Function<User, T> action)
@@ -231,7 +231,7 @@ public class UserLookupService
 
 	public UserDto getUserByMobileNumber(String mobileNumber)
 	{
-		return UserDto.createInstance(findUserByMobileNumber(mobileNumber));
+		return UserDto.createInstanceWithoutPrivateData(findUserByMobileNumber(mobileNumber));
 	}
 
 	/**

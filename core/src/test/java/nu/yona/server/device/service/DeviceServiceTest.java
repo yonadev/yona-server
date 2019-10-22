@@ -921,7 +921,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	private UserDto createRichardUserDto()
 	{
-		return UserDto.createInstanceWithPrivateData(richard, Collections.emptySet());
+		return UserDto.createInstance(richard, Collections.emptySet());
 	}
 
 	private UserAnonymizedDto createRichardAnonymizedDto()

@@ -41,7 +41,7 @@ public class HibernateStatisticsController extends ControllerBase
 
 		hibernateStatisticsService.setEnabled(Boolean.TRUE.toString().equals(enableStr));
 
-		return createOkResponse();
+		return createNoContentResponse();
 	}
 
 	@GetMapping(value = "/", params = { "reset" })
@@ -74,7 +74,7 @@ public class HibernateStatisticsController extends ControllerBase
 
 		hibernateStatisticsService.clearAllUserDataCaches();
 
-		return createOkResponse();
+		return createNoContentResponse();
 	}
 
 	private StatisticsResourceAssembler createResourceAssembler()

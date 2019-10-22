@@ -236,8 +236,9 @@ public abstract class MessageDto extends PolymorphicDto
 
 		protected SenderInfo createSenderInfoForBuddy(BuddyDto buddy, Message messageEntity)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(),
-					buddy.getUser().getPrivateData().getUserPhotoId(), buddy.getId());
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(),
+					buddy.getUser().getPrivateData().getNickname(), buddy.getUser().getPrivateData().getUserPhotoId(),
+					buddy.getId());
 		}
 
 		protected SenderInfo createSenderInfoForBuddyConnectionChangeMessage(Optional<User> senderUser,
@@ -247,9 +248,10 @@ public abstract class MessageDto extends PolymorphicDto
 			String lastName = buddyMessageEntity.determineLastName(senderUser);
 
 			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(firstName, lastName,
-					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId());
+					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId(),
+					buddyMessageEntity.isUserFetchable());
 			return senderInfoFactory.createInstanceForDetachedBuddy(
-					senderUser.map(u -> UserDto.createInstanceWithBuddyData(u, buddyUserPrivateData)), buddyUserPrivateData);
+					senderUser.map(u -> UserDto.createInstance(u, buddyUserPrivateData)), buddyUserPrivateData);
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

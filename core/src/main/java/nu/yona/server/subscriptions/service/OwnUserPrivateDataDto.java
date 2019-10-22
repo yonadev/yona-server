@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -26,7 +26,6 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 {
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String yonaPassword;
-	private final Optional<VPNProfileDto> vpnProfile;
 	private final UUID userAnonymizedId;
 	private final UUID namedMessageSourceId;
 	private final UUID anonymousMessageSourceId;
@@ -35,13 +34,12 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	OwnUserPrivateDataDto(String firstName, String lastName, String nickname, Set<UserDeviceDto> devices)
 	{
 		this(Optional.empty(), null, firstName, lastName, nickname, Optional.empty(), null, null, Collections.emptySet(),
-				Collections.emptySet(), null, Optional.empty(), devices);
+				Collections.emptySet(), null, devices);
 	}
 
 	OwnUserPrivateDataDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String firstName, String lastName,
 			String nickname, Optional<UUID> userPhotoId, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
-			Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId, Optional<VPNProfileDto> vpnProfile,
-			Set<UserDeviceDto> devices)
+			Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId, Set<UserDeviceDto> devices)
 	{
 		super(firstName, lastName, nickname, userPhotoId, Optional.of(goals), Optional.of(new HashSet<>(devices)));
 
@@ -51,7 +49,13 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.buddies = Objects.requireNonNull(buddies);
 		this.userAnonymizedId = userAnonymizedId;
-		this.vpnProfile = vpnProfile;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isFetchable()
+	{
+		return true;
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
@@ -64,12 +68,6 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	public String getYonaPassword()
 	{
 		return yonaPassword;
-	}
-
-	@JsonIgnore
-	public Optional<VPNProfileDto> getVpnProfile()
-	{
-		return vpnProfile;
 	}
 
 	@JsonIgnore

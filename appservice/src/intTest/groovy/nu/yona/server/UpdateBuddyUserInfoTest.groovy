@@ -39,7 +39,6 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User richardAfterProcess = appService.reloadUser(richard)
-		richardAfterProcess.buddies[0].nickname == "Bobby"
 		richardAfterProcess.buddies[0].user.nickname == "Bobby"
 
 		cleanup:
@@ -73,7 +72,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User richardAfterProcess = appService.reloadUser(richard)
-		richardAfterProcess.buddies[0].nickname == "BD"
+		richardAfterProcess.buddies[0].user.nickname == "BD"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -107,7 +106,6 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == updatedBobJson.firstName
 		richardWithBuddy.buddies[0].user.nickname == updatedBobJson.nickname
-		richardWithBuddy.buddies[0].nickname == updatedBobJson.nickname
 
 		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
 		{ it."@type" == "BuddyConnectResponseMessage" }

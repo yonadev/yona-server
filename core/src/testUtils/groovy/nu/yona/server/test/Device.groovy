@@ -20,7 +20,6 @@ class Device
 	final String password
 	final String url
 	final String editUrl
-	final String ovpnProfileUrl
 	final String name
 	final String operatingSystem
 	final String appLastOpenedDate
@@ -44,7 +43,6 @@ class Device
 		this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 		this.url = json._links?.self?.href
 		this.editUrl = json._links?.edit?.href
-		this.ovpnProfileUrl = json._links?.ovpnProfile?.href
 		this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		this.vpnConnected = json.vpnConnected
 		this.requestingDevice = json.requestingDevice
@@ -65,5 +63,19 @@ class Device
 	def postVpnStatus(AppService appService, boolean vpnConnected)
 	{
 		appService.createResourceWithPassword(postVpnStatusEventUrl, """{"vpnConnected":"$vpnConnected"}""", password)
+	}
+}
+
+class VPNProfile
+{
+	final String vpnLoginId
+	final String vpnPassword
+	final String ovpnProfileUrl
+
+	VPNProfile(def json)
+	{
+		this.vpnLoginId = json.vpnLoginID
+		this.vpnPassword = json.vpnPassword
+		this.ovpnProfileUrl = json._links."yona:ovpnProfile".href
 	}
 }

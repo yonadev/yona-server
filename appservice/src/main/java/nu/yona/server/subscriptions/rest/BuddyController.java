@@ -122,7 +122,7 @@ public class BuddyController extends ControllerBase
 
 	@DeleteMapping(value = "/{buddyId}")
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @RequestParam(value = "message", required = false) String messageStr)
 	{
@@ -242,9 +242,6 @@ public class BuddyController extends ControllerBase
 			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), UserController.UserResourceAssembler
 					.createInstanceForBuddy(curieProvider, userId).toResource(getContent().getUser()));
 
-			Optional<Set<GoalDto>> goals = getContent().getGoals();
-			goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(BuddyDto.GOALS_REL_NAME),
-					BuddyController.createAllGoalsCollectionResource(userId, getContent().getUser().getId(), g)));
 			return result;
 		}
 	}

@@ -22,6 +22,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.rest.GlobalExceptionMapping;
 
 @Service
 public class DOSProtectionService
@@ -52,13 +53,13 @@ public class DOSProtectionService
 		if (yonaProperties.getSecurity().isDosProtectionEnabled())
 		{
 			int attempts = increaseAttempts(uri, request);
-			delayIfBeyondExpectedAttempts(expectedAttempts, attempts);
+			delayIfBeyondExpectedAttempts(expectedAttempts, attempts, request);
 		}
 
 		return attempt.get();
 	}
 
-	private void delayIfBeyondExpectedAttempts(int expectedAttempts, int attempts)
+	private void delayIfBeyondExpectedAttempts(int expectedAttempts, int attempts, HttpServletRequest request)
 	{
 		if (attempts > expectedAttempts)
 		{
@@ -66,7 +67,8 @@ public class DOSProtectionService
 			try
 			{
 				long delaySeconds = delayFactor * 5L;
-				logger.warn("Potential DOS attack. Introducing a delay of {} seconds", delaySeconds);
+				logger.warn("Potential DOS attack for {}. Introducing a delay of {} seconds",
+						GlobalExceptionMapping.buildRequestInfo(request), delaySeconds);
 				Thread.sleep(delaySeconds * 1000L);
 			}
 			catch (InterruptedException e)

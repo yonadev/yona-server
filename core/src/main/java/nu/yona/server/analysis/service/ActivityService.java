@@ -273,8 +273,9 @@ public class ActivityService
 		userAnonymizedIds.add(userAnonymizedId);
 		// Goals of the user should only be included in the withBuddies list
 		// when at least one buddy has a goal in that category
-		Set<UUID> activityCategoryIdsUsedByBuddies = buddies.stream().map(b -> b.getGoals().orElse(Collections.emptySet()))
-				.flatMap(Set::stream).map(GoalDto::getActivityCategoryId).collect(Collectors.toSet());
+		Set<UUID> activityCategoryIdsUsedByBuddies = buddies.stream()
+				.map(b -> b.getUser().getPrivateData().getGoals().orElse(Collections.emptySet())).flatMap(Set::stream)
+				.map(GoalDto::getActivityCategoryId).collect(Collectors.toSet());
 
 		Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate = executeAndCreateInactivityEntries(
 				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userAnonymizedIds, activityCategoryIdsUsedByBuddies,
@@ -654,7 +655,7 @@ public class ActivityService
 	public MessageDto addMessageToActivity(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			ActivitySupplier activitySupplier, PostPutActivityCommentMessageDto message)
 	{
-		UserDto sendingUser = userService.getPrivateUser(userId);
+		UserDto sendingUser = userService.getUser(userId);
 		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		IntervalActivity dayActivityEntity = activitySupplier.get(buddy, date, goalId);
 		if (dayActivityEntity == null)

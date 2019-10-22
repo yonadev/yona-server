@@ -387,8 +387,8 @@ public class AnalysisEngineService
 
 	private Optional<ActivityDto> getLastRegisteredActivity(ActivityPayload payload, GoalDto matchingGoal)
 	{
-		return Optional.ofNullable(cacheService.fetchLastActivityForUser(payload.userAnonymized.getId(),
-				payload.deviceAnonymized.getId(), matchingGoal.getGoalId()));
+		return cacheService.fetchLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymized.getId(),
+				matchingGoal.getGoalId());
 	}
 
 	private boolean isCrossDayActivity(ActivityPayload payload)

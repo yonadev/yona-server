@@ -100,7 +100,7 @@ public class UserAddService
 		addDevicesToEntity(user, userEntity);
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNeeded(overwriteUserConfirmationCode, userEntity);
 		userEntity = userRepository.save(userEntity);
-		UserDto userDto = userLookupService.createUserDtoWithPrivateData(userEntity);
+		UserDto userDto = userLookupService.createUserDto(userEntity);
 		if (confirmationCode.isPresent())
 		{
 			userUpdateService.sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
@@ -246,7 +246,7 @@ public class UserAddService
 		User savedUser = userRepository.save(newUser);
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
 				savedUser.getId());
-		return userLookupService.createUserDtoWithPrivateData(savedUser);
+		return userLookupService.createUserDto(savedUser);
 	}
 
 	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })

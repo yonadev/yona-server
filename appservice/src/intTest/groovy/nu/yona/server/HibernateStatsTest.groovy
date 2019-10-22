@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -59,34 +59,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Get user without private data - first request' ()
-	{
-		given:
-		appService.resetStatistics()
-		appService.clearCaches()
-
-		when:
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(richard.url), false, null)
-
-		then:
-		captureStatistics("GetUserWithoutPrivateDataFirst")
-	}
-
-	def 'Get user without private data - second request' ()
-	{
-		given:
-		appService.clearCaches()
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(richard.url), false, null)
-		appService.resetStatistics()
-
-		when:
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(richard.url), false, null)
-
-		then:
-		captureStatistics("GetUserWithoutPrivateDataSecond")
-	}
-
-	def 'Get user with private data - first request' ()
+	def 'Get user - first request' ()
 	{
 		given:
 		appService.clearCaches()
@@ -99,7 +72,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetUserWithPrivateDataFirst")
 	}
 
-	def 'Get user with private data - second request' ()
+	def 'Get user - second request' ()
 	{
 		given:
 		appService.clearCaches()
@@ -385,7 +358,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	}
 	void generateCommentThreadOnYesterdaysNewsActivity(User user, def buddyUsers)
 	{
-		User buddyUser = buddyUsers.find { it.nickname == user.buddies[0].nickname }
+		User buddyUser = buddyUsers.find { it.nickname == user.buddies[0].user.nickname }
 		def yesterdayShortDay = LocalDate.now().getDayOfWeek().minus(1).getDisplayName(TextStyle.SHORT, Locale.US)
 		ActivityCommentTest.assertCommentingWorks(appService, user, buddyUser, NEWS_ACT_CAT_URL, false, {u -> appService.getDayActivityOverviews(u, ["size": 14])},
 		{u -> appService.getDayActivityOverviews(u, u.buddies[0], ["size": 14])},

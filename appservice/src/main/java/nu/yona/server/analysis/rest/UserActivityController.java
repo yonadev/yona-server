@@ -170,7 +170,7 @@ public class UserActivityController extends ActivityControllerBase
 
 	private Map<UUID, String> buildDeviceAnonymizedIdToDeviceNameMap(UUID userId)
 	{
-		return userService.getPrivateUser(userId).getOwnPrivateData().getOwnDevices().stream()
+		return userService.getUser(userId).getOwnPrivateData().getOwnDevices().stream()
 				.collect(Collectors.toMap(UserDeviceDto::getDeviceAnonymizedId, UserDeviceDto::getName));
 	}
 
@@ -209,7 +209,7 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier)
 	{
-		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getPrivateUser(userId));
+		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getUser(userId));
 
 		return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
 				createResourceAssembler(userId, requestingDeviceId, goalIdMapping));
@@ -260,7 +260,7 @@ public class UserActivityController extends ActivityControllerBase
 			Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier)
 	{
 		LocalDate date = DayActivityDto.parseDate(dateStr);
-		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getPrivateUser(userId));
+		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getUser(userId));
 		return createOkResponse(activitySupplier.apply(date), createResourceAssembler(userId, requestingDeviceId, goalIdMapping));
 	}
 
@@ -586,7 +586,7 @@ public class UserActivityController extends ActivityControllerBase
 
 		private void addUserLink(UUID userId, UUID requestingDeviceId, ActivityForOneUserResource dayActivityResource)
 		{
-			dayActivityResource.add(UserController.getPrivateUserLink("user", userId, Optional.of(requestingDeviceId)));
+			dayActivityResource.add(UserController.getUserLink("user", userId, Optional.of(requestingDeviceId)));
 		}
 
 		private void addGoalLinkForBuddy(UUID userId, UUID buddyId, UUID goalId, ActivityForOneUserResource dayActivityResource)

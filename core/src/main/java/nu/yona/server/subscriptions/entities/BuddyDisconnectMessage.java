@@ -34,6 +34,12 @@ public class BuddyDisconnectMessage extends BuddyConnectionChangeMessage
 		return new BuddyDisconnectMessage(buddyInfoParameters, message, reason);
 	}
 
+	@Override
+	public boolean isUserFetchable()
+	{
+		return false;
+	}
+
 	public DropBuddyReason getReason()
 	{
 		return reason;

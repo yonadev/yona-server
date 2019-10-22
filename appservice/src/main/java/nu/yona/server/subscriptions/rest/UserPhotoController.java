@@ -95,7 +95,7 @@ public class UserPhotoController extends ControllerBase
 	}
 
 	@DeleteMapping(value = "/users/{userId}/photo")
-	@ResponseStatus(HttpStatus.OK)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void removeUserPhoto(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{

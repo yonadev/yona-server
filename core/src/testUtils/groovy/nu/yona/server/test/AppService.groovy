@@ -44,7 +44,7 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, headers = [:], parameters = [:]) // YD-544
+	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, headers = [:], parameters = [:]) // YD-623
 	{
 		def jsonStr = User.makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber)
 		def response = addUser(jsonStr, headers, parameters)
@@ -81,16 +81,9 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def getUser(userUrl, boolean includePrivateData, password = null)
+	def getUser(userUrl, password = null)
 	{
-		if (includePrivateData)
-		{
-			yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
-		}
-		else
-		{
-			yonaServer.getResourceWithPassword(userUrl, password)
-		}
+		yonaServer.getResourceWithPassword(userUrl, password)
 	}
 
 	def getUser(Closure asserter, userUrl, password)
@@ -107,7 +100,7 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def reloadUser(User user, Closure asserter = null)
+	User reloadUser(User user, Closure asserter = null)
 	{
 		def response
 		if (user.hasPrivateData)
@@ -119,26 +112,19 @@ class AppService extends Service
 			}
 			else
 			{
-				assertUserGetResponseDetailsWithPrivateData(response)
+				assertUserGetResponseDetails(response)
 			}
 			assertBuddyUsers(response)
 		}
 		else
 		{
 			response = yonaServer.getResourceWithPassword(user.url, user.password)
-			if (asserter)
-			{
-				asserter(response)
-			}
-			else
-			{
-				assertUserGetResponseDetailsWithoutPrivateData(response)
-			}
+			asserter(response)
 		}
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def updateUser(Closure asserter, User user)
+	User updateUser(Closure asserter, User user)
 	{
 		def response = updateUser(user.url, user.convertToJson(), user.password)
 		asserter(response)
@@ -146,7 +132,7 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def updateUserCreatedOnBuddyRequest(Closure asserter, User user, inviteUrl)
+	User updateUserCreatedOnBuddyRequest(Closure asserter, User user, inviteUrl)
 	{
 		def response = updateUser(inviteUrl, user.convertToJson())
 		asserter(response)
@@ -170,7 +156,7 @@ class AppService extends Service
 			return null
 		}
 		def response = yonaServer.deleteResourceWithPassword(user.editUrl, user.password, ["message":message])
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		return response
 	}
 
@@ -528,9 +514,9 @@ class AppService extends Service
 		yonaServer.postJson(path, jsonString, headers)
 	}
 
-	def postAppActivityToAnalysisEngine(User user, def appActivity)
+	def postAppActivityToAnalysisEngine(User user, Device device, def appActivity)
 	{
-		yonaServer.createResourceWithPassword(user.devices.find{ it.requestingDevice }.appActivityUrl, appActivity.getJson(), user.password)
+		yonaServer.createResourceWithPassword(device.appActivityUrl, appActivity.getJson(), user.password)
 	}
 
 	def composeActivityCategoryUrl(def activityCategoryId) {

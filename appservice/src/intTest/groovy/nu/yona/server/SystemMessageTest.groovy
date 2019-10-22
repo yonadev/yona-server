@@ -18,20 +18,22 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def response = adminService.postSystemMessage("Hi there!")
+		assertResponseStatus(response, 302)
 		sleepTillSystemMessagesAreSent(richard)
-		def messagesRichard = appService.getMessages(richard)
-		def messagesBob = appService.getMessages(bob)
+		sleepTillSystemMessagesAreSent(bob)
+		def messagesRichardResponse = appService.getMessages(richard)
+		def messagesBobResponse = appService.getMessages(bob)
 
 		then:
-		assertResponseStatus(response, 302)
-		assertResponseStatusOk(messagesRichard)
-		def systemMessagesRichard = messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
+		assertResponseStatusOk(messagesRichardResponse)
+		assertResponseStatusOk(messagesBobResponse)
+		def systemMessagesRichard = messagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		systemMessagesRichard.size() == 1
 		systemMessagesRichard[0].message == "Hi there!"
 		systemMessagesRichard[0].nickname == "Yona"
 		systemMessagesRichard[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesRichard[0]._links?.self?.href?.startsWith(richard.messagesUrl)
-		def systemMessagesBob = messagesBob.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
+		def systemMessagesBob = messagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		systemMessagesBob.size() == 1
 		systemMessagesBob[0].message == "Hi there!"
 		systemMessagesBob[0].nickname == "Yona"
@@ -51,7 +53,10 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		def postResponse = adminService.postSystemMessage("Hi there!")
 		assertResponseStatus(postResponse, 302)
 		sleepTillSystemMessagesAreSent(richard)
-		def systemMessagesBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
+		sleepTillSystemMessagesAreSent(bob)
+		def getMessagesResponse = appService.getMessages(bob)
+		assertResponseStatusOk(getMessagesResponse)
+		def systemMessagesBob = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		assert systemMessagesBob.size() == 1
 		def messageDeleteUrl = systemMessagesBob[0]._links?.edit?.href
 
@@ -82,6 +87,6 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 			}
 			sleep(500)
 		}
-		assert false, "System message not delivered in time"
+		assert false, "System message not delivered to $user.firstName in time"
 	}
 }

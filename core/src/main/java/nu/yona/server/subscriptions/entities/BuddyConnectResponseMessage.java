@@ -11,6 +11,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 
 import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 @Entity
 public class BuddyConnectResponseMessage extends BuddyConnectMessage
@@ -36,6 +37,12 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 			UUID buddyId, Set<UserDevice> devices, BuddyAnonymized.Status status)
 	{
 		return new BuddyConnectResponseMessage(buddyInfoParameters, message, buddyId, devices, status);
+	}
+
+	@Override
+	public boolean isUserFetchable()
+	{
+		return status == Status.ACCEPTED;
 	}
 
 	public BuddyAnonymized.Status getStatus()

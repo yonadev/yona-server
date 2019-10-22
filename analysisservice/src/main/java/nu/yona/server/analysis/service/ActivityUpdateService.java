@@ -140,11 +140,13 @@ class ActivityUpdateService
 
 	public void updateTimeLastActivity(ActivityPayload payload, GoalDto matchingGoal, ActivityDto lastRegisteredActivity)
 	{
+		UUID deviceAnonymizedId = payload.deviceAnonymized.getId();
 		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId())
 				.orElseThrow(() -> AnalysisException.dayActivityNotFound(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
 						payload.startTime, lastRegisteredActivity.getStartTime(), lastRegisteredActivity.getEndTime()));
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
-		Activity activity = dayActivity.getLastActivity(payload.deviceAnonymized.getId());
+		Activity activity = dayActivity.getLastActivity(deviceAnonymizedId).orElseThrow(() -> ActivityServiceException
+				.lastActivityNotFoundOnDayActivity(deviceAnonymizedId, dayActivity.getActivities().size()));
 		if (payload.startTime.isBefore(lastRegisteredActivity.getStartTime()))
 		{
 			activity.setStartTime(payload.startTime.toLocalDateTime());
@@ -153,8 +155,8 @@ class ActivityUpdateService
 		{
 			activity.setEndTime(payload.endTime.toLocalDateTime());
 		}
-		cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymized.getId(),
-				matchingGoal.getGoalId(), ActivityDto.createInstance(activity));
+		cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), deviceAnonymizedId, matchingGoal.getGoalId(),
+				ActivityDto.createInstance(activity));
 	}
 
 	private boolean shouldUpdateCache(Optional<ActivityDto> lastRegisteredActivity, Activity newOrUpdatedActivity)

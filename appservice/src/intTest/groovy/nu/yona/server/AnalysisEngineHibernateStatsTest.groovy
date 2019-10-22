@@ -50,7 +50,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		analysisService.clearCaches()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["YouTube"], "http://www.youtube.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["YouTube"], "http://www.youtube.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -67,11 +67,11 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		analysisService.clearCaches()
-		analysisService.postToAnalysisEngine(richard, ["YouTube"], "http://www.youtube.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["YouTube"], "http://www.youtube.com")
 		analysisService.resetStatistics()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["YouTube"], "http://www.youtube.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["YouTube"], "http://www.youtube.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -91,7 +91,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		analysisService.clearCaches()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["Facebook"], "http://www.facebook.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Facebook"], "http://www.facebook.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -108,11 +108,11 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		analysisService.clearCaches()
-		analysisService.postToAnalysisEngine(richard, ["Facebook"], "http://www.facebook.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Facebook"], "http://www.facebook.com")
 		analysisService.resetStatistics()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["Facebook"], "http://www.facebook.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Facebook"], "http://www.facebook.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -132,7 +132,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		analysisService.clearCaches()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 
 		then:
 		def stats = analysisService.getStatistics()
@@ -149,11 +149,11 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		analysisService.clearCaches()
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 		analysisService.resetStatistics()
 
 		when:
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 
 		then:
 		def stats = analysisService.getStatistics()

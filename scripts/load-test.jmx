@@ -205,8 +205,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
   &quot;mobileNumber&quot;:&quot;+316${User}&quot;,&#xd;
   &quot;deviceName&quot;: &quot;The-S8-${User}&quot;,&#xd;
   &quot;deviceOperatingSystem&quot;: &quot;IOS&quot;,&#xd;
-  &quot;deviceAppVersion&quot;: &quot;1.0.0&quot;,&#xd;
-  &quot;deviceAppVersionCode&quot;: 31&#xd;
+  &quot;deviceAppVersion&quot;: &quot;1.2.0&quot;,&#xd;
+  &quot;deviceAppVersionCode&quot;: 218&#xd;
 }&#xd;
 </stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
@@ -760,8 +760,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
   &quot;mobileNumber&quot;:&quot;+316${Buddy}&quot;,&#xd;
   &quot;deviceName&quot;: &quot;Galaxy-J5-${User}&quot;,&#xd;
   &quot;deviceOperatingSystem&quot;: &quot;ANDROID&quot;,&#xd;
-  &quot;deviceAppVersion&quot;: &quot;1.0.0&quot;,&#xd;
-  &quot;deviceAppVersionCode&quot;: 31&#xd;
+  &quot;deviceAppVersion&quot;: &quot;1.2.0&quot;,&#xd;
+  &quot;deviceAppVersionCode&quot;: 218&#xd;
 }</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>

@@ -10,7 +10,6 @@ import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.rest.UserController.UserResourceAssembler;
 import nu.yona.server.subscriptions.service.BuddyDto;
-import nu.yona.server.subscriptions.service.UserDto;
 
 @Decorates(BuddyMessageEmbeddedUserDto.class)
 public class BuddyMessageEmbeddedUserDecorator implements MessageResourceDecorator
@@ -22,18 +21,13 @@ public class BuddyMessageEmbeddedUserDecorator implements MessageResourceDecorat
 		message.getSenderUser()
 				.ifPresent(user -> buddyMessage.setEmbeddedUser(
 						assembler.getCurieProvider().getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-						createResourceAssembler(assembler, user).toResource(user)));
+						createUserResourceAssembler(assembler).toResource(user)));
 
 	}
 
-	private UserResourceAssembler createResourceAssembler(MessageResourceAssembler assembler, UserDto user)
+	private UserResourceAssembler createUserResourceAssembler(MessageResourceAssembler assembler)
 	{
-		if (assembler.getGoalIdMapping().getUser().getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getId())
-				.anyMatch(id -> id.equals(user.getId())))
-		{
-			return UserController.UserResourceAssembler.createMinimalInstance(assembler.getCurieProvider(),
-					assembler.getGoalIdMapping().getUserId());
-		}
-		return UserController.UserResourceAssembler.createPublicUserInstance(assembler.getCurieProvider());
+		return UserController.UserResourceAssembler.createMinimalInstance(assembler.getCurieProvider(),
+				assembler.getGoalIdMapping().getUserId());
 	}
 }
