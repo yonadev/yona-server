@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -28,7 +28,7 @@ public class AppActivitiesDto
 	@JsonRootName("activity")
 	public static class Activity
 	{
-		private String application;
+		private final String application;
 		private final ZonedDateTime startTime;
 		private final ZonedDateTime endTime;
 
@@ -65,8 +65,8 @@ public class AppActivitiesDto
 
 	@JsonCreator
 	public AppActivitiesDto(
-			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
-			@JsonProperty("activities") Activity[] activities)
+			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty(value = "deviceDateTime", required = true) ZonedDateTime deviceDateTime,
+			@JsonProperty(value = "activities", required = true) Activity[] activities)
 	{
 		this.deviceDateTime = deviceDateTime;
 		this.activities = activities;
