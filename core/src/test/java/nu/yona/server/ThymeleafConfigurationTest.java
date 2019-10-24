@@ -96,7 +96,7 @@ public class ThymeleafConfigurationTest
 		Context ctx = ThymeleafUtil.createContext();
 		ctx.setVariable("requestingUserFirstName", requestingUserFirstName);
 		ctx.setVariable("emailAddress", emailAddress);
-		locale.ifPresent(l -> ctx.setLocale(l));
+		locale.ifPresent(ctx::setLocale);
 
 		return smsTemplateEngine.process("buddy-invitation.txt", ctx);
 	}
@@ -104,23 +104,24 @@ public class ThymeleafConfigurationTest
 	@Test
 	public void emailTemplateEngine_processBuddyInvitationSubjectDefault_defaultTemplateFoundAndExpanded()
 	{
-		String result = buildEmailSubject(Optional.empty());
+		String result = buildEmailSubject(Optional.empty(), "John Doe");
 
-		assertThat(result, equalTo("Become my friend on Yona!"));
+		assertThat(result, equalTo("Become friend of John Doe on Yona!"));
 	}
 
 	@Test
 	public void emailTemplateEngine_processBuddyInvitationSubjectDutch_dutchTemplateFoundAndExpanded()
 	{
-		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")));
+		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")), "John Doe");
 
-		assertThat(result, equalTo("Word vriend op Yona!"));
+		assertThat(result, equalTo("Word vriend van John Doe op Yona!"));
 	}
 
-	private String buildEmailSubject(Optional<Locale> locale)
+	private String buildEmailSubject(Optional<Locale> locale, String requestingUserFullName)
 	{
 		Context ctx = ThymeleafUtil.createContext();
-		locale.ifPresent(l -> ctx.setLocale(l));
+		locale.ifPresent(ctx::setLocale);
+		ctx.setVariable("requestingUserFullName", requestingUserFullName);
 
 		return emailTemplateEngine.process("buddy-invitation-subject.txt", ctx);
 	}

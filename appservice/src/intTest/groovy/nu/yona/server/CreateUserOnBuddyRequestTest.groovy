@@ -606,7 +606,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(response)
 		assert response.responseData.from == "Richard Quinn <noreply@yona.nu>"
 		assert response.responseData.to == "Bobby Dun <bobdunn325@gmail.com>"
-		assert response.responseData.subject == "Become my friend on Yona!"
+		assert response.responseData.subject == "Become friend of Richard Quinn on Yona!"
 		assert response.responseData.body ==~ /(?s).*Return to this mail and click <a href=\"http.*/
 	}
 

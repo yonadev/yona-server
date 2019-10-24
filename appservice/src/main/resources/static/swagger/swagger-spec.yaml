@@ -1843,11 +1843,11 @@ definitions:
   DeviceAppVersion:
     type: string
     description: The version of the Yona app running on this device. This is the marketing version, a free text string.
-    example: 1.1 build 83
+    example: 1.2 build 83
   DeviceAppVersionCode:
     type: integer
     description: The version code of the Yona app running on this device. This is a positive, monotonic increasing number, across releases
-    example: 31
+    example: 218
   FirebaseInstanceId:
     type: string
     description: The Instance ID provided by Firebase to the app
