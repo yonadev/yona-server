@@ -307,6 +307,31 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(john)
 	}
 
+	def 'Try update John Doe with device data'()
+	{
+		given:
+		def ts = timestamp
+		def john = createJohnDoe(ts)
+		appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
+
+		when:
+		def updatedJohn = john.convertToJson()
+		updatedJohn.deviceName = "My phone"
+		updatedJohn.deviceOperatingSystem = "ANDROID"
+		updatedJohn.deviceAppVersion = "3.0"
+		updatedJohn.deviceAppVersionCode = 10000
+		updatedJohn.deviceFirebaseInstanceId = "SomeLongString"
+		def response = appService.updateUser(john.url, updatedJohn, john.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.request.extra.property"
+		response.data.message ==~ /^Property 'deviceName' is not supported in this context.*/
+
+		cleanup:
+		appService.deleteUser(john)
+	}
+
 	def 'Try get user with invalid ID'()
 	{
 		given:

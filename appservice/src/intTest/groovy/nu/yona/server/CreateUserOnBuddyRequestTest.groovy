@@ -571,6 +571,46 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Try update Bob with incomplete device data'(propertyToRemove, expectedStatus)
+	{
+		given:
+		User richard = addRichard()
+		def mobileNumberBob = makeMobileNumber(timestamp)
+		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
+		def inviteUrl = getInviteUrl()
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
+
+		when:
+		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.deviceName = "My phone"
+		updatedBobJson.deviceOperatingSystem = "ANDROID"
+		updatedBobJson.deviceAppVersion = "3.0"
+		updatedBobJson.deviceAppVersionCode = 10000
+		updatedBobJson.deviceFirebaseInstanceId = "SomeLongString"
+		updatedBobJson.remove(propertyToRemove)
+		def response = appService.updateResource(inviteUrl, updatedBobJson, [:], [:])
+
+		then:
+		assertResponseStatus(response, expectedStatus)
+		if (expectedStatus == 400)
+		{
+			response.responseData.code == "error.request.missing.property"
+			response.data.message ==~ /^Mandatory property '$propertyToRemove'.*/
+		}
+
+		cleanup:
+		appService.deleteUser(richard)
+		// TODO: How to delete the invited user?
+
+		where:
+		propertyToRemove | expectedStatus
+		"deviceOperatingSystem" | 400
+		"deviceAppVersion" | 400
+		"deviceOperatingSystem" | 400
+		"deviceAppVersionCode" | 400
+		"deviceFirebaseInstanceId" | 200
+	}
+
 	def assertUserCreationFailedBecauseOfDuplicate(response)
 	{
 		assertResponseStatus(response, 400)

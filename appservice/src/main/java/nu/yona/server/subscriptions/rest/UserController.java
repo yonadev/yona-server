@@ -221,12 +221,26 @@ public class UserController extends ControllerBase
 
 	private UserDto convertToUser(PostPutUserDto postPutUser)
 	{
-		Optional<DeviceRegistrationRequestDto> deviceRegistration = postPutUser.deviceName == null ? Optional.empty()
-				: Optional.of(new DeviceRegistrationRequestDto(postPutUser.deviceName, postPutUser.deviceOperatingSystemStr,
-						postPutUser.deviceAppVersion, postPutUser.deviceAppVersionCode,
-						Optional.ofNullable(postPutUser.deviceFirebaseInstanceId)));
+		Optional<DeviceRegistrationRequestDto> deviceRegistration = createDeviceRequestDto(postPutUser);
 		return UserDto.createInstance(postPutUser.firstName, postPutUser.lastName, postPutUser.mobileNumber, postPutUser.nickname,
 				deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance));
+	}
+
+	private Optional<DeviceRegistrationRequestDto> createDeviceRequestDto(PostPutUserDto postPutUser)
+	{
+		if (postPutUser.deviceName == null)
+		{
+			return Optional.empty();
+		}
+		String hint = "Mandatory when deviceName is provided";
+		Require.isNonNull(postPutUser.deviceOperatingSystemStr,
+				() -> InvalidDataException.missingProperty("deviceOperatingSystem", hint));
+		Require.isNonNull(postPutUser.deviceAppVersion, () -> InvalidDataException.missingProperty("deviceAppVersion", hint));
+		Require.isNonNull(postPutUser.deviceAppVersionCode,
+				() -> InvalidDataException.missingProperty("deviceAppVersionCode", hint));
+		return Optional.of(new DeviceRegistrationRequestDto(postPutUser.deviceName, postPutUser.deviceOperatingSystemStr,
+				postPutUser.deviceAppVersion, postPutUser.deviceAppVersionCode,
+				Optional.ofNullable(postPutUser.deviceFirebaseInstanceId)));
 	}
 
 	@PutMapping(value = "/{userId}")
