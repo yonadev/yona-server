@@ -5,7 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.lang.reflect.Field;
 import java.util.Collections;

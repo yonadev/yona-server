@@ -19,6 +19,8 @@ release {
 
 configurations {
 	providedRuntime
+	intTestCompile.extendsFrom testCompile
+	intTestRuntime.extendsFrom testRuntime
 }
 
 dependencies {
@@ -31,6 +33,10 @@ dependencies {
 	testCompile project(path: ":core", configuration: "testUtils")
 	testCompile project(':core').sourceSets.test.output
 	testCompile "org.mockito:mockito-core:2.21.0"
+
+	intTestCompile "org.codehaus.groovy:groovy-all:2.5.5"
+	intTestCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
+	intTestCompile "org.spockframework:spock-core:1.2-groovy-2.5"
 }
 
 test {
@@ -87,11 +93,6 @@ sourceSets {
 			runtimeClasspath += main.output
 		}
 	}
-}
-
-configurations {
-	intTestCompile.extendsFrom testCompile
-	intTestRuntime.extendsFrom testRuntime
 }
 
 task intTest(type:Test){
