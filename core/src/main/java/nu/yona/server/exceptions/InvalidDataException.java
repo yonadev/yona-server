@@ -145,4 +145,9 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException(exception, "error.invalid.date", date);
 	}
+
+	public static InvalidDataException missingRequestParameter(String name, String hint)
+	{
+		return new InvalidDataException("error.request.missing.request.parameter", name, hint);
+	}
 }

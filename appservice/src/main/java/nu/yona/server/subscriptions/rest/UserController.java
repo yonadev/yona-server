@@ -244,6 +244,9 @@ public class UserController extends ControllerBase
 		}
 		else
 		{
+			Require.isNonNull(requestingDeviceIdStr,
+					() -> InvalidDataException.missingRequestParameter(REQUESTING_DEVICE_ID_PARAM,
+							"This parameter is mandatory when '" + TEMP_PASSWORD_PARAM + "' is not provided"));
 			return updateUser(password, userId, RestUtil.parseUuid(requestingDeviceIdStr), user, request);
 		}
 	}
@@ -496,9 +499,9 @@ public class UserController extends ControllerBase
 	public static class UserResource extends Resource<UserDto>
 	{
 		private final CurieProvider curieProvider;
-		private UserResourceRepresentation representation;
-		private UUID requestingUserId;
-		private Optional<UUID> requestingDeviceId;
+		private final UserResourceRepresentation representation;
+		private final UUID requestingUserId;
+		private final Optional<UUID> requestingDeviceId;
 
 		public UserResource(CurieProvider curieProvider, UserResourceRepresentation representation, UserDto user,
 				UUID requestingUserId, Optional<UUID> requestingDeviceId)

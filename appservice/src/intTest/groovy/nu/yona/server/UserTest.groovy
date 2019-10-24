@@ -279,7 +279,29 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.user.exists"
+		response.responseData.code == "error.user.exists"
+
+		cleanup:
+		appService.deleteUser(john)
+	}
+
+	def 'Try update John Doe without requesting device ID request parameter'()
+	{
+		given:
+		def ts = timestamp
+		User richard = addRichard()
+		def john = createJohnDoe(ts)
+		appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
+
+		when:
+		def updatedJohn = john.convertToJson()
+		updatedJohn.mobileNumber = richard.mobileNumber
+		def response = appService.updateUser(YonaServer.removeRequestParam(john.url, "requestingDeviceId"), updatedJohn, john.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.request.missing.request.parameter"
+		response.data.message ==~ /^Request parameter 'requestingDeviceId' is mandatory in this context.*/
 
 		cleanup:
 		appService.deleteUser(john)
