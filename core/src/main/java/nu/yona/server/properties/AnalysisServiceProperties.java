@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
 
@@ -12,8 +12,7 @@ public class AnalysisServiceProperties
 	private Duration updateSkipWindow = Duration.ofSeconds(5);
 	private Duration activityMemory = Duration.ofDays(490);
 	private String serviceUrl = "http://localhost:8081";
-	private int appActivityCountLoggingThreshold = 10;
-	private int appActivityCountIgnoreThreshold = 100;
+	private int appActivityCountIgnoreThreshold = 200;
 
 	public Duration getActivityMemory()
 	{
@@ -53,16 +52,6 @@ public class AnalysisServiceProperties
 	public void setServiceUrl(String serviceUrl)
 	{
 		this.serviceUrl = serviceUrl;
-	}
-
-	public int getAppActivityCountLoggingThreshold()
-	{
-		return appActivityCountLoggingThreshold;
-	}
-
-	public void setAppActivityCountLoggingThreshold(int appActivityCountLoggingThreshold)
-	{
-		this.appActivityCountLoggingThreshold = appActivityCountLoggingThreshold;
 	}
 
 	public int getAppActivityCountIgnoreThreshold()

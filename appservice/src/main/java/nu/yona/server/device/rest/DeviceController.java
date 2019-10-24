@@ -127,11 +127,6 @@ public class DeviceController extends ControllerBase
 	@Qualifier("sslRootCertificate")
 	private X509Certificate sslRootCertificate;
 
-	private enum MessageType
-	{
-		ERROR, WARNING
-	}
-
 	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<Resources<DeviceResource>> getAllDevices(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -305,12 +300,8 @@ public class DeviceController extends ControllerBase
 	{
 		if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountIgnoreThreshold())
 		{
-			logLongAppActivityBatch(MessageType.ERROR, userId, appActivities);
+			logTooLongAppActivityBatch(userId, appActivities);
 			return createOkResponse();
-		}
-		if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountLoggingThreshold())
-		{
-			logLongAppActivityBatch(MessageType.WARNING, userId, appActivities);
 		}
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
@@ -344,28 +335,16 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	private void logLongAppActivityBatch(MessageType messageType, UUID userId, AppActivitiesDto appActivities)
+	private void logTooLongAppActivityBatch(UUID userId, AppActivitiesDto appActivities)
 	{
 		int numAppActivities = appActivities.getActivities().length;
 		List<Activity> appActivityCollection = Arrays.asList(appActivities.getActivities());
 		Comparator<? super Activity> comparator = (a, b) -> a.getStartTime().compareTo(b.getStartTime());
 		ZonedDateTime minStartTime = Collections.min(appActivityCollection, comparator).getStartTime();
 		ZonedDateTime maxStartTime = Collections.max(appActivityCollection, comparator).getStartTime();
-		switch (messageType)
-		{
-			case ERROR:
-				logger.error(
-						"User with ID {} posts too many ({}) app activities, with start dates ranging from {} to {} (device time: {}). App activities ignored.",
-						userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
-				break;
-			case WARNING:
-				logger.warn(
-						"User with ID {} posts many ({}) app activities, with start dates ranging from {} to {} (device time: {})",
-						userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
-				break;
-			default:
-				throw new IllegalStateException("Unsupported message type: " + messageType);
-		}
+		logger.error(
+				"User with ID {} posts too many ({}) app activities, with start dates ranging from {} to {} (device time: {}). App activities ignored.",
+				userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
 	}
 
 	@PostMapping(value = "/{deviceId}/vpnStatus/")
@@ -545,7 +524,7 @@ public class DeviceController extends ControllerBase
 	public static class DeviceResourceAssembler extends ResourceAssemblerSupport<DeviceBaseDto, DeviceResource>
 	{
 		private final UUID userId;
-		private Optional<UUID> requestingDeviceId;
+		private final Optional<UUID> requestingDeviceId;
 
 		public DeviceResourceAssembler(UUID userId, Optional<UUID> requestingDeviceId)
 		{
