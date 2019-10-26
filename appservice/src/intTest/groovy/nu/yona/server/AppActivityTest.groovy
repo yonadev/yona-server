@@ -11,7 +11,6 @@ import static nu.yona.server.test.CommonAssertions.*
 import java.time.Duration
 import java.time.ZonedDateTime
 
-import groovy.json.*
 import nu.yona.server.test.AppActivity
 
 class AppActivityTest extends AbstractAppServiceIntegrationTest
@@ -63,7 +62,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
 		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
-		{ it."@type" == "GoalConflictMessage" }
+		{
+			it."@type" == "GoalConflictMessage"
+		}
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
@@ -72,7 +73,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
 		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll
-		{ it."@type" == "GoalConflictMessage" }
+		{
+			it."@type" == "GoalConflictMessage"
+		}
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
 		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
@@ -281,6 +284,36 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.analysis.invalid.app.activity.data.starts.in.future"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try post incomplete app activity request'()
+	{
+		given:
+		def richard = addRichard()
+		def deviceDateTimeString = YonaServer.toIsoDateTimeString(YonaServer.now)
+
+		when:
+		def requestJsonNoActivities = """{
+			"deviceDateTime":"$deviceDateTimeString"
+		}"""
+		def responseNoActivities = appService.createResourceWithPassword(richard.requestingDevice.appActivityUrl, requestJsonNoActivities, richard.password)
+
+		then:
+		assertResponseStatus(responseNoActivities, 400)
+		responseNoActivities.data.message ==~ /(?s).*Missing required creator property 'activities'.*/
+
+		when:
+		def requestJsonNoDeviceDateTime = """{
+			"activities": []
+		}"""
+		def responseNoDeviceDateTime = appService.createResourceWithPassword(richard.requestingDevice.appActivityUrl, requestJsonNoDeviceDateTime, richard.password)
+
+		then:
+		assertResponseStatus(responseNoDeviceDateTime, 400)
+		responseNoDeviceDateTime.data.message ==~ /(?s).*Missing required creator property 'deviceDateTime'.*/
 
 		cleanup:
 		appService.deleteUser(richard)
