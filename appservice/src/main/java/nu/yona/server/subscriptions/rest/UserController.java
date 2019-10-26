@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -203,30 +203,47 @@ public class UserController extends ControllerBase
 		{
 			String hint = "If the device name is not provided, the other properties should not be provided either";
 			Require.isNull(postPutUser.deviceOperatingSystemStr,
-					() -> InvalidDataException.extraProperty("deviceOperatingSystem", hint));
-			Require.isNull(postPutUser.deviceAppVersion, () -> InvalidDataException.extraProperty("deviceAppVersion", hint));
+					() -> InvalidDataException.extraProperty(PostPutUserDto.DEVICE_OPERATING_SYSTEM_PROPERTY, hint));
+			Require.isNull(postPutUser.deviceAppVersion,
+					() -> InvalidDataException.extraProperty(PostPutUserDto.DEVICE_APP_VERSION_PROPERTY, hint));
 			Require.isNull(postPutUser.deviceAppVersionCode,
-					() -> InvalidDataException.extraProperty("deviceAppVersionCode", hint));
+					() -> InvalidDataException.extraProperty(PostPutUserDto.DEVICE_APP_VERSION_CODE_PROPERTY, hint));
 		}
 		else
 		{
 			String hint = "If the device name is provided, the other properties must be present too";
 			Require.isNonNull(postPutUser.deviceOperatingSystemStr,
-					() -> InvalidDataException.missingProperty("deviceOperatingSystem", hint));
-			Require.isNonNull(postPutUser.deviceAppVersion, () -> InvalidDataException.missingProperty("deviceAppVersion", hint));
+					() -> InvalidDataException.missingProperty(PostPutUserDto.DEVICE_OPERATING_SYSTEM_PROPERTY, hint));
+			Require.isNonNull(postPutUser.deviceAppVersion,
+					() -> InvalidDataException.missingProperty(PostPutUserDto.DEVICE_APP_VERSION_PROPERTY, hint));
 			Require.isNonNull(postPutUser.deviceAppVersionCode,
-					() -> InvalidDataException.missingProperty("deviceAppVersionCode", hint));
+					() -> InvalidDataException.missingProperty(PostPutUserDto.DEVICE_APP_VERSION_CODE_PROPERTY, hint));
 		}
 	}
 
 	private UserDto convertToUser(PostPutUserDto postPutUser)
 	{
-		Optional<DeviceRegistrationRequestDto> deviceRegistration = postPutUser.deviceName == null ? Optional.empty()
-				: Optional.of(new DeviceRegistrationRequestDto(postPutUser.deviceName, postPutUser.deviceOperatingSystemStr,
-						postPutUser.deviceAppVersion, postPutUser.deviceAppVersionCode,
-						Optional.ofNullable(postPutUser.deviceFirebaseInstanceId)));
+		Optional<DeviceRegistrationRequestDto> deviceRegistration = createDeviceRequestDto(postPutUser);
 		return UserDto.createInstance(postPutUser.firstName, postPutUser.lastName, postPutUser.mobileNumber, postPutUser.nickname,
 				deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance));
+	}
+
+	private Optional<DeviceRegistrationRequestDto> createDeviceRequestDto(PostPutUserDto postPutUser)
+	{
+		if (postPutUser.deviceName == null)
+		{
+			return Optional.empty();
+		}
+		String hint = "Mandatory when deviceName is provided";
+		Require.isNonNull(postPutUser.deviceOperatingSystemStr,
+				() -> InvalidDataException.missingProperty(PostPutUserDto.DEVICE_OPERATING_SYSTEM_PROPERTY, hint));
+		Require.isNonNull(postPutUser.deviceAppVersion,
+				() -> InvalidDataException.missingProperty(PostPutUserDto.DEVICE_APP_VERSION_PROPERTY, hint));
+		Require.isNonNull(postPutUser.deviceAppVersionCode,
+				() -> InvalidDataException.missingProperty(PostPutUserDto.DEVICE_APP_VERSION_CODE_PROPERTY, hint));
+		return Optional.of(new DeviceRegistrationRequestDto(postPutUser.deviceName, postPutUser.deviceOperatingSystemStr,
+				postPutUser.deviceAppVersion, postPutUser.deviceAppVersionCode,
+				Optional.ofNullable(postPutUser.deviceFirebaseInstanceId)));
 	}
 
 	@PutMapping(value = "/{userId}")
@@ -255,7 +272,7 @@ public class UserController extends ControllerBase
 			HttpServletRequest request)
 	{
 		Require.that(user.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).isEmpty(),
-				() -> InvalidDataException.extraProperty("deviceName",
+				() -> InvalidDataException.extraProperty(PostPutUserDto.DEVICE_NAME_PROPERTY,
 						"Embedding devices in an update request is only allowed when updating a user created on buddy request"));
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
@@ -445,6 +462,11 @@ public class UserController extends ControllerBase
 
 	static class PostPutUserDto
 	{
+		static final String DEVICE_NAME_PROPERTY = "deviceName";
+		static final String DEVICE_OPERATING_SYSTEM_PROPERTY = "deviceOperatingSystem";
+		static final String DEVICE_APP_VERSION_PROPERTY = "deviceAppVersion";
+		static final String DEVICE_APP_VERSION_CODE_PROPERTY = "deviceAppVersionCode";
+		static final String DEVICE_FIREBASE_INSTANCE_ID_PROPERTY = "deviceFirebaseInstanceId";
 		private final String firstName;
 		private final String lastName;
 		private final String mobileNumber;
@@ -458,11 +480,11 @@ public class UserController extends ControllerBase
 		@JsonCreator
 		public PostPutUserDto(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
 				@JsonProperty("mobileNumber") String mobileNumber, @JsonProperty("nickname") String nickname,
-				@JsonProperty(value = "deviceName", required = false) String deviceName,
-				@JsonProperty(value = "deviceOperatingSystem", required = false) String deviceOperatingSystem,
-				@JsonProperty(value = "deviceAppVersion", required = false) String deviceAppVersion,
-				@JsonProperty(value = "deviceAppVersionCode", required = false) Integer deviceAppVersionCode,
-				@JsonProperty(value = "deviceFirebaseInstanceId", required = false) String deviceFirebaseInstanceId,
+				@JsonProperty(value = DEVICE_NAME_PROPERTY, required = false) String deviceName,
+				@JsonProperty(value = DEVICE_OPERATING_SYSTEM_PROPERTY, required = false) String deviceOperatingSystem,
+				@JsonProperty(value = DEVICE_APP_VERSION_PROPERTY, required = false) String deviceAppVersion,
+				@JsonProperty(value = DEVICE_APP_VERSION_CODE_PROPERTY, required = false) Integer deviceAppVersionCode,
+				@JsonProperty(value = DEVICE_FIREBASE_INSTANCE_ID_PROPERTY, required = false) String deviceFirebaseInstanceId,
 				@JsonProperty("_links") Object ignored1, @JsonProperty("yonaPassword") Object ignored2)
 		{
 			this.firstName = firstName;
@@ -482,13 +504,12 @@ public class UserController extends ControllerBase
 		MINIMAL(u -> false, u -> false, u -> false), BUDDY_USER(u -> true, u -> false, u -> false), OWN_USER(
 				u -> u.isMobileNumberConfirmed(), u -> !u.isMobileNumberConfirmed(), u -> u.isMobileNumberConfirmed());
 
-		final Function<UserDto, Boolean> includeGeneralContent;
-		final Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent;
-		final Function<UserDto, Boolean> includeOwnUserNumConfirmedContent;
+		final Predicate<UserDto> includeGeneralContent;
+		final Predicate<UserDto> includeOwnUserNumNotConfirmedContent;
+		final Predicate<UserDto> includeOwnUserNumConfirmedContent;
 
-		UserResourceRepresentation(Function<UserDto, Boolean> includeGeneralContent,
-				Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent,
-				Function<UserDto, Boolean> includeOwnUserNumConfirmedContent)
+		UserResourceRepresentation(Predicate<UserDto> includeGeneralContent,
+				Predicate<UserDto> includeOwnUserNumNotConfirmedContent, Predicate<UserDto> includeOwnUserNumConfirmedContent)
 		{
 			this.includeGeneralContent = includeGeneralContent;
 			this.includeOwnUserNumNotConfirmedContent = includeOwnUserNumNotConfirmedContent;
@@ -519,7 +540,7 @@ public class UserController extends ControllerBase
 		{
 			UUID userId = getContent().getId();
 			HashMap<String, Object> result = new HashMap<>();
-			if (representation.includeGeneralContent.apply(getContent()))
+			if (representation.includeGeneralContent.test(getContent()))
 			{
 				Optional<Set<DeviceBaseDto>> devices = getContent().getPrivateData().getDevices();
 				devices.ifPresent(d -> result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
@@ -529,7 +550,7 @@ public class UserController extends ControllerBase
 				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
 						GoalController.createAllGoalsCollectionResource(requestingUserId, userId, g)));
 			}
-			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
+			if (representation.includeOwnUserNumConfirmedContent.test(getContent()))
 			{
 				Set<BuddyDto> buddies = getContent().getOwnPrivateData().getBuddies();
 				result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
@@ -593,15 +614,15 @@ public class UserController extends ControllerBase
 			{
 				addSelfLink(userResource);
 			}
-			if (representation.includeGeneralContent.apply(user))
+			if (representation.includeGeneralContent.test(user))
 			{
 				addGeneralLinks(userResource);
 			}
-			if (representation.includeOwnUserNumNotConfirmedContent.apply(user))
+			if (representation.includeOwnUserNumNotConfirmedContent.test(user))
 			{
 				addOwnUserNumNotConfirmedLinks(user, userResource);
 			}
-			if (representation.includeOwnUserNumConfirmedContent.apply(user))
+			if (representation.includeOwnUserNumConfirmedContent.test(user))
 			{
 				addOwnUserNumConfirmedLinks(userResource);
 			}
