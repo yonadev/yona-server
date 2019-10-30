@@ -355,24 +355,44 @@ public class BuddyService
 		if (buddy.getSendingStatus() == Status.ACCEPTED || buddy.getReceivingStatus() == Status.ACCEPTED)
 		{
 			// Buddy request was accepted
-			removeMessagesSentByBuddy(user, buddy);
-			removeMessagesSentByUserToBuddy(user, buddy);
-
-			// Send message to "self", to notify the user about the removed buddy user
-			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddy);
-			sendDropBuddyMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId), Optional.empty(),
-					DropBuddyReason.USER_ACCOUNT_DELETED, user);
+			prepareCleanupRemovedBuddyInAcceptedState(user, buddy);
 		}
 		else if (buddy.getSendingStatus() != Status.REJECTED && buddy.getReceivingStatus() != Status.REJECTED)
 		{
 			// Buddy request was not accepted or rejected yet
-			// Send message to "self", as if the requested user declined the buddy request
-			UUID buddyUserAnonymizedId = buddy.getUserAnonymizedId().orElse(null); //
-			sendBuddyConnectResponseMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId),
-					user.getUserAnonymizedId(), buddy.getId(), user.getDevices(), Status.REJECTED,
-					getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
+			prepareCleanupRemovedBuddyInPendingState(user, buddy);
 		}
 		removeBuddy(user.getId(), buddy);
+	}
+
+	private void prepareCleanupRemovedBuddyInPendingState(User user, Buddy buddy)
+	{
+		messageService.deleteUnprocessedMessages(user, m -> isBuddyConnectResponseFromBuddy(m, buddy));
+		// Send message to "self", as if the requested user declined the buddy request
+		UUID buddyUserAnonymizedId = buddy.getUserAnonymizedId().orElse(null); //
+		sendBuddyConnectResponseMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId),
+				user.getUserAnonymizedId(), buddy.getId(), user.getDevices(), Status.REJECTED,
+				getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
+	}
+
+	private void prepareCleanupRemovedBuddyInAcceptedState(User user, Buddy buddy)
+	{
+		removeMessagesSentByBuddy(user, buddy);
+		removeMessagesSentByUserToBuddy(user, buddy);
+
+		// Send message to "self", to notify the user about the removed buddy user
+		UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddy);
+		sendDropBuddyMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId), Optional.empty(),
+				DropBuddyReason.USER_ACCOUNT_DELETED, user);
+	}
+
+	private boolean isBuddyConnectResponseFromBuddy(Message message, Buddy buddy)
+	{
+		if (!(message instanceof BuddyConnectResponseMessage))
+		{
+			return false;
+		}
+		return ((BuddyConnectResponseMessage) message).getBuddyId().equals(buddy.getId());
 	}
 
 	private UUID getUserAnonymizedIdForBuddy(Buddy buddy)
