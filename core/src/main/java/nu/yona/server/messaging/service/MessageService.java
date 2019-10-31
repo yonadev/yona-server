@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -146,19 +147,27 @@ public class MessageService
 
 	private boolean mustProcessUnprocessedMessages(User user)
 	{
-		return !getUnprocessedMessages(user).isEmpty();
+		return !getUnprocessedMessageIds(user).isEmpty();
 	}
 
-	private List<Long> getUnprocessedMessages(User user)
+	private List<Long> getUnprocessedMessageIds(User user)
 	{
 		MessageDestination anonymousMessageDestination = getAnonymousMessageSource(user).getDestination();
 		return messageRepository.findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
 	}
 
+	public void deleteUnprocessedMessages(User user, Predicate<Message> predicate)
+	{
+		MessageSource messageSource = getAnonymousMessageSource(user);
+		List<Message> messagesToDelete = getUnprocessedMessageIds(user).stream().map(messageSource::getMessage).filter(predicate)
+				.collect(Collectors.toList());
+		messageRepository.deleteInBatch(messagesToDelete);
+	}
+
 	@Transactional
 	private void processUnprocessedMessages(User user)
 	{
-		List<Long> idsOfUnprocessedMessages = getUnprocessedMessages(user);
+		List<Long> idsOfUnprocessedMessages = getUnprocessedMessageIds(user);
 
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
 		for (long id : idsOfUnprocessedMessages)

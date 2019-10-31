@@ -181,6 +181,53 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Overwrite Richard with an accepted but unprocessed buddy invitation from Bob'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		richard.emailAddress = "richard@quinn.com"
+		appService.sendBuddyConnectRequest(bob, richard)
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(richard).acceptUrl
+		def acceptResponse = appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], richard.password)
+		assertResponseStatusOk(acceptResponse)
+		appService.requestOverwriteUser(richard.mobileNumber)
+
+		when:
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, [:],
+				["overwriteUserConfirmationCode": "1234"])
+
+		then:
+		richardChanged
+		richardChanged.firstName == "${richard.firstName}Changed"
+
+		def buddiesRichard = appService.getBuddies(richardChanged)
+		buddiesRichard.size() == 0
+
+		def buddiesBob = appService.getBuddies(bob)
+		buddiesBob.size() == 0
+
+		def getMessagesRichardResponse = appService.getMessages(richardChanged)
+		assertResponseStatusOk(getMessagesRichardResponse)
+		getMessagesRichardResponse.responseData._embedded == null
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		assertResponseStatusOk(getMessagesBobResponse)
+		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 1
+		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		buddyConnectResponseMessages.size() == 1
+		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
+		buddyConnectResponseMessage.message == "User account was deleted"
+		buddyConnectResponseMessage.nickname == "$richard.firstName $richard.lastName"
+		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
+		buddyConnectResponseMessage._links?."yona:process" == null // Processing happens automatically these days
+
+		cleanup:
+		appService.deleteUser(richardChanged)
+		appService.deleteUser(bob)
+	}
+
 	def 'Overwrite Richard while being a buddy of Bob and verify that Bob can move on with everything'()
 	{
 		given:
