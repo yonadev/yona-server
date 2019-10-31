@@ -369,7 +369,7 @@ public class BuddyService
 	{
 		messageService.deleteUnprocessedMessages(user, m -> isBuddyConnectResponseFromBuddy(m, buddy));
 		// Send message to "self", as if the requested user declined the buddy request
-		UUID buddyUserAnonymizedId = buddy.getUserAnonymizedId().orElse(null); //
+		UUID buddyUserAnonymizedId = buddy.getUserAnonymizedId().orElse(null);
 		sendBuddyConnectResponseMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId),
 				user.getUserAnonymizedId(), buddy.getId(), user.getDevices(), Status.REJECTED,
 				getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
