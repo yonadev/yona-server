@@ -153,7 +153,7 @@ public class MessageService
 	private List<Long> getUnprocessedMessageIds(User user)
 	{
 		MessageDestination anonymousMessageDestination = getAnonymousMessageSource(user).getDestination();
-		return messageRepository.findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
+		return messageRepository.findUnprocessedMessagesFromDestination(anonymousMessageDestination);
 	}
 
 	public List<Message> getUnprocessedMessages(User user, Predicate<Message> predicate)

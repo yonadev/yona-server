@@ -87,22 +87,22 @@ public class MessageDestination extends EntityWithUuid
 
 	public Page<Message> getMessages(Pageable pageable)
 	{
-		return Message.getRepository().findFromDestination(this.getId(), pageable);
+		return Message.getRepository().findFromDestination(this, pageable);
 	}
 
 	public Page<Message> getReceivedMessages(Pageable pageable, boolean onlyUnreadMessages)
 	{
 		if (onlyUnreadMessages)
 		{
-			return Message.getRepository().findUnreadReceivedMessagesFromDestination(this.getId(), pageable);
+			return Message.getRepository().findUnreadReceivedMessagesFromDestination(this, pageable);
 
 		}
-		return Message.getRepository().findReceivedMessagesFromDestination(this.getId(), pageable);
+		return Message.getRepository().findReceivedMessagesFromDestination(this, pageable);
 	}
 
 	public Page<Message> getReceivedMessages(Pageable pageable, LocalDateTime earliestDateTime)
 	{
-		return Message.getRepository().findReceivedMessagesFromDestinationSinceDate(this.getId(), earliestDateTime, pageable);
+		return Message.getRepository().findReceivedMessagesFromDestinationSinceDate(this, earliestDateTime, pageable);
 	}
 
 	private PublicKey loadPublicKey()
@@ -129,6 +129,6 @@ public class MessageDestination extends EntityWithUuid
 
 	public Page<Message> getActivityRelatedMessages(IntervalActivity intervalActivityEntity, Pageable pageable)
 	{
-		return Message.getRepository().findByIntervalActivity(getId(), intervalActivityEntity, pageable);
+		return Message.getRepository().findByIntervalActivity(this, intervalActivityEntity, pageable);
 	}
 }
