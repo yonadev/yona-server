@@ -1,8 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017,2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
+
+import java.util.Optional;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,12 +18,12 @@ public class SystemMessage extends Message
 	// Default constructor is required for JPA
 	protected SystemMessage()
 	{
-		super(null);
+		super();
 	}
 
-	protected SystemMessage(String message)
+	private SystemMessage(String message)
 	{
-		super(null);
+		super(Optional.empty());
 		this.message = message;
 	}
 
