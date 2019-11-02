@@ -46,4 +46,8 @@ public interface MessageRepository extends JpaRepository<Message, Long>
 
 	@Query("select m.id from Message m, MessageDestination d where d.id = :destinationId and m.isProcessed = false and m member of d.messages order by m.id asc")
 	List<Long> findUnprocessedMessagesFromDestination(@Param("destinationId") UUID destinationId);
+
+	@Query("select m from Message m, MessageDestination d where d = :destination and m.relatedUserAnonymizedId = :relatedUserAnonymizedId and m member of d.messages order by m.id asc")
+	List<Message> findByRelatedUserAnonymizedId(@Param("destination") MessageDestination destination,
+			@Param("relatedUserAnonymizedId") UUID relatedUserAnonymizedId);
 }

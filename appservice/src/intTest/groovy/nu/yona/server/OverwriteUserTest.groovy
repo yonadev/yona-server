@@ -191,6 +191,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(richard).acceptUrl
 		def acceptResponse = appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], richard.password)
 		assertResponseStatusOk(acceptResponse)
+		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
