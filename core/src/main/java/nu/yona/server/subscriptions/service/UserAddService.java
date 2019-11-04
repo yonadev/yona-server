@@ -91,7 +91,8 @@ public class UserAddService
 	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
-		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
+		Require.that(user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1,
+				() -> YonaException.illegalState("Number of devices must be 1"));
 		UserAssertionService.assertValidUserFields(user, UserService.UserPurpose.USER);
 
 		handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);

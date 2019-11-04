@@ -193,22 +193,32 @@ public class DeviceService
 			String oldName = deviceEntity.getName();
 			if (!oldName.equals(changeRequest.name))
 			{
-				assertAcceptableDeviceName(userEntity, changeRequest.name);
-				deviceEntity.setName(changeRequest.name);
-				userDeviceRepository.save(deviceEntity);
-				sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
-						Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
+				updateDeviceName(changeRequest, userEntity, deviceEntity, oldName);
 			}
 
-			DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
-			Optional<String> oldFirebaseInstanceId = deviceAnonymized.getFirebaseInstanceId();
-			if (changeRequest.firebaseInstanceId.isPresent() && !oldFirebaseInstanceId.equals(changeRequest.firebaseInstanceId))
-			{
-				deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId.get());
-				deviceAnonymizedRepository.save(deviceAnonymized);
-			}
+			saveFirebaseInstanceIdIfUpdated(changeRequest, deviceEntity);
 		});
 		return getDevice(deviceId);
+	}
+
+	private void updateDeviceName(DeviceUpdateRequestDto changeRequest, User userEntity, UserDevice deviceEntity, String oldName)
+	{
+		assertAcceptableDeviceName(userEntity, changeRequest.name);
+		deviceEntity.setName(changeRequest.name);
+		userDeviceRepository.save(deviceEntity);
+		sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
+				Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
+	}
+
+	private void saveFirebaseInstanceIdIfUpdated(DeviceUpdateRequestDto changeRequest, UserDevice deviceEntity)
+	{
+		DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
+		Optional<String> oldFirebaseInstanceId = deviceAnonymized.getFirebaseInstanceId();
+		if (changeRequest.firebaseInstanceId.isPresent() && !oldFirebaseInstanceId.equals(changeRequest.firebaseInstanceId))
+		{
+			deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId.get());
+			deviceAnonymizedRepository.save(deviceAnonymized);
+		}
 	}
 
 	public UserDeviceDto createDefaultUserDeviceDto()
