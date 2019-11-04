@@ -77,3 +77,9 @@ bootJar {
 jar {
 	enabled = true
 }
+
+eclipse {
+	classpath {
+		plusConfigurations += [ configurations.testUtilsCompile ]
+	}
+}
