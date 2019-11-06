@@ -153,15 +153,19 @@ public class MessageService
 	private List<Long> getUnprocessedMessageIds(User user)
 	{
 		MessageDestination anonymousMessageDestination = getAnonymousMessageSource(user).getDestination();
-		return messageRepository.findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
+		return messageRepository.findUnprocessedMessagesFromDestination(anonymousMessageDestination);
 	}
 
-	public void deleteUnprocessedMessages(User user, Predicate<Message> predicate)
+	public List<Message> getUnprocessedMessages(User user, Predicate<Message> predicate)
 	{
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		List<Message> messagesToDelete = getUnprocessedMessageIds(user).stream().map(messageSource::getMessage).filter(predicate)
+		return getUnprocessedMessageIds(user).stream().map(messageSource::getMessage).filter(predicate)
 				.collect(Collectors.toList());
-		messageRepository.deleteInBatch(messagesToDelete);
+	}
+
+	public List<Message> getMessagesFromRelatedUserAnonymizedId(User user, UUID relatedUserAnonymizedId)
+	{
+		return getAnonymousMessageSource(user).getMessagesFromRelatedUserAnonymizedId(relatedUserAnonymizedId);
 	}
 
 	@Transactional
@@ -210,7 +214,7 @@ public class MessageService
 		deleteMessages(Collections.singleton(message));
 	}
 
-	private void deleteMessages(Collection<Message> messages)
+	public void deleteMessages(Collection<Message> messages)
 	{
 		Set<Message> messagesToBeDeleted = messages.stream().flatMap(m -> m.getMessagesToBeCascadinglyDeleted().stream())
 				.collect(Collectors.toSet());

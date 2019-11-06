@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
@@ -8,6 +8,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -126,6 +127,15 @@ public class MessageSource extends EntityWithUuid
 
 		message.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey()));
 		return message;
+	}
+
+	public List<Message> getMessagesFromRelatedUserAnonymizedId(UUID relatedUserAnonymizedId)
+	{
+		List<Message> messages = Message.getRepository().findByRelatedUserAnonymizedId(messageDestination,
+				relatedUserAnonymizedId);
+		messages.forEach(m -> m.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey())));
+
+		return messages;
 	}
 
 	public MessageSource touch()
