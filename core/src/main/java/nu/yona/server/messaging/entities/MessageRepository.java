@@ -22,28 +22,33 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long>
 {
-	@Query("select m from Message m, MessageDestination d where d.id = :destinationId and m member of d.messages order by m.creationTime desc")
-	Page<Message> findFromDestination(@Param("destinationId") UUID destinationId, Pageable pageable);
+	@Query("select m from Message m, MessageDestination d where d = :destination and m member of d.messages order by m.creationTime desc")
+	Page<Message> findFromDestination(@Param("destination") MessageDestination destination, Pageable pageable);
 
-	@Query("select m from Message m, MessageDestination d where d.id = :destinationId and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
-	Page<Message> findReceivedMessagesFromDestination(@Param("destinationId") UUID destinationId, Pageable pageable);
+	@Query("select m from Message m, MessageDestination d where d = :destination and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
+	Page<Message> findReceivedMessagesFromDestination(@Param("destination") MessageDestination destination, Pageable pageable);
 
-	@Query("select m from Message m, MessageDestination d where d.id = :destinationId and m.isRead = false and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
-	Page<Message> findUnreadReceivedMessagesFromDestination(@Param("destinationId") UUID destinationId, Pageable pageable);
+	@Query("select m from Message m, MessageDestination d where d = :destination and m.isRead = false and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
+	Page<Message> findUnreadReceivedMessagesFromDestination(@Param("destination") MessageDestination destination,
+			Pageable pageable);
 
 	@Query("select m from Message m, MessageDestination d, Message threadHeadMessage"
-			+ " where d.id = :destinationId and m member of d.messages and m.intervalActivity = :intervalActivity and threadHeadMessage = m.threadHeadMessage"
+			+ " where d = :destination and m member of d.messages and m.intervalActivity = :intervalActivity and threadHeadMessage = m.threadHeadMessage"
 			+ " order by threadHeadMessage.creationTime asc, m.creationTime asc")
-	Page<Message> findByIntervalActivity(@Param("destinationId") UUID destinationId,
+	Page<Message> findByIntervalActivity(@Param("destination") MessageDestination destination,
 			@Param("intervalActivity") IntervalActivity intervalActivityEntity, Pageable pageable);
 
 	@Query("select m from Message m where m.intervalActivity in :intervalActivities")
 	Set<Message> findByIntervalActivity(@Param("intervalActivities") Collection<IntervalActivity> intervalActivities);
 
-	@Query("select m from Message m, MessageDestination d where d.id = :destinationId and m.creationTime >= :earliestDateTime and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
-	Page<Message> findReceivedMessagesFromDestinationSinceDate(@Param("destinationId") UUID destinationId,
+	@Query("select m from Message m, MessageDestination d where d = :destination and m.creationTime >= :earliestDateTime and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
+	Page<Message> findReceivedMessagesFromDestinationSinceDate(@Param("destination") MessageDestination destination,
 			@Param("earliestDateTime") LocalDateTime earliestDateTime, Pageable pageable);
 
-	@Query("select m.id from Message m, MessageDestination d where d.id = :destinationId and m.isProcessed = false and m member of d.messages order by m.id asc")
-	List<Long> findUnprocessedMessagesFromDestination(@Param("destinationId") UUID destinationId);
+	@Query("select m.id from Message m, MessageDestination d where d = :destination and m.isProcessed = false and m member of d.messages order by m.id asc")
+	List<Long> findUnprocessedMessagesFromDestination(@Param("destination") MessageDestination destination);
+
+	@Query("select m from Message m, MessageDestination d where d = :destination and m.relatedUserAnonymizedId = :relatedUserAnonymizedId and m member of d.messages order by m.id asc")
+	List<Message> findByRelatedUserAnonymizedId(@Param("destination") MessageDestination destination,
+			@Param("relatedUserAnonymizedId") UUID relatedUserAnonymizedId);
 }

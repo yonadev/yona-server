@@ -367,12 +367,34 @@ public class BuddyService
 
 	private void prepareCleanupRemovedBuddyInPendingState(User user, Buddy buddy)
 	{
-		messageService.deleteUnprocessedMessages(user, m -> isBuddyConnectResponseFromBuddy(m, buddy));
+		removeUnprocessedBuddyAcceptanceMessages(user, buddy);
 		// Send message to "self", as if the requested user declined the buddy request
 		Optional<UUID> buddyUserAnonymizedId = buddy.getUserAnonymizedId();
 		sendBuddyConnectResponseMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId),
 				user.getUserAnonymizedId(), buddy.getId(), user.getDevices(), Status.REJECTED,
 				getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
+	}
+
+	private void removeUnprocessedBuddyAcceptanceMessages(User user, Buddy buddy)
+	{
+		List<Message> responseMessages = messageService.getUnprocessedMessages(user,
+				m -> isBuddyConnectResponseFromBuddy(m, buddy));
+		if (responseMessages.isEmpty())
+		{
+			return;
+		}
+		if (responseMessages.size() > 1)
+		{
+			throw new IllegalStateException("Multiple (" + responseMessages.size()
+					+ ") unprocessed buddy connect response messages exist for buddy with ID " + buddy.getId());
+		}
+		Message responseMessage = responseMessages.get(0);
+		UUID buddyUserAnonymizedId = responseMessage.getRelatedUserAnonymizedId()
+				.orElseThrow(() -> new IllegalStateException("No user anonymized ID on buddy connect response with ID "
+						+ responseMessage.getId() + " for buddy with ID " + buddy.getId()));
+		List<Message> messagesToDelete = messageService.getMessagesFromRelatedUserAnonymizedId(user, buddyUserAnonymizedId);
+		messagesToDelete.add(responseMessage);
+		messageService.deleteMessages(messagesToDelete);
 	}
 
 	private void prepareCleanupRemovedBuddyInAcceptedState(User user, Buddy buddy)

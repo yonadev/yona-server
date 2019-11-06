@@ -223,9 +223,9 @@ public abstract class MessageDto extends PolymorphicDto
 
 		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
 		{
-			throw new IllegalStateException(
-					"Cannot find buddy for message of type '" + messageEntity.getClass().getName() + "' with user anonymized ID '"
-							+ messageEntity.getRelatedUserAnonymizedId().map(UUID::toString).orElse("UNKNOWN") + "'");
+			throw new IllegalStateException("Cannot find buddy for message with ID " + messageEntity.getId() + " of type '"
+					+ messageEntity.getClass().getName() + "' with user anonymized ID '"
+					+ messageEntity.getRelatedUserAnonymizedId().map(UUID::toString).orElse("UNKNOWN") + "'");
 		}
 
 		private SenderInfo createSenderInfoForSelf(UserDto actingUser)
