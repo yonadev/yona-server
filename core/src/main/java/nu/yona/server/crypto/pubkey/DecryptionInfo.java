@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto.pubkey;
 
@@ -13,6 +10,8 @@ import javax.crypto.SecretKey;
 
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
+import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.util.Require;
 
 public class DecryptionInfo
 {
@@ -22,7 +21,9 @@ public class DecryptionInfo
 
 	public DecryptionInfo(SecretKey secretKey, byte[] initializationVector)
 	{
-		assert initializationVector.length == SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH;
+		Require.that(initializationVector.length == SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH,
+				() -> YonaException.illegalState("Initialization vector is " + initializationVector.length + " rather than "
+						+ SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH));
 		this.secretKey = secretKey;
 		this.initializationVector = initializationVector;
 	}

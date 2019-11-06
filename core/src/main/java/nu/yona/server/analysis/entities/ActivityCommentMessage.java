@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -16,6 +16,7 @@ import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.BatchSize;
 
+import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
 
@@ -159,8 +160,9 @@ public class ActivityCommentMessage extends BuddyMessage
 		{
 			// This is the sender copy, so do the work
 			Set<Message> messagesToBeCascadinglyDeleted = getMessagesToBeCascadinglyDeletedForJustThisObject();
-			messagesToBeCascadinglyDeleted.addAll(buddyMessage.getMessagesToBeCascadinglyDeletedForJustThisObject());
-			messagesToBeCascadinglyDeleted.add(buddyMessage);
+			ActivityCommentMessage loadedBuddyMessage = EntityUtil.enforceLoading(buddyMessage);
+			messagesToBeCascadinglyDeleted.addAll(loadedBuddyMessage.getMessagesToBeCascadinglyDeletedForJustThisObject());
+			messagesToBeCascadinglyDeleted.add(loadedBuddyMessage);
 			return messagesToBeCascadinglyDeleted;
 		}
 		// Delegate to the sender copy and add this

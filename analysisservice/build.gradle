@@ -113,3 +113,10 @@ bootJar {
 	classifier = "full"
 	baseName = "analysisservice"
 }
+
+eclipse {
+	classpath {
+		plusConfigurations += [ configurations.intTestCompile ]
+	}
+}
+

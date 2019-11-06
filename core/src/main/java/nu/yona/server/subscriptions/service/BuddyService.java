@@ -369,7 +369,7 @@ public class BuddyService
 	{
 		removeUnprocessedBuddyAcceptanceMessages(user, buddy);
 		// Send message to "self", as if the requested user declined the buddy request
-		UUID buddyUserAnonymizedId = buddy.getUserAnonymizedId().orElse(null);
+		Optional<UUID> buddyUserAnonymizedId = buddy.getUserAnonymizedId();
 		sendBuddyConnectResponseMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId),
 				user.getUserAnonymizedId(), buddy.getId(), user.getDevices(), Status.REJECTED,
 				getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
@@ -403,7 +403,7 @@ public class BuddyService
 		removeMessagesSentByUserToBuddy(user, buddy);
 
 		// Send message to "self", to notify the user about the removed buddy user
-		UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddy);
+		Optional<UUID> buddyUserAnonymizedId = Optional.of(getUserAnonymizedIdForBuddy(buddy));
 		sendDropBuddyMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId), Optional.empty(),
 				DropBuddyReason.USER_ACCOUNT_DELETED, user);
 	}

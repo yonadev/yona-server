@@ -110,3 +110,10 @@ bootJar {
 	baseName = "adminservice"
 	classifier = "full"
 }
+
+eclipse {
+	classpath {
+		plusConfigurations += [ configurations.intTestCompile ]
+	}
+}
+

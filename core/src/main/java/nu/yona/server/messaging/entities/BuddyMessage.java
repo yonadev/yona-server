@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
@@ -14,6 +14,8 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.service.OwnUserPrivateDataDto;
+import nu.yona.server.subscriptions.service.UserDto;
 
 @Entity
 public abstract class BuddyMessage extends Message
@@ -37,7 +39,7 @@ public abstract class BuddyMessage extends Message
 	// Default constructor is required for JPA
 	protected BuddyMessage()
 	{
-		super(null);
+		super();
 	}
 
 	protected BuddyMessage(BuddyInfoParameters buddyInfoParameters, String message)
@@ -113,7 +115,7 @@ public abstract class BuddyMessage extends Message
 	 */
 	public static class BuddyInfoParameters
 	{
-		public final UUID relatedUserAnonymizedId;
+		public final Optional<UUID> relatedUserAnonymizedId;
 
 		public final UUID userId;
 		public final String firstName;
@@ -121,8 +123,8 @@ public abstract class BuddyMessage extends Message
 		public final String nickname;
 		public final Optional<UUID> userPhotoId;
 
-		public BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String firstName, String lastName, String nickname,
-				Optional<UUID> userPhotoId)
+		private BuddyInfoParameters(Optional<UUID> relatedUserAnonymizedId, UUID userId, String firstName, String lastName,
+				String nickname, Optional<UUID> userPhotoId)
 		{
 			this.relatedUserAnonymizedId = relatedUserAnonymizedId;
 
@@ -135,20 +137,28 @@ public abstract class BuddyMessage extends Message
 
 		public static BuddyInfoParameters createInstance(User userEntity)
 		{
-			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getFirstName(),
-					userEntity.getLastName(), userEntity.getNickname(), userEntity.getUserPhotoId());
+			return new BuddyInfoParameters(Optional.of(userEntity.getUserAnonymizedId()), userEntity.getId(),
+					userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(), userEntity.getUserPhotoId());
 		}
 
 		public static BuddyInfoParameters createInstance(User userEntity, String nickname)
 		{
-			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getFirstName(),
-					userEntity.getLastName(), nickname, userEntity.getUserPhotoId());
+			return new BuddyInfoParameters(Optional.of(userEntity.getUserAnonymizedId()), userEntity.getId(),
+					userEntity.getFirstName(), userEntity.getLastName(), nickname, userEntity.getUserPhotoId());
 		}
 
-		public static BuddyInfoParameters createInstance(Buddy buddy, UUID buddyUserAnonymizedId)
+		public static BuddyInfoParameters createInstance(Buddy buddy, Optional<UUID> buddyUserAnonymizedId)
 		{
 			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.determineFirstName(Optional.empty()),
 					buddy.determineLastName(Optional.empty()), buddy.getNickname(), buddy.getUserPhotoId());
+		}
+
+		public static BuddyInfoParameters createInstance(UserDto userWithPrivateData, UUID relatedUserAnonymizedId)
+		{
+			OwnUserPrivateDataDto ownPrivateData = userWithPrivateData.getOwnPrivateData();
+			return new BuddyInfoParameters(Optional.of(relatedUserAnonymizedId), userWithPrivateData.getId(),
+					ownPrivateData.getFirstName(), ownPrivateData.getLastName(),
+					userWithPrivateData.getPrivateData().getNickname(), ownPrivateData.getUserPhotoId());
 		}
 	}
 }

@@ -96,6 +96,14 @@ import nu.yona.server.util.ThymeleafUtil;
 @RequestMapping(value = "/users/{userId}/devices", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class DeviceController extends ControllerBase
 {
+	private static final String APP_VERSION_CODE_PROPERTY = "appVersionCode";
+
+	private static final String APP_VERSION_PROPERTY = "appVersion";
+
+	private static final String OPERATING_SYSTEM_PROPERTY = "operatingSystem";
+
+	private static final String NAME_PROPERTY = "name";
+
 	private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
 
 	@Autowired
@@ -178,10 +186,10 @@ public class DeviceController extends ControllerBase
 	private static void assertValidDeviceDataForRegister(DeviceRegistrationRequestDto requestDto)
 	{
 		String hint = "All properties are manadatory, except for the FireBase ID";
-		Require.isNonNull(requestDto.name, () -> InvalidDataException.missingProperty("name", hint));
-		Require.isNonNull(requestDto.operatingSystemStr, () -> InvalidDataException.missingProperty("operatingSystem", hint));
-		Require.isNonNull(requestDto.appVersion, () -> InvalidDataException.missingProperty("appVersion", hint));
-		Require.that(requestDto.appVersionCode != 0, () -> InvalidDataException.missingProperty("appVersionCode", hint));
+		Require.isNonNull(requestDto.name, () -> InvalidDataException.missingProperty(NAME_PROPERTY, hint));
+		Require.isNonNull(requestDto.operatingSystemStr, () -> InvalidDataException.missingProperty(OPERATING_SYSTEM_PROPERTY, hint));
+		Require.isNonNull(requestDto.appVersion, () -> InvalidDataException.missingProperty(APP_VERSION_PROPERTY, hint));
+		Require.that(requestDto.appVersionCode != 0, () -> InvalidDataException.missingProperty(APP_VERSION_CODE_PROPERTY, hint));
 	}
 
 	@PostMapping(value = "/{deviceId}/openApp")
@@ -203,16 +211,16 @@ public class DeviceController extends ControllerBase
 	{
 		if (request.operatingSystemStr == null)
 		{
-			Require.isNull(request.appVersion, () -> InvalidDataException.extraProperty("appVersion",
+			Require.isNull(request.appVersion, () -> InvalidDataException.extraProperty(APP_VERSION_PROPERTY,
 					"If the operating system is not provided, the other properties should not be provided either"));
-			Require.that(request.appVersionCode == 0, () -> InvalidDataException.extraProperty("appVersionCode",
+			Require.that(request.appVersionCode == 0, () -> InvalidDataException.extraProperty(APP_VERSION_CODE_PROPERTY,
 					"If the operating system is not provided, the other properties should not be provided either"));
 		}
 		else
 		{
-			Require.isNonNull(request.appVersion, () -> InvalidDataException.missingProperty("appVersion",
+			Require.isNonNull(request.appVersion, () -> InvalidDataException.missingProperty(APP_VERSION_PROPERTY,
 					"If the operating system is provided, the other properties must be present too"));
-			Require.that(request.appVersionCode != 0, () -> InvalidDataException.missingProperty("appVersionCode",
+			Require.that(request.appVersionCode != 0, () -> InvalidDataException.missingProperty(APP_VERSION_CODE_PROPERTY,
 					"If the operating system is provided, the other properties must be present too"));
 		}
 	}
@@ -270,7 +278,7 @@ public class DeviceController extends ControllerBase
 	private static void assertValidDeviceDataForUpdate(DeviceUpdateRequestDto requestDto)
 	{
 		String hint = "The name is mandatory and the FireBase ID optional";
-		Require.isNonNull(requestDto.name, () -> InvalidDataException.missingProperty("name", hint));
+		Require.isNonNull(requestDto.name, () -> InvalidDataException.missingProperty(NAME_PROPERTY, hint));
 	}
 
 	@DeleteMapping(value = "/{deviceId}")

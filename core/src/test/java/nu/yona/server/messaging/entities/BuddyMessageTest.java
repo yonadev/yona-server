@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
@@ -11,6 +11,7 @@ import static org.mockito.Mockito.lenient;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,8 +86,7 @@ public class BuddyMessageTest
 		public void createInstance_buddyWithName_nameReturned()
 		{
 			Buddy buddy = richard.getBuddies().iterator().next();
-			BuddyInfoParameters buddyInfoParameters = BuddyMessage.BuddyInfoParameters.createInstance(buddy,
-					buddy.getBuddyAnonymizedId());
+			BuddyInfoParameters buddyInfoParameters = BuddyMessage.BuddyInfoParameters.createInstance(buddy, Optional.empty());
 
 			assertThat(buddyInfoParameters.firstName, equalTo(bob.getFirstName()));
 			assertThat(buddyInfoParameters.lastName, equalTo(bob.getLastName()));
@@ -98,8 +98,7 @@ public class BuddyMessageTest
 			Buddy buddy = richard.getBuddies().iterator().next();
 			privateUserPropertiesFirstNameField.set(buddy, null);
 			privateUserPropertiesLastNameField.set(buddy, null);
-			BuddyInfoParameters buddyInfoParameters = BuddyMessage.BuddyInfoParameters.createInstance(buddy,
-					buddy.getBuddyAnonymizedId());
+			BuddyInfoParameters buddyInfoParameters = BuddyMessage.BuddyInfoParameters.createInstance(buddy, Optional.empty());
 
 			assertThat(buddyInfoParameters.firstName, equalTo(FIRST_NAME_SUBSTITUTE));
 			assertThat(buddyInfoParameters.lastName, equalTo(LAST_NAME_SUBSTITUTE));
