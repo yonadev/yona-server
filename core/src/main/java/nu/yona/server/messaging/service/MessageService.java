@@ -165,7 +165,7 @@ public class MessageService
 
 	public List<Message> getMessagesFromRelatedUserAnonymizedId(User user, UUID relatedUserAnonymizedId)
 	{
-		return getAnonymousMessageSource(user).getMessageFromRelatedUserAnonymizedId(relatedUserAnonymizedId);
+		return getAnonymousMessageSource(user).getMessagesFromRelatedUserAnonymizedId(relatedUserAnonymizedId);
 	}
 
 	@Transactional

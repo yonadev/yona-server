@@ -129,7 +129,7 @@ public class MessageSource extends EntityWithUuid
 		return message;
 	}
 
-	public List<Message> getMessageFromRelatedUserAnonymizedId(UUID relatedUserAnonymizedId)
+	public List<Message> getMessagesFromRelatedUserAnonymizedId(UUID relatedUserAnonymizedId)
 	{
 		List<Message> messages = Message.getRepository().findByRelatedUserAnonymizedId(messageDestination,
 				relatedUserAnonymizedId);
