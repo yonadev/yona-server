@@ -112,11 +112,12 @@ public class UserUpdateService
 	public UserDto updateUser(UUID id, UserDto user)
 	{
 		User updatedUserEntity = updateUser(id, userEntity -> {
+			assertValidUpdateRequestForUserCreatedNormally(user, userEntity);
 			UserDto originalUser = userLookupService.createUserDto(userEntity);
-			assertValidUpdateRequest(user, originalUser, userEntity);
 
 			user.updateUser(userEntity);
-			Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user, originalUser, userEntity);
+			Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user.getMobileNumber(),
+					originalUser.getMobileNumber(), userEntity);
 			if (confirmationCode.isPresent())
 			{
 				sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
@@ -180,23 +181,36 @@ public class UserUpdateService
 		return userLookupService.createUserDto(updatedUserEntity);
 	}
 
-	private void assertValidUpdateRequest(UserDto user, UserDto originalUser, User originalUserEntity)
+	private void assertValidUpdateRequestForUserCreatedNormally(UserDto user, User originalUserEntity)
 	{
-		if (originalUserEntity.isCreatedOnBuddyRequest())
-		{
-			// security check: should not be able to update a user created on buddy request with its temp password
-			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getId());
-		}
-		if (isMobileNumberDifferent(user, originalUser))
+		// security check: should not be able to update a user created on buddy request with its temp password
+		Require.that(!originalUserEntity.isCreatedOnBuddyRequest(),
+				() -> UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getId()));
+
+		assertValidUpdateRequest(user, originalUserEntity);
+	}
+
+	private void assertValidUpdateRequestForUserCreatedOnBuddyRequest(UserDto user, User originalUserEntity)
+	{
+		// security check: should not be able to replace the password on an existing user
+		Require.that(originalUserEntity.isCreatedOnBuddyRequest(),
+				() -> UserServiceException.userNotCreatedOnBuddyRequest(originalUserEntity.getId()));
+
+		assertValidUpdateRequest(user, originalUserEntity);
+	}
+
+	private void assertValidUpdateRequest(UserDto user, User originalUserEntity)
+	{
+		if (isMobileNumberDifferent(user.getMobileNumber(), originalUserEntity.getMobileNumber()))
 		{
 			userAssertionService.assertUserDoesNotExist(user.getMobileNumber());
 		}
 	}
 
-	private Optional<ConfirmationCode> createConfirmationCodeIfNumberUpdated(UserDto user, UserDto originalUser,
+	private Optional<ConfirmationCode> createConfirmationCodeIfNumberUpdated(String currentNumber, String originalNumber,
 			User updatedUserEntity)
 	{
-		if (isMobileNumberDifferent(user, originalUser))
+		if (isMobileNumberDifferent(currentNumber, originalNumber))
 		{
 			ConfirmationCode confirmationCode = createConfirmationCode();
 			updatedUserEntity.setMobileNumberConfirmationCode(confirmationCode);
@@ -205,17 +219,17 @@ public class UserUpdateService
 		return Optional.empty();
 	}
 
-	private boolean isMobileNumberDifferent(UserDto user, UserDto originalUser)
+	private boolean isMobileNumberDifferent(String currentNumber, String originalNumber)
 	{
-		return !user.getMobileNumber().equals(originalUser.getMobileNumber());
+		return !currentNumber.equals(originalNumber);
 	}
 
 	@Transactional
 	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto user)
 	{
 		User originalUserEntity = userLookupService.getUserEntityById(id);
-		// security check: should not be able to replace the password on an existing user
-		Require.that(originalUserEntity.isCreatedOnBuddyRequest(), () -> UserServiceException.userNotCreatedOnBuddyRequest(id));
+
+		assertValidUpdateRequestForUserCreatedOnBuddyRequest(user, originalUserEntity);
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
