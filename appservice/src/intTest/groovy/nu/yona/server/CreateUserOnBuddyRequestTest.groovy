@@ -611,6 +611,29 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		"deviceFirebaseInstanceId" | 200
 	}
 
+	def 'Try update Bob with already existing mobile number'()
+	{
+		given:
+		User richard = addRichard()
+		def mobileNumberBob = makeMobileNumber(timestamp)
+		assertResponseStatusCreated(sendBuddyRequestForBobby(richard, mobileNumberBob))
+		def inviteUrl = getInviteUrl()
+		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
+
+		when:
+		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.mobileNumber = richard.mobileNumber
+		def response = appService.updateResource(inviteUrl, updatedBobJson, [:], [:])
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.user.exists"
+
+		cleanup:
+		appService.deleteUser(richard)
+		// TODO: How to delete the invited user?
+	}
+
 	def assertUserCreationFailedBecauseOfDuplicate(response)
 	{
 		assertResponseStatus(response, 400)
