@@ -21,7 +21,7 @@ public class BuddyMessageEmbeddedUserDecorator implements MessageResourceDecorat
 		message.getSenderUser()
 				.ifPresent(user -> buddyMessage.setEmbeddedUser(
 						assembler.getCurieProvider().getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-						createUserResourceAssembler(assembler).toResource(user)));
+						createUserResourceAssembler(assembler).toModel(user)));
 
 	}
 

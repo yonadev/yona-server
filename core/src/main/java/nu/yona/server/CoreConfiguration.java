@@ -14,12 +14,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
-import org.springframework.hateoas.RelProvider;
+import org.springframework.hateoas.server.LinkRelationProvider;
 import org.springframework.hateoas.UriTemplate;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
-import org.springframework.hateoas.hal.CurieProvider;
-import org.springframework.hateoas.hal.DefaultCurieProvider;
+import org.springframework.hateoas.mediatype.hal.CurieProvider;
+import org.springframework.hateoas.mediatype.hal.DefaultCurieProvider;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.rest.RestClientErrorHandler;
 
 @EnableHypermediaSupport(type = HypermediaType.HAL)
@@ -43,9 +43,9 @@ public class CoreConfiguration
 	private YonaProperties yonaProperties;
 
 	@Bean
-	RelProvider relProvider()
+	LinkRelationProvider relProvider()
 	{
-		return new JsonRootRelProvider();
+		return new JsonRootLinkRelationProvider();
 	}
 
 	@Bean

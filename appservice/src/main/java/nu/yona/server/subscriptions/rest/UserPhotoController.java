@@ -4,8 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -19,9 +19,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -125,20 +125,20 @@ public class UserPhotoController extends ControllerBase
 		}
 	}
 
-	public static ControllerLinkBuilder getUserPhotoLinkBuilder(UUID userPhotoId)
+	public static WebMvcLinkBuilder getUserPhotoLinkBuilder(UUID userPhotoId)
 	{
 		return linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId));
 	}
 
-	public static class UserPhotoResource extends Resource<UserPhotoDto>
+	public static class UserPhotoResource extends EntityModel<UserPhotoDto>
 	{
-		public UserPhotoResource(UserPhotoDto userPhoto)
+		public UserPhotoModel(UserPhotoDto userPhoto)
 		{
 			super(userPhoto);
 		}
 	}
 
-	public static class UserPhotoResourceAssembler extends ResourceAssemblerSupport<UserPhotoDto, UserPhotoResource>
+	public static class UserPhotoResourceAssembler extends RepresentationModelAssemblerSupport<UserPhotoDto, UserPhotoResource>
 	{
 		public UserPhotoResourceAssembler()
 		{
@@ -146,7 +146,7 @@ public class UserPhotoController extends ControllerBase
 		}
 
 		@Override
-		public UserPhotoResource toResource(UserPhotoDto userPhoto)
+		public UserPhotoResource toModel(UserPhotoDto userPhoto)
 		{
 			UserPhotoResource userPhotoResource = instantiateResource(userPhoto);
 			addPhotoLink(userPhotoResource);
@@ -156,10 +156,10 @@ public class UserPhotoController extends ControllerBase
 		@Override
 		protected UserPhotoResource instantiateResource(UserPhotoDto userPhoto)
 		{
-			return new UserPhotoResource(userPhoto);
+			return new UserPhotoModel(userPhoto);
 		}
 
-		private void addPhotoLink(Resource<UserPhotoDto> userPhotoResource)
+		private void addPhotoLink(EntityModel<UserPhotoDto> userPhotoResource)
 		{
 			userPhotoResource.add(UserPhotoController.getUserPhotoLinkBuilder(userPhotoResource.getContent().getId().get())
 					.withRel("userPhoto"));

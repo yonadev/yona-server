@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,7 +61,7 @@ public class TestController extends ControllerBase
 		return new EmailResourceAssembler();
 	}
 
-	static class EmailResource extends Resource<EmailDto>
+	static class EmailResource extends EntityModel<EmailDto>
 	{
 		public EmailResource(EmailDto email)
 		{
@@ -70,7 +70,7 @@ public class TestController extends ControllerBase
 
 	}
 
-	static class EmailResourceAssembler extends ResourceAssemblerSupport<EmailDto, EmailResource>
+	static class EmailResourceAssembler extends RepresentationModelAssemblerSupport<EmailDto, EmailResource>
 	{
 		public EmailResourceAssembler()
 		{
@@ -78,7 +78,7 @@ public class TestController extends ControllerBase
 		}
 
 		@Override
-		public EmailResource toResource(EmailDto email)
+		public EmailResource toModel(EmailDto email)
 		{
 			return instantiateResource(email);
 		}
@@ -171,7 +171,7 @@ public class TestController extends ControllerBase
 		}
 	}
 
-	static class FirebaseMessageResource extends Resource<FirebaseMessageDto>
+	static class FirebaseMessageResource extends EntityModel<FirebaseMessageDto>
 	{
 		public FirebaseMessageResource(FirebaseMessageDto email)
 		{
@@ -180,7 +180,7 @@ public class TestController extends ControllerBase
 
 	}
 
-	static class FirebaseMessageResourceAssembler extends ResourceAssemblerSupport<FirebaseMessageDto, FirebaseMessageResource>
+	static class FirebaseMessageResourceAssembler extends RepresentationModelAssemblerSupport<FirebaseMessageDto, FirebaseMessageResource>
 	{
 		public FirebaseMessageResourceAssembler()
 		{
@@ -188,7 +188,7 @@ public class TestController extends ControllerBase
 		}
 
 		@Override
-		public FirebaseMessageResource toResource(FirebaseMessageDto email)
+		public FirebaseMessageResource toModel(FirebaseMessageDto email)
 		{
 			return instantiateResource(email);
 		}

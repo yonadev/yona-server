@@ -4,17 +4,17 @@
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,7 +40,7 @@ public class TriggerController extends ControllerBase
 
 	@GetMapping(value = "/cron/")
 	@ResponseBody
-	public HttpEntity<Resources<TriggerResource>> getAllTriggers()
+	public HttpEntity<CollectionModel<TriggerResource>> getAllTriggers()
 	{
 		return createOkResponse(triggerManagementService.getAllTriggers(), createResourceAssembler(),
 				getAllTriggersLinkBuilder());
@@ -48,7 +48,7 @@ public class TriggerController extends ControllerBase
 
 	@GetMapping(value = "/cron/{group}/")
 	@ResponseBody
-	public HttpEntity<Resources<TriggerResource>> getTriggersInGroup(@PathVariable String group)
+	public HttpEntity<CollectionModel<TriggerResource>> getTriggersInGroup(@PathVariable String group)
 	{
 		return createOkResponse(triggerManagementService.getTriggersInGroup(group), createResourceAssembler(),
 				getTriggersInGroupLinkBuilder(group));
@@ -56,7 +56,7 @@ public class TriggerController extends ControllerBase
 
 	@PutMapping(value = "/cron/{group}/")
 	@ResponseBody
-	public HttpEntity<Resources<TriggerResource>> updateTriggerGroup(@PathVariable String group,
+	public HttpEntity<CollectionModel<TriggerResource>> updateTriggerGroup(@PathVariable String group,
 			@RequestBody Set<CronTriggerDto> triggers)
 	{
 		return createOkResponse(triggerManagementService.updateTriggerGroup(group, triggers), createResourceAssembler(),
@@ -68,7 +68,7 @@ public class TriggerController extends ControllerBase
 	@ResponseStatus(HttpStatus.OK)
 	public TriggerResource getTrigger(@PathVariable String group, @PathVariable String name)
 	{
-		return new TriggerResourceAssembler().toResource(triggerManagementService.getTrigger(name, group));
+		return new TriggerResourceAssembler().toModel(triggerManagementService.getTrigger(name, group));
 	}
 
 	@PostMapping(value = "/cron/{group}/")
@@ -77,7 +77,7 @@ public class TriggerController extends ControllerBase
 	public TriggerResource addTrigger(@PathVariable String group, @RequestBody CronTriggerDto trigger)
 	{
 		trigger.setGroup(group);
-		return new TriggerResourceAssembler().toResource(triggerManagementService.addTrigger(group, trigger));
+		return new TriggerResourceAssembler().toModel(triggerManagementService.addTrigger(group, trigger));
 	}
 
 	private TriggerResourceAssembler createResourceAssembler()
@@ -85,25 +85,25 @@ public class TriggerController extends ControllerBase
 		return new TriggerResourceAssembler();
 	}
 
-	private static ControllerLinkBuilder getAllTriggersLinkBuilder()
+	private static WebMvcLinkBuilder getAllTriggersLinkBuilder()
 	{
 		TriggerController methodOn = methodOn(TriggerController.class);
 		return linkTo(methodOn.getAllTriggers());
 	}
 
-	private static ControllerLinkBuilder getTriggersInGroupLinkBuilder(String group)
+	private static WebMvcLinkBuilder getTriggersInGroupLinkBuilder(String group)
 	{
 		TriggerController methodOn = methodOn(TriggerController.class);
 		return linkTo(methodOn.getTriggersInGroup(group));
 	}
 
-	static ControllerLinkBuilder getTriggerLinkBuilder(String group, String name)
+	static WebMvcLinkBuilder getTriggerLinkBuilder(String group, String name)
 	{
 		TriggerController methodOn = methodOn(TriggerController.class);
 		return linkTo(methodOn.getTrigger(group, name));
 	}
 
-	static class TriggerResource extends Resource<CronTriggerDto>
+	static class TriggerResource extends EntityModel<CronTriggerDto>
 	{
 		public TriggerResource(CronTriggerDto trigger)
 		{
@@ -111,7 +111,7 @@ public class TriggerController extends ControllerBase
 		}
 	}
 
-	public static class TriggerResourceAssembler extends ResourceAssemblerSupport<CronTriggerDto, TriggerResource>
+	public static class TriggerResourceAssembler extends RepresentationModelAssemblerSupport<CronTriggerDto, TriggerResource>
 	{
 		public TriggerResourceAssembler()
 		{
@@ -119,7 +119,7 @@ public class TriggerController extends ControllerBase
 		}
 
 		@Override
-		public TriggerResource toResource(CronTriggerDto trigger)
+		public TriggerResource toModel(CronTriggerDto trigger)
 		{
 			TriggerResource triggerResource = instantiateResource(trigger);
 			addSelfLink(triggerResource);
@@ -132,12 +132,12 @@ public class TriggerController extends ControllerBase
 			return new TriggerResource(trigger);
 		}
 
-		private void addSelfLink(Resource<CronTriggerDto> trigger)
+		private void addSelfLink(EntityModel<CronTriggerDto> trigger)
 		{
 			trigger.add(getLinkBuilder(trigger).withSelfRel());
 		}
 
-		private ControllerLinkBuilder getLinkBuilder(Resource<CronTriggerDto> trigger)
+		private WebMvcLinkBuilder getLinkBuilder(EntityModel<CronTriggerDto> trigger)
 		{
 			return TriggerController.getTriggerLinkBuilder(trigger.getContent().getGroup(), trigger.getContent().getName());
 		}

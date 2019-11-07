@@ -22,7 +22,7 @@ public class SecurityProperties
 	private String ovpnProfileFile;
 
 	/**
-	 * If true, Cross Origin Resource Sharing is allowed. This is necessary for Swagger UI.
+	 * If true, Cross Origin EntityModel Sharing is allowed. This is necessary for Swagger UI.
 	 */
 	private boolean isCorsAllowed;
 

@@ -4,18 +4,18 @@
  *******************************************************************************/
 package nu.yona.server.goals.rest;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -56,7 +56,7 @@ public class ActivityCategoryController extends ControllerBase
 	@GetMapping(value = "/")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AdminView.class)
-	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
+	public HttpEntity<CollectionModel<ActivityCategoryResource>> getAllActivityCategories()
 	{
 		return createOkResponse(activityCategoryService.getAllActivityCategories(), createResourceAssembler(),
 				getAllActivityCategoriesLinkBuilder());
@@ -83,7 +83,7 @@ public class ActivityCategoryController extends ControllerBase
 	@PutMapping(value = "/")
 	@ResponseBody
 	@JsonView(ActivityCategoryDto.AdminView.class)
-	public HttpEntity<Resources<ActivityCategoryResource>> updateActivityCategorySet(
+	public HttpEntity<CollectionModel<ActivityCategoryResource>> updateActivityCategorySet(
 			@RequestBody Set<ActivityCategoryDto> activityCategorySet)
 	{
 		activityCategoryService.updateActivityCategorySet(activityCategorySet);
@@ -103,13 +103,13 @@ public class ActivityCategoryController extends ControllerBase
 		return new ActivityCategoryResourceAssembler();
 	}
 
-	static ControllerLinkBuilder getAllActivityCategoriesLinkBuilder()
+	static WebMvcLinkBuilder getAllActivityCategoriesLinkBuilder()
 	{
 		ActivityCategoryController methodOn = methodOn(ActivityCategoryController.class);
 		return linkTo(methodOn.getAllActivityCategories());
 	}
 
-	public static class ActivityCategoryResource extends Resource<ActivityCategoryDto>
+	public static class ActivityCategoryResource extends EntityModel<ActivityCategoryDto>
 	{
 		public ActivityCategoryResource(ActivityCategoryDto activityCategory)
 		{
@@ -118,7 +118,7 @@ public class ActivityCategoryController extends ControllerBase
 	}
 
 	private static class ActivityCategoryResourceAssembler
-			extends ResourceAssemblerSupport<ActivityCategoryDto, ActivityCategoryResource>
+			extends RepresentationModelAssemblerSupport<ActivityCategoryDto, ActivityCategoryResource>
 	{
 		public ActivityCategoryResourceAssembler()
 		{
@@ -126,7 +126,7 @@ public class ActivityCategoryController extends ControllerBase
 		}
 
 		@Override
-		public ActivityCategoryResource toResource(ActivityCategoryDto activityCategory)
+		public ActivityCategoryResource toModel(ActivityCategoryDto activityCategory)
 		{
 			return super.createResourceWithId(activityCategory.getId(), activityCategory);
 		}

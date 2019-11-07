@@ -5,8 +5,8 @@
 package nu.yona.server.messaging.rest;
 
 import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,11 +21,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.hal.CurieProvider;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.mediatype.hal.CurieProvider;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -50,7 +50,7 @@ import nu.yona.server.messaging.service.MessageActionDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
@@ -82,7 +82,7 @@ public class MessageController extends ControllerBase
 
 	@GetMapping(value = "/")
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageDto>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<PagedModel<MessageDto>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
 			@PathVariable UUID userId, Pageable pageable, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
@@ -95,7 +95,7 @@ public class MessageController extends ControllerBase
 		}
 	}
 
-	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
+	private HttpEntity<PagedModel<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
 		UserDto user = userService.getValidatedUser(userId);
@@ -126,7 +126,7 @@ public class MessageController extends ControllerBase
 		return createOkResponse(message, createResourceAssembler(createGoalIdMapping(user)));
 	}
 
-	public HttpEntity<PagedResources<MessageDto>> createOkResponse(UserDto user, Page<MessageDto> messages,
+	public HttpEntity<PagedModel<MessageDto>> createOkResponse(UserDto user, Page<MessageDto> messages,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return createOkResponse(messages, pagedResourcesAssembler, createResourceAssembler(createGoalIdMapping(user)));
@@ -173,7 +173,7 @@ public class MessageController extends ControllerBase
 		return new MessageResourceAssembler(curieProvider, goalIdMapping, this);
 	}
 
-	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userId, long messageId)
+	public static WebMvcLinkBuilder getAnonymousMessageLinkBuilder(UUID userId, long messageId)
 	{
 		MessageController methodOn = methodOn(MessageController.class);
 		return linkTo(methodOn.getMessage(Optional.empty(), userId, messageId));
@@ -181,7 +181,7 @@ public class MessageController extends ControllerBase
 
 	public static Link getMessagesLink(UUID userId)
 	{
-		ControllerLinkBuilder linkBuilder = linkTo(
+		WebMvcLinkBuilder linkBuilder = linkTo(
 				methodOn(MessageController.class).getMessages(Optional.empty(), null, userId, null, null));
 		return linkBuilder.withRel("messages").expand();
 	}
@@ -201,7 +201,7 @@ public class MessageController extends ControllerBase
 		return messageResourceDecoratorRegistry.getDecorators(classToDecorate);
 	}
 
-	static class MessageActionResource extends Resource<MessageActionDto>
+	static class MessageActionResource extends EntityModel<MessageActionDto>
 	{
 		private final GoalIdMapping goalIdMapping;
 		private final CurieProvider curieProvider;
@@ -221,11 +221,11 @@ public class MessageController extends ControllerBase
 		{
 			Set<MessageDto> affectedMessages = getContent().getAffectedMessages();
 			return Collections.singletonMap(curieProvider.getNamespacedRelFor("affectedMessages"),
-					new MessageResourceAssembler(curieProvider, goalIdMapping, messageController).toResources(affectedMessages));
+					new MessageResourceAssembler(curieProvider, goalIdMapping, messageController).toCollectionModel(affectedMessages));
 		}
 	}
 
-	static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDto, MessageDto>
+	static class MessageResourceAssembler extends RepresentationModelAssemblerSupport<MessageDto, MessageDto>
 	{
 		private final GoalIdMapping goalIdMapping;
 		private final CurieProvider curieProvider;
@@ -241,10 +241,10 @@ public class MessageController extends ControllerBase
 		}
 
 		@Override
-		public MessageDto toResource(MessageDto message)
+		public MessageDto toModel(MessageDto message)
 		{
 			message.removeLinks(); // So we are sure the below links are the only ones
-			ControllerLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(),
+			WebMvcLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(),
 					message.getMessageId());
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
@@ -289,17 +289,17 @@ public class MessageController extends ControllerBase
 			return message;
 		}
 
-		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, MessageDto messageResource)
+		private void addSelfLink(WebMvcLinkBuilder selfLinkBuilder, MessageDto messageResource)
 		{
 			messageResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, MessageDto messageResource)
+		private void addEditLink(WebMvcLinkBuilder selfLinkBuilder, MessageDto messageResource)
 		{
-			messageResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+			messageResource.add(selfLinkBuilder.withRel(JsonRootLinkRelationProvider.EDIT_REL));
 		}
 
-		private void addActionLinks(ControllerLinkBuilder selfLinkBuilder, MessageDto messageResource)
+		private void addActionLinks(WebMvcLinkBuilder selfLinkBuilder, MessageDto messageResource)
 		{
 			messageResource.getPossibleActions().stream().forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
 		}

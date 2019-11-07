@@ -5,8 +5,8 @@
 package nu.yona.server.goals.rest;
 
 import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Optional;
 import java.util.Set;
@@ -16,10 +16,10 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.hal.CurieProvider;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.mediatype.hal.CurieProvider;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -43,7 +43,7 @@ import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.rest.RestUtil;
 import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -70,7 +70,7 @@ public class GoalController extends ControllerBase
 
 	@GetMapping(value = "/")
 	@ResponseBody
-	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<CollectionModel<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = true) String requestingUserIdStr,
 			@PathVariable UUID userId)
 	{
@@ -165,14 +165,14 @@ public class GoalController extends ControllerBase
 		return new GoalResourceAssembler(requestingUserId, userId);
 	}
 
-	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
+	public static CollectionModel<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
 			Set<GoalDto> allGoalsOfUser)
 	{
-		return new Resources<>(new GoalResourceAssembler(requestingUserId, userId).toResources(allGoalsOfUser),
+		return new CollectionModel<>(new GoalResourceAssembler(requestingUserId, userId).toCollectionModel(allGoalsOfUser),
 				getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
 	}
 
-	public static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID requestingUserId, UUID userId)
+	public static WebMvcLinkBuilder getAllGoalsLinkBuilder(UUID requestingUserId, UUID userId)
 	{
 		GoalController methodOn = methodOn(GoalController.class);
 		return linkTo(methodOn.getAllGoals(null, requestingUserId.toString(), userId));
@@ -194,23 +194,23 @@ public class GoalController extends ControllerBase
 		return RestUtil.parseUuid(activityCategoryUrl.substring(activityCategoryUrl.lastIndexOf('/') + 1));
 	}
 
-	public static ControllerLinkBuilder getGoalLinkBuilder(UUID requestingUserId, UUID userId, UUID goalId)
+	public static WebMvcLinkBuilder getGoalLinkBuilder(UUID requestingUserId, UUID userId, UUID goalId)
 	{
 		GoalController methodOn = methodOn(GoalController.class);
 		return linkTo(methodOn.getGoal(Optional.empty(), requestingUserId.toString(), userId, goalId));
 	}
 
-	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDto, GoalDto>
+	public static class GoalResourceAssembler extends RepresentationModelAssemblerSupport<GoalDto, GoalDto>
 	{
 		private final boolean canBeEditable;
-		private final Function<UUID, ControllerLinkBuilder> selfLinkBuilderSupplier;
+		private final Function<UUID, WebMvcLinkBuilder> selfLinkBuilderSupplier;
 
 		public GoalResourceAssembler(UUID requestingUserId, UUID userId)
 		{
 			this(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId));
 		}
 
-		public GoalResourceAssembler(boolean canBeEditable, Function<UUID, ControllerLinkBuilder> selfLinkBuilderSupplier)
+		public GoalResourceAssembler(boolean canBeEditable, Function<UUID, WebMvcLinkBuilder> selfLinkBuilderSupplier)
 		{
 			super(GoalController.class, GoalDto.class);
 			this.canBeEditable = canBeEditable;
@@ -218,10 +218,10 @@ public class GoalController extends ControllerBase
 		}
 
 		@Override
-		public GoalDto toResource(GoalDto goal)
+		public GoalDto toModel(GoalDto goal)
 		{
 			goal.removeLinks();
-			ControllerLinkBuilder selfLinkBuilder = selfLinkBuilderSupplier.apply(goal.getGoalId());
+			WebMvcLinkBuilder selfLinkBuilder = selfLinkBuilderSupplier.apply(goal.getGoalId());
 			addSelfLink(selfLinkBuilder, goal);
 			if (canBeEditable && !goal.isMandatory())
 			{
@@ -243,14 +243,14 @@ public class GoalController extends ControllerBase
 			return goal;
 		}
 
-		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, GoalDto goalResource)
+		private void addSelfLink(WebMvcLinkBuilder selfLinkBuilder, GoalDto goalResource)
 		{
 			goalResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, GoalDto goalResource)
+		private void addEditLink(WebMvcLinkBuilder selfLinkBuilder, GoalDto goalResource)
 		{
-			goalResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+			goalResource.add(selfLinkBuilder.withRel(JsonRootLinkRelationProvider.EDIT_REL));
 		}
 	}
 }

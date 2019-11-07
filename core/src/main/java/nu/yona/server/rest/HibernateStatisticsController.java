@@ -5,8 +5,8 @@
 package nu.yona.server.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -82,7 +82,7 @@ public class HibernateStatisticsController extends ControllerBase
 		return new StatisticsResourceAssembler();
 	}
 
-	public static class StatisticsResource extends Resource<HibernateStatisticsService.StatisticsDto>
+	public static class StatisticsResource extends EntityModel<HibernateStatisticsService.StatisticsDto>
 	{
 		public StatisticsResource(HibernateStatisticsService.StatisticsDto statistics)
 		{
@@ -90,8 +90,8 @@ public class HibernateStatisticsController extends ControllerBase
 		}
 	}
 
-	private static class StatisticsResourceAssembler
-			extends ResourceAssemblerSupport<HibernateStatisticsService.StatisticsDto, StatisticsResource>
+	static class StatisticsResourceAssembler
+			extends RepresentationModelAssemblerSupport<HibernateStatisticsService.StatisticsDto, StatisticsResource>
 	{
 		public StatisticsResourceAssembler()
 		{
@@ -99,13 +99,13 @@ public class HibernateStatisticsController extends ControllerBase
 		}
 
 		@Override
-		public StatisticsResource toResource(HibernateStatisticsService.StatisticsDto statistics)
+		public StatisticsResource toModel(HibernateStatisticsService.StatisticsDto statistics)
 		{
-			return instantiateResource(statistics);
+			return instantiateModel(statistics);
 		}
 
 		@Override
-		protected StatisticsResource instantiateResource(HibernateStatisticsService.StatisticsDto statistics)
+		protected StatisticsResource instantiateModel(HibernateStatisticsService.StatisticsDto statistics)
 		{
 			return new StatisticsResource(statistics);
 		}

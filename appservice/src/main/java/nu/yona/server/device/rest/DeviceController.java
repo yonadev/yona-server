@@ -5,8 +5,8 @@
 package nu.yona.server.device.rest;
 
 import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
@@ -29,10 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -77,7 +77,7 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.rest.RestUtil;
 import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.AppleMobileConfigSigner;
@@ -137,7 +137,7 @@ public class DeviceController extends ControllerBase
 
 	@GetMapping(value = "/")
 	@ResponseBody
-	public HttpEntity<Resources<DeviceResource>> getAllDevices(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<CollectionModel<DeviceResource>> getAllDevices(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
@@ -370,7 +370,7 @@ public class DeviceController extends ControllerBase
 
 	public static Link getPostOpenAppEventLink(UUID userId, UUID deviceId)
 	{
-		ControllerLinkBuilder linkBuilder = linkTo(
+		WebMvcLinkBuilder linkBuilder = linkTo(
 				methodOn(DeviceController.class).postOpenAppEvent(Optional.empty(), userId, deviceId, null));
 		return linkBuilder.withRel("postOpenAppEvent");
 	}
@@ -379,7 +379,7 @@ public class DeviceController extends ControllerBase
 	{
 		try
 		{
-			ControllerLinkBuilder linkBuilder = linkTo(
+			WebMvcLinkBuilder linkBuilder = linkTo(
 					methodOn(DeviceController.class).addAppActivity(Optional.empty(), userId, deviceId, null));
 			return linkBuilder.withRel("appActivity");
 		}
@@ -391,7 +391,7 @@ public class DeviceController extends ControllerBase
 
 	public static Link getPostVpnStatusEventLink(UUID userId, UUID deviceId)
 	{
-		ControllerLinkBuilder linkBuilder = linkTo(
+		WebMvcLinkBuilder linkBuilder = linkTo(
 				methodOn(DeviceController.class).postVpnStatusChangeEvent(Optional.empty(), userId, deviceId, null));
 		return linkBuilder.withRel("postVpnStatusEvent");
 	}
@@ -401,7 +401,7 @@ public class DeviceController extends ControllerBase
 		return new DeviceResourceAssembler(userId, requestingDeviceId);
 	}
 
-	public static ControllerLinkBuilder getAllDevicesLinkBuilder(UUID userId, Optional<UUID> requestingDeviceId)
+	public static WebMvcLinkBuilder getAllDevicesLinkBuilder(UUID userId, Optional<UUID> requestingDeviceId)
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
 		return linkTo(methodOn.getAllDevices(null, userId, optionalUuidToNullableString(requestingDeviceId)));
@@ -417,22 +417,22 @@ public class DeviceController extends ControllerBase
 		return Optional.ofNullable(uuidStr).map(RestUtil::parseUuid);
 	}
 
-	public static ControllerLinkBuilder getDeviceLinkBuilder(UUID userId, UUID deviceId, Optional<UUID> requestingDeviceId)
+	public static WebMvcLinkBuilder getDeviceLinkBuilder(UUID userId, UUID deviceId, Optional<UUID> requestingDeviceId)
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
 		return linkTo(methodOn.getDevice(Optional.empty(), userId, deviceId, optionalUuidToNullableString(requestingDeviceId)));
 	}
 
-	public static ControllerLinkBuilder getRegisterDeviceLinkBuilder(UUID userId)
+	public static WebMvcLinkBuilder getRegisterDeviceLinkBuilder(UUID userId)
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
 		return linkTo(methodOn.registerDevice(null, userId, null));
 	}
 
-	public static Resources<DeviceResource> createAllDevicesCollectionResource(UUID userId, Set<DeviceBaseDto> devices,
+	public static CollectionModel<DeviceResource> createAllDevicesCollectionResource(UUID userId, Set<DeviceBaseDto> devices,
 			Optional<UUID> requestingDeviceId)
 	{
-		return new Resources<>(new DeviceResourceAssembler(userId, requestingDeviceId).toResources(devices),
+		return new CollectionModel<>(new DeviceResourceAssembler(userId, requestingDeviceId).toCollectionModel(devices),
 				DeviceController.getAllDevicesLinkBuilder(userId, requestingDeviceId).withSelfRel());
 	}
 
@@ -461,7 +461,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	public static class DeviceResource extends Resource<DeviceBaseDto>
+	public static class DeviceResource extends EntityModel<DeviceBaseDto>
 	{
 		private static String sslRootCertificateCn;
 		private final boolean isRequestingDevice;
@@ -505,7 +505,7 @@ public class DeviceController extends ControllerBase
 		}
 
 		@JsonInclude(Include.NON_EMPTY)
-		public Resource<VPNProfileDto> getVpnProfile()
+		public EntityModel<VPNProfileDto> getVpnProfile()
 		{
 			if (getContent() instanceof UserDeviceDto)
 			{
@@ -514,14 +514,14 @@ public class DeviceController extends ControllerBase
 			return null;
 		}
 
-		public static Resource<VPNProfileDto> createVpnProfileResource(VPNProfileDto vpnProfileDto)
+		public static EntityModel<VPNProfileDto> createVpnProfileResource(VPNProfileDto vpnProfileDto)
 		{
-			Resource<VPNProfileDto> vpnProfileResource = new Resource<>(vpnProfileDto);
+			EntityModel<VPNProfileDto> vpnProfileResource = new EntityModel<>(vpnProfileDto);
 			addOvpnProfileLink(vpnProfileResource);
 			return vpnProfileResource;
 		}
 
-		private static void addOvpnProfileLink(Resource<VPNProfileDto> vpnProfileResource)
+		private static void addOvpnProfileLink(EntityModel<VPNProfileDto> vpnProfileResource)
 		{
 			vpnProfileResource.add(
 					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
@@ -529,7 +529,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	public static class DeviceResourceAssembler extends ResourceAssemblerSupport<DeviceBaseDto, DeviceResource>
+	public static class DeviceResourceAssembler extends RepresentationModelAssemblerSupport<DeviceBaseDto, DeviceResource>
 	{
 		private final UUID userId;
 		private final Optional<UUID> requestingDeviceId;
@@ -542,10 +542,10 @@ public class DeviceController extends ControllerBase
 		}
 
 		@Override
-		public DeviceResource toResource(DeviceBaseDto device)
+		public DeviceResource toModel(DeviceBaseDto device)
 		{
 			DeviceResource deviceResource = instantiateResource(device);
-			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(device.getId());
+			WebMvcLinkBuilder selfLinkBuilder = getSelfLinkBuilder(device.getId());
 			addSelfLink(selfLinkBuilder, deviceResource);
 			addEditLink(selfLinkBuilder, deviceResource);
 			if (isRequestingDevice(device))
@@ -570,19 +570,19 @@ public class DeviceController extends ControllerBase
 			return device.getId().equals(requestingDeviceId.orElse(null));
 		}
 
-		private ControllerLinkBuilder getSelfLinkBuilder(UUID deviceId)
+		private WebMvcLinkBuilder getSelfLinkBuilder(UUID deviceId)
 		{
 			return getDeviceLinkBuilder(userId, deviceId, requestingDeviceId);
 		}
 
-		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
+		private void addSelfLink(WebMvcLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
 		{
 			deviceResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
+		private void addEditLink(WebMvcLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
 		{
-			deviceResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+			deviceResource.add(selfLinkBuilder.withRel(JsonRootLinkRelationProvider.EDIT_REL));
 		}
 
 		private void addPostOpenAppEventLink(DeviceResource deviceResource)

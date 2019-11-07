@@ -21,7 +21,6 @@ artifacts {
 	testUtils testUtilsJar
 }
 
-ext['mockito.version'] = '2.25.0'
 ext['junit-jupiter.version'] = '5.4.0'
 
 dependencies {
