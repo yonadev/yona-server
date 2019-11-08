@@ -11,7 +11,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
-import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,43 +42,43 @@ public abstract class ControllerBase
 	}
 
 	protected <T, U extends RepresentationModel<U>> ResponseEntity<U> createOkResponse(T dto,
-			RepresentationModelAssemblerSupport<T, U> resourceAssembler)
+			RepresentationModelAssembler<T, U> resourceAssembler)
 	{
 		return createResponse(dto, HttpStatus.OK, resourceAssembler);
 	}
 
 	protected <T, U extends RepresentationModel<U>> ResponseEntity<U> createResponse(T dto, HttpStatus status,
-			RepresentationModelAssemblerSupport<T, U> resourceAssembler)
+			RepresentationModelAssembler<T, U> resourceAssembler)
 	{
 		return new ResponseEntity<>(resourceAssembler.toModel(dto), status);
 	}
 
 	protected <T, U extends RepresentationModel<U>> ResponseEntity<CollectionModel<U>> createOkResponse(Collection<T> dtos,
-			RepresentationModelAssemblerSupport<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
+			RepresentationModelAssembler<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
 	{
 		return createResponse(dtos, HttpStatus.OK, resourceAssembler, linkBuilder);
 	}
 
 	protected <T, U extends RepresentationModel<U>> ResponseEntity<CollectionModel<U>> createResponse(Collection<T> dtos,
-			HttpStatus status, RepresentationModelAssemblerSupport<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
+			HttpStatus status, RepresentationModelAssembler<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
 	{
 		return new ResponseEntity<>(createCollectionResource(dtos, resourceAssembler, linkBuilder), status);
 	}
 
 	protected <T, U extends RepresentationModel<U>> ResponseEntity<PagedModel<U>> createOkResponse(Page<T> dtos,
-			PagedResourcesAssembler<T> pagedResourceAssembler, RepresentationModelAssemblerSupport<T, U> resourceAssembler)
+			PagedResourcesAssembler<T> pagedResourceAssembler, RepresentationModelAssembler<T, U> resourceAssembler)
 	{
 		return createResponse(dtos, HttpStatus.OK, pagedResourceAssembler, resourceAssembler);
 	}
 
 	protected <T, U extends RepresentationModel<U>> ResponseEntity<PagedModel<U>> createResponse(Page<T> dtos, HttpStatus status,
-			PagedResourcesAssembler<T> pagedResourceAssembler, RepresentationModelAssemblerSupport<T, U> resourceAssembler)
+			PagedResourcesAssembler<T> pagedResourceAssembler, RepresentationModelAssembler<T, U> resourceAssembler)
 	{
 		return new ResponseEntity<>(pagedResourceAssembler.toModel(dtos, resourceAssembler), status);
 	}
 
 	public static <T, U extends RepresentationModel<U>> CollectionModel<U> createCollectionResource(Collection<T> dtos,
-			RepresentationModelAssemblerSupport<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
+			RepresentationModelAssembler<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
 	{
 		return new CollectionModel<>(resourceAssembler.toCollectionModel(dtos), linkBuilder.withSelfRel());
 	}
