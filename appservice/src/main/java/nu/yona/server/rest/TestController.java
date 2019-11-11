@@ -27,8 +27,11 @@ import com.google.firebase.messaging.Notification;
 
 import nu.yona.server.email.EmailService;
 import nu.yona.server.email.EmailService.EmailDto;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.service.FirebaseService;
+import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.Require;
 
 /**
  * This controller is only created for integration tests. A service like the email service can be configured for testing. In that
@@ -38,6 +41,9 @@ import nu.yona.server.messaging.service.FirebaseService;
 @RequestMapping(value = "/test", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class TestController extends ControllerBase
 {
+	@Autowired
+	private YonaProperties yonaProperties;
+
 	@Autowired
 	private EmailService emailService;
 
@@ -53,6 +59,8 @@ public class TestController extends ControllerBase
 	@ResponseBody
 	public HttpEntity<EmailResource> getLastEMail()
 	{
+		Require.that(yonaProperties.isTestServer(),
+				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /emails/last is not available"));
 		return createOkResponse(emailService.getLastEmail(), createEMailResourceAssembler());
 	}
 
@@ -100,6 +108,8 @@ public class TestController extends ControllerBase
 	@ResponseBody
 	public HttpEntity<FirebaseMessageResource> getLastFirebaseMessage(@PathVariable String registrationToken)
 	{
+		Require.that(yonaProperties.isTestServer(),
+				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
 		Optional<Message> lastMessage = firebaseService.getLastMessage(registrationToken);
 		if (lastMessage.isEmpty())
 		{

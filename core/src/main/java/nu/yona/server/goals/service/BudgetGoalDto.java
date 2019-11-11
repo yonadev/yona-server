@@ -61,7 +61,7 @@ public class BudgetGoalDto extends GoalDto
 	}
 
 	@Override
-	public boolean isGoalChanged(Goal existingGoal)
+	public boolean isChanged(Goal existingGoal)
 	{
 		return ((BudgetGoal) existingGoal).getMaxDurationMinutes() != maxDurationMinutes;
 	}

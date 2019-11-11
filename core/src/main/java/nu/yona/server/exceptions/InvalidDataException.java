@@ -5,6 +5,8 @@
 package nu.yona.server.exceptions;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
@@ -146,8 +148,23 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException(exception, "error.invalid.date", date);
 	}
 
+	public static InvalidDataException dateTooEarly(LocalDateTime dateTime, LocalDateTime earliestPossibleDateTime)
+	{
+		return dateTooEarly(dateTime.toLocalDate(), earliestPossibleDateTime.toLocalDate());
+	}
+
+	public static InvalidDataException dateTooEarly(LocalDate date, LocalDate earliestPossibleDate)
+	{
+		return new InvalidDataException("error.invalid.date.too.early", date, earliestPossibleDate);
+	}
+
 	public static InvalidDataException missingRequestParameter(String name, String hint)
 	{
 		return new InvalidDataException("error.request.missing.request.parameter", name, hint);
+	}
+
+	public static InvalidDataException onlyAllowedOnTestServers(String hint)
+	{
+		return new InvalidDataException("error.request.only.allowed.on.test.server", hint);
 	}
 }

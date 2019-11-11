@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.rest;
 
@@ -20,11 +20,17 @@ import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
 import nu.yona.server.batch.client.SystemMessageSendRequestDto;
 import nu.yona.server.batch.service.BatchJobResultDto;
 import nu.yona.server.batch.service.BatchTaskService;
+import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.Require;
 
 @Controller
 @RequestMapping(value = "/batch", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class BatchTaskController
 {
+	@Autowired
+	private YonaProperties yonaProperties;
+
 	@Autowired
 	private BatchTaskService batchTaskService;
 
@@ -47,6 +53,8 @@ public class BatchTaskController
 	@PostMapping(value = "/aggregateActivities/")
 	public HttpEntity<Resource<BatchJobResultDto>> aggregateActivities()
 	{
+		Require.that(yonaProperties.isTestServer(),
+				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint //aggregateActivities/ is not available"));
 		return new ResponseEntity<>(new Resource<>(batchTaskService.aggregateActivities()), HttpStatus.OK);
 	}
 }

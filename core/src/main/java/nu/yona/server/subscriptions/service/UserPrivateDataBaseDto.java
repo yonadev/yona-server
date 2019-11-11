@@ -69,4 +69,10 @@ public abstract class UserPrivateDataBaseDto
 
 	@JsonIgnore
 	public abstract boolean isFetchable();
+
+	public boolean isChanged(UserPrivateDataBaseDto original)
+	{
+		return !firstName.equals(original.firstName) || !lastName.equals(original.lastName)
+				|| !nickname.equals(original.nickname);
+	}
 }

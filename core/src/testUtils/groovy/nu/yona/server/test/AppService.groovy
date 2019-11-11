@@ -484,6 +484,14 @@ class AppService extends Service
 		yonaServer.putJson(url, goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
 	}
 
+	def updateLastStatusChangeTime(User user, Buddy buddy, ZonedDateTime lastStatusChangeTime)
+	{
+		def lastStatusChangeTimeStr = yonaServer.toIsoDateTimeString(lastStatusChangeTime)
+		def response = yonaServer.putJson(buddy.editUrl, """{"lastStatusChangeTime":"$lastStatusChangeTimeStr"}""", ["Yona-Password": user.password])
+		assertResponseStatusOk(response)
+		return new Buddy(response.responseData)
+	}
+
 	def removeGoal(User user, Goal goal, message = "")
 	{
 		yonaServer.deleteResourceWithPassword(goal.editUrl, user.password, ["message": message])

@@ -8,7 +8,8 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
+import java.time.ZonedDateTime
+
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
 
@@ -19,7 +20,8 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
 		User bob = richardAndBob.bob
 		// Trigger aggregation for any already existing activities
 		assertResponseStatusOk(batchService.triggerActivityAggregationBatchJob())
@@ -78,7 +80,8 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
 		User bob = richardAndBob.bob
 		// Trigger aggregation for any already existing activities
 		assertResponseStatusOk(batchService.triggerActivityAggregationBatchJob())
@@ -130,7 +133,8 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
 		User bob = richardAndBob.bob
 		// Trigger aggregation for any already existing activities
 		assertResponseStatusOk(batchService.triggerActivityAggregationBatchJob())

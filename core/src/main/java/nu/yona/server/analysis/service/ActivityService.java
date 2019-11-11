@@ -6,6 +6,7 @@ package nu.yona.server.analysis.service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -36,6 +37,8 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.analysis.service.IntervalActivityDto.LevelOfDetail;
+import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
@@ -52,6 +55,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.Require;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -90,8 +94,11 @@ public class ActivityService
 	@Transactional
 	public Page<WeekActivityOverviewDto> getUserWeekActivityOverviews(UUID userId, Pageable pageable)
 	{
+		UserDto user = userService.getUser(userId);
+		LocalDate creationDate = user.getCreationTime().map(LocalDateTime::toLocalDate)
+				.orElseThrow(() -> YonaException.illegalState("creation time must be available in this state"));
 		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityOverviews(userService.getUserAnonymizedId(userId), pageable, mia));
+				mia -> getWeekActivityOverviews(user.getOwnPrivateData().getUserAnonymizedId(), creationDate, pageable, mia));
 	}
 
 	@Transactional
@@ -104,7 +111,8 @@ public class ActivityService
 	@Transactional
 	public Page<WeekActivityOverviewDto> getBuddyWeekActivityOverviews(BuddyDto buddy, Pageable pageable)
 	{
-		return executeAndCreateInactivityEntries(mia -> getWeekActivityOverviews(getBuddyUserAnonymizedId(buddy), pageable, mia));
+		return executeAndCreateInactivityEntries(mia -> getWeekActivityOverviews(getBuddyUserAnonymizedId(buddy),
+				buddy.getLastStatusChangeTime().toLocalDate(), pageable, mia));
 	}
 
 	@Transactional
@@ -132,15 +140,16 @@ public class ActivityService
 		activitiesByUserAnonymizedId.forEach((u, mias) -> analysisEngineProxyService.createInactivityEntities(u, mias));
 	}
 
-	private Page<WeekActivityOverviewDto> getWeekActivityOverviews(UUID userAnonymizedId, Pageable pageable,
-			Set<IntervalInactivityDto> missingInactivities)
+	private Page<WeekActivityOverviewDto> getWeekActivityOverviews(UUID userAnonymizedId, LocalDate earliestPossibleDate,
+			Pageable pageable, Set<IntervalInactivityDto> missingInactivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
-		Interval interval = getInterval(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
+		Interval interval = getInterval(earliestPossibleDate, getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
 
 		List<WeekActivityOverviewDto> weekActivityOverviews = getWeekActivityOverviews(userAnonymizedId, missingInactivities,
 				userAnonymized, interval);
-		return new PageImpl<>(weekActivityOverviews, pageable, getTotalPageableItems(userAnonymized, ChronoUnit.WEEKS));
+		return new PageImpl<>(weekActivityOverviews, pageable,
+				getTotalPageableItems(userAnonymized, earliestPossibleDate, ChronoUnit.WEEKS));
 	}
 
 	private List<WeekActivityOverviewDto> getWeekActivityOverviews(UUID userAnonymizedId,
@@ -197,21 +206,26 @@ public class ActivityService
 		weekActivity.createRequiredInactivityDays(userAnonymized, goals, LevelOfDetail.WEEK_OVERVIEW, missingInactivities);
 	}
 
-	private long getTotalPageableItems(Set<BuddyDto> buddies, ChronoUnit timeUnit)
+	private long getTotalPageableItems(UserAnonymizedDto userAnonymized, Set<BuddyDto> buddies, LocalDate userCreationDate,
+			ChronoUnit timeUnit)
 	{
-		return buddies.stream().map(this::getBuddyUserAnonymizedId).map(id -> userAnonymizedService.getUserAnonymized(id))
-				.map(ua -> getTotalPageableItems(ua, timeUnit)).max(Long::compareTo).orElse(0L);
+		LocalDate earliestPossibleDate = determineEarliestBuddyStatusChangeDate(buddies);
+
+		return getTotalPageableItems(userAnonymized, earliestPossibleDate, timeUnit);
 	}
 
-	private long getTotalPageableItems(UserAnonymizedDto userAnonymized, ChronoUnit timeUnit)
+	private LocalDate determineEarliestBuddyStatusChangeDate(Collection<BuddyDto> buddies)
+	{
+		// Buddies collection must be non-empty
+		return buddies.stream().map(BuddyDto::getLastStatusChangeTime).map(LocalDateTime::toLocalDate).min(LocalDate::compareTo)
+				.get();
+	}
+
+	private long getTotalPageableItems(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate, ChronoUnit timeUnit)
 	{
 		long activityMemoryDays = yonaProperties.getAnalysisService().getActivityMemory().toDays();
-		Optional<LocalDate> oldestGoalCreationDate = userAnonymized.getOldestGoalCreationTime()
-				.map(dt -> TimeUtil.toLocalDateTimeInZone(dt, userAnonymized.getTimeZone()).toLocalDate());
 		LocalDate today = TimeUtil.toLocalDateTimeInZone(TimeUtil.utcNow(), userAnonymized.getTimeZone()).toLocalDate();
-		long activityRecordedDays = oldestGoalCreationDate.isPresent()
-				? (ChronoUnit.DAYS.between(oldestGoalCreationDate.get(), today) + 1)
-				: 0;
+		long activityRecordedDays = (ChronoUnit.DAYS.between(earliestPossibleDate, today) + 1);
 		long totalDays = Math.min(activityRecordedDays, activityMemoryDays);
 		switch (timeUnit)
 		{
@@ -241,8 +255,11 @@ public class ActivityService
 	@Transactional
 	public Page<DayActivityOverviewDto<DayActivityDto>> getUserDayActivityOverviews(UUID userId, Pageable pageable)
 	{
+		UserDto user = userService.getUser(userId);
+		LocalDate creationDate = user.getCreationTime().map(LocalDateTime::toLocalDate)
+				.orElseThrow(() -> YonaException.illegalState("creation time must be available in this state"));
 		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityOverviews(userService.getUserAnonymizedId(userId), pageable, mia));
+				mia -> getDayActivityOverviews(user.getOwnPrivateData().getUserAnonymizedId(), creationDate, pageable, mia));
 	}
 
 	@Transactional
@@ -256,14 +273,21 @@ public class ActivityService
 	public Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>> getUserDayActivityOverviewsWithBuddies(UUID userId,
 			Pageable pageable)
 	{
-		UUID userAnonymizedId = userService.getUserAnonymizedId(userId);
+		UserDto user = userService.getUser(userId);
+		UUID userAnonymizedId = user.getOwnPrivateData().getUserAnonymizedId();
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 
-		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 		Set<BuddyDto> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userId);
+		if (buddies.isEmpty())
+		{
+			return new PageImpl<>(Collections.emptyList(), pageable, 0);
+		}
+		LocalDate earliestPossibleDate = determineEarliestBuddyStatusChangeDate(buddies);
+		Interval interval = getInterval(earliestPossibleDate, getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 		List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityOverviews = getUserDayActivityOverviewsWithBuddies(
 				userAnonymizedId, interval, buddies);
-		return new PageImpl<>(dayActivityOverviews, pageable, getTotalPageableItems(buddies, ChronoUnit.DAYS));
+		return new PageImpl<>(dayActivityOverviews, pageable,
+				getTotalPageableItems(userAnonymized, buddies, earliestPossibleDate, ChronoUnit.DAYS));
 	}
 
 	private List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> getUserDayActivityOverviewsWithBuddies(UUID userAnonymizedId,
@@ -321,7 +345,8 @@ public class ActivityService
 	@Transactional
 	public Page<DayActivityOverviewDto<DayActivityDto>> getBuddyDayActivityOverviews(BuddyDto buddy, Pageable pageable)
 	{
-		return executeAndCreateInactivityEntries(mia -> getDayActivityOverviews(getBuddyUserAnonymizedId(buddy), pageable, mia));
+		return executeAndCreateInactivityEntries(mia -> getDayActivityOverviews(getBuddyUserAnonymizedId(buddy),
+				buddy.getLastStatusChangeTime().toLocalDate(), pageable, mia));
 	}
 
 	@Transactional
@@ -336,16 +361,17 @@ public class ActivityService
 				.orElseThrow(() -> new IllegalStateException("Should have user anonymized ID when fetching buddy activity"));
 	}
 
-	private Page<DayActivityOverviewDto<DayActivityDto>> getDayActivityOverviews(UUID userAnonymizedId, Pageable pageable,
-			Set<IntervalInactivityDto> missingInactivities)
+	private Page<DayActivityOverviewDto<DayActivityDto>> getDayActivityOverviews(UUID userAnonymizedId,
+			LocalDate earliestPossibleDate, Pageable pageable, Set<IntervalInactivityDto> missingInactivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
-		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
+		Interval interval = getInterval(earliestPossibleDate, getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
 		List<DayActivityOverviewDto<DayActivityDto>> dayActivityOverviews = getDayActivityOverviews(missingInactivities,
 				userAnonymized, interval);
 
-		return new PageImpl<>(dayActivityOverviews, pageable, getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
+		return new PageImpl<>(dayActivityOverviews, pageable,
+				getTotalPageableItems(userAnonymized, earliestPossibleDate, ChronoUnit.DAYS));
 	}
 
 	private DayActivityOverviewDto<DayActivityDto> getDayActivityOverview(UUID userAnonymizedId, LocalDate date,
@@ -445,10 +471,18 @@ public class ActivityService
 				relevantGoals.stream().map(GoalDto::getGoalId).collect(Collectors.toSet()), interval.startDate, interval.endDate);
 	}
 
-	private Interval getInterval(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)
+	private Interval getInterval(LocalDate earliestPossibleDate, LocalDate currentUnitDate, Pageable pageable,
+			ChronoUnit timeUnit)
 	{
-		LocalDate startDate = currentUnitDate.minus(pageable.getOffset() + pageable.getPageSize() - 1L, timeUnit);
+		LocalDate requestedStartDate = currentUnitDate.minus(pageable.getOffset() + pageable.getPageSize() - 1L, timeUnit);
+		LocalDate startDate = TimeUtil.max(requestedStartDate, earliestPossibleDate);
+		if (timeUnit == ChronoUnit.WEEKS)
+		{
+			startDate = TimeUtil.getStartOfWeek(startDate);
+		}
 		LocalDate endDate = currentUnitDate.minus(pageable.getOffset() - 1L, timeUnit);
+		Require.that(!endDate.isBefore(startDate),
+				() -> InvalidDataException.dateTooEarly(requestedStartDate, earliestPossibleDate));
 		return Interval.createInterval(startDate, endDate);
 	}
 

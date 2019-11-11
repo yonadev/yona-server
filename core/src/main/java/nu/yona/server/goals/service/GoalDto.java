@@ -148,7 +148,7 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 
 	public abstract Goal createGoalEntity();
 
-	public abstract boolean isGoalChanged(Goal existingGoal);
+	public abstract boolean isChanged(Goal existingGoal);
 
 	public abstract void updateGoalEntity(Goal existingGoal);
 

@@ -188,6 +188,12 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert responseGetAfterMarkUnread.responseData._links?."yona:markRead"?.href.startsWith(messageUrl)
 	}
 
+	def updateLastStatusChangeTime(User user, Buddy buddy, relativeLastStatusChangeTimeString)
+	{
+		def lastStatusChangeTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeLastStatusChangeTimeString)
+		appService.updateLastStatusChangeTime(user, buddy, lastStatusChangeTime)
+	}
+
 	def findActiveGoal(def response, def activityCategoryUrl)
 	{
 		response.responseData._embedded."yona:goals".find{ it._links."yona:activityCategory".href == activityCategoryUrl && !it.historyItem }
@@ -201,9 +207,14 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	void setGoalCreationTime(User user, activityCategoryUrl, relativeCreationDateTimeString)
 	{
+		setGoalCreationTime(user, activityCategoryUrl, YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString))
+	}
+
+	void setGoalCreationTime(User user, activityCategoryUrl, ZonedDateTime dateTime)
+	{
 		assert user.findActiveGoal(activityCategoryUrl)
 		Goal goal = user.findActiveGoal(activityCategoryUrl)
-		goal.creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
+		goal.creationTime = dateTime
 		def response = appService.updateGoal(user, goal.url, goal)
 		assertResponseStatusOk(response)
 	}
@@ -292,15 +303,17 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		dateTime.get(ChronoField.MINUTE_OF_DAY)/15
 	}
 
-	def setCreationTimeOfMandatoryGoalsToNow(User user)
+	void setCreationTime(User user, def relativeCreationDateTimeString)
 	{
-		def mandatoryGoals = user.goals.findAll { it.activityCategoryUrl == GAMBLING_ACT_CAT_URL }
-		mandatoryGoals.each
-		{ goal ->
-			goal.creationTime = YonaServer.now
-			def response = appService.updateGoal(user, goal.url, goal)
-			assertResponseStatusOk(response)
-		}
+		setCreationTime(user, YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString))
+	}
+
+	void setCreationTime(User user, ZonedDateTime dateTime)
+	{
+		def userJson = user.convertToJson()
+		userJson.creationTime = YonaServer.toIsoDateTimeString(dateTime)
+		def response = appService.updateUser(user.editUrl, userJson, user.password)
+		assertResponseStatusOk(response)
 	}
 
 	void assertWeekOverviewBasics(response, numberOfReportedGoals, expectedTotalElements, expectedPageSize = 2)

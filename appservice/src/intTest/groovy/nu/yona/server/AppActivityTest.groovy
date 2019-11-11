@@ -49,6 +49,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
 		ZonedDateTime endTime = startTime.plusHours(1)
@@ -94,6 +95,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		Duration offset = Duration.ofMinutes(45) // Off by 45 minutes
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
@@ -137,6 +139,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
 		ZonedDateTime endTime = startTime.plusHours(1)
@@ -170,6 +173,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
 		ZonedDateTime endTime = startTime.plusHours(1).minusSeconds(10)
@@ -208,7 +212,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
 		ZonedDateTime endTime = startTime.plusMinutes(15)
 
@@ -231,6 +235,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
 		ZonedDateTime endTime = startTime.minusMinutes(15)
@@ -251,6 +256,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		ZonedDateTime testStartTime = YonaServer.now
 		ZonedDateTime startTime = testStartTime
@@ -272,6 +278,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		ZonedDateTime testStartTime = YonaServer.now
 		ZonedDateTime startTime = testStartTime.plusMinutes(1)
@@ -324,6 +331,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		String goalCreationTimeStr = "W-1 Mon 02:18"
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, goalCreationTimeStr)
 		ZonedDateTime testStartTime = YonaServer.now
 		// Device time inaccuracy window is plus or minus 10 seconds.
@@ -352,6 +360,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		String goalCreationTimeStr = "W-1 Mon 02:18"
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, goalCreationTimeStr)
 		ZonedDateTime goalCreationTime = YonaServer.relativeDateTimeStringToZonedDateTime(goalCreationTimeStr)
 		ZonedDateTime appActStartTime = goalCreationTime.plusHours(1)
@@ -377,6 +386,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		String goalCreationTimeStr = "W-1 Mon 02:18"
+		setCreationTime(richard, goalCreationTimeStr)
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, goalCreationTimeStr)
 		ZonedDateTime goalCreationTime = YonaServer.relativeDateTimeStringToZonedDateTime(goalCreationTimeStr)
 		ZonedDateTime appActOneStartTime = goalCreationTime.plusHours(1)

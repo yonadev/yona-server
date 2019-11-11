@@ -58,6 +58,13 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 		return true;
 	}
 
+	@Override
+	public boolean isChanged(UserPrivateDataBaseDto original)
+	{
+		return super.isChanged(original)
+				|| yonaPassword != null && !yonaPassword.equals(((OwnUserPrivateDataDto) original).yonaPassword);
+	}
+
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	@JsonInclude(Include.NON_EMPTY)
 	public Optional<LocalDate> getLastMonitoredActivityDate()

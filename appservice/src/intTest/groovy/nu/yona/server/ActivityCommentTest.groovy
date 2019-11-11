@@ -25,6 +25,8 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
 
@@ -49,6 +51,8 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
 
@@ -72,6 +76,9 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		User richard = richardBobAndBea.richard
 		User bob = richardBobAndBea.bob
 		User bea = richardBobAndBea.bea
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
+		setCreationTime(bea, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -119,6 +126,9 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		User richard = richardBobAndBea.richard
 		User bob = richardBobAndBea.bob
 		User bea = richardBobAndBea.bea
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
+		setCreationTime(bea, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -228,6 +238,8 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -276,6 +288,8 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -324,6 +338,8 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -373,6 +389,8 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)

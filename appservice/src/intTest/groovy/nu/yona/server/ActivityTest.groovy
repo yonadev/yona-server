@@ -29,6 +29,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		setCreationTime(richard, "W-2 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 
@@ -47,7 +48,6 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richard)
 		Goal goal = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 
 		when:
@@ -79,7 +79,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-4 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-4 Mon 02:18")
 
 		richard = appService.reloadUser(richard)
@@ -134,9 +135,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-1 Mon 02:18")
 		User bob = richardAndBob.bob
-		setCreationTimeOfMandatoryGoalsToNow(bob)
+		setGoalCreationTime(bob, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(bob, "W-1 Mon 02:18")
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
@@ -312,7 +315,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-1 Fri 14:00")
 
 		reportNetworkActivity(richard.requestingDevice, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
 		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
@@ -392,7 +396,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-1 Mon 02:18")
 		def ZonedDateTime now = YonaServer.now
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		Goal budgetGoalGambling = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
@@ -449,7 +454,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 		reportAppActivities(richard, richard.requestingDevice, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Tue 10:10")])
@@ -613,7 +619,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-2 Tue 13:30")
 		Goal budgetGoalMultimediaBeforeUpdate = addBudgetGoal(richard, MULTIMEDIA_ACT_CAT_URL, 60, "W-2 Tue 13:30")
 		updateBudgetGoal(richard, budgetGoalMultimediaBeforeUpdate, 81, "W-1 Mon 18:30")
 		richard = appService.reloadUser(richard)
@@ -704,9 +711,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-2 Mon 02:18")
 		User bob = richardAndBob.bob
-		setCreationTimeOfMandatoryGoalsToNow(bob)
+		setGoalCreationTime(bob, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(bob, "W-2 Thu 18:00")
 
 		// Week -2
 		// Monday
@@ -976,13 +985,17 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		def earliestRelDateRichard = "W-2 Mon 02:18"
+		setCreationTime(richard, earliestRelDateRichard)
 		User bob = richardAndBob.bob
-		setCreationTimeOfMandatoryGoalsToNow(bob)
+		def earliestRelDateBob = "W-2 Thu 18:00"
+		setCreationTime(bob, earliestRelDateBob)
+		updateLastStatusChangeTime(richard, richard.buddies[0], earliestRelDateBob)
+		updateLastStatusChangeTime(bob, bob.buddies[0], earliestRelDateBob)
 
 		// Week -2
 		// Monday
-		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, earliestRelDateRichard)
 		BudgetGoal budgetGoalNewsRichardBeforeUpdate = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-2 Mon 03:15", "W-2 Mon 03:35")
 
@@ -990,7 +1003,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivities(richard, richard.requestingDevice, [createAppActivity("NU.nl", "W-2 Tue 08:45", "W-2 Tue 09:10"), createAppActivity("Facebook", "W-2 Tue 09:35", "W-2 Tue 10:10")])
 
 		// Thursday
-		BudgetGoal budgetGoalSocialBobBeforeUpdate = addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, "W-2 Thu 18:00")
+		BudgetGoal budgetGoalSocialBobBeforeUpdate = addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, earliestRelDateBob)
 		reportAppActivity(bob, bob.requestingDevice, "Facebook", "W-2 Thu 20:00", "W-2 Thu 20:35")
 
 		// Friday
@@ -1028,36 +1041,44 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
 		TimeZoneGoal timeZoneGoalSocialRichardAfterUpdate = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
+		BudgetGoal budgetGoalGamblingRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
+		BudgetGoal budgetGoalGamblingBob = bob.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
 		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem}
 		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
 		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem}
 
-		def expectedValuesRichardWeekBeforeLastWeek = []
+		def expectedValuesRichardWeekBeforeLastWeek = [
+			"Mon" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
 		def expectedValuesBobWeekBeforeLastWeek = [
-			"Thu" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82 : 5]]]],
-			"Fri" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
-			"Sat" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+			"Thu" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82 : 5]]]],
+			"Fri" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
+			"Sat" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
 		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[ user : richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
 
 		def expectedValuesRichardLastWeek = [
-			"Thu" : [[goal:timeZoneGoalSocialRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
-			"Fri" : [[goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 82 : 2, 83 : 15, 84 : 1]]]]]
+			"Thu" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
+			"Fri" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 82 : 2, 83 : 15, 84 : 1]]]]]
 		def expectedValuesBobLastWeek = [
-			"Sun" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 40 : 2, 41 :15, 42 : 5, 86 : 2, 87 : 14]]]],
-			"Sat" : [[goal:budgetGoalSocialBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [83 : 5, 84: 15, 85: 15, 86: 15, 87: 15]]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+			"Sun" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Mon" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 40 : 2, 41 :15, 42 : 5, 86 : 2, 87 : 14]]]],
+			"Sat" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [83 : 5, 84: 15, 85: 15, 86: 15, 87: 15]]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
 		def expectedValuesWithBuddiesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
-		def expectedTotalDaysRichard = 3 + currentDayOfWeek + 1
+		def expectedTotalDaysRichard = 6 + 7 + currentDayOfWeek + 1
 		def expectedTotalDaysBob = 3 + 7 + currentDayOfWeek + 1
-		def expectedTotalWeeksRichard = 2
+		def expectedTotalWeeksRichard = 3
 		def expectedTotalWeeksBob = 3
 
 		when:
@@ -1068,7 +1089,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseBuddyDayOverviews = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 21])
 
 		then:
-		assertWeekOverviewBasics(responseWeekOverviews, [2, 1], expectedTotalWeeksRichard, expectedTotalWeeksRichard)
+		assertWeekOverviewBasics(responseWeekOverviews, [2, 2, 1], expectedTotalWeeksRichard, expectedTotalWeeksRichard)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
@@ -1234,6 +1255,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 
@@ -1271,6 +1293,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 
+		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 
@@ -1295,9 +1318,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-2 Mon 02:18")
 		User bob = richardAndBob.bob
-		setCreationTimeOfMandatoryGoalsToNow(bob)
+		setGoalCreationTime(bob, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(bob, "W-2 Mon 02:18")
 
 		BudgetGoal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		BudgetGoal budgetGoalNewsBob = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL }
@@ -1427,7 +1452,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def defaultDeviceName = "Richard's iPhone"
 		User richardDefault = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richardDefault)
+		setGoalCreationTime(richardDefault, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richardDefault, "W-1 Mon 02:18")
 		setGoalCreationTime(richardDefault, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		addTimeZoneGoal(richardDefault, SOCIAL_ACT_CAT_URL, ["01:00-12:00"], "W-1 Mon 02:18")
 		richardDefault = appService.reloadUser(richardDefault)
@@ -1554,7 +1580,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard(false, operatingSystem)
-		setCreationTimeOfMandatoryGoalsToNow(richard)
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
+		setCreationTime(richard, "W-1 Mon 02:18")
 		addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, budget, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 		BudgetGoal budgetGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
