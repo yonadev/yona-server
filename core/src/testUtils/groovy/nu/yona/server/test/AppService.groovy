@@ -532,4 +532,9 @@ class AppService extends Service
 	{
 		getResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
 	}
+
+	def clearLastFirebaseMessage(def firebaseInstanceId)
+	{
+		deleteResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
+	}
 }
