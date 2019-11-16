@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import nu.yona.server.crypto.pubkey.Decryptor;
 import nu.yona.server.crypto.pubkey.Encryptor;
 import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -77,6 +79,25 @@ public abstract class Message extends EntityWithId
 		this.isSentItem = isSentItem;
 		this.replies = new ArrayList<>();
 		this.messagesInThread = new ArrayList<>();
+	}
+
+	/**
+	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
+	 * 
+	 * @param original Message to copy.
+	 */
+	protected Message(Message original)
+	{
+		this.decryptionInfo = original.decryptionInfo;
+		this.relatedUserAnonymizedId = original.relatedUserAnonymizedId;
+		this.threadHeadMessage = null;
+		this.messagesInThread = new ArrayList<>();
+		this.repliedMessage = null;
+		this.replies = new ArrayList<>();
+		this.messageDestination = null;
+		this.creationTime = original.creationTime;
+		this.isSentItem = original.isSentItem;
+		this.isRead = original.isRead;
 	}
 
 	public static MessageRepository getRepository()
@@ -199,4 +220,34 @@ public abstract class Message extends EntityWithId
 	protected abstract void encrypt();
 
 	protected abstract void decrypt();
+
+	/**
+	 * Creates a duplicate of the given messages, ready to be sent to a destination. Everything is identical to the original one,
+	 * except for:
+	 * <ul>
+	 * <li>The ID, which will be 0</li>
+	 * <li>References to other messages (e.g. replies). If this is ever necessary, it needs to be designed and built</li>
+	 * <li>Reference to the message destination. The duplicate is ready to be sent and does not have a destination yet.</li>
+	 * </ul>
+	 * For this to work, the message class needs to have a public copy constructor.
+	 * 
+	 * @return The duplicate message
+	 */
+	public Message duplicate()
+	{
+		return duplicate(this);
+	}
+
+	private static Message duplicate(Message message)
+	{
+		try
+		{
+			return message.getClass().getConstructor(message.getClass()).newInstance(message);
+		}
+		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
 }

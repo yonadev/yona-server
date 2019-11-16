@@ -204,6 +204,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(response)
 		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
 		{ it."@type" == "BuddyConnectResponseMessage" }
+		buddyConnectResponseMessages.size() == 1
 		buddyConnectResponseMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(bob.url))
 		buddyConnectResponseMessages[0]._embedded?."yona:user" == null
 		buddyConnectResponseMessages[0].nickname == bob.nickname

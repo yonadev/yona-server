@@ -134,15 +134,19 @@ public class MessageService
 		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
 		MessageDestination directMessageDestination = directMessageSource.getDestination();
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId());
-		for (Message directMessage : directMessages)
-		{
-			directMessageDestination.remove(directMessage);
-			anonymousMessageDestination.send(directMessage);
 
-			sendFirebaseNotification(directMessage, userAnonymized);
-		}
-		messageDestinationRepository.save(directMessageDestination);
-		messageDestinationRepository.save(anonymousMessageDestination);
+		directMessages.forEach(directMessageDestination::remove);
+		messageDestinationRepository.saveAndFlush(directMessageDestination);
+
+		directMessages.forEach(m -> sendMessage(userAnonymized, m.duplicate(), anonymousMessageDestination));
+	}
+
+	private void sendMessage(UserAnonymizedDto userAnonymized, Message message, MessageDestination destination)
+	{
+		destination.send(message);
+		messageRepository.save(message);
+		messageDestinationRepository.saveAndFlush(destination);
+		sendFirebaseNotification(message, userAnonymized);
 	}
 
 	private boolean mustProcessUnprocessedMessages(User user)
@@ -315,15 +319,6 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendMessageAndFlushToDatabase(Message message, UserAnonymizedDto toUser)
-	{
-		sendMessage(message, toUser);
-
-		MessageDestination destinationEntity = getMessageDestination(toUser.getAnonymousDestination().getId());
-		messageDestinationRepository.saveAndFlush(destinationEntity);
-	}
-
-	@Transactional
 	public void sendDirectMessageAndFlushToDatabase(Message message, User toUser)
 	{
 		sendDirectMessage(message, toUser);
@@ -337,9 +332,7 @@ public class MessageService
 	{
 		MessageDestination destinationEntity = getMessageDestination(toUser.getAnonymousDestination().getId());
 
-		destinationEntity.send(message);
-
-		sendFirebaseNotification(message, toUser);
+		sendMessage(toUser, message, destinationEntity);
 	}
 
 	private void sendFirebaseNotification(Message message, UserAnonymizedDto toUser)

@@ -45,6 +45,19 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		this.isRequestingReceiving = isRequestingReceiving;
 	}
 
+	/**
+	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
+	 * 
+	 * @param original Message to copy.
+	 */
+	public BuddyConnectRequestMessage(BuddyConnectRequestMessage original)
+	{
+		super(original);
+		this.isRequestingSending = original.isRequestingSending;
+		this.isRequestingReceiving = original.isRequestingReceiving;
+		this.status = original.status;
+	}
+
 	public static BuddyConnectRequestMessage createInstance(BuddyInfoParameters buddyInfoParameters, String message, UUID buddyId,
 			Set<UserDevice> devices, boolean isRequestingSending, boolean isRequestingReceiving)
 	{

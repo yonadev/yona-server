@@ -181,6 +181,68 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Overwrite Richard with pending buddy invitation from Bob and immediately send another buddy connect request'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		richard.emailAddress = "richard@quinn.com"
+		appService.sendBuddyConnectRequest(bob, richard)
+		appService.requestOverwriteUser(richard.mobileNumber)
+
+		when:
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, [:],
+				["overwriteUserConfirmationCode": "1234"])
+
+		then:
+		richardChanged
+		richardChanged.firstName == "${richard.firstName}Changed"
+
+		def buddiesRichard = appService.getBuddies(richardChanged)
+		buddiesRichard.size() == 0
+
+		when:
+		def connectResp = appService.sendBuddyConnectRequest(richardChanged, makeUserForBuddyRequest(bob, "b@c.com"))
+
+		then:
+		assertResponseStatusCreated(connectResp)
+
+		def buddiesBob = appService.getBuddies(bob)
+		buddiesBob.size() == 0
+
+		def getMessagesRichardResponse = appService.getMessages(richardChanged)
+		assertResponseStatusOk(getMessagesRichardResponse)
+		getMessagesRichardResponse.responseData._embedded == null
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		assertResponseStatusOk(getMessagesBobResponse)
+		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 2
+		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		buddyConnectResponseMessages.size() == 1
+		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
+		buddyConnectResponseMessage.message == "User account was deleted"
+		buddyConnectResponseMessage.nickname == "$richard.firstName $richard.lastName"
+		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
+		buddyConnectResponseMessage._links?."yona:process" == null // Processing happens automatically these days
+
+		def buddyConnectRequestMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "BuddyConnectRequestMessage" }
+		buddyConnectRequestMessages.size() == 1
+		buddyConnectRequestMessages[0].nickname == richardChanged.nickname
+		assertEquals(buddyConnectRequestMessages[0].creationTime, YonaServer.now)
+		buddyConnectRequestMessages[0].status == "REQUESTED"
+		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == richardChanged.firstName
+		buddyConnectRequestMessages[0]._links.keySet() == ["self", "yona:accept", "yona:reject", "yona:markRead"] as Set
+		buddyConnectRequestMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
+		buddyConnectRequestMessages[0]._links.self.href.endsWith(buddyConnectRequestMessages[0].messageId.toString())
+		buddyConnectRequestMessages[0]._links."yona:accept".href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
+
+		cleanup:
+		appService.deleteUser(richardChanged)
+		appService.deleteUser(bob)
+	}
+
 	def 'Overwrite Richard with an accepted but unprocessed buddy invitation from Bob'()
 	{
 		given:
