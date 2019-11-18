@@ -29,8 +29,8 @@ import com.google.firebase.messaging.Notification;
 
 import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
-import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.Require;
 
 @Service
 public class FirebaseService
@@ -44,9 +44,6 @@ public class FirebaseService
 
 	@Autowired
 	private YonaProperties yonaProperties;
-
-	@Autowired(required = false)
-	private MessageRepository messageRepository;
 
 	@PostConstruct
 	private void init()
@@ -96,11 +93,7 @@ public class FirebaseService
 
 	private long getMessageId(nu.yona.server.messaging.entities.Message message)
 	{
-		if (message.getId() == 0)
-		{
-			// Message is not persisted yet, so it didn't yet get an ID. Persist it now.
-			messageRepository.saveAndFlush(message);
-		}
+		Require.that(message.getId() != 0, () -> YonaException.illegalState("Message must be saved before this point"));
 		return message.getId();
 	}
 

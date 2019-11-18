@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -13,6 +13,7 @@ import javax.persistence.Transient;
 
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.messaging.entities.BuddyMessage;
+import nu.yona.server.messaging.entities.Message;
 
 @Entity
 public abstract class BuddyConnectionChangeMessage extends BuddyMessage
@@ -36,6 +37,18 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 		super(buddyInfoParameters, message);
 		this.firstName = buddyInfoParameters.firstName;
 		this.lastName = buddyInfoParameters.lastName;
+	}
+
+	/**
+	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
+	 * 
+	 * @param original Message to copy.
+	 */
+	public BuddyConnectionChangeMessage(BuddyConnectionChangeMessage original)
+	{
+		super(original);
+		this.firstName = original.firstName;
+		this.lastName = original.lastName;
 	}
 
 	@Override

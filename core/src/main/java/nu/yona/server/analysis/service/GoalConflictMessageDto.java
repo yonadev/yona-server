@@ -192,7 +192,7 @@ public class GoalConflictMessageDto extends MessageDto
 			messageEntity = updateMessageStatusAsDisclosureRequested(messageEntity);
 
 			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get());
-			messageService.sendMessageAndFlushToDatabase(
+			messageService.sendMessage(
 					DisclosureRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(actingUser),
 							requestPayload.getProperty("message"), messageEntity),
 					toUser);

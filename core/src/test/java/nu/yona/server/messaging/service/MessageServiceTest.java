@@ -207,6 +207,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	public void prepareMessageCollection_transferringDirectMessagesToAnonymousDestination_sendsFirebaseMessage()
 	{
 		Message message = Mockito.mock(Message.class);
+		when(message.duplicate()).thenReturn(message);
 
 		User user = Mockito.mock(User.class);
 		when(user.getUserAnonymizedId()).thenReturn(userAnonId);
