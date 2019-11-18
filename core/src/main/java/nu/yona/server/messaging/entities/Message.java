@@ -88,7 +88,7 @@ public abstract class Message extends EntityWithId
 	 */
 	protected Message(Message original)
 	{
-		this.decryptionInfo = original.decryptionInfo;
+		this.decryptionInfo = null; // Set when encrypting the message
 		this.relatedUserAnonymizedId = original.relatedUserAnonymizedId;
 		this.threadHeadMessage = null;
 		this.messagesInThread = new ArrayList<>();
@@ -228,8 +228,10 @@ public abstract class Message extends EntityWithId
 	 * <li>The ID, which will be 0</li>
 	 * <li>References to other messages (e.g. replies). If this is ever necessary, it needs to be designed and built</li>
 	 * <li>Reference to the message destination. The duplicate is ready to be sent and does not have a destination yet.</li>
+	 * <li>Encrypted fields and decryptionInfo. These are set while encrypting the message when sending it to a destination</li>
 	 * </ul>
-	 * For this to work, the message class needs to have a public copy constructor.
+	 * For this to work, the message class needs to have a public copy constructor. Currently, it is only implemented for message
+	 * sent to the direct message destination of a user.
 	 * 
 	 * @return The duplicate message
 	 */
