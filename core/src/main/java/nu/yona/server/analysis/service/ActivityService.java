@@ -95,8 +95,7 @@ public class ActivityService
 	public Page<WeekActivityOverviewDto> getUserWeekActivityOverviews(UUID userId, Pageable pageable)
 	{
 		UserDto user = userService.getUser(userId);
-		LocalDate creationDate = user.getCreationTime().map(LocalDateTime::toLocalDate)
-				.orElseThrow(() -> YonaException.illegalState("creation time must be available in this state"));
+		LocalDate creationDate = getUserCreationDate(user);
 		return executeAndCreateInactivityEntries(
 				mia -> getWeekActivityOverviews(user.getOwnPrivateData().getUserAnonymizedId(), creationDate, pageable, mia));
 	}
@@ -104,8 +103,9 @@ public class ActivityService
 	@Transactional
 	public WeekActivityOverviewDto getUserWeekActivityOverview(UUID userId, LocalDate date)
 	{
+		LocalDate creationDate = getUserCreationDate(userId);
 		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityOverview(userService.getUserAnonymizedId(userId), date, mia));
+				mia -> getWeekActivityOverview(userService.getUserAnonymizedId(userId), creationDate, date, mia));
 	}
 
 	@Transactional
@@ -118,7 +118,8 @@ public class ActivityService
 	@Transactional
 	public WeekActivityOverviewDto getBuddyWeekActivityOverview(BuddyDto buddy, LocalDate date)
 	{
-		return executeAndCreateInactivityEntries(mia -> getWeekActivityOverview(getBuddyUserAnonymizedId(buddy), date, mia));
+		return executeAndCreateInactivityEntries(mia -> getWeekActivityOverview(getBuddyUserAnonymizedId(buddy),
+				buddy.getLastStatusChangeTime().toLocalDate(), date, mia));
 	}
 
 	private <T> T executeAndCreateInactivityEntries(Function<Set<IntervalInactivityDto>, T> executor)
@@ -146,13 +147,13 @@ public class ActivityService
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Interval interval = getInterval(earliestPossibleDate, getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
 
-		List<WeekActivityOverviewDto> weekActivityOverviews = getWeekActivityOverviews(userAnonymizedId, missingInactivities,
-				userAnonymized, interval);
+		List<WeekActivityOverviewDto> weekActivityOverviews = getWeekActivityOverviews(userAnonymizedId, earliestPossibleDate,
+				missingInactivities, userAnonymized, interval);
 		return new PageImpl<>(weekActivityOverviews, pageable,
 				getTotalPageableItems(userAnonymized, earliestPossibleDate, ChronoUnit.WEEKS));
 	}
 
-	private List<WeekActivityOverviewDto> getWeekActivityOverviews(UUID userAnonymizedId,
+	private List<WeekActivityOverviewDto> getWeekActivityOverviews(UUID userAnonymizedId, LocalDate earliestPossibleDate,
 			Set<IntervalInactivityDto> missingInactivities, UserAnonymizedDto userAnonymized, Interval interval)
 	{
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByLocalDate = getWeekActivitiesGroupedByDate(userAnonymizedId,
@@ -162,22 +163,22 @@ public class ActivityService
 		Map<ZonedDateTime, Set<WeekActivityDto>> weekActivityDtosByZonedDate = mapWeekActivitiesToDtos(
 				weekActivityEntitiesByZonedDate);
 		addMissingInactivity(userAnonymized.getGoals(), weekActivityDtosByZonedDate, interval, ChronoUnit.WEEKS, userAnonymized,
-				(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, goal, startOfWeek, LevelOfDetail.WEEK_OVERVIEW,
-						missingInactivities),
-				(g, wa) -> createAndSaveInactivityDays(userAnonymized,
+				(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, earliestPossibleDate, goal, startOfWeek,
+						LevelOfDetail.WEEK_OVERVIEW, missingInactivities),
+				(g, wa) -> createAndSaveInactivityDays(userAnonymized, earliestPossibleDate,
 						userAnonymized.getGoalsForActivityCategory(g.getActivityCategory()), wa, missingInactivities));
 		return weekActivityDtosByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 				.map(e -> WeekActivityOverviewDto.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList());
 	}
 
-	private WeekActivityOverviewDto getWeekActivityOverview(UUID userAnonymizedId, LocalDate date,
+	private WeekActivityOverviewDto getWeekActivityOverview(UUID userAnonymizedId, LocalDate earliestPossibleDate, LocalDate date,
 			Set<IntervalInactivityDto> missingInactivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Interval interval = Interval.createWeekInterval(date);
 
-		List<WeekActivityOverviewDto> weekActivityOverviews = getWeekActivityOverviews(userAnonymizedId, missingInactivities,
-				userAnonymized, interval);
+		List<WeekActivityOverviewDto> weekActivityOverviews = getWeekActivityOverviews(userAnonymizedId, earliestPossibleDate,
+				missingInactivities, userAnonymized, interval);
 		return weekActivityOverviews.get(0);
 	}
 
@@ -194,16 +195,18 @@ public class ActivityService
 				.collect(Collectors.toSet());
 	}
 
-	private WeekActivityDto createAndSaveWeekInactivity(UserAnonymizedDto userAnonymized, Goal goal, ZonedDateTime startOfWeek,
-			LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
+	private WeekActivityDto createAndSaveWeekInactivity(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate,
+			Goal goal, ZonedDateTime startOfWeek, LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
 	{
-		return WeekActivityDto.createInstanceInactivity(userAnonymized, goal, startOfWeek, levelOfDetail, missingInactivities);
+		return WeekActivityDto.createInstanceInactivity(userAnonymized, earliestPossibleDate, goal, startOfWeek, levelOfDetail,
+				missingInactivities);
 	}
 
-	private void createAndSaveInactivityDays(UserAnonymizedDto userAnonymized, Set<GoalDto> goals, WeekActivityDto weekActivity,
-			Set<IntervalInactivityDto> missingInactivities)
+	private void createAndSaveInactivityDays(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate, Set<GoalDto> goals,
+			WeekActivityDto weekActivity, Set<IntervalInactivityDto> missingInactivities)
 	{
-		weekActivity.createRequiredInactivityDays(userAnonymized, goals, LevelOfDetail.WEEK_OVERVIEW, missingInactivities);
+		weekActivity.createRequiredInactivityDays(userAnonymized, earliestPossibleDate, goals, LevelOfDetail.WEEK_OVERVIEW,
+				missingInactivities);
 	}
 
 	private long getTotalPageableItems(UserAnonymizedDto userAnonymized, Set<BuddyDto> buddies, LocalDate userCreationDate,
@@ -256,8 +259,7 @@ public class ActivityService
 	public Page<DayActivityOverviewDto<DayActivityDto>> getUserDayActivityOverviews(UUID userId, Pageable pageable)
 	{
 		UserDto user = userService.getUser(userId);
-		LocalDate creationDate = user.getCreationTime().map(LocalDateTime::toLocalDate)
-				.orElseThrow(() -> YonaException.illegalState("creation time must be available in this state"));
+		LocalDate creationDate = getUserCreationDate(user);
 		return executeAndCreateInactivityEntries(
 				mia -> getDayActivityOverviews(user.getOwnPrivateData().getUserAnonymizedId(), creationDate, pageable, mia));
 	}
@@ -561,30 +563,43 @@ public class ActivityService
 	@Transactional
 	public WeekActivityDto getUserWeekActivityDetail(UUID userId, LocalDate date, UUID goalId)
 	{
+		LocalDate creationDate = getUserCreationDate(userId);
 		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityDetail(userId, userService.getUserAnonymizedId(userId), date, goalId, mia));
+				mia -> getWeekActivityDetail(userId, userService.getUserAnonymizedId(userId), creationDate, date, goalId, mia));
+	}
+
+	private LocalDate getUserCreationDate(UUID userId)
+	{
+		UserDto user = userService.getUser(userId);
+		return getUserCreationDate(user);
+	}
+
+	private LocalDate getUserCreationDate(UserDto user)
+	{
+		return user.getCreationTime().map(LocalDateTime::toLocalDate)
+				.orElseThrow(() -> YonaException.illegalState("creation time must be available in this state"));
 	}
 
 	@Transactional
 	public WeekActivityDto getBuddyWeekActivityDetail(BuddyDto buddy, LocalDate date, UUID goalId)
 	{
-		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityDetail(buddy.getUser().getId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
+		return executeAndCreateInactivityEntries(mia -> getWeekActivityDetail(buddy.getUser().getId(),
+				getBuddyUserAnonymizedId(buddy), buddy.getLastStatusChangeTime().toLocalDate(), date, goalId, mia));
 	}
 
-	private WeekActivityDto getWeekActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate date, UUID goalId,
-			Set<IntervalInactivityDto> missingInactivities)
+	private WeekActivityDto getWeekActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate earliestPossibleDate,
+			LocalDate date, UUID goalId, Set<IntervalInactivityDto> missingInactivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		WeekActivity weekActivityEntity = weekActivityRepository.findOne(userAnonymizedId, date, goalId);
 		if (weekActivityEntity == null)
 		{
 			return getMissingInactivity(userId, date, goalId, userAnonymized, ChronoUnit.WEEKS,
-					(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, goal, startOfWeek,
+					(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, earliestPossibleDate, goal, startOfWeek,
 							LevelOfDetail.WEEK_DETAIL, missingInactivities));
 		}
 		WeekActivityDto weekActivityDto = WeekActivityDto.createInstance(weekActivityEntity, LevelOfDetail.WEEK_DETAIL);
-		weekActivityDto.createRequiredInactivityDays(userAnonymized,
+		weekActivityDto.createRequiredInactivityDays(userAnonymized, earliestPossibleDate,
 				userAnonymized.getGoalsForActivityCategory(weekActivityEntity.getGoal().getActivityCategory()),
 				LevelOfDetail.WEEK_DETAIL, missingInactivities);
 		return weekActivityDto;

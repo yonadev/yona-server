@@ -212,13 +212,15 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, ZonedDateTime.now())
-		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
+		def relativeStartTime = "W-1 Mon 11:00"
+		setCreationTime(richard, relativeStartTime)
+		addNoGoGoal(richard, SOCIAL_ACT_CAT_URL, "W-1 Tue 12:00")
+		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeStartTime)
 		ZonedDateTime endTime = startTime.plusMinutes(15)
 
 		when:
 		def response = appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice,
-				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime)].toArray()))
+				new AppActivity([new AppActivity.Activity("Facebook", startTime, endTime)].toArray()))
 
 		then:
 		assertResponseStatusNoContent(response)

@@ -111,8 +111,8 @@ public class WeekActivityDto extends IntervalActivityDto
 				weekActivity.hasPrevious(), weekActivity.hasNext());
 	}
 
-	public static WeekActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, Goal goal, ZonedDateTime startOfWeek,
-			LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
+	public static WeekActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate,
+			Goal goal, ZonedDateTime startOfWeek, LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
 	{
 		missingInactivities.add(IntervalInactivityDto.createWeekInstance(userAnonymized.getId(), goal.getId(), startOfWeek));
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WEEK_DETAIL;
@@ -121,24 +121,29 @@ public class WeekActivityDto extends IntervalActivityDto
 				includeDetail ? Optional.of(0) : Optional.empty(), new HashMap<>(),
 				IntervalActivity.hasPrevious(goal, startOfWeek, ChronoUnit.WEEKS),
 				IntervalActivity.hasNext(startOfWeek, ChronoUnit.WEEKS));
-		weekActivity.createRequiredInactivityDays(userAnonymized,
+		weekActivity.createRequiredInactivityDays(userAnonymized, earliestPossibleDate,
 				userAnonymized.getGoalsForActivityCategory(goal.getActivityCategory()), levelOfDetail, missingInactivities);
 		return weekActivity;
 	}
 
-	public void createRequiredInactivityDays(UserAnonymizedDto userAnonymized, Set<GoalDto> goals, LevelOfDetail levelOfDetail,
-			Set<IntervalInactivityDto> missingInactivities)
+	public void createRequiredInactivityDays(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate, Set<GoalDto> goals,
+			LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
 	{
 		// if the batch job has already run, skip
 		if (dayActivities.size() == 7)
 		{
 			return;
 		}
+		ZonedDateTime earliestPossibleDateTime = earliestPossibleDate.atStartOfDay(userAnonymized.getTimeZone());
 		// notice this doesn't take care of user time zone changes during the week
 		// so for consistency it is important that the batch script adding inactivity does so
 		for (int i = 0; i < 7; i++)
 		{
 			ZonedDateTime startOfDay = getStartTime().plusDays(i);
+			if (startOfDay.isBefore(earliestPossibleDateTime))
+			{
+				continue;
+			}
 			if (isInFuture(startOfDay, getStartTime().getZone()))
 			{
 				break;

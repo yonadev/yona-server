@@ -207,14 +207,9 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	void setGoalCreationTime(User user, activityCategoryUrl, relativeCreationDateTimeString)
 	{
-		setGoalCreationTime(user, activityCategoryUrl, YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString))
-	}
-
-	void setGoalCreationTime(User user, activityCategoryUrl, ZonedDateTime dateTime)
-	{
 		assert user.findActiveGoal(activityCategoryUrl)
 		Goal goal = user.findActiveGoal(activityCategoryUrl)
-		goal.creationTime = dateTime
+		goal.creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		def response = appService.updateGoal(user, goal.url, goal)
 		assertResponseStatusOk(response)
 	}
@@ -239,6 +234,12 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	TimeZoneGoal updateTimeZoneGoal(User user, TimeZoneGoal updatedGoal, zones)
 	{
 		appService.updateGoal(CommonAssertions.&assertResponseStatusSuccess, user, updatedGoal.editUrl, TimeZoneGoal.createInstance(updatedGoal, YonaServer.now, zones.toArray()))
+	}
+
+	BudgetGoal addNoGoGoal(User user, activityCategoryUrl, relativeCreationDateTimeString)
+	{
+		ZonedDateTime creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
+		addBudgetGoal(user, activityCategoryUrl, 0, creationTime)
 	}
 
 	BudgetGoal addBudgetGoal(User user, activityCategoryUrl, int maxDurationMinutes, relativeCreationDateTimeString)
