@@ -102,6 +102,11 @@ public class FirebaseService
 		return Optional.ofNullable(lastMessageByRegistrationToken.get(registrationToken));
 	}
 
+	public Optional<Message> clearLastMessage(String registrationToken)
+	{
+		return Optional.ofNullable(lastMessageByRegistrationToken.remove(registrationToken));
+	}
+
 	private void sendMessage(Message firebaseMessage)
 	{
 		try

@@ -138,15 +138,19 @@ public class MessageService
 		directMessages.forEach(directMessageDestination::remove);
 		messageDestinationRepository.saveAndFlush(directMessageDestination);
 
-		directMessages.forEach(m -> sendMessage(userAnonymized, m.duplicate(), anonymousMessageDestination));
+		directMessages.forEach(m -> sendMessage(userAnonymized, m.duplicate(), anonymousMessageDestination, true));
 	}
 
-	private void sendMessage(UserAnonymizedDto userAnonymized, Message message, MessageDestination destination)
+	private void sendMessage(UserAnonymizedDto userAnonymized, Message message, MessageDestination destination,
+			boolean sendNotification)
 	{
 		destination.send(message);
 		messageRepository.save(message);
 		messageDestinationRepository.saveAndFlush(destination);
-		sendFirebaseNotification(message, userAnonymized);
+		if (sendNotification)
+		{
+			sendFirebaseNotification(message, userAnonymized);
+		}
 	}
 
 	private boolean mustProcessUnprocessedMessages(User user)
@@ -332,7 +336,15 @@ public class MessageService
 	{
 		MessageDestination destinationEntity = getMessageDestination(toUser.getAnonymousDestination().getId());
 
-		sendMessage(toUser, message, destinationEntity);
+		sendMessage(toUser, message, destinationEntity, true);
+	}
+
+	@Transactional
+	public void sendMessageWithoutNotification(Message message, UserAnonymizedDto toUser)
+	{
+		MessageDestination destinationEntity = getMessageDestination(toUser.getAnonymousDestination().getId());
+
+		sendMessage(toUser, message, destinationEntity, false);
 	}
 
 	private void sendFirebaseNotification(Message message, UserAnonymizedDto toUser)
