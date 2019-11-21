@@ -286,17 +286,22 @@ public class ActivityService
 		}
 		LocalDate earliestPossibleDate = determineEarliestBuddyStatusChangeDate(buddies);
 		Interval interval = getInterval(earliestPossibleDate, getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
+		Set<BuddyDto> buddiesInInterval = buddies.stream()
+				.filter(b -> !b.getLastStatusChangeTime().toLocalDate().isAfter(interval.endDate)).collect(Collectors.toSet());
 		List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityOverviews = getUserDayActivityOverviewsWithBuddies(
-				userAnonymizedId, interval, buddies);
+				userAnonymizedId, earliestPossibleDate, interval, buddiesInInterval);
 		return new PageImpl<>(dayActivityOverviews, pageable,
-				getTotalPageableItems(userAnonymized, buddies, earliestPossibleDate, ChronoUnit.DAYS));
+				getTotalPageableItems(userAnonymized, buddiesInInterval, earliestPossibleDate, ChronoUnit.DAYS));
 	}
 
 	private List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> getUserDayActivityOverviewsWithBuddies(UUID userAnonymizedId,
-			Interval interval, Set<BuddyDto> buddies)
+			LocalDate earliestPossibleDate, Interval interval, Set<BuddyDto> buddies)
 	{
-		Set<UUID> userAnonymizedIds = buddies.stream().map(this::getBuddyUserAnonymizedId).collect(Collectors.toSet());
-		userAnonymizedIds.add(userAnonymizedId);
+		List<UserAnonymizedIdWithEarliestPossibleDate> userInfo = buddies.stream()
+				.map(b -> new UserAnonymizedIdWithEarliestPossibleDate(b.getUserAnonymizedId().get(),
+						b.getLastStatusChangeTime().toLocalDate()))
+				.collect(Collectors.toList());
+		userInfo.add(new UserAnonymizedIdWithEarliestPossibleDate(userAnonymizedId, earliestPossibleDate));
 		// Goals of the user should only be included in the withBuddies list
 		// when at least one buddy has a goal in that category
 		Set<UUID> activityCategoryIdsUsedByBuddies = buddies.stream()
@@ -304,8 +309,7 @@ public class ActivityService
 				.map(GoalDto::getActivityCategoryId).collect(Collectors.toSet());
 
 		Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate = executeAndCreateInactivityEntries(
-				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userAnonymizedIds, activityCategoryIdsUsedByBuddies,
-						interval, mia));
+				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userInfo, activityCategoryIdsUsedByBuddies, interval, mia));
 		return dayActivityEntitiesToOverviewsUserWithBuddies(dayActivityDtosByZonedDate);
 	}
 
@@ -316,24 +320,31 @@ public class ActivityService
 		Interval interval = Interval.createDayInterval(date);
 		Set<BuddyDto> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userId);
 
+		LocalDate earliestPossibleDate = determineEarliestBuddyStatusChangeDate(buddies);
 		List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityOverviews = getUserDayActivityOverviewsWithBuddies(
-				userAnonymizedId, interval, buddies);
+				userAnonymizedId, earliestPossibleDate, interval, buddies);
 
 		return dayActivityOverviews.get(0);
 	}
 
-	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivitiesForUserAnonymizedIdsInInterval(Set<UUID> userAnonymizedIds,
-			Set<UUID> relevantActivityCategoryIds, Interval interval, Set<IntervalInactivityDto> mia)
+	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivitiesForUserAnonymizedIdsInInterval(
+			List<UserAnonymizedIdWithEarliestPossibleDate> userInfo, Set<UUID> relevantActivityCategoryIds, Interval interval,
+			Set<IntervalInactivityDto> mia)
 	{
-		return userAnonymizedIds.stream()
-				.map(id -> getDayActivitiesForCategories(userAnonymizedService.getUserAnonymized(id), relevantActivityCategoryIds,
-						interval, mia))
+		return userInfo.stream()
+				.map(ui -> getDayActivitiesForCategories(userAnonymizedService.getUserAnonymized(ui.id),
+						relevantActivityCategoryIds, limitInterval(interval, ui.earliestPossibleDate), mia))
 				.map(Map::entrySet).flatMap(Collection::stream)
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
 					Set<DayActivityDto> allActivities = new HashSet<>(a);
 					allActivities.addAll(b);
 					return allActivities;
 				}));
+	}
+
+	private Interval limitInterval(Interval interval, LocalDate earliestPossibleDate)
+	{
+		return new Interval(TimeUtil.max(earliestPossibleDate, interval.startDate), interval.endDate);
 	}
 
 	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivitiesForCategories(UserAnonymizedDto userAnonymizedDto,
@@ -814,7 +825,7 @@ public class ActivityService
 		 */
 		private Interval(LocalDate startDate, LocalDate endDate)
 		{
-			assert startDate.isBefore(endDate) || startDate.equals(endDate);
+			Require.that(!startDate.isAfter(endDate), () -> YonaException.illegalState("startDate is after endDate"));
 
 			this.startDate = startDate;
 			this.endDate = endDate;
@@ -848,6 +859,18 @@ public class ActivityService
 		public String toString()
 		{
 			return startDate + " <= d < " + endDate;
+		}
+	}
+
+	private static class UserAnonymizedIdWithEarliestPossibleDate
+	{
+		public final UUID id;
+		public final LocalDate earliestPossibleDate;
+
+		public UserAnonymizedIdWithEarliestPossibleDate(UUID id, LocalDate earliestPossibleDate)
+		{
+			this.id = id;
+			this.earliestPossibleDate = earliestPossibleDate;
 		}
 	}
 }

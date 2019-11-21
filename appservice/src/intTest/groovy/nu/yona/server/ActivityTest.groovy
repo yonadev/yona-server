@@ -16,12 +16,14 @@ import java.time.format.SignStyle
 import java.time.temporal.IsoFields
 
 import nu.yona.server.test.AppActivity
+import nu.yona.server.test.Buddy
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
+import spock.lang.IgnoreRest
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
@@ -1637,6 +1639,228 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		"ANDROID" | 60 | [ : ] // We only track no-go goals on Android, as app activity monitoring provides much better measurements
 		"IOS" | 0 | [13 : 4]
 		"IOS" | 60 | [13 : 4] // App activity monitoring is not possible on iOS, so we also track budget goals
+	}
+
+	@IgnoreRest
+	def 'Richard sees buddy activities from the date they befriended'()
+	{
+		given:
+		def richardAndBob = addRichardWithBobAndBeaAsBuddies()
+		User bea = richardAndBob.bea
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		// W-3
+		setCreationTime(bea, "W-3 Mon 02:18")
+		reportNetworkActivity(bea.requestingDevice, ["Gambling"], "http://www.poker.com", "W-3 Mon 15:00")
+		addBudgetGoal(bea, SOCIAL_ACT_CAT_URL, 50, "W-3 Tue 13:55")
+
+		// W-2
+		setCreationTime(richard, "W-2 Tue 15:34")
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Tue 15:34")
+		Buddy buddyBea = richard.buddies.find{ it.user.firstName == "Bea"}
+		updateLastStatusChangeTime(richard, buddyBea, "W-2 Wed 17:34")
+		reportNetworkActivity(bea.requestingDevice, ["Gambling"], "http://www.poker.com", "W-2 Wed 15:00")
+		reportAppActivity(bea, bea.requestingDevice, "NU.nl", "W-2 Thu 03:15", "W-2 Thu 03:35")
+
+		// W-1
+		setCreationTime(bob, "W-1 Wed 11:05")
+		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Wed 11:05")
+		Buddy buddyBob = richard.buddies.find{ it.user.firstName == "Bob"}
+		updateLastStatusChangeTime(richard, buddyBob, "W-1 Thu 11:07")
+		reportAppActivity(bea, bea.requestingDevice, "Facebook", "W-1 Thu 21:35", "W-1 Thu 21:45")
+		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Fri 15:07", "W-1 Fri 15:37")
+
+		richard = appService.reloadUser(richard)
+		buddyBob = richard.buddies.find{ it.user.firstName == "Bob"}
+		buddyBea = richard.buddies.find{ it.user.firstName == "Bea"}
+		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal noGoGoalGamblingRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
+		Goal budgetGoalNewsBob = buddyBob.findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal noGoGoalGamblingBob = buddyBob.findActiveGoal(GAMBLING_ACT_CAT_URL)
+		Goal noGoGoalGamblingBea = buddyBea.findActiveGoal(GAMBLING_ACT_CAT_URL)
+		Goal budgetGoalSocialBea = buddyBea.findActiveGoal(SOCIAL_ACT_CAT_URL)
+
+		def expectedValuesRichardWeekM2 = [
+			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBeaWeekM2 = [
+			"Wed" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60:1]]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesRichardWeekM1 = [
+			"Sun" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobWeekM1 = [
+			"Thu" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: false, minutesBeyondGoal: 30, spread: [60:8, 61:15, 62:7]]]],
+			"Sat" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBeaWeekM1 = [
+			"Sun" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Mon" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [86:10]]]],
+			"Fri" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesWeekM2 = [[ user : richard, expectedValues: expectedValuesRichardWeekM2], [ user : buddyBea.user, expectedValues: expectedValuesBeaWeekM2]]
+		def expectedValuesWithBuddiesWeekM1 = [[ user : richard, expectedValues: expectedValuesRichardWeekM1], [ user : buddyBea.user, expectedValues: expectedValuesBeaWeekM1], [ user : buddyBob.user, expectedValues: expectedValuesBobWeekM1]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDaysBob = 4 + currentDayOfWeek
+		def expectedTotalDaysBea = expectedTotalDaysBob + 8
+		def expectedTotalDays = expectedTotalDaysBea
+		def expectedTotalWeeks = 3
+
+		when:
+		def responseBuddyWeekOverviewsBob = appService.getWeekActivityOverviews(richard, buddyBob, ["size": 100])
+		def responseBuddyWeekOverviewsBea = appService.getWeekActivityOverviews(richard, buddyBea, ["size": 100])
+
+		then:
+		assertWeekOverviewBasics(responseBuddyWeekOverviewsBob, [2, 2], 2, 100)
+		assertWeekOverviewBasics(responseBuddyWeekOverviewsBea, [2, 2, 2], 3, 100)
+
+		// W-3
+		responseBuddyWeekOverviewsBea.responseData._embedded."yona:weekActivityOverviews".size() == 3 // No data for W-3
+
+		// W-2
+		def buddyWeekOverviewWeekM2Bea = responseBuddyWeekOverviewsBea.responseData._embedded."yona:weekActivityOverviews"[2]
+		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewWeekM2Bea, budgetGoalSocialBea, 4)
+		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewWeekM2Bea, noGoGoalGamblingBea, 4)
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, budgetGoalSocialBea, expectedValuesBeaWeekM2, "Wed")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, budgetGoalSocialBea, expectedValuesBeaWeekM2, "Thu")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, budgetGoalSocialBea, expectedValuesBeaWeekM2, "Fri")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, budgetGoalSocialBea, expectedValuesBeaWeekM2, "Sat")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, "Wed")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, "Thu")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, "Fri")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, "Sat")
+
+		responseBuddyWeekOverviewsBob.responseData._embedded."yona:weekActivityOverviews".size() == 2 // No data for W-2
+
+		// W-1
+		def buddyWeekOverviewWeekM1Bea = responseBuddyWeekOverviewsBea.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, 7)
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Sun")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Mon")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Tue")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Wed")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Thu")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Fri")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Sat")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Sun")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Mon")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Tue")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Wed")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Thu")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Fri")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Sat")
+
+		def buddyWeekOverviewWeekM1Bob = responseBuddyWeekOverviewsBob.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewWeekM1Bob, budgetGoalNewsBob, 3)
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bob, budgetGoalNewsBob, expectedValuesBobWeekM1, "Thu")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bob, budgetGoalNewsBob, expectedValuesBobWeekM1, "Fri")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bob, budgetGoalNewsBob, expectedValuesBobWeekM1, "Sat")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bob, noGoGoalGamblingBob, expectedValuesBobWeekM1, "Thu")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bob, noGoGoalGamblingBob, expectedValuesBobWeekM1, "Fri")
+		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bob, noGoGoalGamblingBob, expectedValuesBobWeekM1, "Sat")
+
+		when:
+		def responseBuddyDayOverviewsBea = appService.getDayActivityOverviews(richard, buddyBea, ["size": 100])
+		def responseBuddyDayOverviewsBob = appService.getDayActivityOverviews(richard, buddyBob, ["size": 100])
+
+		then:
+		responseBuddyDayOverviewsBea.responseData._embedded."yona:dayActivityOverviews".size() == expectedTotalDaysBea
+		responseBuddyDayOverviewsBob.responseData._embedded."yona:dayActivityOverviews".size() == expectedTotalDaysBob
+
+		// W-2
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM2, 2, "Wed")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM2, 2, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM2, 2, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM2, 2, "Sat")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, 2, "Wed")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, 2, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, 2, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, 2, "Sat")
+
+		// W-1
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM1, 1, "Sun")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM1, 1, "Mon")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM1, 1, "Tue")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM1, 1, "Wed")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM1, 1, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM1, 1, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM1, 1, "Sat")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, 1, "Sun")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, 1, "Mon")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, 1, "Tue")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, 1, "Wed")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, 1, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, 1, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviewsBea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, 1, "Sat")
+
+		assertDayDetail(richard, responseBuddyDayOverviewsBob, budgetGoalNewsBob, expectedValuesBobWeekM1, 1, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviewsBob, budgetGoalNewsBob, expectedValuesBobWeekM1, 1, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviewsBob, budgetGoalNewsBob, expectedValuesBobWeekM1, 1, "Sat")
+		assertDayDetail(richard, responseBuddyDayOverviewsBob, noGoGoalGamblingBob, expectedValuesBobWeekM1, 1, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviewsBob, noGoGoalGamblingBob, expectedValuesBobWeekM1, 1, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviewsBob, noGoGoalGamblingBob, expectedValuesBobWeekM1, 1, "Sat")
+
+		when:
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 100])
+
+		then:
+		assertDayOverviewWithBuddiesBasics(responseDayOverviewsWithBuddies, expectedTotalDays, expectedTotalDays, 100)
+
+		// W-2
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM2, 2, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM2, 2, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM2, 2, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM2, 2, "Sat")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM2, 2, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM2, 2, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM2, 2, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM2, 2, "Sat")
+
+		// W-1
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Sun")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Sat")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Sun")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Sat")
+
+		// TODO Fetch day Richard before earliest possible date
+		// TODO Fetch day Bea before goal creation
+		// TODO Fetch day buddy Bea before earliest possible date
+		// TODO Fetch day buddy Bob before earliest possible date
+		// TODO Fetch week Richard before earliest possible date
+		// TODO Fetch week Bea before goal creation
+		// TODO Fetch week buddy Bea before earliest possible date
+		// TODO Fetch day buddy Bob before earliest possible date
+		// TODO Fetch day with buddies before earliest possible date
+		// TODO Fetch day with buddies before Bob befriended
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	private def getRawActivityData(User user, relativeDate, goal) {
