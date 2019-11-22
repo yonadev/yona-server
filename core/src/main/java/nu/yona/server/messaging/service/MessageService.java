@@ -347,7 +347,7 @@ public class MessageService
 		sendMessage(toUser, message, destinationEntity, false);
 	}
 
-	private void sendFirebaseNotification(Message message, UserAnonymizedDto toUser)
+	public void sendFirebaseNotification(Message message, UserAnonymizedDto toUser)
 	{
 		toUser.getDevicesAnonymized().stream().filter(da -> da.getFirebaseInstanceId().isPresent())
 				.forEach(deviceAnonymized -> this.sendFirebaseNotification(deviceAnonymized, message));
