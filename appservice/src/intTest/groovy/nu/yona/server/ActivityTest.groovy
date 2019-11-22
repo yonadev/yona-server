@@ -23,7 +23,6 @@ import nu.yona.server.test.Device
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
@@ -1641,7 +1640,6 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		"IOS" | 60 | [13 : 4] // App activity monitoring is not possible on iOS, so we also track budget goals
 	}
 
-	@IgnoreRest
 	def 'Richard sees buddy activities from the date they befriended'()
 	{
 		given:
@@ -1847,16 +1845,127 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Fri")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekM1, 1, "Sat")
 
-		// TODO Fetch day Richard before earliest possible date
-		// TODO Fetch day Bea before goal creation
-		// TODO Fetch day buddy Bea before earliest possible date
-		// TODO Fetch day buddy Bob before earliest possible date
-		// TODO Fetch week Richard before earliest possible date
-		// TODO Fetch week Bea before goal creation
-		// TODO Fetch week buddy Bea before earliest possible date
-		// TODO Fetch day buddy Bob before earliest possible date
-		// TODO Fetch day with buddies before earliest possible date
-		// TODO Fetch day with buddies before Bob befriended
+		when:
+		// Day overview user, before account creation
+		def urlDayActivityOverviewTooEarly = YonaServer.appendToPath(richard.dailyActivityReportsUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-2 Mon 20:00")))
+		def responseDayActivityOverviewTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityOverviewTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseDayActivityOverviewTooEarly, 400)
+
+		when:
+		// Day detail user, before account creation
+		def urlDayActivityDetailBeforeAccount = YonaServer.appendToPath(urlDayActivityOverviewTooEarly, "/details/" + noGoGoalGamblingRichard.id)
+		def responseDayActivityDetailBeforeAccount = appService.yonaServer.getResourceWithPassword(urlDayActivityDetailBeforeAccount, richard.password)
+
+		then:
+		assertResponseStatus(responseDayActivityDetailBeforeAccount, 400)
+
+		when:
+		// Day detail user, before goal creation
+		def urlDayActivityOverviewTooEarlyBea = YonaServer.appendToPath(buddyBea.dailyActivityReportsUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-3 Mon 20:00")))
+		def urlDayActivityDetailBeforeGoal = YonaServer.appendToPath(urlDayActivityOverviewTooEarly, "/details/" + budgetGoalSocialBea.id)
+		def responseDayActivityDetailBeforeGoal = appService.yonaServer.getResourceWithPassword(urlDayActivityDetailBeforeGoal, richard.password)
+
+		then:
+		assertResponseStatus(responseDayActivityDetailBeforeGoal, 400)
+
+		when:
+		// Day overview buddy, before buddy relationship
+		def urlDayActivityOverviewBuddyBeaTooEarly = YonaServer.appendToPath(buddyBea.dailyActivityReportsUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-2 Tue 20:00")))
+		def responseDayActivityOverviewBuddyBeaTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityOverviewBuddyBeaTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseDayActivityOverviewBuddyBeaTooEarly, 400)
+
+		when:
+		// Day overview buddy, before buddy creation
+		def urlDayActivityOverviewBuddyBobTooEarly = YonaServer.appendToPath(buddyBob.dailyActivityReportsUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Wed 20:00")))
+		def responseDayActivityOverviewBuddyBobTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityOverviewBuddyBobTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseDayActivityOverviewBuddyBobTooEarly, 400)
+
+		when:
+		// Day detail buddy, before buddy relationship
+		def urlDayActivityDetailBuddyBeaTooEarly = YonaServer.appendToPath(urlDayActivityOverviewBuddyBeaTooEarly, "/details/" + noGoGoalGamblingBea.id)
+		def responseDayActivityDetailBuddyBeaTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityDetailBuddyBeaTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseDayActivityDetailBuddyBeaTooEarly, 400)
+
+		when:
+		// Day detail buddy, before buddy creation
+		def urlDayActivityDetailBuddyBobTooEarly = YonaServer.appendToPath(urlDayActivityOverviewBuddyBobTooEarly, "/details/" + noGoGoalGamblingBob.id)
+		def responseDayActivityDetailBuddyBobTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityDetailBuddyBobTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseDayActivityDetailBuddyBobTooEarly, 400)
+
+		when:
+		// Week overview user, before account creation
+		def urlWeekActivityOverviewTooEarly = YonaServer.appendToPath(richard.weeklyActivityReportsUrl, YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-3 Mon 20:00")))
+		def responseWeekActivityOverviewTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityOverviewTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseWeekActivityOverviewTooEarly, 400)
+
+		when:
+		// Day detail user, before account creation
+		def urlWeekActivityDetailBeforeAccount = YonaServer.appendToPath(urlWeekActivityOverviewTooEarly, "/details/" + noGoGoalGamblingRichard.id)
+		def responseWeekActivityDetailBeforeAccount = appService.yonaServer.getResourceWithPassword(urlWeekActivityDetailBeforeAccount, richard.password)
+
+		then:
+		assertResponseStatus(responseWeekActivityDetailBeforeAccount, 400)
+
+		when:
+		// Week detail user, before goal creation
+		def urlWeekActivityOverviewTooEarlyBea = YonaServer.appendToPath(buddyBea.weeklyActivityReportsUrl, YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-4 Mon 20:00")))
+		def urlWeekActivityDetailBeforeGoal = YonaServer.appendToPath(urlWeekActivityOverviewTooEarlyBea, "/details/" + budgetGoalSocialBea.id)
+		def responseWeekActivityDetailBeforeGoal = appService.yonaServer.getResourceWithPassword(urlWeekActivityDetailBeforeGoal, richard.password)
+
+		then:
+		assertResponseStatus(responseWeekActivityDetailBeforeGoal, 400)
+
+		when:
+		// Week overview buddy, before buddy relationship
+		def urlWeekActivityOverviewBuddyBeaTooEarly = YonaServer.appendToPath(buddyBea.weeklyActivityReportsUrl, YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-3 Tue 20:00")))
+		def responseWeekActivityOverviewBuddyBeaTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityOverviewBuddyBeaTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseWeekActivityOverviewBuddyBeaTooEarly, 400)
+
+		when:
+		// Week overview buddy, before buddy creation
+		def urlWeekActivityOverviewBuddyBobTooEarly = YonaServer.appendToPath(buddyBob.weeklyActivityReportsUrl, YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-2 Wed 20:00")))
+		def responseWeekActivityOverviewBuddyBobTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityOverviewBuddyBobTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseWeekActivityOverviewBuddyBobTooEarly, 400)
+
+		when:
+		// Week detail buddy, before buddy relationship
+		def urlWeekActivityDetailBuddyBeaTooEarly = YonaServer.appendToPath(urlWeekActivityOverviewBuddyBeaTooEarly, "/details/" + noGoGoalGamblingBea.id)
+		def responseWeekActivityDetailBuddyBeaTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityDetailBuddyBeaTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseWeekActivityDetailBuddyBeaTooEarly, 400)
+
+		when:
+		// Week detail buddy, before buddy creation
+		def urlWeekActivityDetailBuddyBobTooEarly = YonaServer.appendToPath(urlWeekActivityOverviewBuddyBobTooEarly, "/details/" + noGoGoalGamblingBob.id)
+		def responseWeekActivityDetailBuddyBobTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityDetailBuddyBobTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseWeekActivityDetailBuddyBobTooEarly, 400)
+
+		when:
+		// Day overview user with buddies, before account creation
+		def urlDayActivityOverviewWithBuddiesTooEarly = YonaServer.appendToPath(richard.dailyActivityReportsWithBuddiesUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-2 Mon 20:00")))
+		def responseDayActivityOverviewWithBuddiesTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityOverviewWithBuddiesTooEarly, richard.password)
+
+		then:
+		assertResponseStatus(responseDayActivityOverviewWithBuddiesTooEarly, 400)
 
 		cleanup:
 		appService.deleteUser(richard)

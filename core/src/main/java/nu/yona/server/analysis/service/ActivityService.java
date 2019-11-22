@@ -174,8 +174,9 @@ public class ActivityService
 	private WeekActivityOverviewDto getWeekActivityOverview(UUID userAnonymizedId, LocalDate earliestPossibleDate, LocalDate date,
 			Set<IntervalInactivityDto> missingInactivities)
 	{
-		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Interval interval = Interval.createWeekInterval(date);
+		assertDateNotTooEarly(earliestPossibleDate, interval.endDate);
+		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 
 		List<WeekActivityOverviewDto> weekActivityOverviews = getWeekActivityOverviews(userAnonymizedId, earliestPossibleDate,
 				missingInactivities, userAnonymized, interval);
@@ -268,7 +269,7 @@ public class ActivityService
 	public DayActivityOverviewDto<DayActivityDto> getUserDayActivityOverview(UUID userId, LocalDate date)
 	{
 		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityOverview(userService.getUserAnonymizedId(userId), date, mia));
+				mia -> getDayActivityOverview(userService.getUserAnonymizedId(userId), getUserCreationDate(userId), date, mia));
 	}
 
 	@Transactional
@@ -365,7 +366,8 @@ public class ActivityService
 	@Transactional
 	public DayActivityOverviewDto<DayActivityDto> getBuddyDayActivityOverview(BuddyDto buddy, LocalDate date)
 	{
-		return executeAndCreateInactivityEntries(mia -> getDayActivityOverview(getBuddyUserAnonymizedId(buddy), date, mia));
+		return executeAndCreateInactivityEntries(mia -> getDayActivityOverview(getBuddyUserAnonymizedId(buddy),
+				buddy.getLastStatusChangeTime().toLocalDate(), date, mia));
 	}
 
 	private UUID getBuddyUserAnonymizedId(BuddyDto buddy)
@@ -387,10 +389,11 @@ public class ActivityService
 				getTotalPageableItems(userAnonymized, earliestPossibleDate, ChronoUnit.DAYS));
 	}
 
-	private DayActivityOverviewDto<DayActivityDto> getDayActivityOverview(UUID userAnonymizedId, LocalDate date,
-			Set<IntervalInactivityDto> missingInactivities)
+	private DayActivityOverviewDto<DayActivityDto> getDayActivityOverview(UUID userAnonymizedId, LocalDate earliestPossibleDate,
+			LocalDate date, Set<IntervalInactivityDto> missingInactivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
+		assertDateNotTooEarly(earliestPossibleDate, date);
 		Interval interval = Interval.createDayInterval(date);
 
 		List<DayActivityOverviewDto<DayActivityDto>> dayActivityOverviews = getDayActivityOverviews(missingInactivities,
@@ -601,6 +604,7 @@ public class ActivityService
 	private WeekActivityDto getWeekActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate earliestPossibleDate,
 			LocalDate date, UUID goalId, Set<IntervalInactivityDto> missingInactivities)
 	{
+		assertDateNotTooEarly(earliestPossibleDate, Interval.createWeekInterval(date).endDate);
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		WeekActivity weekActivityEntity = weekActivityRepository.findOne(userAnonymizedId, date, goalId);
 		if (weekActivityEntity == null)
@@ -636,20 +640,21 @@ public class ActivityService
 	@Transactional
 	public DayActivityDto getUserDayActivityDetail(UUID userId, LocalDate date, UUID goalId)
 	{
-		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityDetail(userId, userService.getUserAnonymizedId(userId), date, goalId, mia));
+		return executeAndCreateInactivityEntries(mia -> getDayActivityDetail(userId, userService.getUserAnonymizedId(userId),
+				getUserCreationDate(userId), date, goalId, mia));
 	}
 
 	@Transactional
 	public DayActivityDto getBuddyDayActivityDetail(BuddyDto buddy, LocalDate date, UUID goalId)
 	{
-		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityDetail(buddy.getUser().getId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
+		return executeAndCreateInactivityEntries(mia -> getDayActivityDetail(buddy.getUser().getId(),
+				getBuddyUserAnonymizedId(buddy), buddy.getLastStatusChangeTime().toLocalDate(), date, goalId, mia));
 	}
 
-	private DayActivityDto getDayActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate date, UUID goalId,
-			Set<IntervalInactivityDto> missingInactivities)
+	private DayActivityDto getDayActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate earliestPossibleDate,
+			LocalDate date, UUID goalId, Set<IntervalInactivityDto> missingInactivities)
 	{
+		assertDateNotTooEarly(earliestPossibleDate, date);
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		DayActivity dayActivityEntity = dayActivityRepository.findOne(userAnonymizedId, date, goalId);
 		if (dayActivityEntity == null)
@@ -659,6 +664,11 @@ public class ActivityService
 							missingInactivities));
 		}
 		return DayActivityDto.createInstance(dayActivityEntity, LevelOfDetail.DAY_DETAIL);
+	}
+
+	private void assertDateNotTooEarly(LocalDate earliestPossibleDate, LocalDate date)
+	{
+		Require.that(!date.isBefore(earliestPossibleDate), () -> InvalidDataException.dateTooEarly(date, earliestPossibleDate));
 	}
 
 	@Transactional

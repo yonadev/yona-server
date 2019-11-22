@@ -179,6 +179,13 @@ class YonaServer
 		return uriBuilder.removeQueryParam(param).toString()
 	}
 
+	static def appendToPath(url, addition)
+	{
+		URIBuilder uriBuilder = new URIBuilder(url)
+		uriBuilder.path += addition
+		return uriBuilder.toString()
+	}
+
 	static String makeStringList(def strings)
 	{
 		def stringList = ""
