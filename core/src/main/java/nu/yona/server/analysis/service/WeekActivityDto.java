@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -135,22 +136,13 @@ public class WeekActivityDto extends IntervalActivityDto
 			return;
 		}
 		ZonedDateTime earliestPossibleDateTime = earliestPossibleDate.atStartOfDay(userAnonymized.getTimeZone());
+		ZonedDateTime startTime = getStartTime();
+		ZoneId zone = startTime.getZone();
 		// notice this doesn't take care of user time zone changes during the week
 		// so for consistency it is important that the batch script adding inactivity does so
-		for (int i = 0; i < 7; i++)
-		{
-			ZonedDateTime startOfDay = getStartTime().plusDays(i);
-			if (startOfDay.isBefore(earliestPossibleDateTime))
-			{
-				continue;
-			}
-			if (isInFuture(startOfDay, getStartTime().getZone()))
-			{
-				break;
-			}
-			determineApplicableGoalForDay(goals, startOfDay).ifPresent(
-					g -> addInactiveDayIfNoActivity(userAnonymized, g, startOfDay, levelOfDetail, missingInactivities));
-		}
+		IntStream.range(0, 7).mapToObj(startTime::plusDays).filter(t -> !t.isBefore(earliestPossibleDateTime))
+				.filter(t -> !isInFuture(t, zone)).forEach(t -> determineApplicableGoalForDay(goals, t)
+						.ifPresent(g -> addInactiveDayIfNoActivity(userAnonymized, g, t, levelOfDetail, missingInactivities)));
 	}
 
 	private static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)

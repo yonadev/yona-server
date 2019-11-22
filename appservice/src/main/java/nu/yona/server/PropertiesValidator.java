@@ -4,8 +4,6 @@
  *******************************************************************************/
 package nu.yona.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
@@ -13,8 +11,6 @@ import nu.yona.server.properties.YonaProperties;
 
 public class PropertiesValidator implements Validator
 {
-	private static final Logger logger = LoggerFactory.getLogger(PropertiesValidator.class);
-
 	@Override
 	public boolean supports(Class<?> type)
 	{

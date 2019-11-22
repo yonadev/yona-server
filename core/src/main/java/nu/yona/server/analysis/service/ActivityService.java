@@ -210,8 +210,7 @@ public class ActivityService
 				missingInactivities);
 	}
 
-	private long getTotalPageableItems(UserAnonymizedDto userAnonymized, Set<BuddyDto> buddies, LocalDate userCreationDate,
-			ChronoUnit timeUnit)
+	private long getTotalPageableItems(UserAnonymizedDto userAnonymized, Set<BuddyDto> buddies, ChronoUnit timeUnit)
 	{
 		LocalDate earliestPossibleDate = determineEarliestBuddyStatusChangeDate(buddies);
 
@@ -292,7 +291,7 @@ public class ActivityService
 		List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityOverviews = getUserDayActivityOverviewsWithBuddies(
 				userAnonymizedId, earliestPossibleDate, interval, buddiesInInterval);
 		return new PageImpl<>(dayActivityOverviews, pageable,
-				getTotalPageableItems(userAnonymized, buddiesInInterval, earliestPossibleDate, ChronoUnit.DAYS));
+				getTotalPageableItems(userAnonymized, buddiesInInterval, ChronoUnit.DAYS));
 	}
 
 	private List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> getUserDayActivityOverviewsWithBuddies(UUID userAnonymizedId,
