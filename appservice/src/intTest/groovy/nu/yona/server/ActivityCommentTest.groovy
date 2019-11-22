@@ -455,12 +455,17 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		assert responseDetailsBobAsBuddy.responseData._links."yona:addComment".href
 		assert responseDetailsBobAsBuddy.responseData._links."yona:messages".href
 
+		appService.clearLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
+		appService.clearLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
 		def message = """{"message": "You're quiet!"}"""
 		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
 
 		assertResponseStatusOk(responseAddMessage)
 		def addedMessage = responseAddMessage.responseData
 		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!", addedMessage)
+
+		assertResponseStatus(appService.clearLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId), 404) // No message sent since last clear
+		assertResponseStatusOk(appService.clearLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)) // Message sent since last clear
 
 		assertMarkReadUnread(richard, addedMessage)
 

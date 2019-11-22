@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.entities;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @Entity
@@ -26,6 +27,18 @@ public class BuddyDisconnectMessage extends BuddyConnectionChangeMessage
 	public BuddyDisconnectMessage()
 	{
 		super();
+	}
+
+	/**
+	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
+	 * 
+	 * @param original Message to copy.
+	 */
+	public BuddyDisconnectMessage(BuddyDisconnectMessage original)
+	{
+		super(original);
+		this.isProcessed = original.isProcessed;
+		this.reason = original.reason;
 	}
 
 	public static BuddyDisconnectMessage createInstance(BuddyInfoParameters buddyInfoParameters, String message,

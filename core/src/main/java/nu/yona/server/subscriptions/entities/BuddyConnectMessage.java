@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.rest.RestUtil;
 
 @Entity
@@ -67,6 +68,20 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 		this.deviceNames = buildDeviceNamesString(orderedDevices);
 		this.deviceAnonymizedIds = buildDeviceAnonymizedIdsString(orderedDevices);
 		this.deviceVpnConnectionStatuses = buildDeviceVpnConnectionStatusesString(orderedDevices);
+	}
+
+	/**
+	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
+	 * 
+	 * @param original Message to copy.
+	 */
+	public BuddyConnectMessage(BuddyConnectMessage original)
+	{
+		super(original);
+		this.buddyId = original.buddyId;
+		this.deviceNames = original.deviceNames;
+		this.deviceAnonymizedIds = original.deviceAnonymizedIds;
+		this.deviceVpnConnectionStatuses = original.deviceVpnConnectionStatuses;
 	}
 
 	private String buildDeviceNamesString(List<UserDevice> devices)

@@ -745,17 +745,24 @@ public class ActivityService
 				repliedMessageOfBuddy, false, message);
 		ActivityCommentMessage messageToSelf = createMessage(sendingUser, targetUserAnonymizedId, intervalActivityEntity,
 				repliedMessageOfSelf, true, message);
-		sendMessage(targetUserAnonymizedId, messageToBuddy);
+		sendMessage(targetUserAnonymizedId, messageToBuddy, true);
 		messageToSelf.setBuddyMessage(messageToBuddy);
-		sendMessage(sendingUserAnonymizedId, messageToSelf);
+		sendMessage(sendingUserAnonymizedId, messageToSelf, false);
 
 		return messageService.messageToDto(sendingUser, messageToSelf);
 	}
 
-	private void sendMessage(UUID targetUserAnonymizedId, ActivityCommentMessage messageEntity)
+	private void sendMessage(UUID targetUserAnonymizedId, ActivityCommentMessage messageEntity, boolean sendNotification)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(targetUserAnonymizedId);
-		messageService.sendMessage(messageEntity, userAnonymized);
+		if (sendNotification)
+		{
+			messageService.sendMessage(messageEntity, userAnonymized);
+		}
+		else
+		{
+			messageService.sendMessageWithoutNotification(messageEntity, userAnonymized);
+		}
 	}
 
 	private ActivityCommentMessage createMessage(UserDto sendingUser, UUID relatedUserAnonymizedId,

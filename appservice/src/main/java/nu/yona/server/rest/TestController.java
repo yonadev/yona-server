@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -111,6 +112,24 @@ public class TestController extends ControllerBase
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
 		Optional<Message> lastMessage = firebaseService.getLastMessage(registrationToken);
+		if (lastMessage.isEmpty())
+		{
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return createOkResponse(FirebaseMessageDto.createInstance(lastMessage.get()), createFirebaseMessageResourceAssembler());
+	}
+
+	/**
+	 * Clears the last Firebase message that was prepared to be sent (but not sent because Firebase was disabled).
+	 * 
+	 * @param registrationToken the registration token for which the message must be retrieved
+	 * @return the status
+	 */
+	@DeleteMapping(value = "/firebase/messages/last/{registrationToken}")
+	@ResponseBody
+	public HttpEntity<FirebaseMessageResource> clearLastFirebaseMessage(@PathVariable String registrationToken)
+	{
+		Optional<Message> lastMessage = firebaseService.clearLastMessage(registrationToken);
 		if (lastMessage.isEmpty())
 		{
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
