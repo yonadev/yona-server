@@ -80,12 +80,14 @@ public class FirebaseService
 
 		if (yonaProperties.getFirebase().isEnabled())
 		{
+			logger.info("Sending Firebase message");
 			// Sending takes quite a bit of time, so do it asynchronously
 			CompletableFuture.runAsync(() -> sendMessage(firebaseMessage))
 					.whenCompleteAsync((r, t) -> logIfCompletedWithException(t));
 		}
 		else
 		{
+			logger.info("Firebase message not sent because Firebase is disabled");
 			// Store for testability
 			lastMessageByRegistrationToken.put(registrationToken, firebaseMessage);
 		}
@@ -121,7 +123,11 @@ public class FirebaseService
 
 	private void logIfCompletedWithException(Throwable throwable)
 	{
-		if (throwable != null)
+		if (throwable == null)
+		{
+			logger.info("Firebase message sent successfully");
+		}
+		else
 		{
 			logger.error("Fatal error: Exception while sending Firebase message", throwable);
 		}
