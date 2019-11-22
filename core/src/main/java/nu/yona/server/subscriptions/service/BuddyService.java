@@ -782,6 +782,11 @@ public class BuddyService
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set goal creation time"));
+		User userEntity = userService.getUserEntityById(userId);
+		LocalDateTime userCreationTime = userEntity.getCreationTime();
+		Require.that(!lastStatusChangeTime.isBefore(userCreationTime),
+				() -> InvalidDataException.dateTooEarly(lastStatusChangeTime, userCreationTime));
+
 		Buddy buddyEntity = getEntityById(buddyId);
 		buddyEntity.setLastStatusChangeTime(lastStatusChangeTime);
 		buddyRepository.save(buddyEntity);

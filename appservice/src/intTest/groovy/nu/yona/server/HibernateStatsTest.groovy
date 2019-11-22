@@ -11,9 +11,9 @@ import static nu.yona.server.test.CommonAssertions.*
 import java.time.LocalDate
 import java.time.format.TextStyle
 
-import groovy.json.*
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.CommonAssertions
+import nu.yona.server.test.Device
 import nu.yona.server.test.User
 import spock.lang.IgnoreIf
 import spock.lang.Shared
@@ -24,6 +24,8 @@ import spock.lang.Shared
 })
 class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 {
+
+	static final String SCENARIO_RELATIVE_START_TIME = "W-2 Sun 01:00"
 	@Shared
 	User richard
 
@@ -39,6 +41,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 
 		int numBuddies = 3
 		richard = addRichard()
+		setCreationTime(richard, SCENARIO_RELATIVE_START_TIME)
 		buddyUsers = createBuddies(richard, numBuddies)
 		generateActivities(richard)
 		buddyUsers.each { generateActivities(it) }
@@ -287,16 +290,21 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		{
 			User buddyUser = createBuddyUser(it)
 			appService.makeBuddies(user, buddyUser)
-			buddyUsers.add(appService.reloadUser(buddyUser))
+			buddyUser = appService.reloadUser(buddyUser)
+			updateLastStatusChangeTime(buddyUser, buddyUser.buddies[0], SCENARIO_RELATIVE_START_TIME)
+			buddyUsers.add(buddyUser)
 		}
+		appService.reloadUser(user).buddies.forEach{updateLastStatusChangeTime(user, it, SCENARIO_RELATIVE_START_TIME)}
 		return buddyUsers
 	}
 
 	User createBuddyUser(int index)
 	{
-		User buddyUser = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bob" + index, "Dunn" + index, "BD" + index,
-				makeMobileNumber(timestamp))
+		def userName = "Bob" + index
+		User buddyUser = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, userName, "Dunn" + index, "BD" + index,
+				makeMobileNumber(timestamp), "$userName's S8", "ANDROID", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 		buddyUser = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, buddyUser)
+		setCreationTime(buddyUser, SCENARIO_RELATIVE_START_TIME)
 		setGoals(buddyUser)
 		buddyUser.emailAddress = "bob${index}@dunn.com"
 		return buddyUser
@@ -304,7 +312,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 
 	void setGoals(User user)
 	{
-		setGoalCreationTime(user, GAMBLING_ACT_CAT_URL, "W-2 Sun 01:00")
+		setGoalCreationTime(user, GAMBLING_ACT_CAT_URL, SCENARIO_RELATIVE_START_TIME)
 		addBudgetGoals(user,  [NEWS_ACT_CAT_URL, MULTIMEDIA_ACT_CAT_URL])
 		addTimeZoneGoals(user,  [ADULT_CONTENT_ACT_CAT_URL])
 		createGoalHistoryItems(user, NEWS_ACT_CAT_URL)
@@ -312,12 +320,12 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	}
 	void addBudgetGoals(User user, def goalUrls)
 	{
-		goalUrls.each {addBudgetGoal(user, it, 0, "W-2 Sun 01:00")}
+		goalUrls.each {addBudgetGoal(user, it, 0, SCENARIO_RELATIVE_START_TIME)}
 	}
 
 	void addTimeZoneGoals(User user, def goalUrls)
 	{
-		goalUrls.each {addTimeZoneGoal(user, it, ["11:00-12:00"], "W-2 Sun 01:00")}
+		goalUrls.each {addTimeZoneGoal(user, it, ["11:00-12:00"], SCENARIO_RELATIVE_START_TIME)}
 	}
 
 	void createGoalHistoryItems(User user, def goalUrl)
@@ -353,7 +361,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def hoursEnd   = ["00:10", "00:35", "01:00", "01:25"]
 		hoursBegin.eachWithIndex
 		{ begin, idx ->
-			reportAppActivity(user, app, "$day $begin", "$day " + hoursEnd[idx])
+			reportAppActivity(user, user.requestingDevice, app, "$day $begin", "$day " + hoursEnd[idx])
 		}
 	}
 	void generateCommentThreadOnYesterdaysNewsActivity(User user, def buddyUsers)

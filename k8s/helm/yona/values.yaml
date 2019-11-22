@@ -212,6 +212,7 @@ analysis:
 
 app:
   max_users: "1000000"
+  test_server: false
   enable_hibernate_stats_allowed: false
   whitelist:
     active_free_signup: false

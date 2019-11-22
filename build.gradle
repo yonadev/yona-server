@@ -65,6 +65,7 @@ subprojects {
 		yona_batchservice_debug_port     = project.properties["yona_batchservice_debug_port"]    ?: "8843"
 		yona_batchservice_url            = project.properties["yona_batchservice_url"]           ?: "${yona_batchservice_scheme}://${yona_batchservice_host}:${yona_batchservice_port}"
 		yona_enableHibernateStatsAllowed = project.properties["yona_enableHibernateStatsAllowed"]?: "false"
+		yona_testServer                  = project.properties["yona_testServer"]                 ?: "false"
 	}
 
 	repositories {

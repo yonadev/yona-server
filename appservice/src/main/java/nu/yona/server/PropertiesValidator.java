@@ -31,6 +31,11 @@ public class PropertiesValidator implements Validator
 			errors.rejectValue("testServer", "properties.inconsistent",
 					"Seems like yona.testServer property is set on a production server, as SMS is enabled");
 		}
+		if (properties.isEnableHibernateStatsAllowed() && !properties.isTestServer())
+		{
+			errors.rejectValue("enableHibernateStatsAllowed", "properties.inconsistent",
+					"This property can only be enabled on a test server");
+		}
 	}
 
 }
