@@ -129,6 +129,8 @@ public class TestController extends ControllerBase
 	@ResponseBody
 	public HttpEntity<FirebaseMessageResource> clearLastFirebaseMessage(@PathVariable String registrationToken)
 	{
+		Require.that(yonaProperties.isTestServer(),
+				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
 		Optional<Message> lastMessage = firebaseService.clearLastMessage(registrationToken);
 		if (lastMessage.isEmpty())
 		{
