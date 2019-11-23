@@ -206,8 +206,8 @@ public class DeviceService
 		assertAcceptableDeviceName(userEntity, changeRequest.name);
 		deviceEntity.setName(changeRequest.name);
 		userDeviceRepository.save(deviceEntity);
-		sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
-				Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
+		sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName), Optional.of(changeRequest.name),
+				deviceEntity.getDeviceAnonymized().getId());
 	}
 
 	private void saveFirebaseInstanceIdIfUpdated(DeviceUpdateRequestDto changeRequest, UserDevice deviceEntity)
@@ -373,7 +373,19 @@ public class DeviceService
 		LocalDate appLastOpenedDate = deviceEntity.getAppLastOpenedDate();
 		if (appLastOpenedDate.isBefore(today))
 		{
+			roundUserCreationDateIfLoyalUser(userEntity);
 			deviceEntity.setAppLastOpenedDateToNow(userEntity);
+		}
+	}
+
+	private void roundUserCreationDateIfLoyalUser(User userEntity)
+	{
+		LocalDate roundedCreationDate = userEntity.getRoundedCreationDate();
+		if (roundedCreationDate.getDayOfMonth() != 1
+				&& TimeUtil.utcNow().toLocalDate().minusDays(30).isBefore(roundedCreationDate))
+		{
+			// User is active for more than 30 days. Set the date to the first of the month, to reduce identification risk
+			userEntity.setRoundedCreationDate(roundedCreationDate.withDayOfMonth(1));
 		}
 	}
 

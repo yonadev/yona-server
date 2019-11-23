@@ -1,0 +1,24 @@
+databaseChangeLog:
+- changeSet:
+    id: 1574507329427-6
+    author: bert (manually created)
+    changes:
+    - renameColumn:
+        oldColumnName: creation_time
+        newColumnName: rounded_creation_date
+        columnDataType: datetime(6) 
+        tableName: users
+    - modifyDataType:
+        columnName: rounded_creation_date
+        newDataType: date
+        tableName: users
+- changeSet:
+    id: 1574507329427-7
+    author: bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: creation_time
+            type: varchar(255)
+        tableName: users_private

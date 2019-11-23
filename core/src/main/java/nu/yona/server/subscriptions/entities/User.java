@@ -40,7 +40,7 @@ public class User extends EntityWithUuid
 	@Column(unique = true)
 	private String mobileNumber;
 
-	private LocalDateTime creationTime;
+	private LocalDate roundedCreationDate;
 
 	private LocalDate appLastOpenedDate;
 
@@ -79,7 +79,7 @@ public class User extends EntityWithUuid
 	{
 		super(id);
 		this.initializationVector = initializationVector;
-		this.creationTime = TimeUtil.utcNow();
+		this.roundedCreationDate = TimeUtil.utcNow().toLocalDate();
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
@@ -106,7 +106,17 @@ public class User extends EntityWithUuid
 
 	public LocalDateTime getCreationTime()
 	{
-		return this.creationTime;
+		return userPrivate.getCreationTime();
+	}
+
+	public LocalDate getRoundedCreationDate()
+	{
+		return roundedCreationDate;
+	}
+
+	public void setRoundedCreationDate(LocalDate roundedCreationDate)
+	{
+		this.roundedCreationDate = roundedCreationDate;
 	}
 
 	public Optional<LocalDate> getAppLastOpenedDate()

@@ -37,6 +37,6 @@ public interface UserRepository extends JpaRepository<User, UUID>
 	@Query("select u from User u where u.newDeviceRequest != null and u.newDeviceRequest.creationTime < :cuttOffDate")
 	Set<User> findAllWithExpiredNewDeviceRequests(@Param("cuttOffDate") LocalDateTime cuttOffDate);
 
-	@Query("select count(u) from User u where u.appLastOpenedDate != null and datediff(u.appLastOpenedDate, u.creationTime) >= :minNumberOfDays and datediff(u.appLastOpenedDate, u.creationTime) < :maxNumberOfDays")
+	@Query("select count(u) from User u where u.appLastOpenedDate != null and datediff(u.appLastOpenedDate, u.roundedCreationDate) >= :minNumberOfDays and datediff(u.appLastOpenedDate, u.roundedCreationDate) < :maxNumberOfDays")
 	int countByNumberOfDaysAppOpenedAfterInstallation(int minNumberOfDays, int maxNumberOfDays);
 }

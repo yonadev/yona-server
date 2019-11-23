@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.entities;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -25,11 +26,13 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import nu.yona.server.crypto.CryptoUtil;
+import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USERS_PRIVATE")
@@ -58,6 +61,9 @@ public class UserPrivate extends PrivateUserProperties
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
 
+	@Convert(converter = DateTimeFieldEncryptor.class)
+	private LocalDateTime creationTime;
+
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_private_id", referencedColumnName = "id")
 	@Fetch(FetchMode.JOIN)
@@ -78,6 +84,7 @@ public class UserPrivate extends PrivateUserProperties
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.namedMessageSourceId = namedMessageSourceId;
+		this.creationTime = TimeUtil.utcNow();
 		this.devices = new HashSet<>();
 	}
 
@@ -138,6 +145,11 @@ public class UserPrivate extends PrivateUserProperties
 		Optional<String> retVal = Optional.of(vpnPassword);
 		vpnPassword = null;
 		return retVal;
+	}
+
+	public LocalDateTime getCreationTime()
+	{
+		return this.creationTime;
 	}
 
 	private boolean isDecrypted()
