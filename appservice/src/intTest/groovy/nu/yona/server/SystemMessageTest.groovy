@@ -15,6 +15,8 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		appService.clearLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
+		appService.clearLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
 
 		when:
 		def response = adminService.postSystemMessage("Hi there!")
@@ -33,12 +35,26 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		systemMessagesRichard[0].nickname == "Yona"
 		systemMessagesRichard[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesRichard[0]._links?.self?.href?.startsWith(richard.messagesUrl)
+		def messageUrlRichard = systemMessagesRichard[0]._links?.self?.href
 		def systemMessagesBob = messagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		systemMessagesBob.size() == 1
 		systemMessagesBob[0].message == "Hi there!"
 		systemMessagesBob[0].nickname == "Yona"
 		systemMessagesBob[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesBob[0]._links?.self?.href?.startsWith(bob.messagesUrl)
+		def messageUrlBob = systemMessagesBob[0]._links?.self?.href
+
+		def responseBob = batchService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
+		assertResponseStatusOk(responseBob)
+		assert responseBob.responseData.title == "Message received"
+		assert responseBob.responseData.body == "Tap to open message"
+		assert messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
+
+		def responseRichard = batchService.getLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
+		assertResponseStatusOk(responseRichard)
+		assert responseRichard.responseData.title == "Message received"
+		assert responseRichard.responseData.body == "Tap to open message"
+		assert messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
 
 		cleanup:
 		appService.deleteUser(richard)
