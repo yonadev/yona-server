@@ -12,6 +12,8 @@ import nu.yona.server.YonaServer
 
 abstract class Service
 {
+	static final LAST_EMAIL_PATH = "/test/emails/last"
+	static final LAST_EMAIL_FIREBASE_MESSAGE = "/test/firebase/messages/last"
 	final String url
 	final YonaServer yonaServer
 
@@ -64,6 +66,21 @@ abstract class Service
 		def response = getResource("/hibernateStatistics/", [:], ["reset" : "false"])
 		assertResponseStatusOk(response)
 		response.responseData
+	}
+
+	def getLastEmail()
+	{
+		getResource(LAST_EMAIL_PATH)
+	}
+
+	def getLastFirebaseMessage(def firebaseInstanceId)
+	{
+		getResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
+	}
+
+	def clearLastFirebaseMessage(def firebaseInstanceId)
+	{
+		deleteResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
 	}
 
 	def isSuccess(def response)
