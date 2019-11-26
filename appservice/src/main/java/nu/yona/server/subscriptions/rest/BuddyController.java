@@ -124,6 +124,9 @@ public class BuddyController extends ControllerBase
 		}
 	}
 
+	/**
+	 * This operation is for test purposes only. It only allows updating the last status change time of the buddy entity.
+	 */
 	@PutMapping(value = "/{buddyId}")
 	@ResponseBody
 	public HttpEntity<BuddyResource> updateBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
