@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.jobs;
 
@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.entities.SystemMessage;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.RestUtil;
@@ -73,6 +74,9 @@ public class SendSystemMessageBatchJob
 	@Autowired
 	private MessageService messageService;
 
+	@Autowired
+	private MessageRepository messageRepository;
+
 	@Bean("sendSystemMessageJob")
 	public Job sendSystemMessagesBatchJob()
 	{
@@ -109,7 +113,10 @@ public class SendSystemMessageBatchJob
 
 				MessageDestination messageDestination = messageService
 						.getMessageDestination(userAnonymized.getAnonymousDestination().getId());
-				messageDestination.send(SystemMessage.createInstance(messageText));
+				SystemMessage message = SystemMessage.createInstance(messageText);
+				messageDestination.send(message);
+				messageRepository.save(message);
+				messageService.sendFirebaseNotification(message, userAnonymized);
 
 				return messageDestination;
 			}

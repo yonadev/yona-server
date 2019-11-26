@@ -19,8 +19,6 @@ class AppService extends Service
 	static final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
 	static final USERS_PATH = "/users/"
 	static final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
-	static final LAST_EMAIL_PATH = "/test/emails/last"
-	static final LAST_EMAIL_FIREBASE_MESSAGE = "/test/firebase/messages/last"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -529,20 +527,5 @@ class AppService extends Service
 
 	def composeActivityCategoryUrl(def activityCategoryId) {
 		"$yonaServer.restClient.uri$ACTIVITY_CATEGORIES_PATH$activityCategoryId"
-	}
-
-	def getLastEmail()
-	{
-		getResource(LAST_EMAIL_PATH)
-	}
-
-	def getLastFirebaseMessage(def firebaseInstanceId)
-	{
-		getResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
-	}
-
-	def clearLastFirebaseMessage(def firebaseInstanceId)
-	{
-		deleteResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
 	}
 }
