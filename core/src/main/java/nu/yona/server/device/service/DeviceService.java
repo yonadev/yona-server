@@ -382,7 +382,7 @@ public class DeviceService
 	{
 		LocalDate roundedCreationDate = userEntity.getRoundedCreationDate();
 		if (roundedCreationDate.getDayOfMonth() != 1
-				&& TimeUtil.utcNow().toLocalDate().minusDays(30).isBefore(roundedCreationDate))
+				&& TimeUtil.utcNow().toLocalDate().minusDays(30).isAfter(roundedCreationDate))
 		{
 			// User is active for more than 30 days. Set the date to the first of the month, to reduce identification risk
 			userEntity.setRoundedCreationDate(roundedCreationDate.withDayOfMonth(1));

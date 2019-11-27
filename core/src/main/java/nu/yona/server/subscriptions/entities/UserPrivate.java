@@ -152,6 +152,11 @@ public class UserPrivate extends PrivateUserProperties
 		return this.creationTime;
 	}
 
+	public void setCreationTime(LocalDateTime creationTime)
+	{
+		this.creationTime = creationTime;
+	}
+
 	private boolean isDecrypted()
 	{
 		return decryptionCheck != null;
