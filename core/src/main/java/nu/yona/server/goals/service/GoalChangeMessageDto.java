@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -10,6 +10,7 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -29,7 +30,7 @@ import nu.yona.server.subscriptions.service.UserDto;
 @JsonRootName("goalChangeMessage")
 public class GoalChangeMessageDto extends BuddyMessageLinkedUserDto
 {
-	public static final String GOAL_REL_NAME = "goal";
+	public static final LinkRelation GOAL_REL = LinkRelation.of("goal");
 	private final UUID activityCategoryIdOfChangedGoal;
 	private final Change change;
 

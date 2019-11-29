@@ -38,13 +38,13 @@ public class GoalConflictMessageDecorator implements MessageResourceDecorator
 			message.add(BuddyActivityController
 					.getBuddyDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(),
 							assembler.getSenderBuddyId(message), dateStr, message.getGoalId())
-					.withRel(BuddyActivityController.DAY_DETAIL_LINK));
+					.withRel(BuddyActivityController.DAY_DETAIL_REL));
 		}
 		else
 		{
 			message.add(UserActivityController
 					.getUserDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(), dateStr, message.getGoalId())
-					.withRel(UserActivityController.DAY_DETAIL_LINK));
+					.withRel(UserActivityController.DAY_DETAIL_REL));
 		}
 	}
 }

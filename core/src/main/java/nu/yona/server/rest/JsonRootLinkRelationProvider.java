@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class JsonRootLinkRelationProvider implements LinkRelationProvider
 {
-	public static final String EDIT_REL = "edit";
+	public static final LinkRelation EDIT_REL = LinkRelation.of("edit");
 
 	private final DefaultLinkRelationProvider defaultLinkRelationProvider = new DefaultLinkRelationProvider();
 

@@ -6,7 +6,6 @@ package nu.yona.server.analysis.rest;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,11 +16,13 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -48,10 +49,10 @@ import nu.yona.server.subscriptions.service.UserService;
  */
 abstract class ActivityControllerBase extends ControllerBase
 {
-	public static final String DAY_DETAIL_LINK = "dayDetails";
-	public static final String WEEK_DETAIL_LINK = "weekDetails";
-	public static final String DAY_OVERVIEW_LINK = "dailyActivityReports";
-	public static final String WEEK_OVERVIEW_LINK = "weeklyActivityReports";
+	public static final LinkRelation DAY_DETAIL_REL = LinkRelation.of("dayDetails");
+	public static final LinkRelation WEEK_DETAIL_REL = LinkRelation.of("weekDetails");
+	public static final LinkRelation DAY_OVERVIEW_REL = LinkRelation.of("dailyActivityReports");
+	public static final LinkRelation WEEK_OVERVIEW_REL = LinkRelation.of("weeklyActivityReports");
 
 	@Autowired
 	protected ActivityService activityService;
@@ -75,8 +76,8 @@ abstract class ActivityControllerBase extends ControllerBase
 	protected static final int WEEKS_DEFAULT_PAGE_SIZE = 2;
 	protected static final int DAYS_DEFAULT_PAGE_SIZE = 3;
 	protected static final int MESSAGES_DEFAULT_PAGE_SIZE = 4;
-	protected static final String PREV_REL = "prev"; // IANA reserved, so will not be prefixed
-	protected static final String NEXT_REL = "next"; // IANA reserved, so will not be prefixed
+	protected static final LinkRelation PREV_REL = LinkRelation.of("prev"); // IANA reserved, so will not be prefixed
+	protected static final LinkRelation NEXT_REL = LinkRelation.of("next"); // IANA reserved, so will not be prefixed
 
 	protected HttpEntity<PagedModel<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
 			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
@@ -101,8 +102,8 @@ abstract class ActivityControllerBase extends ControllerBase
 		}
 	}
 
-	protected HttpEntity<PagedModel<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password,
-			UUID userId, PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
+	protected HttpEntity<PagedModel<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password, UUID userId,
+			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier, LinkProvider linkProvider)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
@@ -205,14 +206,14 @@ abstract class ActivityControllerBase extends ControllerBase
 	{
 		message.add(linkProvider
 				.getWeekActivityDetailLinkBuilder(WeekActivityDto.formatDate(activity.getStartDate()), activity.getGoal().getId())
-				.withRel(WEEK_DETAIL_LINK));
+				.withRel(WEEK_DETAIL_REL));
 	}
 
 	private void addDayDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDto message)
 	{
 		message.add(linkProvider
 				.getDayActivityDetailLinkBuilder(DayActivityDto.formatDate(activity.getStartDate()), activity.getGoal().getId())
-				.withRel(DAY_DETAIL_LINK));
+				.withRel(DAY_DETAIL_REL));
 	}
 
 	private void addThreadHeadMessageLink(UUID userId, ActivityCommentMessageDto message)
@@ -279,7 +280,7 @@ abstract class ActivityControllerBase extends ControllerBase
 			this.linkProvider = linkProvider;
 		}
 
-		public List<WeekActivityResource> getWeekActivities()
+		public CollectionModel<WeekActivityResource> getWeekActivities()
 		{
 			return new WeekActivityResourceAssembler(linkProvider, false).toCollectionModel(getContent().getWeekActivities());
 		}
@@ -303,7 +304,7 @@ abstract class ActivityControllerBase extends ControllerBase
 			this.linkProvider = linkProvider;
 		}
 
-		public List<DayActivityResource> getDayActivities()
+		public CollectionModel<DayActivityResource> getDayActivities()
 		{
 			return new DayActivityResourceAssembler(linkProvider, true, false).toCollectionModel(getContent().getDayActivities());
 		}
@@ -323,13 +324,13 @@ abstract class ActivityControllerBase extends ControllerBase
 		@Override
 		public WeekActivityOverviewResource toModel(WeekActivityOverviewDto weekActivityOverview)
 		{
-			WeekActivityOverviewResource resource = instantiateResource(weekActivityOverview);
+			WeekActivityOverviewResource resource = instantiateModel(weekActivityOverview);
 			addSelfLink(resource);
 			return resource;
 		}
 
 		@Override
-		protected WeekActivityOverviewResource instantiateResource(WeekActivityOverviewDto weekActivityOverview)
+		protected WeekActivityOverviewResource instantiateModel(WeekActivityOverviewDto weekActivityOverview)
 		{
 			return new WeekActivityOverviewResource(linkProvider, weekActivityOverview);
 		}
@@ -355,8 +356,8 @@ abstract class ActivityControllerBase extends ControllerBase
 		@Override
 		public WeekActivityResource toModel(WeekActivityDto weekActivity)
 		{
-			WeekActivityResource weekActivityResource = instantiateResource(weekActivity);
-			addWeekDetailsLink(weekActivityResource, (isWeekDetail) ? IanaLinkRelations.SELF : WEEK_DETAIL_LINK);
+			WeekActivityResource weekActivityResource = instantiateModel(weekActivity);
+			addWeekDetailsLink(weekActivityResource, (isWeekDetail) ? IanaLinkRelations.SELF : WEEK_DETAIL_REL);
 			addGoalLink(weekActivityResource);
 			if (isWeekDetail)
 			{
@@ -369,12 +370,12 @@ abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		protected WeekActivityResource instantiateResource(WeekActivityDto weekActivity)
+		protected WeekActivityResource instantiateModel(WeekActivityDto weekActivity)
 		{
 			return new WeekActivityResource(linkProvider, weekActivity);
 		}
 
-		private void addWeekDetailsLink(WeekActivityResource weekActivityResource, String rel)
+		private void addWeekDetailsLink(WeekActivityResource weekActivityResource, LinkRelation rel)
 		{
 			weekActivityResource.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getDateStr(),
 					weekActivityResource.getContent().getGoalId()).withRel(rel));
@@ -440,8 +441,8 @@ abstract class ActivityControllerBase extends ControllerBase
 		@Override
 		public DayActivityResource toModel(DayActivityDto dayActivity)
 		{
-			DayActivityResource dayActivityResource = instantiateResource(dayActivity);
-			addDayDetailsLink(dayActivityResource, (isDayDetail) ? IanaLinkRelations.SELF : DAY_DETAIL_LINK);
+			DayActivityResource dayActivityResource = instantiateModel(dayActivity);
+			addDayDetailsLink(dayActivityResource, (isDayDetail) ? IanaLinkRelations.SELF : DAY_DETAIL_REL);
 			if (addGoalLink)
 			{
 				addGoalLink(dayActivityResource);
@@ -457,7 +458,7 @@ abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		protected DayActivityResource instantiateResource(DayActivityDto dayActivity)
+		protected DayActivityResource instantiateModel(DayActivityDto dayActivity)
 		{
 			return new DayActivityResource(dayActivity);
 		}
@@ -468,7 +469,7 @@ abstract class ActivityControllerBase extends ControllerBase
 					.add(linkProvider.getGoalLinkBuilder(dayActivityResource.getContent().getGoalId()).withRel("goal"));
 		}
 
-		private void addDayDetailsLink(DayActivityResource dayActivityResource, String rel)
+		private void addDayDetailsLink(DayActivityResource dayActivityResource, LinkRelation rel)
 		{
 			dayActivityResource.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getDateStr(),
 					dayActivityResource.getContent().getGoalId()).withRel(rel));
@@ -525,13 +526,13 @@ abstract class ActivityControllerBase extends ControllerBase
 		@Override
 		public DayActivityOverviewResource toModel(DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
-			DayActivityOverviewResource resource = instantiateResource(dayActivityOverview);
+			DayActivityOverviewResource resource = instantiateModel(dayActivityOverview);
 			addSelfLink(resource);
 			return resource;
 		}
 
 		@Override
-		protected DayActivityOverviewResource instantiateResource(DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
+		protected DayActivityOverviewResource instantiateModel(DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
 			return new DayActivityOverviewResource(linkProvider, dayActivityOverview);
 		}

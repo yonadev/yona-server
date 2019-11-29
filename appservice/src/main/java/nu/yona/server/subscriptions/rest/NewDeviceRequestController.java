@@ -13,10 +13,10 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -161,7 +161,7 @@ public class NewDeviceRequestController extends ControllerBase
 		@Override
 		public NewDeviceRequestResource toModel(NewDeviceRequestDto newDeviceRequest)
 		{
-			NewDeviceRequestResource newDeviceRequestResource = instantiateResource(newDeviceRequest);
+			NewDeviceRequestResource newDeviceRequestResource = instantiateModel(newDeviceRequest);
 			addSelfLink(newDeviceRequestResource);
 			addEditLink(newDeviceRequestResource);/* always editable */
 			addUserLink(newDeviceRequestResource);
@@ -170,7 +170,7 @@ public class NewDeviceRequestController extends ControllerBase
 		}
 
 		@Override
-		protected NewDeviceRequestResource instantiateResource(NewDeviceRequestDto newDeviceRequest)
+		protected NewDeviceRequestResource instantiateModel(NewDeviceRequestDto newDeviceRequest)
 		{
 			return new NewDeviceRequestResource(newDeviceRequest);
 		}
@@ -189,8 +189,7 @@ public class NewDeviceRequestController extends ControllerBase
 
 		private void addUserLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource
-					.add(UserController.getUserLink(BuddyDto.USER_REL_NAME, user.getId(), Optional.empty()));
+			newDeviceRequestResource.add(UserController.getUserLink(BuddyDto.USER_REL, user.getId(), Optional.empty()));
 		}
 
 		private void addRegisterDeviceLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)

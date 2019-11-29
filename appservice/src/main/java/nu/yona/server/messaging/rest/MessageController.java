@@ -9,7 +9,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -19,13 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.mediatype.hal.CurieProvider;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -203,6 +204,7 @@ public class MessageController extends ControllerBase
 
 	static class MessageActionResource extends EntityModel<MessageActionDto>
 	{
+		public static final LinkRelation AFFECTED_MESSAGES_REL = LinkRelation.of("affectedMessages");
 		private final GoalIdMapping goalIdMapping;
 		private final CurieProvider curieProvider;
 		private final MessageController messageController;
@@ -217,11 +219,12 @@ public class MessageController extends ControllerBase
 		}
 
 		@JsonProperty("_embedded")
-		public Map<String, List<MessageDto>> getEmbeddedResources()
+		public Map<String, CollectionModel<MessageDto>> getEmbeddedResources()
 		{
 			Set<MessageDto> affectedMessages = getContent().getAffectedMessages();
-			return Collections.singletonMap(curieProvider.getNamespacedRelFor("affectedMessages"),
-					new MessageResourceAssembler(curieProvider, goalIdMapping, messageController).toCollectionModel(affectedMessages));
+			return Collections.singletonMap(curieProvider.getNamespacedRelFor(AFFECTED_MESSAGES_REL).value(),
+					new MessageResourceAssembler(curieProvider, goalIdMapping, messageController)
+							.toCollectionModel(affectedMessages));
 		}
 	}
 
@@ -244,8 +247,7 @@ public class MessageController extends ControllerBase
 		public MessageDto toModel(MessageDto message)
 		{
 			message.removeLinks(); // So we are sure the below links are the only ones
-			WebMvcLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(),
-					message.getMessageId());
+			WebMvcLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), message.getMessageId());
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
 			addRelatedMessageLink(message, message);
@@ -284,7 +286,7 @@ public class MessageController extends ControllerBase
 		}
 
 		@Override
-		protected MessageDto instantiateResource(MessageDto message)
+		protected MessageDto instantiateModel(MessageDto message)
 		{
 			return message;
 		}

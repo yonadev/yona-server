@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -18,10 +18,10 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -132,7 +132,7 @@ public class UserPhotoController extends ControllerBase
 
 	public static class UserPhotoResource extends EntityModel<UserPhotoDto>
 	{
-		public UserPhotoModel(UserPhotoDto userPhoto)
+		public UserPhotoResource(UserPhotoDto userPhoto)
 		{
 			super(userPhoto);
 		}
@@ -148,15 +148,15 @@ public class UserPhotoController extends ControllerBase
 		@Override
 		public UserPhotoResource toModel(UserPhotoDto userPhoto)
 		{
-			UserPhotoResource userPhotoResource = instantiateResource(userPhoto);
+			UserPhotoResource userPhotoResource = instantiateModel(userPhoto);
 			addPhotoLink(userPhotoResource);
 			return userPhotoResource;
 		}
 
 		@Override
-		protected UserPhotoResource instantiateResource(UserPhotoDto userPhoto)
+		protected UserPhotoResource instantiateModel(UserPhotoDto userPhoto)
 		{
-			return new UserPhotoModel(userPhoto);
+			return new UserPhotoResource(userPhoto);
 		}
 
 		private void addPhotoLink(EntityModel<UserPhotoDto> userPhotoResource)

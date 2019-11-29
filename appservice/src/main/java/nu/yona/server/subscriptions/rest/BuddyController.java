@@ -15,13 +15,14 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.mediatype.hal.CurieProvider;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -82,8 +83,8 @@ public class BuddyController extends ControllerBase
 	 */
 	@GetMapping(value = "/")
 	@ResponseBody
-	public HttpEntity<CollectionModel<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId)
+	public HttpEntity<CollectionModel<BuddyResource>> getAllBuddies(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
@@ -135,11 +136,11 @@ public class BuddyController extends ControllerBase
 
 	private BuddyDto convertToBuddy(PostPutBuddyDto postPutBuddy)
 	{
-		String userRelName = curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME);
-		UserDto user = postPutBuddy.userInMap.get(userRelName);
+		LinkRelation userRel = curieProvider.getNamespacedRelFor(BuddyDto.USER_REL);
+		UserDto user = postPutBuddy.userInMap.get(userRel.value());
 		if (user == null)
 		{
-			throw BuddyServiceException.missingUser(userRelName);
+			throw BuddyServiceException.missingUser(userRel);
 		}
 		return new BuddyDto(user, postPutBuddy.message, postPutBuddy.sendingStatus, postPutBuddy.receivingStatus,
 				TimeUtil.utcNow());
@@ -183,8 +184,10 @@ public class BuddyController extends ControllerBase
 	public static CollectionModel<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
 			Set<GoalDto> allGoalsOfUser)
 	{
-		return new CollectionModel<>(new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId))
-				.toCollectionModel(allGoalsOfUser), getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
+		return new CollectionModel<>(
+				new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId))
+						.toCollectionModel(allGoalsOfUser),
+				getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
 	}
 
 	public static WebMvcLinkBuilder getBuddyLinkBuilder(UUID userId, UUID buddyId)
@@ -239,7 +242,7 @@ public class BuddyController extends ControllerBase
 		public Map<String, Object> getEmbeddedResources()
 		{
 			HashMap<String, Object> result = new HashMap<>();
-			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), UserController.UserResourceAssembler
+			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL).value(), UserController.UserResourceAssembler
 					.createInstanceForBuddy(curieProvider, userId).toModel(getContent().getUser()));
 
 			return result;
@@ -261,7 +264,7 @@ public class BuddyController extends ControllerBase
 		@Override
 		public BuddyResource toModel(BuddyDto buddy)
 		{
-			BuddyResource buddyResource = instantiateResource(buddy);
+			BuddyResource buddyResource = instantiateModel(buddy);
 			WebMvcLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getId());
 			addSelfLink(selfLinkBuilder, buddyResource);
 			addEditLink(selfLinkBuilder, buddyResource);
@@ -274,7 +277,7 @@ public class BuddyController extends ControllerBase
 		}
 
 		@Override
-		protected BuddyResource instantiateResource(BuddyDto buddy)
+		protected BuddyResource instantiateModel(BuddyDto buddy)
 		{
 			return new BuddyResource(curieProvider, userId, buddy);
 		}
@@ -298,14 +301,14 @@ public class BuddyController extends ControllerBase
 		{
 			buddyResource.add(
 					BuddyActivityController.getBuddyWeekActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
-							.withRel(BuddyActivityController.WEEK_OVERVIEW_LINK));
+							.withRel(BuddyActivityController.WEEK_OVERVIEW_REL));
 		}
 
 		private void addDayActivityOverviewsLink(BuddyResource buddyResource)
 		{
 			buddyResource.add(
 					BuddyActivityController.getBuddyDayActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
-							.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
+							.withRel(BuddyActivityController.DAY_OVERVIEW_REL));
 		}
 	}
 }

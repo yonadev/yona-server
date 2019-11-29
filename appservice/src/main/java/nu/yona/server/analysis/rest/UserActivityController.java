@@ -21,11 +21,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -395,8 +396,8 @@ public class UserActivityController extends ActivityControllerBase
 
 	static class DayActivityOverviewWithBuddiesResource extends EntityModel<DayActivityOverviewDto<DayActivityWithBuddiesDto>>
 	{
-		private UUID requestingUserId;
-		private UUID requestingDeviceId;
+		private final UUID requestingUserId;
+		private final UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 
 		public DayActivityOverviewWithBuddiesResource(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
@@ -408,7 +409,7 @@ public class UserActivityController extends ActivityControllerBase
 			this.goalIdMapping = goalIdMapping;
 		}
 
-		public List<DayActivityWithBuddiesResource> getDayActivities()
+		public CollectionModel<DayActivityWithBuddiesResource> getDayActivities()
 		{
 			return new DayActivityWithBuddiesResourceAssembler(requestingUserId, requestingDeviceId, goalIdMapping,
 					getContent().getDateStr()).toCollectionModel(getContent().getDayActivities());
@@ -419,7 +420,7 @@ public class UserActivityController extends ActivityControllerBase
 			RepresentationModelAssemblerSupport<DayActivityOverviewDto<DayActivityWithBuddiesDto>, DayActivityOverviewWithBuddiesResource>
 	{
 		private final UUID userId;
-		private UUID requestingDeviceId;
+		private final UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 
 		public DayActivityOverviewWithBuddiesResourceAssembler(UUID userId, UUID requestingDeviceId, GoalIdMapping goalIdMapping)
@@ -434,13 +435,13 @@ public class UserActivityController extends ActivityControllerBase
 		public DayActivityOverviewWithBuddiesResource toModel(
 				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
-			DayActivityOverviewWithBuddiesResource resource = instantiateResource(dayActivityOverview);
+			DayActivityOverviewWithBuddiesResource resource = instantiateModel(dayActivityOverview);
 			addSelfLink(resource);
 			return resource;
 		}
 
 		@Override
-		protected DayActivityOverviewWithBuddiesResource instantiateResource(
+		protected DayActivityOverviewWithBuddiesResource instantiateModel(
 				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
 			return new DayActivityOverviewWithBuddiesResource(userId, requestingDeviceId, goalIdMapping, dayActivityOverview);
@@ -456,8 +457,8 @@ public class UserActivityController extends ActivityControllerBase
 
 	static class DayActivityWithBuddiesResource extends EntityModel<DayActivityWithBuddiesDto>
 	{
-		private UUID requestingUserId;
-		private UUID requestingDeviceId;
+		private final UUID requestingUserId;
+		private final UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
 
@@ -471,7 +472,7 @@ public class UserActivityController extends ActivityControllerBase
 			this.dateStr = dateStr;
 		}
 
-		public List<ActivityForOneUserResource> getDayActivitiesForUsers()
+		public CollectionModel<ActivityForOneUserResource> getDayActivitiesForUsers()
 		{
 			return new ActivityForOneUserResourceAssembler(requestingUserId, requestingDeviceId, goalIdMapping, dateStr)
 					.toCollectionModel(getContent().getDayActivitiesForUsers());
@@ -481,8 +482,8 @@ public class UserActivityController extends ActivityControllerBase
 	static class DayActivityWithBuddiesResourceAssembler
 			extends RepresentationModelAssemblerSupport<DayActivityWithBuddiesDto, DayActivityWithBuddiesResource>
 	{
-		private UUID requestingUserId;
-		private UUID requestingDeviceId;
+		private final UUID requestingUserId;
+		private final UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
 
@@ -499,13 +500,13 @@ public class UserActivityController extends ActivityControllerBase
 		@Override
 		public DayActivityWithBuddiesResource toModel(DayActivityWithBuddiesDto dayActivity)
 		{
-			DayActivityWithBuddiesResource dayActivityResource = instantiateResource(dayActivity);
+			DayActivityWithBuddiesResource dayActivityResource = instantiateModel(dayActivity);
 			addActivityCategoryLink(dayActivityResource);
 			return dayActivityResource;
 		}
 
 		@Override
-		protected DayActivityWithBuddiesResource instantiateResource(DayActivityWithBuddiesDto dayActivity)
+		protected DayActivityWithBuddiesResource instantiateModel(DayActivityWithBuddiesDto dayActivity)
 		{
 			return new DayActivityWithBuddiesResource(requestingUserId, requestingDeviceId, goalIdMapping, dateStr, dayActivity);
 		}
@@ -529,10 +530,11 @@ public class UserActivityController extends ActivityControllerBase
 	static class ActivityForOneUserResourceAssembler
 			extends RepresentationModelAssemblerSupport<ActivityForOneUser, ActivityForOneUserResource>
 	{
+		public static final LinkRelation USER_REL = LinkRelation.of("user");
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
-		private UUID requestingUserId;
-		private UUID requestingDeviceId;
+		private final UUID requestingUserId;
+		private final UUID requestingDeviceId;
 
 		public ActivityForOneUserResourceAssembler(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
 				String dateStr)
@@ -547,7 +549,7 @@ public class UserActivityController extends ActivityControllerBase
 		@Override
 		public ActivityForOneUserResource toModel(ActivityForOneUser dayActivity)
 		{
-			ActivityForOneUserResource dayActivityResource = instantiateResource(dayActivity);
+			ActivityForOneUserResource dayActivityResource = instantiateModel(dayActivity);
 
 			UUID goalId = dayActivity.getGoalId();
 			if (goalIdMapping.isUserGoal(goalId))
@@ -568,7 +570,7 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		protected ActivityForOneUserResource instantiateResource(ActivityForOneUser dayActivity)
+		protected ActivityForOneUserResource instantiateModel(ActivityForOneUser dayActivity)
 		{
 			return new ActivityForOneUserResource(dayActivity);
 		}
@@ -586,7 +588,7 @@ public class UserActivityController extends ActivityControllerBase
 
 		private void addUserLink(UUID userId, UUID requestingDeviceId, ActivityForOneUserResource dayActivityResource)
 		{
-			dayActivityResource.add(UserController.getUserLink("user", userId, Optional.of(requestingDeviceId)));
+			dayActivityResource.add(UserController.getUserLink(USER_REL, userId, Optional.of(requestingDeviceId)));
 		}
 
 		private void addGoalLinkForBuddy(UUID userId, UUID buddyId, UUID goalId, ActivityForOneUserResource dayActivityResource)
@@ -653,12 +655,13 @@ public class UserActivityController extends ActivityControllerBase
 		}
 	}
 
-	public static class ActivitiesResourceAssembler extends RepresentationModelAssemblerSupport<List<ActivityDto>, ActivitiesResource>
+	public static class ActivitiesResourceAssembler
+			extends RepresentationModelAssemblerSupport<List<ActivityDto>, ActivitiesResource>
 	{
 		private final UUID userId;
 		private final String dateStr;
 		private final UUID goalId;
-		private Map<UUID, String> deviceAnonymizedIdToDeviceName;
+		private final Map<UUID, String> deviceAnonymizedIdToDeviceName;
 
 		public ActivitiesResourceAssembler(UUID userId, Map<UUID, String> deviceAnonymizedIdToDeviceName, String dateStr,
 				UUID goalId)
@@ -673,13 +676,13 @@ public class UserActivityController extends ActivityControllerBase
 		@Override
 		public ActivitiesResource toModel(List<ActivityDto> rawActivities)
 		{
-			ActivitiesResource resource = instantiateResource(rawActivities);
+			ActivitiesResource resource = instantiateModel(rawActivities);
 			addSelfLink(resource);
 			return resource;
 		}
 
 		@Override
-		protected ActivitiesResource instantiateResource(List<ActivityDto> rawActivities)
+		protected ActivitiesResource instantiateModel(List<ActivityDto> rawActivities)
 		{
 			return new ActivitiesResource(deviceAnonymizedIdToDeviceName, rawActivities);
 		}

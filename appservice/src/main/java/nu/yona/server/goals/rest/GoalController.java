@@ -14,12 +14,13 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.mediatype.hal.CurieProvider;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -54,7 +55,7 @@ import nu.yona.server.subscriptions.service.UserService;
 @RequestMapping(value = "/users/{userId}/goals", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class GoalController extends ControllerBase
 {
-	private static final String ACTIVITY_CATEGORY_REL = "activityCategory";
+	private static final LinkRelation ACTIVITY_CATEGORY_REL = LinkRelation.of("activityCategory");
 
 	@Autowired
 	private UserService userService;
@@ -180,11 +181,8 @@ public class GoalController extends ControllerBase
 
 	private void setActivityCategoryId(GoalDto goal)
 	{
-		Link activityCategoryLink = goal.getLink(curieProvider.getNamespacedRelFor(ACTIVITY_CATEGORY_REL));
-		if (activityCategoryLink == null)
-		{
-			throw InvalidDataException.missingActivityCategoryLink();
-		}
+		Link activityCategoryLink = goal.getLink(curieProvider.getNamespacedRelFor(ACTIVITY_CATEGORY_REL))
+				.orElseThrow(() -> InvalidDataException.missingActivityCategoryLink());
 		UUID activityCategoryId = determineActivityCategoryId(activityCategoryLink.getHref());
 		goal.setActivityCategoryId(activityCategoryId);
 	}
@@ -238,7 +236,7 @@ public class GoalController extends ControllerBase
 		}
 
 		@Override
-		protected GoalDto instantiateResource(GoalDto goal)
+		protected GoalDto instantiateModel(GoalDto goal)
 		{
 			return goal;
 		}

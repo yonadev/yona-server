@@ -21,12 +21,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.mediatype.hal.CurieProvider;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -442,7 +444,7 @@ public class UserController extends ControllerBase
 		return linkBuilder.withRel("resendMobileNumberConfirmationCode");
 	}
 
-	private static Link getUserLink(String rel, UUID userId, UUID requestingUserId, Optional<UUID> requestingDeviceId)
+	private static Link getUserLink(LinkRelation rel, UUID userId, UUID requestingUserId, Optional<UUID> requestingDeviceId)
 	{
 		String requestingUserIdStr = requestingUserId.toString();
 		String requestingDeviceIdStr = requestingDeviceId.map(UUID::toString).orElse(null);
@@ -450,12 +452,12 @@ public class UserController extends ControllerBase
 				userId)).withRel(rel).expand(OMITTED_PARAMS);
 	}
 
-	public static Link getUserLink(String rel, UUID userId, Optional<UUID> requestingDeviceId)
+	public static Link getUserLink(LinkRelation rel, UUID userId, Optional<UUID> requestingDeviceId)
 	{
 		return getUserLink(rel, userId, userId, requestingDeviceId);
 	}
 
-	public static Link getBuddyUserLink(String rel, UUID userId, UUID requestingUserId)
+	public static Link getBuddyUserLink(LinkRelation rel, UUID userId, UUID requestingUserId)
 	{
 		return getUserLink(rel, userId, requestingUserId, Optional.empty());
 	}
@@ -543,17 +545,17 @@ public class UserController extends ControllerBase
 			if (representation.includeGeneralContent.test(getContent()))
 			{
 				Optional<Set<DeviceBaseDto>> devices = getContent().getPrivateData().getDevices();
-				devices.ifPresent(d -> result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
+				devices.ifPresent(d -> result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL).value(),
 						DeviceController.createAllDevicesCollectionResource(userId, d, requestingDeviceId)));
 
 				Optional<Set<GoalDto>> goals = getContent().getPrivateData().getGoals();
-				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
+				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL).value(),
 						GoalController.createAllGoalsCollectionResource(requestingUserId, userId, g)));
 			}
 			if (representation.includeOwnUserNumConfirmedContent.test(getContent()))
 			{
 				Set<BuddyDto> buddies = getContent().getOwnPrivateData().getBuddies();
-				result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
+				result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL).value(),
 						BuddyController.createAllBuddiesCollectionResource(curieProvider, userId, buddies));
 			}
 
@@ -609,7 +611,7 @@ public class UserController extends ControllerBase
 		@Override
 		public UserResource toModel(UserDto user)
 		{
-			UserResource userResource = instantiateResource(user);
+			UserResource userResource = instantiateModel(user);
 			if (user.getPrivateData().isFetchable())
 			{
 				addSelfLink(userResource);
@@ -669,7 +671,7 @@ public class UserController extends ControllerBase
 		}
 
 		@Override
-		protected UserResource instantiateResource(UserDto user)
+		protected UserResource instantiateModel(UserDto user)
 		{
 			return new UserResource(curieProvider, representation, user, requestingUserId, requestingDeviceId);
 		}
@@ -682,8 +684,8 @@ public class UserController extends ControllerBase
 				return;
 			}
 
-			userResource.add(UserController.getUserLink(IanaLinkRelations.SELF, userResource.getContent().getId(), requestingUserId,
-					requestingDeviceId));
+			userResource.add(UserController.getUserLink(IanaLinkRelations.SELF, userResource.getContent().getId(),
+					requestingUserId, requestingDeviceId));
 		}
 
 		private void addEditLink(EntityModel<UserDto> userResource)
@@ -705,13 +707,13 @@ public class UserController extends ControllerBase
 		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(UserActivityController.getUserWeekActivityOverviewsLinkBuilder(userResource.getContent().getId())
-					.withRel(UserActivityController.WEEK_OVERVIEW_LINK));
+					.withRel(UserActivityController.WEEK_OVERVIEW_REL));
 		}
 
 		private void addDayActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(UserActivityController.getUserDayActivityOverviewsLinkBuilder(userResource.getContent().getId())
-					.withRel(UserActivityController.DAY_OVERVIEW_LINK));
+					.withRel(UserActivityController.DAY_OVERVIEW_REL));
 		}
 
 		private void addDayActivityOverviewsWithBuddiesLink(UserResource userResource)

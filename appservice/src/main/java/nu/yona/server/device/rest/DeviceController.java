@@ -27,12 +27,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -137,8 +137,8 @@ public class DeviceController extends ControllerBase
 
 	@GetMapping(value = "/")
 	@ResponseBody
-	public HttpEntity<CollectionModel<DeviceResource>> getAllDevices(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId,
+	public HttpEntity<CollectionModel<DeviceResource>> getAllDevices(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
@@ -187,7 +187,8 @@ public class DeviceController extends ControllerBase
 	{
 		String hint = "All properties are manadatory, except for the FireBase ID";
 		Require.isNonNull(requestDto.name, () -> InvalidDataException.missingProperty(NAME_PROPERTY, hint));
-		Require.isNonNull(requestDto.operatingSystemStr, () -> InvalidDataException.missingProperty(OPERATING_SYSTEM_PROPERTY, hint));
+		Require.isNonNull(requestDto.operatingSystemStr,
+				() -> InvalidDataException.missingProperty(OPERATING_SYSTEM_PROPERTY, hint));
 		Require.isNonNull(requestDto.appVersion, () -> InvalidDataException.missingProperty(APP_VERSION_PROPERTY, hint));
 		Require.that(requestDto.appVersionCode != 0, () -> InvalidDataException.missingProperty(APP_VERSION_CODE_PROPERTY, hint));
 	}
@@ -544,7 +545,7 @@ public class DeviceController extends ControllerBase
 		@Override
 		public DeviceResource toModel(DeviceBaseDto device)
 		{
-			DeviceResource deviceResource = instantiateResource(device);
+			DeviceResource deviceResource = instantiateModel(device);
 			WebMvcLinkBuilder selfLinkBuilder = getSelfLinkBuilder(device.getId());
 			addSelfLink(selfLinkBuilder, deviceResource);
 			addEditLink(selfLinkBuilder, deviceResource);
@@ -560,7 +561,7 @@ public class DeviceController extends ControllerBase
 		}
 
 		@Override
-		protected DeviceResource instantiateResource(DeviceBaseDto device)
+		protected DeviceResource instantiateModel(DeviceBaseDto device)
 		{
 			return new DeviceResource(device, isRequestingDevice(device));
 		}

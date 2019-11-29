@@ -7,6 +7,8 @@ package nu.yona.server.subscriptions.service;
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.springframework.hateoas.LinkRelation;
+
 import nu.yona.server.exceptions.YonaException;
 
 public class BuddyServiceException extends YonaException
@@ -53,9 +55,9 @@ public class BuddyServiceException extends YonaException
 		return new BuddyServiceException("error.buddy.accepting.user.is.null");
 	}
 
-	public static BuddyServiceException missingUser(String rel)
+	public static BuddyServiceException missingUser(LinkRelation userRel)
 	{
-		return new BuddyServiceException("error.buddy.request.must.contain.user.inside.embedded", rel);
+		return new BuddyServiceException("error.buddy.request.must.contain.user.inside.embedded", userRel.value());
 	}
 
 	public static BuddyServiceException cannotInviteSelf()

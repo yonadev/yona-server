@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,9 +45,9 @@ public abstract class BuddyMessageEmbeddedUserDto extends BuddyMessageDto
 		return embeddedResources;
 	}
 
-	public void setEmbeddedUser(String rel, Object userResource)
+	public void setEmbeddedUser(LinkRelation rel, Object userResource)
 	{
-		embeddedResources = Collections.singletonMap(rel, userResource);
+		embeddedResources = Collections.singletonMap(rel.value(), userResource);
 	}
 
 	@Component

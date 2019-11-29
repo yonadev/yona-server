@@ -10,11 +10,11 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -91,11 +91,11 @@ public class ActivityCategoryController extends ControllerBase
 		@Override
 		public ActivityCategoryResource toModel(ActivityCategoryDto activityCategory)
 		{
-			return super.createResourceWithId(activityCategory.getId(), activityCategory);
+			return super.createModelWithId(activityCategory.getId(), activityCategory);
 		}
 
 		@Override
-		protected ActivityCategoryResource instantiateResource(ActivityCategoryDto activityCategory)
+		protected ActivityCategoryResource instantiateModel(ActivityCategoryDto activityCategory)
 		{
 			return new ActivityCategoryResource(activityCategory);
 		}

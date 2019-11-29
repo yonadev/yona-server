@@ -80,11 +80,11 @@ public class TestController extends ControllerBase
 		@Override
 		public EmailResource toModel(EmailDto email)
 		{
-			return instantiateResource(email);
+			return instantiateModel(email);
 		}
 
 		@Override
-		protected EmailResource instantiateResource(EmailDto email)
+		protected EmailResource instantiateModel(EmailDto email)
 		{
 			return new EmailResource(email);
 		}
@@ -190,11 +190,11 @@ public class TestController extends ControllerBase
 		@Override
 		public FirebaseMessageResource toModel(FirebaseMessageDto email)
 		{
-			return instantiateResource(email);
+			return instantiateModel(email);
 		}
 
 		@Override
-		protected FirebaseMessageResource instantiateResource(FirebaseMessageDto email)
+		protected FirebaseMessageResource instantiateModel(FirebaseMessageDto email)
 		{
 			return new FirebaseMessageResource(email);
 		}
