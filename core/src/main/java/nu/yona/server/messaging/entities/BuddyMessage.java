@@ -57,6 +57,20 @@ public abstract class BuddyMessage extends Message
 	}
 
 	/**
+	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
+	 * 
+	 * @param original Message to copy.
+	 */
+	public BuddyMessage(BuddyMessage original)
+	{
+		super(original);
+		this.senderUserId = original.senderUserId;
+		this.message = original.message;
+		this.senderNickname = original.senderNickname;
+		this.senderUserPhotoId = original.senderUserPhotoId;
+	}
+
+	/**
 	 * Returns the user sending this message.
 	 * 
 	 * @return The user sending this message. Might be null if that user is already deleted.

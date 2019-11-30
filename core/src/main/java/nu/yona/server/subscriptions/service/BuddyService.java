@@ -537,7 +537,7 @@ public class BuddyService
 	{
 		UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedId);
 		assert toUser != null;
-		messageService.sendMessageAndFlushToDatabase(
+		messageService.sendMessage(
 				BuddyConnectResponseMessage.createInstance(buddyInfoParameters, responseMessage, buddyId, devices, status),
 				toUser);
 	}

@@ -29,8 +29,8 @@ import com.google.firebase.messaging.Notification;
 
 import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
-import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.Require;
 
 @Service
 public class FirebaseService
@@ -44,9 +44,6 @@ public class FirebaseService
 
 	@Autowired
 	private YonaProperties yonaProperties;
-
-	@Autowired(required = false)
-	private MessageRepository messageRepository;
 
 	@PostConstruct
 	private void init()
@@ -83,12 +80,14 @@ public class FirebaseService
 
 		if (yonaProperties.getFirebase().isEnabled())
 		{
+			logger.info("Sending Firebase message");
 			// Sending takes quite a bit of time, so do it asynchronously
 			CompletableFuture.runAsync(() -> sendMessage(firebaseMessage))
 					.whenCompleteAsync((r, t) -> logIfCompletedWithException(t));
 		}
 		else
 		{
+			logger.info("Firebase message not sent because Firebase is disabled");
 			// Store for testability
 			lastMessageByRegistrationToken.put(registrationToken, firebaseMessage);
 		}
@@ -96,17 +95,18 @@ public class FirebaseService
 
 	private long getMessageId(nu.yona.server.messaging.entities.Message message)
 	{
-		if (message.getId() == 0)
-		{
-			// Message is not persisted yet, so it didn't yet get an ID. Persist it now.
-			messageRepository.saveAndFlush(message);
-		}
+		Require.that(message.getId() != 0, () -> YonaException.illegalState("Message must be saved before this point"));
 		return message.getId();
 	}
 
 	public Optional<Message> getLastMessage(String registrationToken)
 	{
 		return Optional.ofNullable(lastMessageByRegistrationToken.get(registrationToken));
+	}
+
+	public Optional<Message> clearLastMessage(String registrationToken)
+	{
+		return Optional.ofNullable(lastMessageByRegistrationToken.remove(registrationToken));
 	}
 
 	private void sendMessage(Message firebaseMessage)
@@ -123,7 +123,11 @@ public class FirebaseService
 
 	private void logIfCompletedWithException(Throwable throwable)
 	{
-		if (throwable != null)
+		if (throwable == null)
+		{
+			logger.info("Firebase message sent successfully");
+		}
+		else
 		{
 			logger.error("Fatal error: Exception while sending Firebase message", throwable);
 		}

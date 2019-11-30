@@ -140,7 +140,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.entityDeleteCount == 0
 		stats.entityFetchCount == 1
 		stats.entityInsertCount == 5
-		stats.entityLoadCount == 19
+		stats.entityLoadCount == 16
 		stats.entityUpdateCount == 4
 		stats.transactionCount == 2
 	}
