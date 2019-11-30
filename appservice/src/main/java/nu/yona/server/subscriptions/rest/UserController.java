@@ -426,8 +426,7 @@ public class UserController extends ControllerBase
 	{
 		WebMvcLinkBuilder linkBuilder = linkTo(
 				methodOn(UserController.class).getUser(Optional.empty(), tempPassword, userId.toString(), null, userId));
-		// Should call expand, but that's not done because of https://github.com/spring-projects/spring-hateoas/issues/703
-		return linkBuilder.withSelfRel();
+		return linkBuilder.withSelfRel().expand(OMITTED_PARAMS);
 	}
 
 	private static Link getConfirmMobileLink(UUID userId, Optional<UUID> requestingDeviceId)

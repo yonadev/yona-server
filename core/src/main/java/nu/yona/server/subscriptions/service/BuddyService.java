@@ -631,7 +631,7 @@ public class BuddyService
 
 	private String getTempPassword()
 	{
-		return (properties.getEmail().isEnabled()) ? userService.generatePassword() : "abcd";
+		return (properties.getEmail().isEnabled()) ? userService.generatePassword() : "ab&cd";
 	}
 
 	private BuddyDto handleBuddyRequestForExistingUser(UUID idOfRequestingUser, BuddyDto buddy)

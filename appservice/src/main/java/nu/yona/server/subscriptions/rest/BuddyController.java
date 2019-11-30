@@ -161,19 +161,7 @@ public class BuddyController extends ControllerBase
 
 	public String getInviteUrl(UUID newUserId, String tempPassword)
 	{
-		// getUserSelfLinkWithTempPassword should actually call expand, so we don't need to strip template parameters
-		// This is not being done because of https://github.com/spring-projects/spring-hateoas/issues/703
-		return stripTemplateParameters(UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword));
-	}
-
-	private String stripTemplateParameters(Link link)
-	{
-		String linkString = link.getHref();
-		if (link.isTemplated())
-		{
-			return linkString.substring(0, linkString.indexOf('{'));
-		}
-		return linkString;
+		return UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword).getHref();
 	}
 
 	private BuddyResourceAssembler createResourceAssembler(UUID userId)
