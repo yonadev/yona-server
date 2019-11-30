@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,8 +60,10 @@ import nu.yona.server.util.TimeUtil;
 		@Type(value = SystemMessageDto.class, name = "SystemMessage"), })
 public abstract class MessageDto extends PolymorphicDto
 {
-	private static final String MARK_UNREAD = "markUnread";
-	private static final String MARK_READ = "markRead";
+	private static final String MARK_UNREAD_REL_NAME = "markUnread";
+	private static final LinkRelation MARK_UNREAD_REL = LinkRelation.of(MARK_UNREAD_REL_NAME);
+	private static final String MARK_READ_REL_NAME = "markRead";
+	private static final LinkRelation MARK_READ_REL = LinkRelation.of(MARK_READ_REL_NAME);
 	private final long id;
 	private final LocalDateTime creationTime;
 	private final Optional<Long> relatedMessageId;
@@ -148,10 +151,10 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonIgnore
-	public Set<String> getPossibleActions()
+	public Set<LinkRelation> getPossibleActions()
 	{
-		Set<String> possibleActions = new HashSet<>();
-		possibleActions.add((isRead) ? MARK_UNREAD : MARK_READ);
+		Set<LinkRelation> possibleActions = new HashSet<>();
+		possibleActions.add((isRead) ? MARK_UNREAD_REL : MARK_READ_REL);
 		return possibleActions;
 	}
 
@@ -177,9 +180,9 @@ public abstract class MessageDto extends PolymorphicDto
 		{
 			switch (action)
 			{
-				case MARK_READ:
+				case MARK_READ_REL_NAME:
 					return handleAction_markReadUnread(actingUser, messageEntity, true, requestPayload);
-				case MARK_UNREAD:
+				case MARK_UNREAD_REL_NAME:
 					return handleAction_markReadUnread(actingUser, messageEntity, false, requestPayload);
 				default:
 					throw MessageServiceException.actionNotSupported(action);

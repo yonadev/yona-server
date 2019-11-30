@@ -13,6 +13,7 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -31,8 +32,10 @@ import nu.yona.server.subscriptions.service.UserDto;
 @JsonRootName("disclosureRequestMessage")
 public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 {
-	private static final String ACCEPT = "accept";
-	private static final String REJECT = "reject";
+	private static final String ACCEPT_REL_NAME = "accept";
+	private static final LinkRelation ACCEPT_REL = LinkRelation.of(ACCEPT_REL_NAME);
+	private static final String REJECT_REL_NAME = "reject";
+	private static final LinkRelation REJECT_REL = LinkRelation.of(REJECT_REL_NAME);
 
 	private final UUID goalId;
 	private final LocalDate goalConflictStartTime;
@@ -55,13 +58,13 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@Override
-	public Set<String> getPossibleActions()
+	public Set<LinkRelation> getPossibleActions()
 	{
-		Set<String> possibleActions = super.getPossibleActions();
+		Set<LinkRelation> possibleActions = super.getPossibleActions();
 		if (status == Status.DISCLOSURE_REQUESTED)
 		{
-			possibleActions.add(ACCEPT);
-			possibleActions.add(REJECT);
+			possibleActions.add(ACCEPT_REL);
+			possibleActions.add(REJECT_REL);
 		}
 		return possibleActions;
 	}
@@ -130,9 +133,9 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		{
 			switch (action)
 			{
-				case ACCEPT:
+				case ACCEPT_REL_NAME:
 					return handleAction_Accept(actingUser, (DisclosureRequestMessage) messageEntity, requestPayload);
-				case REJECT:
+				case REJECT_REL_NAME:
 					return handleAction_Reject(actingUser, (DisclosureRequestMessage) messageEntity, requestPayload);
 				default:
 					return super.handleAction(actingUser, messageEntity, action, requestPayload);

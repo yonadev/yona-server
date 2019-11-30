@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -31,7 +32,8 @@ import nu.yona.server.subscriptions.service.UserDto;
 public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 {
 	private static final String MESSAGE_PROPERTY = "message";
-	private static final String REPLY = "reply";
+	private static final String REPLY_REL_NAME = "reply";
+	private static final LinkRelation REPLY_REL = LinkRelation.of(REPLY_REL_NAME);
 	private final long intervalActivityId;
 	private final Optional<Long> repliedMessageId;
 	private final long threadHeadMessageId;
@@ -52,12 +54,12 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@Override
-	public Set<String> getPossibleActions()
+	public Set<LinkRelation> getPossibleActions()
 	{
-		Set<String> possibleActions = super.getPossibleActions();
+		Set<LinkRelation> possibleActions = super.getPossibleActions();
 		if (this.isSentFromBuddy())
 		{
-			possibleActions.add(REPLY);
+			possibleActions.add(REPLY_REL);
 		}
 		return possibleActions;
 	}
@@ -121,7 +123,7 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 		{
 			switch (action)
 			{
-				case REPLY:
+				case REPLY_REL_NAME:
 					return handleAction_Reply(actingUser, (ActivityCommentMessage) messageEntity, requestPayload);
 				default:
 					return super.handleAction(actingUser, messageEntity, action, requestPayload);
@@ -134,7 +136,7 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 			String message = requestPayload.getProperty(MESSAGE_PROPERTY);
 			if (message == null)
 			{
-				throw MessageServiceException.missingMandatoryActionProperty(REPLY, MESSAGE_PROPERTY);
+				throw MessageServiceException.missingMandatoryActionProperty(REPLY_REL_NAME, MESSAGE_PROPERTY);
 			}
 			MessageDto reply = activityService.replyToMessage(actingUser, messageEntity, message);
 			return MessageActionDto.createInstanceActionDone(reply);

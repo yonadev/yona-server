@@ -9,6 +9,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
 
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
@@ -219,12 +221,13 @@ public class MessageController extends ControllerBase
 		}
 
 		@JsonProperty("_embedded")
-		public Map<String, CollectionModel<MessageDto>> getEmbeddedResources()
+		public Map<String, List<MessageDto>> getEmbeddedResources()
 		{
 			Set<MessageDto> affectedMessages = getContent().getAffectedMessages();
+			CollectionModel<MessageDto> messageDtos = new MessageResourceAssembler(curieProvider, goalIdMapping,
+					messageController).toCollectionModel(affectedMessages);
 			return Collections.singletonMap(curieProvider.getNamespacedRelFor(AFFECTED_MESSAGES_REL).value(),
-					new MessageResourceAssembler(curieProvider, goalIdMapping, messageController)
-							.toCollectionModel(affectedMessages));
+					Lists.newArrayList(messageDtos));
 		}
 	}
 

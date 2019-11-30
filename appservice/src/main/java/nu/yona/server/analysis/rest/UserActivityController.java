@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.google.common.collect.Lists;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.service.ActivityCommentMessageDto;
@@ -409,10 +410,12 @@ public class UserActivityController extends ActivityControllerBase
 			this.goalIdMapping = goalIdMapping;
 		}
 
-		public CollectionModel<DayActivityWithBuddiesResource> getDayActivities()
+		public List<DayActivityWithBuddiesResource> getDayActivities()
 		{
-			return new DayActivityWithBuddiesResourceAssembler(requestingUserId, requestingDeviceId, goalIdMapping,
-					getContent().getDateStr()).toCollectionModel(getContent().getDayActivities());
+			CollectionModel<DayActivityWithBuddiesResource> collectionModel = new DayActivityWithBuddiesResourceAssembler(
+					requestingUserId, requestingDeviceId, goalIdMapping, getContent().getDateStr())
+							.toCollectionModel(getContent().getDayActivities());
+			return Lists.newArrayList(collectionModel);
 		}
 	}
 
@@ -472,10 +475,12 @@ public class UserActivityController extends ActivityControllerBase
 			this.dateStr = dateStr;
 		}
 
-		public CollectionModel<ActivityForOneUserResource> getDayActivitiesForUsers()
+		public List<ActivityForOneUserResource> getDayActivitiesForUsers()
 		{
-			return new ActivityForOneUserResourceAssembler(requestingUserId, requestingDeviceId, goalIdMapping, dateStr)
-					.toCollectionModel(getContent().getDayActivitiesForUsers());
+			CollectionModel<ActivityForOneUserResource> collectionModel = new ActivityForOneUserResourceAssembler(
+					requestingUserId, requestingDeviceId, goalIdMapping, dateStr)
+							.toCollectionModel(getContent().getDayActivitiesForUsers());
+			return Lists.newArrayList(collectionModel);
 		}
 	}
 

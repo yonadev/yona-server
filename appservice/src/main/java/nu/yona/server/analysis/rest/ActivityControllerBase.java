@@ -6,6 +6,7 @@ package nu.yona.server.analysis.rest;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.google.common.collect.Lists;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
@@ -280,9 +282,11 @@ abstract class ActivityControllerBase extends ControllerBase
 			this.linkProvider = linkProvider;
 		}
 
-		public CollectionModel<WeekActivityResource> getWeekActivities()
+		public List<WeekActivityResource> getWeekActivities()
 		{
-			return new WeekActivityResourceAssembler(linkProvider, false).toCollectionModel(getContent().getWeekActivities());
+			CollectionModel<WeekActivityResource> collectionModel = new WeekActivityResourceAssembler(linkProvider, false)
+					.toCollectionModel(getContent().getWeekActivities());
+			return Lists.newArrayList(collectionModel);
 		}
 	}
 
@@ -304,9 +308,11 @@ abstract class ActivityControllerBase extends ControllerBase
 			this.linkProvider = linkProvider;
 		}
 
-		public CollectionModel<DayActivityResource> getDayActivities()
+		public List<DayActivityResource> getDayActivities()
 		{
-			return new DayActivityResourceAssembler(linkProvider, true, false).toCollectionModel(getContent().getDayActivities());
+			CollectionModel<DayActivityResource> collectionModel = new DayActivityResourceAssembler(linkProvider, true, false)
+					.toCollectionModel(getContent().getDayActivities());
+			return Lists.newArrayList(collectionModel);
 		}
 	}
 

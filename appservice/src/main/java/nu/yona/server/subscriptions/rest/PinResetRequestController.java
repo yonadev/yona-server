@@ -28,6 +28,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
+
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.properties.YonaProperties;
@@ -186,6 +189,7 @@ public class PinResetRequestController extends ControllerBase
 			this.delay = delay;
 		}
 
+		@JsonFormat(shape = Shape.STRING)
 		public Duration getDelay()
 		{
 			return delay;
