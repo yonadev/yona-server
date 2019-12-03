@@ -163,7 +163,9 @@ public class ErrorLoggingFilter implements Filter
 		Optional<YonaException> exception = LoggingContext.validateHeaders(request);
 		if (exception.isPresent())
 		{
-			response.sendError(exception.get().getStatusCode().value(), exception.get().getMessage());
+			YonaException e = exception.get();
+			response.sendError(e.getStatusCode().value(), e.getMessage());
+			logResponseStatus(request, response, e.getStatusCode().series());
 			return;
 		}
 
