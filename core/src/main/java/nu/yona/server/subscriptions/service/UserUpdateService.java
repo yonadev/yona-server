@@ -150,6 +150,8 @@ public class UserUpdateService
 		}
 		else
 		{
+			Require.isNotPresent(user.getCreationTime(),
+					() -> InvalidDataException.extraProperty("creationTime", "Creation time cannot be changed"));
 			user.updateUser(userEntity);
 		}
 	}

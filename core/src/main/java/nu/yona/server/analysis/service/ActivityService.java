@@ -50,6 +50,7 @@ import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.service.BuddyDto;
+import nu.yona.server.subscriptions.service.BuddyNotFoundException;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
@@ -175,7 +176,7 @@ public class ActivityService
 			Set<IntervalInactivityDto> missingInactivities)
 	{
 		Interval interval = Interval.createWeekInterval(date);
-		assertDateNotTooEarly(earliestPossibleDate, interval.endDate);
+		assertDateNotTooEarly(interval.endDate, earliestPossibleDate);
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 
 		List<WeekActivityOverviewDto> weekActivityOverviews = getWeekActivityOverviews(userAnonymizedId, earliestPossibleDate,
@@ -319,6 +320,7 @@ public class ActivityService
 		UUID userAnonymizedId = userService.getUserAnonymizedId(userId);
 		Interval interval = Interval.createDayInterval(date);
 		Set<BuddyDto> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userId);
+		Require.that(!buddies.isEmpty(), () -> BuddyNotFoundException.userHasNoBuddies(userId));
 
 		LocalDate earliestPossibleDate = determineEarliestBuddyStatusChangeDate(buddies);
 		List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityOverviews = getUserDayActivityOverviewsWithBuddies(
@@ -333,18 +335,13 @@ public class ActivityService
 	{
 		return userInfo.stream()
 				.map(ui -> getDayActivitiesForCategories(userAnonymizedService.getUserAnonymized(ui.id),
-						relevantActivityCategoryIds, limitInterval(interval, ui.earliestPossibleDate), mia))
+						relevantActivityCategoryIds, interval.limit(ui.earliestPossibleDate), mia))
 				.map(Map::entrySet).flatMap(Collection::stream)
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
 					Set<DayActivityDto> allActivities = new HashSet<>(a);
 					allActivities.addAll(b);
 					return allActivities;
 				}));
-	}
-
-	private Interval limitInterval(Interval interval, LocalDate earliestPossibleDate)
-	{
-		return new Interval(TimeUtil.max(earliestPossibleDate, interval.startDate), interval.endDate);
 	}
 
 	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivitiesForCategories(UserAnonymizedDto userAnonymizedDto,
@@ -392,7 +389,7 @@ public class ActivityService
 			LocalDate date, Set<IntervalInactivityDto> missingInactivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
-		assertDateNotTooEarly(earliestPossibleDate, date);
+		assertDateNotTooEarly(date, earliestPossibleDate);
 		Interval interval = Interval.createDayInterval(date);
 
 		List<DayActivityOverviewDto<DayActivityDto>> dayActivityOverviews = getDayActivityOverviews(missingInactivities,
@@ -496,8 +493,8 @@ public class ActivityService
 			startDate = TimeUtil.getStartOfWeek(startDate);
 		}
 		LocalDate endDate = currentUnitDate.minus(pageable.getOffset() - 1L, timeUnit);
-		Require.that(!endDate.isBefore(startDate),
-				() -> InvalidDataException.dateTooEarly(requestedStartDate, earliestPossibleDate));
+		Require.that(!endDate.isBefore(earliestPossibleDate),
+				() -> InvalidDataException.dateTooEarly(endDate, earliestPossibleDate));
 		return Interval.createInterval(startDate, endDate);
 	}
 
@@ -603,7 +600,7 @@ public class ActivityService
 	private WeekActivityDto getWeekActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate earliestPossibleDate,
 			LocalDate date, UUID goalId, Set<IntervalInactivityDto> missingInactivities)
 	{
-		assertDateNotTooEarly(earliestPossibleDate, Interval.createWeekInterval(date).endDate);
+		assertDateNotTooEarly(Interval.createWeekInterval(date).endDate, earliestPossibleDate);
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		WeekActivity weekActivityEntity = weekActivityRepository.findOne(userAnonymizedId, date, goalId);
 		if (weekActivityEntity == null)
@@ -653,7 +650,7 @@ public class ActivityService
 	private DayActivityDto getDayActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate earliestPossibleDate,
 			LocalDate date, UUID goalId, Set<IntervalInactivityDto> missingInactivities)
 	{
-		assertDateNotTooEarly(earliestPossibleDate, date);
+		assertDateNotTooEarly(date, earliestPossibleDate);
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		DayActivity dayActivityEntity = dayActivityRepository.findOne(userAnonymizedId, date, goalId);
 		if (dayActivityEntity == null)
@@ -665,7 +662,7 @@ public class ActivityService
 		return DayActivityDto.createInstance(dayActivityEntity, LevelOfDetail.DAY_DETAIL);
 	}
 
-	private void assertDateNotTooEarly(LocalDate earliestPossibleDate, LocalDate date)
+	private void assertDateNotTooEarly(LocalDate date, LocalDate earliestPossibleDate)
 	{
 		Require.that(!date.isBefore(earliestPossibleDate), () -> InvalidDataException.dateTooEarly(date, earliestPossibleDate));
 	}
@@ -875,6 +872,11 @@ public class ActivityService
 		public String toString()
 		{
 			return startDate + " <= d < " + endDate;
+		}
+
+		private Interval limit(LocalDate earliestPossibleDate)
+		{
+			return new Interval(TimeUtil.max(earliestPossibleDate, startDate), endDate);
 		}
 	}
 

@@ -6,7 +6,6 @@ package nu.yona.server.subscriptions.service;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashSet;
@@ -108,17 +107,6 @@ public class UserAnonymizedDto implements Serializable
 	public Set<DeviceAnonymizedDto> getDevicesAnonymized()
 	{
 		return Collections.unmodifiableSet(devicesAnonymized);
-	}
-
-	public Optional<LocalDateTime> getOldestGoalCreationTime()
-	{
-		return getGoals().stream().map(goal -> getOldestVersionOfGoal(goal).getCreationTime()).filter(Optional::isPresent)
-				.map(Optional::get).min(LocalDateTime::compareTo);
-	}
-
-	private GoalDto getOldestVersionOfGoal(GoalDto goal)
-	{
-		return goal;
 	}
 
 	static Set<GoalDto> getGoalsIncludingHistoryItems(UserAnonymized userAnonymizedEntity)

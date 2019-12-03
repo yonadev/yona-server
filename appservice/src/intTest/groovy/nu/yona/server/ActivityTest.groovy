@@ -41,6 +41,14 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		//zero results if user has no buddies
 		assertDayOverviewWithBuddiesBasics(responseDayOverviewsWithBuddies, 0, 0)
 
+		when:
+		def url = YonaServer.appendToPath(richard.dailyActivityReportsWithBuddiesUrl, YonaServer.toIsoDateString(YonaServer.now))
+		def responseDayOverviewWithBuddies = appService.yonaServer.getResourceWithPassword(url, richard.password)
+
+		then:
+		assertResponseStatus(responseDayOverviewWithBuddies, 404)
+		responseDayOverviewWithBuddies.data.code == "error.buddy.list.empty"
+
 		cleanup:
 		appService.deleteUser(richard)
 	}
