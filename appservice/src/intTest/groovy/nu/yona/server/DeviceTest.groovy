@@ -363,6 +363,34 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		"IOS" | null | 5000 | 400
 	}
 
+	def 'Use different app version headers'(appVersionHeader, responseStatus)
+	{
+		given:
+		def ts = timestamp
+		User john = createJohnDoe(ts)
+		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
+
+		when:
+		def response = appService.getResourceWithPassword(john.url, john.password, ["Yona-App-Version" : appVersionHeader])
+
+		then:
+		assertResponseStatus(response, responseStatus)
+
+		cleanup:
+		appService.deleteUser(john)
+
+		where:
+		appVersionHeader | responseStatus
+		"ANDROID/123/1.2 build 360" | 200
+		"IOS/123/1.2 build 360" | 200
+		"IOS/123/1.2" | 200
+		"ANDROID/abc/1.2 build 360" | 400
+		"ANDROID/-1/1.2 build 360" | 400
+		"ANDROID/0/1.2 build 360" | 400
+		"ANDROID/123" | 400
+		"ANDROID/123/a/b" | 400
+	}
+
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem, firebaseInstanceId = null)
 	{
 		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
