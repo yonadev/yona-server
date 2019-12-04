@@ -97,18 +97,10 @@ public class ErrorLoggingFilter implements Filter
 			MDC.put(APP_VERSION_NAME_MDC_KEY, versionName);
 		}
 
-		private static Optional<YonaException> validateHeaders(HttpServletRequest request)
+		private static void assertValidHeaders(HttpServletRequest request)
 		{
-			try
-			{
-				Optional.ofNullable(request.getHeader(Constants.APP_VERSION_HEADER))
-						.ifPresent(LoggingContext::validateAppVersionHeader);
-			}
-			catch (YonaException e)
-			{
-				return Optional.of(e);
-			}
-			return Optional.empty();
+			Optional.ofNullable(request.getHeader(Constants.APP_VERSION_HEADER))
+					.ifPresent(LoggingContext::validateAppVersionHeader);
 		}
 
 		private static void validateAppVersionHeader(String header)
@@ -160,10 +152,12 @@ public class ErrorLoggingFilter implements Filter
 	{
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
 		HttpServletResponse response = (HttpServletResponse) servletResponse;
-		Optional<YonaException> exception = LoggingContext.validateHeaders(request);
-		if (exception.isPresent())
+		try
 		{
-			YonaException e = exception.get();
+			LoggingContext.assertValidHeaders(request);
+		}
+		catch (YonaException e)
+		{
 			response.sendError(e.getStatusCode().value(), e.getMessage());
 			logResponseStatus(request, response, e.getStatusCode().series());
 			return;
