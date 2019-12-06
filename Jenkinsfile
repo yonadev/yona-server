@@ -42,6 +42,7 @@ pipeline {
 							alwaysLinkToLastBuild: false,
 							keepAll: true,
 							reportDir: 'build/reports/project/dependencies',
+							includes: 'build/reports/project/dependencies/**/*',
 							reportFiles: 'index.html',
 							reportName: 'Depencencies Report'
 						]
