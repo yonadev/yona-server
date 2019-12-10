@@ -6,6 +6,7 @@ package nu.yona.server.test.util;
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
@@ -25,8 +26,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.support.Repositories;
 
+import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -36,6 +39,7 @@ import nu.yona.server.subscriptions.entities.UserPrivate;
 
 public class JUnitUtil
 {
+	private static final Field translatorStaticField = JUnitUtil.getAccessibleField(Translator.class, "staticReference");
 
 	private JUnitUtil()
 	{
@@ -129,5 +133,40 @@ public class JUnitUtil
 	public static void skipBefore(String description, ZonedDateTime now, int hour, int minute)
 	{
 		assumeTrue(now.isAfter(now.withHour(hour).withMinute(minute).withSecond(0)), description);
+	}
+
+	public static void setupTranslatorMock(Translator translator)
+	{
+		try
+		{
+			translatorStaticField.set(null, translator);
+
+			lenient().when(translator.getLocalizedMessage(any(String.class), any())).thenAnswer(new Answer<String>() {
+				@Override
+				public String answer(InvocationOnMock invocation) throws Throwable
+				{
+					Object[] args = invocation.getArguments();
+					assert args.length >= 1;
+					String messageId = (String) args[0];
+					String insertions = String.join("/", buildStringArray(args));
+					return messageId + ":" + insertions;
+				}
+
+				private String[] buildStringArray(Object[] args)
+				{
+					String[] retVal = new String[args.length - 1];
+					for (int i = 0; (i < retVal.length); i++)
+					{
+						Object val = args[i + 1];
+						retVal[i] = (val == null) ? "<null>" : val.toString();
+					}
+					return retVal;
+				}
+			});
+		}
+		catch (IllegalArgumentException | IllegalAccessException e)
+		{
+			throw YonaException.unexpected(e);
+		}
 	}
 }

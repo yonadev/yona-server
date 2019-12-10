@@ -10,16 +10,32 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import nu.yona.server.Translator;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.test.util.JUnitUtil;
 
+@ExtendWith(MockitoExtension.class)
 class UserAssertionServiceTest
 {
+	@Mock
+	private Translator translator;
+
+	@BeforeEach
+	public void setUpPerTest() throws Exception
+	{
+		JUnitUtil.setupTranslatorMock(translator);
+	}
+
 	@ParameterizedTest
 	@ValueSource(strings = { "+31612345678", "+12122111111" })
 	void assertValidMobileNumber_validNumber_noException(String mobileNumberStr)
