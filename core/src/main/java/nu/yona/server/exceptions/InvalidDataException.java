@@ -58,6 +58,11 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.user.mobile.number.invalid", mobileNumber);
 	}
 
+	public static InvalidDataException numberWithLeadingZeros(String mobileNumber)
+	{
+		return new InvalidDataException("error.user.mobile.number.invalid.leading.zero", mobileNumber);
+	}
+
 	public static InvalidDataException notAMobileNumber(String number, String classification)
 	{
 		return new InvalidDataException("error.user.mobile.number.not.mobile", number, classification);

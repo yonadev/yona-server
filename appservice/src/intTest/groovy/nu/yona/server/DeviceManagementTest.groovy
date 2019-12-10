@@ -213,33 +213,32 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Try get new device request with wrong information'()
+	def 'Try get new device request with wrong information'(number, password, withNewDeviceRequest, expectedStatus, expectedCode)
 	{
 		given:
-		def newDeviceRequestPassword = "Temp password"
-		User richard = addRichard()
-		User bob = addBob()
-		appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
+		User user = addRichard()
+		if (withNewDeviceRequest) {
+			appService.setNewDeviceRequest(user.mobileNumber, user.password, "right")
+		}
 
 		when:
-		def responseWrongNewDeviceRequestPassword = appService.getNewDeviceRequest(richard.mobileNumber, "wrong temp password")
-		def responseWrongMobileNumber = appService.getNewDeviceRequest("+31610609189", "wrong temp password")
-		def responseNoNewDeviceRequestWrongPassword = appService.getNewDeviceRequest(bob.mobileNumber, "wrong temp password")
-		def responseNoNewDeviceRequestNoPassword = appService.getNewDeviceRequest(bob.mobileNumber)
+		def response = appService.getNewDeviceRequest(number == "<user>" ? user.mobileNumber : number, password)
 
 		then:
-		assertResponseStatus(responseWrongNewDeviceRequestPassword, 400)
-		responseWrongNewDeviceRequestPassword.responseData.code == "error.device.request.invalid.password"
-		assertResponseStatus(responseWrongMobileNumber, 400)
-		responseWrongMobileNumber.responseData.code == "error.no.device.request.present"
-		assertResponseStatus(responseNoNewDeviceRequestWrongPassword, 400)
-		responseNoNewDeviceRequestWrongPassword.responseData.code == "error.no.device.request.present"
-		assertResponseStatus(responseNoNewDeviceRequestNoPassword, 400)
-		responseNoNewDeviceRequestNoPassword.responseData.code == "error.no.device.request.present"
+		assertResponseStatus(response, expectedStatus)
+		response.responseData.code == expectedCode
 
 		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
+		appService.deleteUser(user)
+
+		where:
+		number | password | withNewDeviceRequest | expectedStatus | expectedCode
+		"<user>" | "wrong" | true | 400 | "error.device.request.invalid.password"
+		"+31610609189" | "wrong" | true | 400 | "error.no.device.request.present"
+		"+31318123456" | "wrong" | true | 400 | "error.user.mobile.number.not.mobile"
+		"+310610609189" | "wrong" | true | 400 | "error.user.mobile.number.invalid.leading.zero"
+		"<user>" | "wrong" | false | 400 | "error.no.device.request.present"
+		"<user>" | null | false | 400 | "error.no.device.request.present"
 	}
 
 	def 'Try set new device request with wrong information'()
