@@ -19,8 +19,10 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
+import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
@@ -126,20 +128,39 @@ public class GoalService
 		Goal existingGoal = getGoalEntity(userEntity, goalId);
 
 		assertValidGoalUpdate(existingGoal, newGoalDto);
-		if (newGoalDto.getCreationTime().isPresent() && !newGoalDto.isChanged(existingGoal))
+		if (newGoalDto.getCreationTime().isPresent() && !containsPropertyUpdate(existingGoal, newGoalDto))
 		{
 			Require.that(yonaProperties.isTestServer(),
 					() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set goal creation time"));
 			// Tests update the creation time. Handle that as a special case.
 			updateGoalCreationTime(userEntity, existingGoal, newGoalDto);
 		}
-		else if (newGoalDto.isChanged(existingGoal))
+		else if (containsPropertyUpdate(existingGoal, newGoalDto))
 		{
 			assertNoUpdateToThePast(newGoalDto, existingGoal);
 			updateGoal(userEntity, existingGoal, newGoalDto, message);
 		}
 
 		return GoalDto.createInstance(existingGoal);
+	}
+
+	private boolean containsPropertyUpdate(Goal existingGoal, GoalDto newGoalDto)
+	{
+		if (existingGoal instanceof BudgetGoal)
+		{
+			return containsPropertyUpdate((BudgetGoal) existingGoal, (BudgetGoalDto) newGoalDto);
+		}
+		return containsPropertyUpdate((TimeZoneGoal) existingGoal, (TimeZoneGoalDto) newGoalDto);
+	}
+
+	private boolean containsPropertyUpdate(BudgetGoal existingGoal, BudgetGoalDto newGoalDto)
+	{
+		return existingGoal.getMaxDurationMinutes() != newGoalDto.getMaxDurationMinutes();
+	}
+
+	private boolean containsPropertyUpdate(TimeZoneGoal existingGoal, TimeZoneGoalDto newGoalDto)
+	{
+		return !newGoalDto.getZones().equals(existingGoal.getZones());
 	}
 
 	private void updateGoalCreationTime(User userEntity, Goal existingGoal, GoalDto newGoalDto)

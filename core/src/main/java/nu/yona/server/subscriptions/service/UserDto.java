@@ -223,9 +223,4 @@ public class UserDto
 			throw MobileNumberConfirmationException.notConfirmed(mobileNumber);
 		}
 	}
-
-	public boolean isChanged(UserDto original)
-	{
-		return !mobileNumber.equals(original.mobileNumber) || privateData.isChanged(original.privateData);
-	}
 }

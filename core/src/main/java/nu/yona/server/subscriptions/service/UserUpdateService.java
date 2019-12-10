@@ -139,7 +139,7 @@ public class UserUpdateService
 
 	private void updateUser(UserDto user, User userEntity, UserDto originalUser)
 	{
-		if (user.getCreationTime().isPresent() && !user.isChanged(originalUser))
+		if (user.getCreationTime().isPresent() && !containsPropertyUpdate(originalUser, user))
 		{
 			Require.that(yonaProperties.isTestServer(),
 					() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set user creation time"));
@@ -154,6 +154,19 @@ public class UserUpdateService
 					() -> InvalidDataException.extraProperty("creationTime", "Creation time cannot be changed"));
 			user.updateUser(userEntity);
 		}
+	}
+
+	private boolean containsPropertyUpdate(UserDto existingUser, UserDto newUser)
+	{
+		OwnUserPrivateDataDto existingPrivateData = existingUser.getOwnPrivateData();
+		OwnUserPrivateDataDto newPrivateData = newUser.getOwnPrivateData();
+		return !newUser.getMobileNumber().equals(existingUser.getMobileNumber())
+				|| !existingPrivateData.getFirstName().equals(newPrivateData.getFirstName())
+				|| !existingPrivateData.getLastName().equals(newPrivateData.getLastName())
+				|| !existingPrivateData.getNickname().equals(newPrivateData.getNickname())
+				|| newPrivateData.getYonaPassword() != null
+						&& !existingPrivateData.getYonaPassword().equals(newPrivateData.getYonaPassword());
+
 	}
 
 	/**
