@@ -198,7 +198,7 @@ mariadb:
 
 spring:
   loglevel: info
-  logpattern: "correlation.id=%X{yona.correlation.id} %5p"
+  logpattern: "correlation.id=%X{yona.correlation.id} app.os=%X{yona.app.os} app.versionCode=%X{yona.app.versionCode} app.versionName=\"%X{yona.app.versionName}\" %5p"
   hazelcast:
     loglevel: info
     config: /opt/app/config/hazelcast-client.xml

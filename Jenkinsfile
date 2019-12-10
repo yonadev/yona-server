@@ -13,7 +13,7 @@ pipeline {
 			}
 			steps {
 				checkout scm
-				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
+				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage htmlDependencyReport'
 				script {
 					def scannerHome = tool 'SonarQube scanner 3.0';
 					withSonarQubeEnv('Yona SonarQube server') {
@@ -37,6 +37,15 @@ pipeline {
 					step([$class: 'hudson.plugins.jira.JiraIssueUpdater', 
 						issueSelector: [$class: 'hudson.plugins.jira.selector.DefaultIssueSelector'], 
 						scm: scm])
+						publishHTML target: [
+							allowMissing: false,
+							alwaysLinkToLastBuild: false,
+							keepAll: true,
+							reportDir: 'build/reports/project/dependencies',
+							includes: '**/*',
+							reportFiles: 'index.html',
+							reportName: 'Depencencies Report'
+						]
 				}
 				failure {
 					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed"

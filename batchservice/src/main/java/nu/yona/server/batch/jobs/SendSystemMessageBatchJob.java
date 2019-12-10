@@ -23,7 +23,6 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,8 +32,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import nu.yona.server.exceptions.YonaException;
-import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.entities.SystemMessage;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.RestUtil;
@@ -63,7 +60,7 @@ public class SendSystemMessageBatchJob
 
 	@Autowired
 	@Qualifier("sendSystemMessageJobUserAnonymizedProcessor")
-	private ItemProcessor<UUID, MessageDestination> userAnonymizedProcessor;
+	private ItemProcessor<UUID, Void> userAnonymizedProcessor;
 
 	@Autowired
 	private DataSource dataSource;
@@ -74,9 +71,6 @@ public class SendSystemMessageBatchJob
 	@Autowired
 	private MessageService messageService;
 
-	@Autowired
-	private MessageRepository messageRepository;
-
 	@Bean("sendSystemMessageJob")
 	public Job sendSystemMessagesBatchJob()
 	{
@@ -86,8 +80,8 @@ public class SendSystemMessageBatchJob
 
 	private Step sendSystemMessages()
 	{
-		return stepBuilderFactory.get("sendSystemMessages").<UUID, MessageDestination> chunk(USERS_CHUNK_SIZE)
-				.reader(userAnonymizedReader).processor(userAnonymizedProcessor).writer(messageDestinationWriter()).build();
+		return stepBuilderFactory.get("sendSystemMessages").<UUID, Void> chunk(USERS_CHUNK_SIZE).reader(userAnonymizedReader)
+				.processor(userAnonymizedProcessor).build();
 	}
 
 	@Bean(name = "sendSystemMessageJobUserAnonymizedReader", destroyMethod = "")
@@ -99,36 +93,24 @@ public class SendSystemMessageBatchJob
 
 	@Bean(name = "sendSystemMessageJobUserAnonymizedProcessor", destroyMethod = "")
 	@StepScope
-	private ItemProcessor<UUID, MessageDestination> userAnonymizedProcessor()
+	private ItemProcessor<UUID, Void> userAnonymizedProcessor()
 	{
-		return new ItemProcessor<UUID, MessageDestination>() {
+		return new ItemProcessor<UUID, Void>() {
 			@Value("#{jobParameters['messageText']}")
 			private String messageText;
 
 			@Override
-			public MessageDestination process(UUID userAnonymizedId) throws Exception
+			public Void process(UUID userAnonymizedId) throws Exception
 			{
 				logger.debug("Processing user anonymized with id {}", userAnonymizedId);
 				UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 
-				MessageDestination messageDestination = messageService
-						.getMessageDestination(userAnonymized.getAnonymousDestination().getId());
 				SystemMessage message = SystemMessage.createInstance(messageText);
-				messageDestination.send(message);
-				messageRepository.save(message);
-				messageService.sendFirebaseNotification(message, userAnonymized);
+				messageService.sendMessage(message, userAnonymized);
 
-				return messageDestination;
+				return null;
 			}
 		};
-	}
-
-	private JpaItemWriter<MessageDestination> messageDestinationWriter()
-	{
-		JpaItemWriter<MessageDestination> writer = new JpaItemWriter<>();
-		writer.setEntityManagerFactory(entityManager.getEntityManagerFactory());
-
-		return writer;
 	}
 
 	private ItemReader<UUID> userAnonymizedIdReader()
