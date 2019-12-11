@@ -2156,11 +2156,6 @@ definitions:
       - $ref: '#/definitions/BaseUser'
       - type: object
         properties:
-          creationTime:
-            type: string
-            format: dateTime
-            description: The creation time of this user
-            example: 2016-04-26T20:08:55.365+0200
           appLastOpenedDate:
             type: string
             format: date
