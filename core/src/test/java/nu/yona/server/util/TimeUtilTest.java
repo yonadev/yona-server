@@ -10,8 +10,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class TimeUtilTest
 {
@@ -44,5 +48,43 @@ public class TimeUtilTest
 	{
 		LocalDate result = TimeUtil.getStartOfWeek(LocalDate.parse("2017-08-22"));
 		assertThat(result, equalTo(LocalDate.parse("2017-08-20")));
+	}
+
+	@ParameterizedTest
+	@MethodSource("provideLocalDateValues")
+	public void maxLocalDate(LocalDate a, LocalDate b, LocalDate expected)
+	{
+		LocalDate result = TimeUtil.max(a, b);
+		assertThat(result, equalTo(expected));
+	}
+
+	private static Stream<Arguments> provideLocalDateValues()
+	{
+		LocalDate now = TimeUtil.utcNow().toLocalDate();
+		// @formatter:off
+		return Stream.of(
+				Arguments.of(now, now.minusDays(1), now),
+				Arguments.of(now, now.plusDays(1), now.plusDays(1)),
+				Arguments.of(now, now, now));
+		// @formatter:on
+	}
+
+	@ParameterizedTest
+	@MethodSource("provideZonedDateTimeValues")
+	public void maxZonedDateTime(ZonedDateTime a, ZonedDateTime b, ZonedDateTime expected)
+	{
+		ZonedDateTime result = TimeUtil.max(a, b);
+		assertThat(result, equalTo(expected));
+	}
+
+	private static Stream<Arguments> provideZonedDateTimeValues()
+	{
+		ZonedDateTime now = TimeUtil.toUtcZonedDateTime(TimeUtil.utcNow());
+		// @formatter:off
+		return Stream.of(
+				Arguments.of(now, now.minusSeconds(1), now),
+				Arguments.of(now, now.plusSeconds(1), now.plusSeconds(1)),
+				Arguments.of(now, now, now));
+		// @formatter:on
 	}
 }

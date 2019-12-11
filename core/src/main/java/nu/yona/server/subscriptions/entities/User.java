@@ -109,6 +109,11 @@ public class User extends EntityWithUuid
 		return this.creationTime;
 	}
 
+	public void setCreationTime(LocalDateTime creationTime)
+	{
+		this.creationTime = creationTime;
+	}
+
 	public Optional<LocalDate> getAppLastOpenedDate()
 	{
 		return Optional.ofNullable(appLastOpenedDate);

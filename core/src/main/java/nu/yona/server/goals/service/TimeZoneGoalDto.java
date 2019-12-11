@@ -126,12 +126,6 @@ public class TimeZoneGoalDto extends GoalDto
 	}
 
 	@Override
-	public boolean isGoalChanged(Goal existingGoal)
-	{
-		return !zones.equals(((TimeZoneGoal) existingGoal).getZones());
-	}
-
-	@Override
 	public void updateGoalEntity(Goal existingGoal)
 	{
 		((TimeZoneGoal) existingGoal).setZones(zones);

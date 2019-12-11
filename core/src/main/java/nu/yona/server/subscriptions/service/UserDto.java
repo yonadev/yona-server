@@ -208,12 +208,12 @@ public class UserDto
 				buddyData);
 	}
 
-	public static UserDto createInstance(String firstName, String lastName, String mobileNumber, String nickname,
-			Optional<UserDeviceDto> device)
+	public static UserDto createInstance(Optional<LocalDateTime> creationTime, String firstName, String lastName,
+			String mobileNumber, String nickname, Optional<UserDeviceDto> device)
 	{
 		UserPrivateDataBaseDto privateData = new OwnUserPrivateDataDto(firstName, lastName, nickname,
 				device.map(Collections::singleton).orElse(Collections.emptySet()));
-		return new UserDto(null, Optional.empty(), Optional.empty(), null, mobileNumber, false, false, privateData);
+		return new UserDto(null, creationTime, Optional.empty(), null, mobileNumber, false, false, privateData);
 	}
 
 	public void assertMobileNumberConfirmed()

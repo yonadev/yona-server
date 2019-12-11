@@ -8,7 +8,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
@@ -159,8 +158,11 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
-		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		def relativeStartDateTime = "W-1 Mon 02:18"
+		setCreationTime(richard, relativeStartDateTime)
+		setCreationTime(bob, relativeStartDateTime)
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, relativeStartDateTime)
+		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, relativeStartDateTime)
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
 		Goal budgetGoalNewsBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
