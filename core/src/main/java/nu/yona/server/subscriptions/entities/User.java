@@ -122,7 +122,8 @@ public class User extends EntityWithUuid
 
 	public void setCreationTime(LocalDateTime creationTime)
 	{
-		this.creationTime = creationTime;
+		userPrivate.setCreationTime(creationTime);
+		this.roundedCreationDate = creationTime.toLocalDate().atStartOfDay();
 	}
 
 	public Optional<LocalDate> getAppLastOpenedDate()
