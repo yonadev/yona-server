@@ -42,9 +42,16 @@ class YonaServer
 		formatter.format(now)
 	}
 
-	def createResourceWithPassword(path, jsonString, password, parameters = [:])
+	def createResourceWithPassword(path, jsonString, password, headers = [:], parameters = [:])
 	{
-		createResource(path, jsonString, ["Yona-Password": password], parameters)
+		def headersWithPassword = cloneMap(headers)
+		headersWithPassword["Yona-Password"] = password
+		createResource(path, jsonString, headersWithPassword, parameters)
+	}
+
+	private static def cloneMap(map)
+	{
+		map.getClass().newInstance(map)
 	}
 
 	def createResource(path, jsonString, headers = [:], parameters = [:])
@@ -75,6 +82,16 @@ class YonaServer
 	def getResourceWithPassword(path, password, parameters = [:])
 	{
 		getResource(path, password ? ["Yona-Password": password] : [ : ], parameters)
+	}
+
+	def getResourceWithPassword(path, password, headers, parameters)
+	{
+		def headersWithPassword = cloneMap(headers)
+		if (password)
+		{
+			headersWithPassword["Yona-Password"] = password
+		}
+		getResource(path, headersWithPassword, parameters)
 	}
 
 	def getResource(path, headers = [:], parameters = [:])

@@ -174,7 +174,7 @@ class AppService extends Service
 		assert processUrl == null // Processing happens automatically these days
 	}
 
-	def sendBuddyConnectRequest(sendingUser, receivingUser, assertSuccess = true)
+	def sendBuddyConnectRequest(sendingUser, receivingUser, assertSuccess = true, headers = [:], parameters = [:])
 	{
 		// Send the buddy request
 		def response = requestBuddy(sendingUser, """{
@@ -189,7 +189,7 @@ class AppService extends Service
 			"message":"Would you like to be my buddy?",
 			"sendingStatus":"REQUESTED",
 			"receivingStatus":"REQUESTED"
-		}""", sendingUser.password)
+		}""", sendingUser.password, headers, parameters)
 		if (assertSuccess) {
 			assertResponseStatusCreated(response)
 		}
@@ -280,9 +280,9 @@ class AppService extends Service
 		yonaServer.postJson(OVERWRITE_USER_REQUEST_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
 	}
 
-	def requestBuddy(User user, jsonString, password)
+	def requestBuddy(User user, jsonString, password, headers = [:], parameters = [:])
 	{
-		yonaServer.createResourceWithPassword(user.buddiesUrl, jsonString, password)
+		yonaServer.createResourceWithPassword(user.buddiesUrl, jsonString, password, headers, parameters)
 	}
 
 	def removeBuddy(User user, Buddy buddy, message)
@@ -316,6 +316,11 @@ class AppService extends Service
 	def getMessages(User user, parameters = [:])
 	{
 		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, parameters)
+	}
+
+	def getMessages(User user, headers, parameters)
+	{
+		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, headers, parameters)
 	}
 
 	def getWeekActivityOverviews(User user, parameters = [:])
@@ -520,9 +525,14 @@ class AppService extends Service
 		yonaServer.postJson(path, jsonString, headers)
 	}
 
-	def postAppActivityToAnalysisEngine(User user, Device device, AppActivity appActivity)
+	def postAppActivityToAnalysisEngine(User user, Device device, AppActivity appActivity, parameters = [:])
 	{
-		yonaServer.createResourceWithPassword(device.appActivityUrl, appActivity.getJson(), user.password)
+		yonaServer.createResourceWithPassword(device.appActivityUrl, appActivity.getJson(), user.password, [:], parameters)
+	}
+
+	def postAppActivityToAnalysisEngine(User user, Device device, AppActivity appActivity, headers, parameters)
+	{
+		yonaServer.createResourceWithPassword(device.appActivityUrl, appActivity.getJson(), user.password, headers, parameters)
 	}
 
 	def composeActivityCategoryUrl(def activityCategoryId) {

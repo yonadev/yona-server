@@ -8,6 +8,9 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
 
+import java.time.ZonedDateTime
+
+import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
@@ -26,9 +29,9 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(responseRichard)
-		assert responseRichard.responseData.title == "Message received"
-		assert responseRichard.responseData.body == "Tap to open message"
-		assert messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
+		responseRichard.responseData.title == "Message received"
+		responseRichard.responseData.body == "Tap to open message"
+		messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
 
 		when:
 		def messageUrlBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
@@ -36,9 +39,9 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(responseBob)
-		assert responseBob.responseData.title == "Message received"
-		assert responseBob.responseData.body == "Tap to open message"
-		assert messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
+		responseBob.responseData.title == "Message received"
+		responseBob.responseData.body == "Tap to open message"
+		messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -52,17 +55,24 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		User bobAndroid = addBob(true, "ANDROID", "nl-NL")
 		bobAndroid.emailAddress = "bob@dunn.com"
 		User bobIos = appService.addDevice(bobAndroid, "Bob's iPhone", "IOS", Device.SOME_APP_VERSION)
-		appService.sendBuddyConnectRequest(richard, bobAndroid)
+		def appOs = "ANDROID"
+		def appVersionCode = 123
+		def appVersionName = "1.2 (I'm Rich)"
+		def headers = ["Yona-App-Version" : "$appOs/$appVersionCode/$appVersionName"]
+		appService.sendBuddyConnectRequest(richard, bobAndroid, true, headers)
 
 		when:
-		def messageUrlBobAndroid = appService.getMessages(bobAndroid).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
+		def messageUrlBobAndroid = appService.getMessages(bobAndroid, headers, [:]).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
 		def responseBobAndroid = appService.getLastFirebaseMessage(bobAndroid.requestingDevice.firebaseInstanceId)
 
 		then:
 		assertResponseStatusOk(responseBobAndroid)
-		assert responseBobAndroid.responseData.title == "Bericht ontvangen"
-		assert responseBobAndroid.responseData.body == "Tik om het bericht te openen"
-		assert messageUrlBobAndroid.endsWith(responseBobAndroid.responseData.data.messageId.toString())
+		responseBobAndroid.responseData.title == "Bericht ontvangen"
+		responseBobAndroid.responseData.body == "Tik om het bericht te openen"
+		messageUrlBobAndroid.endsWith(responseBobAndroid.responseData.data.messageId.toString())
+		responseBobAndroid.responseData.appOs == appOs
+		responseBobAndroid.responseData.appVersionCode == appVersionCode
+		responseBobAndroid.responseData.appVersionName == appVersionName
 
 		when:
 		def messageUrlBobIos = appService.getMessages(bobIos).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
@@ -70,9 +80,12 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(responseBobIos)
-		assert responseBobIos.responseData.title == "Message received"
-		assert responseBobIos.responseData.body == "Tap to open message"
-		assert messageUrlBobIos.endsWith(responseBobIos.responseData.data.messageId.toString())
+		responseBobIos.responseData.title == "Message received"
+		responseBobIos.responseData.body == "Tap to open message"
+		messageUrlBobIos.endsWith(responseBobIos.responseData.data.messageId.toString())
+		responseBobIos.responseData.appOs == appOs
+		responseBobIos.responseData.appVersionCode == appVersionCode
+		responseBobIos.responseData.appVersionName == appVersionName
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -96,9 +109,9 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		assert response.responseData.title == "Message received"
-		assert response.responseData.body == "Tap to open message"
-		assert messageUrlBob.endsWith(response.responseData.data.messageId.toString())
+		response.responseData.title == "Message received"
+		response.responseData.body == "Tap to open message"
+		messageUrlBob.endsWith(response.responseData.data.messageId.toString())
 
 		when:
 		appService.postMessageActionWithPassword(messageUrlBob, [ : ], bob.password)
@@ -109,9 +122,91 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		assert response.responseData.title == "Bericht ontvangen"
-		assert response.responseData.body == "Tik om het bericht te openen"
-		assert messageUrlBob.endsWith(response.responseData.data.messageId.toString())
+		response.responseData.title == "Bericht ontvangen"
+		response.responseData.body == "Tik om het bericht te openen"
+		messageUrlBob.endsWith(response.responseData.data.messageId.toString())
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard and Bob get notifications on network goal conflict'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		when:
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl"))
+
+		then:
+		def responseRichard = analysisService.getLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
+		def messageUrlRichard = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
+		assertResponseStatusOk(responseRichard)
+		responseRichard.responseData.title == "Message received"
+		responseRichard.responseData.body == "Tap to open message"
+		messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
+		responseRichard.responseData.appOs == null
+		responseRichard.responseData.appVersionCode == 0
+		responseRichard.responseData.appVersionName == null
+
+
+		def responseBob = analysisService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
+		def messageUrlBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
+		assertResponseStatusOk(responseBob)
+		responseBob.responseData.title == "Message received"
+		responseBob.responseData.body == "Tap to open message"
+		messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
+		responseBob.responseData.appOs == null
+		responseBob.responseData.appVersionCode == 0
+		responseBob.responseData.appVersionName == null
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard and Bob get notifications on app usage goal conflict'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
+		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
+		ZonedDateTime endTime = startTime.plusHours(1)
+		def appOs = "ANDROID"
+		def appVersionCode = 123
+		def appVersionName = "1.2 (I'm Rich)"
+		def headers = ["Yona-App-Version" : "$appOs/$appVersionCode/$appVersionName"]
+
+		when:
+		assertResponseStatusNoContent(appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, AppActivity.singleActivity("Poker App", startTime, endTime), headers, [:]))
+
+		then:
+		def responseRichard = analysisService.getLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
+		def messageUrlRichard = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
+		assertResponseStatusOk(responseRichard)
+		responseRichard.responseData.title == "Message received"
+		responseRichard.responseData.body == "Tap to open message"
+		messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
+		responseRichard.responseData.appOs == appOs
+		responseRichard.responseData.appVersionCode == appVersionCode
+		responseRichard.responseData.appVersionName == appVersionName
+
+
+		def responseBob = analysisService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
+		def messageUrlBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
+		assertResponseStatusOk(responseBob)
+		responseBob.responseData.title == "Message received"
+		responseBob.responseData.body == "Tap to open message"
+		messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
+		responseBob.responseData.appOs == appOs
+		responseBob.responseData.appVersionCode == appVersionCode
+		responseBob.responseData.appVersionName == appVersionName
 
 		cleanup:
 		appService.deleteUser(richard)
