@@ -182,7 +182,7 @@ public class GoalController extends ControllerBase
 	private void setActivityCategoryId(GoalDto goal)
 	{
 		Link activityCategoryLink = goal.getLink(curieProvider.getNamespacedRelFor(ACTIVITY_CATEGORY_REL))
-				.orElseThrow(() -> InvalidDataException.missingActivityCategoryLink());
+				.orElseThrow(InvalidDataException::missingActivityCategoryLink);
 		UUID activityCategoryId = determineActivityCategoryId(activityCategoryLink.getHref());
 		goal.setActivityCategoryId(activityCategoryId);
 	}
