@@ -5,8 +5,12 @@
 package nu.yona.server.exceptions;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.UUID;
+
+import nu.yona.server.rest.Constants;
 
 /**
  * This exception is to be used in case data is wrong in DTOs. So whenever a field has a wrong value you should throw this
@@ -146,8 +150,33 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException(exception, "error.invalid.date", date);
 	}
 
+	public static InvalidDataException dateTooEarly(LocalDateTime dateTime, LocalDateTime earliestPossibleDateTime)
+	{
+		return dateTooEarly(dateTime.toLocalDate(), earliestPossibleDateTime.toLocalDate());
+	}
+
+	public static InvalidDataException dateTooEarly(LocalDate date, LocalDate earliestPossibleDate)
+	{
+		return new InvalidDataException("error.invalid.date.too.early", date, earliestPossibleDate);
+	}
+
 	public static InvalidDataException missingRequestParameter(String name, String hint)
 	{
 		return new InvalidDataException("error.request.missing.request.parameter", name, hint);
+	}
+
+	public static InvalidDataException onlyAllowedOnTestServers(String hint)
+	{
+		return new InvalidDataException("error.request.only.allowed.on.test.server", hint);
+	}
+
+	public static InvalidDataException invalidAppVersionHeader(String header)
+	{
+		return new InvalidDataException("error.request.with.invalid.app.version.header", Constants.APP_VERSION_HEADER, header);
+	}
+
+	public static InvalidDataException invalidVersionCode(String versionCodeString)
+	{
+		return new InvalidDataException("error.request.with.invalid.version.code", versionCodeString);
 	}
 }

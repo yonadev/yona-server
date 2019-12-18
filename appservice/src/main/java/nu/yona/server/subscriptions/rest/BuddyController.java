@@ -8,6 +8,8 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,6 +43,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.analysis.rest.BuddyActivityController;
@@ -111,13 +115,31 @@ public class BuddyController extends ControllerBase
 	@PostMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @RequestBody PostPutBuddyDto postPutBuddy)
+			@PathVariable UUID userId, @RequestBody PostBuddyDto postBuddy)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return createResponse(buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postPutBuddy), this::getInviteUrl),
+			return createResponse(buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postBuddy), this::getInviteUrl),
 					HttpStatus.CREATED, createResourceAssembler(userId));
+		}
+	}
+
+	/**
+	 * This operation is for test purposes only. It only allows updating the last status change time of the buddy entity.
+	 */
+	@PutMapping(value = "/{buddyId}")
+	@ResponseBody
+	public HttpEntity<BuddyResource> updateBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable UUID buddyId,
+			@RequestBody LastStatusChangeTimeUpdateDto lastStatusChangeTimeUpdateDto)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		{
+			return createResponse(
+					buddyService.updateLastStatusChangeTime(userId, buddyId, lastStatusChangeTimeUpdateDto.lastStatusChangeTime),
+					HttpStatus.OK, createResourceAssembler(userId));
 		}
 	}
 
@@ -134,16 +156,15 @@ public class BuddyController extends ControllerBase
 		}
 	}
 
-	private BuddyDto convertToBuddy(PostPutBuddyDto postPutBuddy)
+	private BuddyDto convertToBuddy(PostBuddyDto postBuddy)
 	{
 		LinkRelation userRel = curieProvider.getNamespacedRelFor(BuddyDto.USER_REL);
-		UserDto user = postPutBuddy.userInMap.get(userRel.value());
+		UserDto user = postBuddy.userInMap.get(userRel.value());
 		if (user == null)
 		{
 			throw BuddyServiceException.missingUser(userRel);
 		}
-		return new BuddyDto(user, postPutBuddy.message, postPutBuddy.sendingStatus, postPutBuddy.receivingStatus,
-				TimeUtil.utcNow());
+		return new BuddyDto(user, postBuddy.message, postBuddy.sendingStatus, postBuddy.receivingStatus, TimeUtil.utcNow());
 	}
 
 	public static CollectionModel<BuddyResource> createAllBuddiesCollectionResource(CurieProvider curieProvider, UUID userId,
@@ -194,7 +215,19 @@ public class BuddyController extends ControllerBase
 		return GoalController.getAllGoalsLinkBuilder(requestingUserId, userId);
 	}
 
-	static class PostPutBuddyDto
+	static class LastStatusChangeTimeUpdateDto
+	{
+		private final LocalDateTime lastStatusChangeTime;
+
+		@JsonCreator
+		public LastStatusChangeTimeUpdateDto(
+				@JsonFormat(pattern = nu.yona.server.Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("lastStatusChangeTime") ZonedDateTime lastStatusChangeTime)
+		{
+			this.lastStatusChangeTime = TimeUtil.toUtcLocalDateTime(lastStatusChangeTime);
+		}
+	}
+
+	static class PostBuddyDto
 	{
 		private final Map<String, UserDto> userInMap;
 		private final String message;
@@ -202,7 +235,7 @@ public class BuddyController extends ControllerBase
 		private final Status receivingStatus;
 
 		@JsonCreator
-		public PostPutBuddyDto(@JsonProperty(value = "_embedded", required = true) Map<String, UserDto> userInMap,
+		public PostBuddyDto(@JsonProperty(value = "_embedded", required = true) Map<String, UserDto> userInMap,
 				@JsonProperty("message") String message,
 				@JsonProperty(value = "sendingStatus", required = true) Status sendingStatus,
 				@JsonProperty(value = "receivingStatus", required = true) Status receivingStatus)

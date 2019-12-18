@@ -810,6 +810,38 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
+	public void postOpenAppEvent_loyalUser_roundedCreationDateUpdated()
+	{
+		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
+		LocalDate creationDate = TimeUtil.utcNow().toLocalDate().minusDays(31);
+		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
+		richard.setAppLastOpenedDate(originalDate);
+		setAppLastOpenedDateField(device, originalDate);
+		richard.setRoundedCreationDate(creationDate);
+
+		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
+				SUPPORTED_APP_VERSION_CODE);
+
+		assertEquals(creationDate.withDayOfMonth(1), richard.getRoundedCreationDate());
+	}
+
+	@Test
+	public void postOpenAppEvent_newUser_roundedCreationDateNotUpdated()
+	{
+		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
+		LocalDate creationDate = TimeUtil.utcNow().toLocalDate().minusDays(30);
+		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
+		richard.setAppLastOpenedDate(originalDate);
+		setAppLastOpenedDateField(device, originalDate);
+		richard.setRoundedCreationDate(creationDate);
+
+		service.postOpenAppEvent(richard.getId(), device.getId(), Optional.empty(), Optional.of(SOME_APP_VERSION),
+				SUPPORTED_APP_VERSION_CODE);
+
+		assertEquals(creationDate, richard.getRoundedCreationDate());
+	}
+
+	@Test
 	public void removeDuplicateDefaultDevices_singleDevice_noChange()
 	{
 		// Add devices

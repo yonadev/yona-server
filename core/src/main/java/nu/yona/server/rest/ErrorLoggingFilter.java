@@ -1,13 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.servlet.Filter;
@@ -26,6 +29,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.stereotype.Component;
 
+import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.util.Require;
+
 @Component
 public class ErrorLoggingFilter implements Filter
 {
@@ -37,8 +44,13 @@ public class ErrorLoggingFilter implements Filter
 
 	public static class LoggingContext implements AutoCloseable
 	{
-		private static final String CORRELATION_ID = "yona.correlation.id";
 		private static final String TRACE_ID_HEADER = "x-b3-traceid";
+		private static final String CORRELATION_ID_MDC_KEY = "yona.correlation.id";
+		private static final String APP_OS_MDC_KEY = "yona.app.os";
+		private static final String APP_VERSION_CODE_MDC_KEY = "yona.app.versionCode";
+		private static final String APP_VERSION_NAME_MDC_KEY = "yona.app.versionName";
+		private static final List<String> MDC_KEYS = Arrays.asList(CORRELATION_ID_MDC_KEY, APP_OS_MDC_KEY,
+				APP_VERSION_CODE_MDC_KEY, APP_VERSION_NAME_MDC_KEY);
 
 		private LoggingContext()
 		{
@@ -48,18 +60,20 @@ public class ErrorLoggingFilter implements Filter
 		@Override
 		public void close()
 		{
-			MDC.remove(CORRELATION_ID);
+			MDC_KEYS.forEach(MDC::remove);
 		}
 
 		public static LoggingContext createInstance(HttpServletRequest request)
 		{
-			MDC.put(CORRELATION_ID, getCorrelationId(request));
+			MDC.put(CORRELATION_ID_MDC_KEY, getCorrelationId(request));
+			Optional<String> yonaAppVersionHeader = Optional.ofNullable(request.getHeader(Constants.APP_VERSION_HEADER));
+			yonaAppVersionHeader.ifPresent(LoggingContext::putAppVersionContext);
 			return new LoggingContext();
 		}
 
 		public static String getCorrelationId()
 		{
-			return (String) MDC.get(CORRELATION_ID);
+			return (String) MDC.get(CORRELATION_ID_MDC_KEY);
 		}
 
 		private static String getCorrelationId(HttpServletRequest request)
@@ -72,6 +86,52 @@ public class ErrorLoggingFilter implements Filter
 			return traceIdHeader;
 		}
 
+		private static void putAppVersionContext(String header)
+		{
+			String[] parts = header.split("/");
+			String operatingSystem = parts[0];
+			int versionCode = Integer.parseInt(parts[1]);
+			String versionName = parts[2];
+			MDC.put(APP_OS_MDC_KEY, operatingSystem);
+			MDC.put(APP_VERSION_CODE_MDC_KEY, versionCode);
+			MDC.put(APP_VERSION_NAME_MDC_KEY, versionName);
+		}
+
+		private static void assertValidHeaders(HttpServletRequest request)
+		{
+			Optional.ofNullable(request.getHeader(Constants.APP_VERSION_HEADER))
+					.ifPresent(LoggingContext::validateAppVersionHeader);
+		}
+
+		private static void validateAppVersionHeader(String header)
+		{
+			String[] parts = header.split("/");
+			Require.that(parts.length == 3, () -> InvalidDataException.invalidAppVersionHeader(header));
+			assertValidOperatingSystem(parts[0]);
+			assertValidVersionCode(parts[1]);
+		}
+
+		private static void assertValidOperatingSystem(String osString)
+		{
+			Require.that(osString.equals("ANDROID") || osString.equals("IOS"),
+					() -> InvalidDataException.invalidOperatingSystem(osString));
+		}
+
+		private static void assertValidVersionCode(String versionCodeString)
+		{
+			try
+			{
+				if (Integer.parseInt(versionCodeString) > 0)
+				{
+					return;
+				}
+			}
+			catch (NumberFormatException e)
+			{
+				// Handled below
+			}
+			throw InvalidDataException.invalidVersionCode(versionCodeString);
+		}
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(ErrorLoggingFilter.class);
@@ -92,7 +152,23 @@ public class ErrorLoggingFilter implements Filter
 	{
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
 		HttpServletResponse response = (HttpServletResponse) servletResponse;
+		try
+		{
+			LoggingContext.assertValidHeaders(request);
+		}
+		catch (YonaException e)
+		{
+			response.sendError(e.getStatusCode().value(), e.getMessage());
+			logResponseStatus(request, response, e.getStatusCode().series());
+			return;
+		}
 
+		handleRequestInContext(chain, request, response);
+	}
+
+	private void handleRequestInContext(FilterChain chain, HttpServletRequest request, HttpServletResponse response)
+			throws IOException, ServletException
+	{
 		try (LoggingContext loggingContext = LoggingContext.createInstance(request))
 		{
 			chain.doFilter(request, response);

@@ -22,6 +22,7 @@ data:
     #hazelcast.client.config={{ .Values.spring.hazelcast.config }}
     yona.hazelcastConfigFilePath={{ .Values.spring.hazelcast.config }}
     yona.maxUsers={{ .Values.app.max_users | default "1000000" }}
+    yona.testServer={{ required "True or False required for app.test_server" .Values.app.test_server }}
     yona.enableHibernateStatsAllowed={{ .Values.app.enable_hibernate_stats_allowed| default "false" }}
     yona.whiteListActiveFreeSignUp={{ required "True or False required for app.whitelist.active_free_signup" .Values.app.whitelist.active_free_signup }}
     yona.whiteListActiveInvitedUsers={{ required "True or False required for app.whitelist.active_invited_users" .Values.app.whitelist.active_invited_users }}

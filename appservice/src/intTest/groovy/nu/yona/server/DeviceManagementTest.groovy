@@ -517,7 +517,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		given:
 		def ts = timestamp
 		User richardOnFirstDevice = addRichard()
-		setCreationTimeOfMandatoryGoalsToNow(richardOnFirstDevice)
+		setCreationTime(richardOnFirstDevice, "W-1 Mon 02:18")
 		setGoalCreationTime(richardOnFirstDevice, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		Device remainingDevice = richardOnFirstDevice.devices[0]
 		def deletedDeviceName = "Second device"
@@ -554,7 +554,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviewsAll = appService.getDayActivityOverviews(richardOnFirstDevice, ["size": 14])
 
 		then:
-		assertWeekOverviewBasics(responseWeekOverviews, [2, 1], expectedTotalWeeks)
+		assertWeekOverviewBasics(responseWeekOverviews, [2, 2], expectedTotalWeeks)
 
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichard, 6)

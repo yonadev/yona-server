@@ -40,7 +40,8 @@ public class User extends EntityWithUuid
 	@Column(unique = true)
 	private String mobileNumber;
 
-	private LocalDateTime creationTime;
+	// YD-666 Change to LocalDate when all users have migrated their data
+	private LocalDateTime roundedCreationDate;
 
 	private LocalDate appLastOpenedDate;
 
@@ -79,7 +80,7 @@ public class User extends EntityWithUuid
 	{
 		super(id);
 		this.initializationVector = initializationVector;
-		this.creationTime = TimeUtil.utcNow();
+		this.roundedCreationDate = TimeUtil.utcNow().toLocalDate().atStartOfDay();
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
@@ -106,7 +107,23 @@ public class User extends EntityWithUuid
 
 	public LocalDateTime getCreationTime()
 	{
-		return this.creationTime;
+		return userPrivate.getCreationTime();
+	}
+
+	public LocalDate getRoundedCreationDate()
+	{
+		return roundedCreationDate.toLocalDate();
+	}
+
+	public void setRoundedCreationDate(LocalDate roundedCreationDate)
+	{
+		this.roundedCreationDate = roundedCreationDate.atStartOfDay();
+	}
+
+	public void setCreationTime(LocalDateTime creationTime)
+	{
+		userPrivate.setCreationTime(creationTime);
+		this.roundedCreationDate = creationTime.toLocalDate().atStartOfDay();
 	}
 
 	public Optional<LocalDate> getAppLastOpenedDate()
@@ -408,6 +425,19 @@ public class User extends EntityWithUuid
 		userPrivate.setLastName(lastName);
 		firstName = null;
 		lastName = null;
+	}
+
+	public void moveCreationTimeToPrivate()
+	{
+		if (userPrivate.getCreationTime() != null)
+		{
+			// Apparently already moved
+			return;
+		}
+		userPrivate.setCreationTime(roundedCreationDate);
+
+		// Round it to a date. Further rounding might happen as part of the app open event
+		roundedCreationDate = roundedCreationDate.toLocalDate().atStartOfDay();
 	}
 
 	public LocalDate getDateInUserTimezone(LocalDateTime utcDateTime)

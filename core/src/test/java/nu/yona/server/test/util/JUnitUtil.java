@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import org.springframework.data.repository.support.Repositories;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -36,6 +38,9 @@ import nu.yona.server.subscriptions.entities.UserPrivate;
 
 public class JUnitUtil
 {
+	private static final Field userPrivateField = JUnitUtil.getAccessibleField(User.class, "userPrivate");
+	private static final Field creationTimeField = JUnitUtil.getAccessibleField(UserPrivate.class, "creationTime");
+	private static final Field roundedCreationDateField = JUnitUtil.getAccessibleField(User.class, "roundedCreationDate");
 
 	private JUnitUtil()
 	{
@@ -126,8 +131,85 @@ public class JUnitUtil
 		return field;
 	}
 
+	public static LocalDateTime getRoundedCreationDate(User user)
+	{
+		try
+		{
+			return (LocalDateTime) roundedCreationDateField.get(user);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	public static void setRoundedCreationDate(User user, LocalDateTime time)
+	{
+		try
+		{
+			roundedCreationDateField.set(user, time);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	public static LocalDateTime getCreationTime(UserPrivate userPrivate)
+	{
+		try
+		{
+			return (LocalDateTime) creationTimeField.get(userPrivate);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	public static void setCreationTime(UserPrivate userPrivate, LocalDateTime time)
+	{
+		try
+		{
+			creationTimeField.set(userPrivate, time);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	public static UserPrivate getUserPrivate(User user)
+	{
+		try
+		{
+			return (UserPrivate) userPrivateField.get(user);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	public static void setUserPrivate(User user, UserPrivate userPrivate)
+	{
+		try
+		{
+			userPrivateField.set(user, userPrivate);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
 	public static void skipBefore(String description, ZonedDateTime now, int hour, int minute)
 	{
 		assumeTrue(now.isAfter(now.withHour(hour).withMinute(minute).withSecond(0)), description);
+	}
+
+	public static void skipAfter(String description, ZonedDateTime now, int hour, int minute)
+	{
+		assumeTrue(now.isBefore(now.withHour(hour).withMinute(minute).withSecond(0)), description);
 	}
 }

@@ -8,6 +8,8 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +50,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -80,6 +83,7 @@ import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.util.Require;
+import nu.yona.server.util.TimeUtil;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -226,7 +230,8 @@ public class UserController extends ControllerBase
 	private UserDto convertToUser(PostPutUserDto postPutUser)
 	{
 		Optional<DeviceRegistrationRequestDto> deviceRegistration = createDeviceRequestDto(postPutUser);
-		return UserDto.createInstance(postPutUser.firstName, postPutUser.lastName, postPutUser.mobileNumber, postPutUser.nickname,
+		return UserDto.createInstance(postPutUser.creationTime, postPutUser.firstName, postPutUser.lastName,
+				postPutUser.mobileNumber, postPutUser.nickname,
 				deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance));
 	}
 
@@ -468,6 +473,7 @@ public class UserController extends ControllerBase
 		static final String DEVICE_APP_VERSION_PROPERTY = "deviceAppVersion";
 		static final String DEVICE_APP_VERSION_CODE_PROPERTY = "deviceAppVersionCode";
 		static final String DEVICE_FIREBASE_INSTANCE_ID_PROPERTY = "deviceFirebaseInstanceId";
+		private final Optional<LocalDateTime> creationTime;
 		private final String firstName;
 		private final String lastName;
 		private final String mobileNumber;
@@ -479,7 +485,9 @@ public class UserController extends ControllerBase
 		private final String deviceFirebaseInstanceId;
 
 		@JsonCreator
-		public PostPutUserDto(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
+		public PostPutUserDto(
+				@JsonFormat(pattern = nu.yona.server.Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
+				@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
 				@JsonProperty("mobileNumber") String mobileNumber, @JsonProperty("nickname") String nickname,
 				@JsonProperty(value = DEVICE_NAME_PROPERTY, required = false) String deviceName,
 				@JsonProperty(value = DEVICE_OPERATING_SYSTEM_PROPERTY, required = false) String deviceOperatingSystem,
@@ -488,6 +496,7 @@ public class UserController extends ControllerBase
 				@JsonProperty(value = DEVICE_FIREBASE_INSTANCE_ID_PROPERTY, required = false) String deviceFirebaseInstanceId,
 				@JsonProperty("_links") Object ignored1, @JsonProperty("yonaPassword") Object ignored2)
 		{
+			this.creationTime = creationTime.map(TimeUtil::toUtcLocalDateTime);
 			this.firstName = firstName;
 			this.lastName = lastName;
 			this.mobileNumber = mobileNumber;

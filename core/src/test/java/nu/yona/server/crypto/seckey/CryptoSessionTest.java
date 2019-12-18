@@ -30,13 +30,11 @@ public class CryptoSessionTest
 	private static final String PASSWORD2 = "easy";
 	private static final String PLAINTEXT1 = "One";
 
-	@SuppressWarnings("unused") // Used as MethodSource
 	private static Stream<String> getPlaintextCases()
 	{
 		return Stream.of(PLAINTEXT1, createVeryLongPlaintext());
 	}
 
-	@SuppressWarnings("unused") // Called from getPlaintextCases
 	private static String createVeryLongPlaintext()
 	{
 		char[] chars = new char[2500];

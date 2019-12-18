@@ -24,12 +24,12 @@ import javax.annotation.PostConstruct;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.validation.Validator;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.TemplateEngine;
@@ -46,8 +46,13 @@ import nu.yona.server.properties.YonaProperties;
 public class AppServiceApplication implements WebMvcConfigurer
 {
 	private static final Logger logger = LoggerFactory.getLogger(AppServiceApplication.class);
-	@Autowired
-	private YonaProperties yonaProperties;
+
+	private final YonaProperties yonaProperties;
+
+	public AppServiceApplication(YonaProperties yonaProperties)
+	{
+		this.yonaProperties = yonaProperties;
+	}
 
 	public static void main(String[] args)
 	{
@@ -70,6 +75,15 @@ public class AppServiceApplication implements WebMvcConfigurer
 			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
 			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
 		}
+	}
+
+	@Bean
+	public static Validator configurationPropertiesValidator()
+	{
+		// This bean is marked static for good reasons:
+		// The configuration properties validator is created very early in the application's lifecycle and declaring the @Bean
+		// method as static allows the bean to be created without having to instantiate the @Configuration class
+		return new PropertiesValidator();
 	}
 
 	@Bean

@@ -15,12 +15,17 @@ plugins {
 	id "org.springframework.boot" version "2.2.2.RELEASE" apply false
 	id "net.researchgate.release" version "2.6.0"
 	id "com.bmuschko.docker-remote-api" version "4.4.1" apply false
+	id 'project-report'
 }
 
 description = "Yona server"
 
 allprojects {
 	group = "yonadev"
+}
+
+htmlDependencyReport {
+    projects = project.allprojects
 }
 
 subprojects {
@@ -65,6 +70,7 @@ subprojects {
 		yona_batchservice_debug_port     = project.properties["yona_batchservice_debug_port"]    ?: "8843"
 		yona_batchservice_url            = project.properties["yona_batchservice_url"]           ?: "${yona_batchservice_scheme}://${yona_batchservice_host}:${yona_batchservice_port}"
 		yona_enableHibernateStatsAllowed = project.properties["yona_enableHibernateStatsAllowed"]?: "false"
+		yona_testServer                  = project.properties["yona_testServer"]                 ?: "false"
 	}
 
 	repositories {

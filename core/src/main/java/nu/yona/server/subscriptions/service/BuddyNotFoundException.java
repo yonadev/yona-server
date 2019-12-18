@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -28,5 +28,10 @@ public class BuddyNotFoundException extends YonaException
 	public static BuddyNotFoundException notFoundForUser(UUID userId, UUID buddyUserId)
 	{
 		return new BuddyNotFoundException(HttpStatus.NOT_FOUND, "error.buddy.not.found.for.user", userId, buddyUserId);
+	}
+
+	public static BuddyNotFoundException userHasNoBuddies(UUID userId)
+	{
+		return new BuddyNotFoundException(HttpStatus.NOT_FOUND, "error.buddy.list.empty", userId);
 	}
 }

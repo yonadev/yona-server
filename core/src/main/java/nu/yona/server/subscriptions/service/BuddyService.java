@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,6 +69,9 @@ import nu.yona.server.util.TransactionHelper;
 public class BuddyService
 {
 	private static final Logger logger = LoggerFactory.getLogger(BuddyService.class);
+
+	@Autowired
+	private YonaProperties yonaProperties;
 
 	@Autowired
 	private UserService userService;
@@ -771,5 +775,22 @@ public class BuddyService
 				.findAny()
 				.orElseThrow(() -> BuddyServiceException.deviceNotFoundByAnonymizedId(buddy.getId(), deviceAnonymizedId));
 		buddy.removeDevice(deviceToRemove);
+	}
+
+	@Transactional
+	public BuddyDto updateLastStatusChangeTime(UUID userId, UUID buddyId, LocalDateTime lastStatusChangeTime)
+	{
+		Require.that(yonaProperties.isTestServer(),
+				() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set goal creation time"));
+		User userEntity = userService.getUserEntityById(userId);
+		LocalDateTime userCreationTime = userEntity.getCreationTime();
+		Require.that(!lastStatusChangeTime.isBefore(userCreationTime),
+				() -> InvalidDataException.dateTooEarly(lastStatusChangeTime, userCreationTime));
+
+		Buddy buddyEntity = getEntityById(buddyId);
+		buddyEntity.setLastStatusChangeTime(lastStatusChangeTime);
+		buddyRepository.save(buddyEntity);
+
+		return BuddyDto.createInstance(buddyEntity);
 	}
 }

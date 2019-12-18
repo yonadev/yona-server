@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -115,19 +116,57 @@ public class UserUpdateService
 			assertValidUpdateRequestForUserCreatedNormally(user, userEntity);
 			UserDto originalUser = userLookupService.createUserDto(userEntity);
 
-			user.updateUser(userEntity);
-			Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user.getMobileNumber(),
-					originalUser.getMobileNumber(), userEntity);
-			if (confirmationCode.isPresent())
-			{
-				sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
-						SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
-			}
+			updateUser(user, userEntity, originalUser);
+			sendConfirmationCodeIfNumberUpdated(user, userEntity, originalUser);
+
 			UserDto userDto = userLookupService.createUserDto(userEntity);
 			logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
 			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
 		});
 		return userLookupService.createUserDto(updatedUserEntity);
+	}
+
+	private void sendConfirmationCodeIfNumberUpdated(UserDto user, User userEntity, UserDto originalUser)
+	{
+		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user.getMobileNumber(),
+				originalUser.getMobileNumber(), userEntity);
+		if (confirmationCode.isPresent())
+		{
+			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
+					SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
+		}
+	}
+
+	private void updateUser(UserDto user, User userEntity, UserDto originalUser)
+	{
+		if (user.getCreationTime().isPresent() && !containsPropertyUpdate(originalUser, user))
+		{
+			Require.that(yonaProperties.isTestServer(),
+					() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set user creation time"));
+			// Tests update the creation time. Handle that as a special case.
+			LocalDateTime creationTime = user.getCreationTime().get();
+			userEntity.setCreationTime(creationTime);
+			userEntity.getBuddies().forEach(b -> b.setLastStatusChangeTime(creationTime));
+		}
+		else
+		{
+			Require.isNotPresent(user.getCreationTime(),
+					() -> InvalidDataException.extraProperty("creationTime", "Creation time cannot be changed"));
+			user.updateUser(userEntity);
+		}
+	}
+
+	private boolean containsPropertyUpdate(UserDto existingUser, UserDto newUser)
+	{
+		OwnUserPrivateDataDto existingPrivateData = existingUser.getOwnPrivateData();
+		OwnUserPrivateDataDto newPrivateData = newUser.getOwnPrivateData();
+		return !newUser.getMobileNumber().equals(existingUser.getMobileNumber())
+				|| !existingPrivateData.getFirstName().equals(newPrivateData.getFirstName())
+				|| !existingPrivateData.getLastName().equals(newPrivateData.getLastName())
+				|| !existingPrivateData.getNickname().equals(newPrivateData.getNickname())
+				|| newPrivateData.getYonaPassword() != null
+						&& !existingPrivateData.getYonaPassword().equals(newPrivateData.getYonaPassword());
+
 	}
 
 	/**
