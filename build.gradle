@@ -23,7 +23,7 @@ allprojects {
 	group = "yonadev"
 }
 
-ext['spring-hateoas.version'] = '1.1.0.BUILD-SNAPSHOT' // TODO Update to normal release before merge
+ext['spring-hateoas.version'] = '1.0.2.RELEASE'
 
 subprojects {
 	sourceCompatibility = 11.0
