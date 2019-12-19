@@ -88,7 +88,7 @@ public class FirebaseService
 		ThreadData threadData = asyncExecutor.getThreadData();
 		CompletableFuture
 				.runAsync(() -> asyncExecutor.initThreadAndDo(threadData, () -> sendMessage(registrationToken, firebaseMessage)))
-				.whenCompleteAsync((r, t) -> logIfCompletedWithException(t));
+				.whenCompleteAsync((r, t) -> logIfCompletedWithException(t, registrationToken));
 	}
 
 	private long getMessageId(nu.yona.server.messaging.entities.Message message)
@@ -130,11 +130,11 @@ public class FirebaseService
 		}
 	}
 
-	private void logIfCompletedWithException(Throwable throwable)
+	private void logIfCompletedWithException(Throwable throwable, String token)
 	{
 		if (throwable != null)
 		{
-			logger.error("Fatal error: Exception while sending Firebase message", throwable);
+			logger.error("Fatal error: Exception while sending Firebase message to '" + token + "'", throwable);
 			return;
 		}
 		if (yonaProperties.getFirebase().isEnabled())
