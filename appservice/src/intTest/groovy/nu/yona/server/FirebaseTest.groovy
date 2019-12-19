@@ -59,10 +59,10 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		def appVersionCode = 123
 		def appVersionName = "1.2 (I'm Rich)"
 		def headers = ["Yona-App-Version" : "$appOs/$appVersionCode/$appVersionName"]
-		appService.sendBuddyConnectRequest(richard, bobAndroid, true, headers)
+		appService.sendBuddyConnectRequest(richard, bobAndroid, true, [:], headers)
 
 		when:
-		def messageUrlBobAndroid = appService.getMessages(bobAndroid, headers, [:]).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
+		def messageUrlBobAndroid = appService.getMessages(bobAndroid, [:], headers).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
 		def responseBobAndroid = appService.getLastFirebaseMessage(bobAndroid.requestingDevice.firebaseInstanceId)
 
 		then:
@@ -184,7 +184,7 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		def headers = ["Yona-App-Version" : "$appOs/$appVersionCode/$appVersionName"]
 
 		when:
-		assertResponseStatusNoContent(appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, AppActivity.singleActivity("Poker App", startTime, endTime), headers, [:]))
+		assertResponseStatusNoContent(appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, AppActivity.singleActivity("Poker App", startTime, endTime), [:], headers))
 
 		then:
 		def responseRichard = analysisService.getLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)

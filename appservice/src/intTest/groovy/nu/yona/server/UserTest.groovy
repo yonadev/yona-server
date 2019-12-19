@@ -131,7 +131,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def response1TimeWrong = confirmMobileNumber(john, "12341")
 
 		when:
-		def responseRequestResend = appService.yonaServer.postJson(john.resendMobileNumberConfirmationCodeUrl, "{}", ["Yona-Password" : john.password])
+		def responseRequestResend = appService.yonaServer.postJson(john.resendMobileNumberConfirmationCodeUrl, "{}", [:], ["Yona-Password" : john.password])
 
 		then:
 		assertResponseStatus(response1TimeWrong, 400)

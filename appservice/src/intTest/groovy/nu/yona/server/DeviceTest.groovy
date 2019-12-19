@@ -371,7 +371,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
 
 		when:
-		def response = appService.getResourceWithPassword(john.url, john.password, ["Yona-App-Version" : appVersionHeader])
+		def response = appService.getResourceWithPassword(john.url, john.password, [:], ["Yona-App-Version" : appVersionHeader])
 
 		then:
 		assertResponseStatus(response, expectedStatus)
