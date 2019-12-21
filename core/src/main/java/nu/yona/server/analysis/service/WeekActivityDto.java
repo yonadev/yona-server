@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -111,8 +112,8 @@ public class WeekActivityDto extends IntervalActivityDto
 				weekActivity.hasPrevious(), weekActivity.hasNext());
 	}
 
-	public static WeekActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, Goal goal, ZonedDateTime startOfWeek,
-			LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
+	public static WeekActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate,
+			Goal goal, ZonedDateTime startOfWeek, LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
 	{
 		missingInactivities.add(IntervalInactivityDto.createWeekInstance(userAnonymized.getId(), goal.getId(), startOfWeek));
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WEEK_DETAIL;
@@ -121,31 +122,27 @@ public class WeekActivityDto extends IntervalActivityDto
 				includeDetail ? Optional.of(0) : Optional.empty(), new HashMap<>(),
 				IntervalActivity.hasPrevious(goal, startOfWeek, ChronoUnit.WEEKS),
 				IntervalActivity.hasNext(startOfWeek, ChronoUnit.WEEKS));
-		weekActivity.createRequiredInactivityDays(userAnonymized,
+		weekActivity.createRequiredInactivityDays(userAnonymized, earliestPossibleDate,
 				userAnonymized.getGoalsForActivityCategory(goal.getActivityCategory()), levelOfDetail, missingInactivities);
 		return weekActivity;
 	}
 
-	public void createRequiredInactivityDays(UserAnonymizedDto userAnonymized, Set<GoalDto> goals, LevelOfDetail levelOfDetail,
-			Set<IntervalInactivityDto> missingInactivities)
+	public void createRequiredInactivityDays(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate, Set<GoalDto> goals,
+			LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
 	{
 		// if the batch job has already run, skip
 		if (dayActivities.size() == 7)
 		{
 			return;
 		}
+		ZonedDateTime earliestPossibleDateTime = earliestPossibleDate.atStartOfDay(userAnonymized.getTimeZone());
+		ZonedDateTime startTime = getStartTime();
+		ZoneId zone = startTime.getZone();
 		// notice this doesn't take care of user time zone changes during the week
 		// so for consistency it is important that the batch script adding inactivity does so
-		for (int i = 0; i < 7; i++)
-		{
-			ZonedDateTime startOfDay = getStartTime().plusDays(i);
-			if (isInFuture(startOfDay, getStartTime().getZone()))
-			{
-				break;
-			}
-			determineApplicableGoalForDay(goals, startOfDay).ifPresent(
-					g -> addInactiveDayIfNoActivity(userAnonymized, g, startOfDay, levelOfDetail, missingInactivities));
-		}
+		IntStream.range(0, 7).mapToObj(startTime::plusDays).filter(t -> !t.isBefore(earliestPossibleDateTime))
+				.filter(t -> !isInFuture(t, zone)).forEach(t -> determineApplicableGoalForDay(goals, t)
+						.ifPresent(g -> addInactiveDayIfNoActivity(userAnonymized, g, t, levelOfDetail, missingInactivities)));
 	}
 
 	private static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)

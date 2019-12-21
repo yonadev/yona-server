@@ -11,8 +11,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -59,8 +62,10 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.AnalysisServiceProperties;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.OwnUserPrivateDataDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
@@ -68,6 +73,11 @@ import nu.yona.server.util.TimeUtil;
 @ExtendWith(MockitoExtension.class)
 public class ActivityServiceTest
 {
+	private static final Field userIdField = JUnitUtil.getAccessibleField(UserDto.class, "id");
+	private static final Field userPrivateDataAnonymizedIdField = JUnitUtil.getAccessibleField(OwnUserPrivateDataDto.class,
+			"userAnonymizedId");
+	private static final Field userCreationTimeField = JUnitUtil.getAccessibleField(UserDto.class, "creationTime");
+
 	private final Map<String, Goal> goalMap = new HashMap<>();
 
 	@Mock
@@ -104,7 +114,7 @@ public class ActivityServiceTest
 	private DeviceAnonymized deviceAnonEntity;
 
 	@BeforeEach
-	public void setUp()
+	public void setUp() throws IllegalArgumentException, IllegalAccessException
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(DayActivity.class, mockDayActivityRepository);
@@ -142,6 +152,7 @@ public class ActivityServiceTest
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty(),
 				Translator.EN_US_LOCALE);
+
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
@@ -149,9 +160,14 @@ public class ActivityServiceTest
 		userAnonId = userAnon.getId();
 
 		userId = UUID.randomUUID();
+		UserDto user = UserDto.createInstance(Optional.empty(), "John", "Doe", "+31612345678", "JD", Optional.empty());
+		userCreationTimeField.set(user, Optional.of(LocalDateTime.of(2017, 1, 1, 12, 0)));
+		userPrivateDataAnonymizedIdField.set(user.getOwnPrivateData(), userAnonId);
+		userIdField.set(user, userId);
 
 		// Stub the UserService to return our user anonymized ID.
-		when(mockUserService.getUserAnonymizedId(userId)).thenReturn(userAnonId);
+		Mockito.lenient().when(mockUserService.getUserAnonymizedId(userId)).thenReturn(userAnonId);
+		Mockito.lenient().when(mockUserService.getUser(userId)).thenReturn(user);
 
 		// Stub the UserAnonymizedService to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnon);

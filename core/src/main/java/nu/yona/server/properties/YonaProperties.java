@@ -13,10 +13,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @ConfigurationProperties("yona")
-@Configuration
+@Component
 public class YonaProperties
 {
 	@NestedConfigurationProperty
@@ -58,6 +58,8 @@ public class YonaProperties
 	private boolean isWhiteListActiveInvitedUsers;
 
 	private boolean isEnableHibernateStatsAllowed;
+
+	private boolean isTestServer;
 
 	public AnalysisServiceProperties getAnalysisService()
 	{
@@ -178,5 +180,15 @@ public class YonaProperties
 	public void setEnableHibernateStatsAllowed(boolean isEnableHibernateStatsAllowed)
 	{
 		this.isEnableHibernateStatsAllowed = isEnableHibernateStatsAllowed;
+	}
+
+	public boolean isTestServer()
+	{
+		return isTestServer;
+	}
+
+	public void setTestServer(boolean isTestServer)
+	{
+		this.isTestServer = isTestServer;
 	}
 }

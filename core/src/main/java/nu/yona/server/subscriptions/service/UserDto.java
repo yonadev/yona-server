@@ -59,10 +59,10 @@ public class UserDto
 						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, devices));
 	}
 
-	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String mobileNumber,
-			boolean isConfirmed, boolean isCreatedOnBuddyRequest)
+	private UserDto(UUID id, Optional<LocalDate> appLastOpenedDate, String mobileNumber, boolean isConfirmed,
+			boolean isCreatedOnBuddyRequest)
 	{
-		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest, null);
+		this(id, Optional.empty(), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest, null);
 	}
 
 	@JsonCreator
@@ -185,8 +185,8 @@ public class UserDto
 	{
 		Objects.requireNonNull(userEntity, "userEntity cannot be null");
 
-		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
-				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
+		return new UserDto(userEntity.getId(), userEntity.getAppLastOpenedDate(), userEntity.getMobileNumber(),
+				userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
 	}
 
 	public static UserDto createInstance(User userEntity, Set<BuddyDto> buddies)
@@ -203,17 +203,17 @@ public class UserDto
 
 	public static UserDto createInstance(User userEntity, BuddyUserPrivateDataDto buddyData)
 	{
-		return new UserDto(userEntity.getId(), Optional.of(userEntity.getCreationTime()), userEntity.getAppLastOpenedDate(), null,
+		return new UserDto(userEntity.getId(), Optional.empty(), userEntity.getAppLastOpenedDate(), null,
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
 				buddyData);
 	}
 
-	public static UserDto createInstance(String firstName, String lastName, String mobileNumber, String nickname,
-			Optional<UserDeviceDto> device)
+	public static UserDto createInstance(Optional<LocalDateTime> creationTime, String firstName, String lastName,
+			String mobileNumber, String nickname, Optional<UserDeviceDto> device)
 	{
 		UserPrivateDataBaseDto privateData = new OwnUserPrivateDataDto(firstName, lastName, nickname,
 				device.map(Collections::singleton).orElse(Collections.emptySet()));
-		return new UserDto(null, Optional.empty(), Optional.empty(), null, mobileNumber, false, false, privateData);
+		return new UserDto(null, creationTime, Optional.empty(), null, mobileNumber, false, false, privateData);
 	}
 
 	public void assertMobileNumberConfirmed()

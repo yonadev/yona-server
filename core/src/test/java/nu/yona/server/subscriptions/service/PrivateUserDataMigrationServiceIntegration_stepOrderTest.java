@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -29,6 +29,7 @@ import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.Migr
 import nu.yona.server.subscriptions.service.migration.AddFirstDevice;
 import nu.yona.server.subscriptions.service.migration.EncryptBuddyLastStatusChangeTime;
 import nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName;
+import nu.yona.server.subscriptions.service.migration.EncryptUserCreationTime;
 import nu.yona.server.subscriptions.service.migration.MoveVpnPasswordToDevice;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.JUnitUtil;
@@ -74,6 +75,9 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 	@Autowired
 	private EncryptFirstAndLastName step4;
 
+	@Autowired
+	private EncryptUserCreationTime step5;
+
 	@Override
 	protected Map<Class<?>, Repository<?, ?>> getRepositories()
 	{
@@ -85,6 +89,6 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 	{
 		@SuppressWarnings("unchecked")
 		List<MigrationStep> migrationSteps = (List<MigrationStep>) migrationStepsField.get(service);
-		assertThat(migrationSteps, contains(step1, step2, step3, step4));
+		assertThat(migrationSteps, contains(step1, step2, step3, step4, step5));
 	}
 }
