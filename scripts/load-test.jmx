@@ -2922,7 +2922,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/</stringProp>
+		  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/?requestingDeviceId=${UserDeviceID}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3109,7 +3109,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/</stringProp>
+		  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/?requestingDeviceId=${BuddyDeviceID}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3272,7 +3272,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/</stringProp>
+				  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/?requestingDeviceId=${UserDeviceID}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3575,7 +3575,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/</stringProp>
+				  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/?requestingDeviceId=${BuddyDeviceID}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
