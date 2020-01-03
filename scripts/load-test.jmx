@@ -1556,7 +1556,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
               </elementProp>
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Yona-Password</stringProp>
-                <stringProp name="Header.value">${yonaPasswordBuddy_1}</stringProp>
+                <stringProp name="Header.value">${yonaPasswordUser_1}</stringProp>
               </elementProp>
             </collectionProp>
           </HeaderManager>
@@ -1609,7 +1609,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
               </elementProp>
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Yona-Password</stringProp>
-                <stringProp name="Header.value">${yonaPasswordBuddy_1}</stringProp>
+                <stringProp name="Header.value">${yonaPasswordUser_1}</stringProp>
               </elementProp>
             </collectionProp>
           </HeaderManager>
