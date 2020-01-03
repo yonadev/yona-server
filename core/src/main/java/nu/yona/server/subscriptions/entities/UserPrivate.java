@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -32,7 +32,6 @@ import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USERS_PRIVATE")
@@ -42,6 +41,9 @@ public class UserPrivate extends PrivateUserProperties
 
 	@Convert(converter = StringFieldEncryptor.class)
 	private String decryptionCheck;
+
+	@Convert(converter = DateTimeFieldEncryptor.class)
+	private LocalDateTime creationTime;
 
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID userAnonymizedId;
@@ -61,9 +63,6 @@ public class UserPrivate extends PrivateUserProperties
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
 
-	@Convert(converter = DateTimeFieldEncryptor.class)
-	private LocalDateTime creationTime;
-
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_private_id", referencedColumnName = "id")
 	@Fetch(FetchMode.JOIN)
@@ -75,24 +74,24 @@ public class UserPrivate extends PrivateUserProperties
 		super();
 	}
 
-	private UserPrivate(UUID id, String firstName, String lastName, String nickname, UUID userAnonymizedId,
-			UUID anonymousMessageSourceId, UUID namedMessageSourceId)
+	private UserPrivate(UUID id, LocalDateTime creationTime, String firstName, String lastName, String nickname,
+			UUID userAnonymizedId, UUID anonymousMessageSourceId, UUID namedMessageSourceId)
 	{
 		super(id, firstName, lastName, nickname, Optional.empty());
 		this.decryptionCheck = buildDecryptionCheck();
+		this.creationTime = creationTime;
 		this.userAnonymizedId = userAnonymizedId;
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.namedMessageSourceId = namedMessageSourceId;
-		this.creationTime = TimeUtil.utcNow();
 		this.devices = new HashSet<>();
 	}
 
-	public static UserPrivate createInstance(String firstName, String lastName, String nickname, UUID userAnonymizedId,
-			UUID anonymousMessageSourceId, MessageSource namedMessageSource)
+	public static UserPrivate createInstance(LocalDateTime creationTime, String firstName, String lastName, String nickname,
+			UUID userAnonymizedId, UUID anonymousMessageSourceId, MessageSource namedMessageSource)
 	{
-		return new UserPrivate(UUID.randomUUID(), firstName, lastName, nickname, userAnonymizedId, anonymousMessageSourceId,
-				namedMessageSource.getId());
+		return new UserPrivate(UUID.randomUUID(), creationTime, firstName, lastName, nickname, userAnonymizedId,
+				anonymousMessageSourceId, namedMessageSource.getId());
 	}
 
 	private static String buildDecryptionCheck()

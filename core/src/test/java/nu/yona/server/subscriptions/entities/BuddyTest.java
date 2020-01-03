@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -27,6 +27,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.TimeUtil;
 
 @ExtendWith(MockitoExtension.class)
 @InCryptoSession("PASSWORD")
@@ -128,8 +129,9 @@ public class BuddyTest
 	private User createUser(String firstName, String lastName, String nickname)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, UUID.randomUUID(), UUID.randomUUID(),
-				messageSource);
-		return new User(UUID.randomUUID(), initializationVector, "+31123456", userPrivate, messageDestination);
+		UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname, UUID.randomUUID(),
+				UUID.randomUUID(), messageSource);
+		return new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), "+31123456", userPrivate,
+				messageDestination);
 	}
 }

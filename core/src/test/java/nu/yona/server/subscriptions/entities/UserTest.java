@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.util.TimeUtil;
 
 public class UserTest
 {
@@ -27,8 +28,9 @@ public class UserTest
 		{
 			byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 			MessageSource namedMessageSource = MessageSource.createInstance();
-			UserPrivate userPrivate = UserPrivate.createInstance("John", "Doe", "jd", null, null, namedMessageSource);
-			john = new User(UUID.randomUUID(), initializationVector, "+31612345678", userPrivate,
+			UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), "John", "Doe", "jd", null, null,
+					namedMessageSource);
+			john = new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), "+31612345678", userPrivate,
 					namedMessageSource.getDestination());
 		}
 	}

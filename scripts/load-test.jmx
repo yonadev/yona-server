@@ -199,6 +199,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
+  &quot;creationTime&quot;:&quot;2017-01-01T01:00:00.000+0000&quot;,&#xd;
   &quot;firstName&quot;:&quot;Firstname${User}&quot;,&#xd;
   &quot;lastName&quot;:&quot;Lastname${User}&quot;,&#xd;
   &quot;nickname&quot;:&quot;${User}&quot;,&#xd;
@@ -305,7 +306,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           </TestAction>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init,Add User confirms" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init, User confirm mobile number" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -487,7 +488,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="2,AppActivity,User Communication appacitivity" enabled="false">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="2,AppActivity,User Communication app acitivity" enabled="false">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -537,7 +538,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="2,AppActivity,User Communication deviceid" enabled="false">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="2,AppActivity,User Communication on device" enabled="false">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -749,13 +750,14 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init,Add Buddy request" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init,Add Buddy user request" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
+  &quot;creationTime&quot;:&quot;2017-01-01T01:00:00.000+0000&quot;,&#xd;
   &quot;firstName&quot;:&quot;Firstname${Buddy}&quot;,&#xd;
   &quot;lastName&quot;:&quot;Lastname${Buddy}&quot;,&#xd;
   &quot;nickname&quot;:&quot;${Buddy}&quot;,&#xd;
@@ -841,7 +843,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           </TestAction>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init,Add Buddy confirms" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init,Buddy user confirm mobile number" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
