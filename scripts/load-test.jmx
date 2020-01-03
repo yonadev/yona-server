@@ -2783,15 +2783,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserDaysNextUrl" enabled="true">
-            <stringProp name="VAR">UserDaysNextUrl</stringProp>
-            <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-            <stringProp name="DEFAULT">FAILED</stringProp>
-            <stringProp name="VARIABLE"></stringProp>
-            <stringProp name="SUBJECT">BODY</stringProp>
-            <stringProp name="INPUT_FORMAT">JSON</stringProp>
-          </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-          <hashTree/>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
@@ -2825,15 +2816,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWeeksNextUrl" enabled="true">
-            <stringProp name="VAR">UserWeeksNextUrl</stringProp>
-            <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-            <stringProp name="DEFAULT">FAILED</stringProp>
-            <stringProp name="VARIABLE"></stringProp>
-            <stringProp name="SUBJECT">BODY</stringProp>
-            <stringProp name="INPUT_FORMAT">JSON</stringProp>
-          </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-          <hashTree/>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
@@ -2867,15 +2849,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWithBuddiesNextUrl" enabled="true">
-            <stringProp name="VAR">UserWithBuddiesNextUrl</stringProp>
-            <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-            <stringProp name="DEFAULT">FAILED</stringProp>
-            <stringProp name="VARIABLE"></stringProp>
-            <stringProp name="SUBJECT">BODY</stringProp>
-            <stringProp name="INPUT_FORMAT">JSON</stringProp>
-          </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-          <hashTree/>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
@@ -2942,15 +2915,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyDaysNextUrl" enabled="true">
-            <stringProp name="VAR">BuddyDaysNextUrl</stringProp>
-            <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-            <stringProp name="DEFAULT">FAILED</stringProp>
-            <stringProp name="VARIABLE"></stringProp>
-            <stringProp name="SUBJECT">BODY</stringProp>
-            <stringProp name="INPUT_FORMAT">JSON</stringProp>
-          </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-          <hashTree/>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
@@ -2984,15 +2948,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWeeksNextUrl" enabled="true">
-            <stringProp name="VAR">BuddyWeeksNextUrl</stringProp>
-            <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-            <stringProp name="DEFAULT">FAILED</stringProp>
-            <stringProp name="VARIABLE"></stringProp>
-            <stringProp name="SUBJECT">BODY</stringProp>
-            <stringProp name="INPUT_FORMAT">JSON</stringProp>
-          </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-          <hashTree/>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
@@ -3026,15 +2981,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWithBuddiesNextUrl" enabled="true">
-            <stringProp name="VAR">BuddyWithBuddiesNextUrl</stringProp>
-            <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-            <stringProp name="DEFAULT">FAILED</stringProp>
-            <stringProp name="VARIABLE"></stringProp>
-            <stringProp name="SUBJECT">BODY</stringProp>
-            <stringProp name="INPUT_FORMAT">JSON</stringProp>
-          </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-          <hashTree/>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
@@ -3084,15 +3030,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserDaysNextUrl" enabled="true">
-                    <stringProp name="VAR">UserDaysNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3126,15 +3063,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWeeksNextUrl" enabled="true">
-                    <stringProp name="VAR">UserWeeksNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3168,15 +3096,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWithBuddiesNextUrl" enabled="true">
-                    <stringProp name="VAR">UserWithBuddiesNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3199,7 +3118,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${UserDaysNextUrl}</stringProp>
+                  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/days/?page=1</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3232,7 +3151,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${UserWeeksNextUrl}</stringProp>
+                  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/weeks/?page=1</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3265,7 +3184,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${UserWithBuddiesNextUrl}</stringProp>
+                  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/?requestingDeviceId=${UserDeviceID}&amp;page=1</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3318,15 +3237,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyDaysNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyDaysNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3360,15 +3270,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWeeksNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyWeeksNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3402,15 +3303,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWithBuddiesNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyWithBuddiesNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3433,7 +3325,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${BuddyDaysNextUrl}</stringProp>
+                  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/days/?page=1</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3466,7 +3358,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${BuddyWeeksNextUrl}</stringProp>
+                  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/weeks/?page=1</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3499,7 +3391,7 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${BuddyWithBuddiesNextUrl}</stringProp>
+                  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/?requestingDeviceId=${BuddyDeviceID}&amp;page=1</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
