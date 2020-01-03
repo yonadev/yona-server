@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="3.2" jmeter="3.3 r1808647">
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.1.1 r1855137">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
       <stringProp name="TestPlan.comments"></stringProp>
@@ -278,6 +278,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
             <stringProp name="RESPONSE_TIME">${__Random(50,500)}</stringProp>
             <stringProp name="LATENCY">${__Random(1,50)}</stringProp>
             <stringProp name="CONNECT">${__Random(1,5)}</stringProp>
+            <stringProp name="URL"></stringProp>
+            <stringProp name="RESULT_CLASS">org.apache.jmeter.samplers.SampleResult</stringProp>
           </kg.apc.jmeter.samplers.DummySampler>
           <hashTree>
             <kg.apc.jmeter.reporters.FlexibleFileWriter guiclass="kg.apc.jmeter.reporters.FlexibleFileWriterGui" testclass="kg.apc.jmeter.reporters.FlexibleFileWriter" testname="jp@gc - Flexible File Writer" enabled="true">
@@ -1223,15 +1225,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init,Buddy Check Message" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -1323,15 +1318,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init,Buddy Check Message" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -1373,6 +1361,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="RESPONSE_TIME">${__Random(50,500)}</stringProp>
           <stringProp name="LATENCY">${__Random(1,50)}</stringProp>
           <stringProp name="CONNECT">${__Random(1,5)}</stringProp>
+          <stringProp name="URL"></stringProp>
+          <stringProp name="RESULT_CLASS">org.apache.jmeter.samplers.SampleResult</stringProp>
         </kg.apc.jmeter.samplers.DummySampler>
         <hashTree>
           <kg.apc.jmeter.reporters.FlexibleFileWriter guiclass="kg.apc.jmeter.reporters.FlexibleFileWriterGui" testclass="kg.apc.jmeter.reporters.FlexibleFileWriter" testname="jp@gc - Flexible File Writer" enabled="true">
@@ -1392,15 +1382,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="1,Init,User Check Message" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -2627,15 +2610,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
         </IfController>
         <hashTree>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="2,Batch,Batch Aggregate Activities" enabled="true">
-            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-              <collectionProp name="Arguments.arguments">
-                <elementProp name="" elementType="HTTPArgument">
-                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                  <stringProp name="Argument.value"></stringProp>
-                  <stringProp name="Argument.metadata">=</stringProp>
-                </elementProp>
-              </collectionProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+              <collectionProp name="Arguments.arguments"/>
             </elementProp>
             <stringProp name="HTTPSampler.domain"></stringProp>
             <stringProp name="HTTPSampler.port">${batchServicePort}</stringProp>
@@ -2667,15 +2643,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
         </IfController>
         <hashTree>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-              <collectionProp name="Arguments.arguments">
-                <elementProp name="" elementType="HTTPArgument">
-                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                  <stringProp name="Argument.value"></stringProp>
-                  <stringProp name="Argument.metadata">=</stringProp>
-                </elementProp>
-              </collectionProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+              <collectionProp name="Arguments.arguments"/>
             </elementProp>
             <stringProp name="HTTPSampler.domain"></stringProp>
             <stringProp name="HTTPSampler.port"></stringProp>
@@ -2719,15 +2688,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -2765,15 +2727,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -2810,15 +2765,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User Day" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -2835,8 +2783,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserDayDetailsNextUrl" enabled="true">
-            <stringProp name="VAR">UserDayDetailsNextUrl</stringProp>
+          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserDaysNextUrl" enabled="true">
+            <stringProp name="VAR">UserDaysNextUrl</stringProp>
             <stringProp name="JSONPATH">$.._links.next.href</stringProp>
             <stringProp name="DEFAULT">FAILED</stringProp>
             <stringProp name="VARIABLE"></stringProp>
@@ -2859,15 +2807,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User Week" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -2884,8 +2825,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWeekDetailsNextUrl" enabled="true">
-            <stringProp name="VAR">UserWeekDetailsNextUrl</stringProp>
+          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWeeksNextUrl" enabled="true">
+            <stringProp name="VAR">UserWeeksNextUrl</stringProp>
             <stringProp name="JSONPATH">$.._links.next.href</stringProp>
             <stringProp name="DEFAULT">FAILED</stringProp>
             <stringProp name="VARIABLE"></stringProp>
@@ -2907,22 +2848,15 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User &amp; Buddy Day" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User with buddies Day" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-		  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/?requestingDeviceId=${UserDeviceID}</stringProp>
+          <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/?requestingDeviceId=${UserDeviceID}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -2933,8 +2867,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserandBuddyDayDetailsNextUrl" enabled="true">
-            <stringProp name="VAR">UserandBuddyDayDetailsNextUrl</stringProp>
+          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWithBuddiesNextUrl" enabled="true">
+            <stringProp name="VAR">UserWithBuddiesNextUrl</stringProp>
             <stringProp name="JSONPATH">$.._links.next.href</stringProp>
             <stringProp name="DEFAULT">FAILED</stringProp>
             <stringProp name="VARIABLE"></stringProp>
@@ -2957,15 +2891,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,Buddy" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -2997,15 +2924,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy Day" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -3022,8 +2942,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyDayDetailsNextUrl" enabled="true">
-            <stringProp name="VAR">BuddyDayDetailsNextUrl</stringProp>
+          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyDaysNextUrl" enabled="true">
+            <stringProp name="VAR">BuddyDaysNextUrl</stringProp>
             <stringProp name="JSONPATH">$.._links.next.href</stringProp>
             <stringProp name="DEFAULT">FAILED</stringProp>
             <stringProp name="VARIABLE"></stringProp>
@@ -3046,15 +2966,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy Week" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
@@ -3071,8 +2984,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWeekDetailsNextUrl" enabled="true">
-            <stringProp name="VAR">BuddyWeekDetailsNextUrl</stringProp>
+          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWeeksNextUrl" enabled="true">
+            <stringProp name="VAR">BuddyWeeksNextUrl</stringProp>
             <stringProp name="JSONPATH">$.._links.next.href</stringProp>
             <stringProp name="DEFAULT">FAILED</stringProp>
             <stringProp name="VARIABLE"></stringProp>
@@ -3094,22 +3007,15 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy &amp; Buddy Day" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy with buddies Day" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain"></stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-		  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/?requestingDeviceId=${BuddyDeviceID}</stringProp>
+          <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/?requestingDeviceId=${BuddyDeviceID}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3120,8 +3026,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyanditsBuddyDayDetailsNextUrl" enabled="true">
-            <stringProp name="VAR">BuddyanditsBuddyDayDetailsNextUrl</stringProp>
+          <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWithBuddiesNextUrl" enabled="true">
+            <stringProp name="VAR">BuddyWithBuddiesNextUrl</stringProp>
             <stringProp name="JSONPATH">$.._links.next.href</stringProp>
             <stringProp name="DEFAULT">FAILED</stringProp>
             <stringProp name="VARIABLE"></stringProp>
@@ -3160,15 +3066,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
               <RandomOrderController guiclass="RandomOrderControllerGui" testclass="RandomOrderController" testname="Random Order Controller" enabled="true"/>
               <hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User Day" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3185,8 +3084,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserDayDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">UserDayDetailsNextUrl</stringProp>
+                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserDaysNextUrl" enabled="true">
+                    <stringProp name="VAR">UserDaysNextUrl</stringProp>
                     <stringProp name="JSONPATH">$.._links.next.href</stringProp>
                     <stringProp name="DEFAULT">FAILED</stringProp>
                     <stringProp name="VARIABLE"></stringProp>
@@ -3209,15 +3108,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User Week" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3234,8 +3126,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWeekDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">UserWeekDetailsNextUrl</stringProp>
+                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWeeksNextUrl" enabled="true">
+                    <stringProp name="VAR">UserWeeksNextUrl</stringProp>
                     <stringProp name="JSONPATH">$.._links.next.href</stringProp>
                     <stringProp name="DEFAULT">FAILED</stringProp>
                     <stringProp name="VARIABLE"></stringProp>
@@ -3257,22 +3149,15 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   </HeaderManager>
                   <hashTree/>
                 </hashTree>
-                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User &amp; Buddy Day" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User with buddies Day" enabled="true">
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-				  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/?requestingDeviceId=${UserDeviceID}</stringProp>
+                  <stringProp name="HTTPSampler.path">/users/${UserID}/activity/withBuddies/days/?requestingDeviceId=${UserDeviceID}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3283,8 +3168,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserandBuddyDayDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">UserandBuddyDayDetailsNextUrl</stringProp>
+                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWithBuddiesNextUrl" enabled="true">
+                    <stringProp name="VAR">UserWithBuddiesNextUrl</stringProp>
                     <stringProp name="JSONPATH">$.._links.next.href</stringProp>
                     <stringProp name="DEFAULT">FAILED</stringProp>
                     <stringProp name="VARIABLE"></stringProp>
@@ -3307,21 +3192,14 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User Day Next" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${UserDayDetailsNextUrl_1}</stringProp>
+                  <stringProp name="HTTPSampler.path">${UserDaysNextUrl}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3332,15 +3210,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserDayDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">UserDayDetailsNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3356,21 +3225,14 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User Week Next" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${UserWeekDetailsNextUrl_1}</stringProp>
+                  <stringProp name="HTTPSampler.path">${UserWeeksNextUrl}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3381,15 +3243,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserWeekDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">UserWeekDetailsNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3404,22 +3257,15 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   </HeaderManager>
                   <hashTree/>
                 </hashTree>
-                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User &amp; Buddy Next" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,User with buddies Next" enabled="true">
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${UserandBuddyDayDetailsNextUrl_1}</stringProp>
+                  <stringProp name="HTTPSampler.path">${UserWithBuddiesNextUrl}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3430,15 +3276,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract UserandBuddyDayDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">UserandBuddyDayDetailsNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put User Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3463,15 +3300,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
               <RandomOrderController guiclass="RandomOrderControllerGui" testclass="RandomOrderController" testname="Random Order Controller" enabled="true"/>
               <hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy Day" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3488,8 +3318,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyDayDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyDayDetailsNextUrl</stringProp>
+                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyDaysNextUrl" enabled="true">
+                    <stringProp name="VAR">BuddyDaysNextUrl</stringProp>
                     <stringProp name="JSONPATH">$.._links.next.href</stringProp>
                     <stringProp name="DEFAULT">FAILED</stringProp>
                     <stringProp name="VARIABLE"></stringProp>
@@ -3512,15 +3342,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy Week" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3537,8 +3360,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWeekDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyWeekDetailsNextUrl</stringProp>
+                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWeeksNextUrl" enabled="true">
+                    <stringProp name="VAR">BuddyWeeksNextUrl</stringProp>
                     <stringProp name="JSONPATH">$.._links.next.href</stringProp>
                     <stringProp name="DEFAULT">FAILED</stringProp>
                     <stringProp name="VARIABLE"></stringProp>
@@ -3560,22 +3383,15 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   </HeaderManager>
                   <hashTree/>
                 </hashTree>
-                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy &amp; Buddy Day" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy with buddies Day" enabled="true">
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-				  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/?requestingDeviceId=${BuddyDeviceID}</stringProp>
+                  <stringProp name="HTTPSampler.path">/users/${BuddyID}/activity/withBuddies/days/?requestingDeviceId=${BuddyDeviceID}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3586,8 +3402,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyanditsBuddyDayDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyanditsBuddyDayDetailsNextUrl</stringProp>
+                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWithBuddiesNextUrl" enabled="true">
+                    <stringProp name="VAR">BuddyWithBuddiesNextUrl</stringProp>
                     <stringProp name="JSONPATH">$.._links.next.href</stringProp>
                     <stringProp name="DEFAULT">FAILED</stringProp>
                     <stringProp name="VARIABLE"></stringProp>
@@ -3610,21 +3426,14 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy Day Next" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${BuddyDayDetailsNextUrl_1}</stringProp>
+                  <stringProp name="HTTPSampler.path">${BuddyDaysNextUrl}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3635,15 +3444,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyDayDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyDayDetailsNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3659,21 +3459,14 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy Week Next" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${BuddyWeekDetailsNextUrl_1}</stringProp>
+                  <stringProp name="HTTPSampler.path">${BuddyWeeksNextUrl}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3684,15 +3477,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyWeekDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyWeekDetailsNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3707,22 +3491,15 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   </HeaderManager>
                   <hashTree/>
                 </hashTree>
-                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy &amp; Buddy Next" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckActivity,Buddy with buddies Next" enabled="true">
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
                   <stringProp name="HTTPSampler.protocol"></stringProp>
                   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-                  <stringProp name="HTTPSampler.path">${BuddyanditsBuddyDayDetailsNextUrl_1}</stringProp>
+                  <stringProp name="HTTPSampler.path">${BuddyWithBuddiesNextUrl}</stringProp>
                   <stringProp name="HTTPSampler.method">GET</stringProp>
                   <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
                   <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -3733,15 +3510,6 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <stringProp name="HTTPSampler.response_timeout"></stringProp>
                 </HTTPSamplerProxy>
                 <hashTree>
-                  <com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor guiclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.gui.JSONPathExtractorGui" testclass="com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor" testname="Extract BuddyanditsBuddyDayDetailsNextUrl" enabled="true">
-                    <stringProp name="VAR">BuddyanditsBuddyDayDetailsNextUrl</stringProp>
-                    <stringProp name="JSONPATH">$.._links.next.href</stringProp>
-                    <stringProp name="DEFAULT">FAILED</stringProp>
-                    <stringProp name="VARIABLE"></stringProp>
-                    <stringProp name="SUBJECT">BODY</stringProp>
-                    <stringProp name="INPUT_FORMAT">JSON</stringProp>
-                  </com.atlantbh.jmeter.plugins.jsonutils.jsonpathextractor.JSONPathExtractor>
-                  <hashTree/>
                   <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager Put Buddy Yona-Password" enabled="true">
                     <collectionProp name="HeaderManager.headers">
                       <elementProp name="" elementType="Header">
@@ -3766,15 +3534,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
               <RandomOrderController guiclass="RandomOrderControllerGui" testclass="RandomOrderController" testname="Random Order Controller" enabled="true"/>
               <hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3806,15 +3567,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3846,15 +3600,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3886,15 +3633,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3926,15 +3666,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -3966,15 +3699,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,User" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -4015,15 +3741,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
               <RandomOrderController guiclass="RandomOrderControllerGui" testclass="RandomOrderController" testname="Random Order Controller" enabled="true"/>
               <hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,Buddy" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -4055,15 +3774,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,Buddy" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -4095,15 +3807,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,Buddy" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -4135,15 +3840,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,Buddy" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -4175,15 +3873,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,Buddy" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -4215,15 +3906,8 @@ vars.put(&quot;randomDateTimeEndLastWeek&quot;,formattedDate);
                   <hashTree/>
                 </hashTree>
                 <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3,CheckMessage,Buddy" enabled="true">
-                  <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-                    <collectionProp name="Arguments.arguments">
-                      <elementProp name="" elementType="HTTPArgument">
-                        <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                        <stringProp name="Argument.value"></stringProp>
-                        <stringProp name="Argument.metadata">=</stringProp>
-                      </elementProp>
-                    </collectionProp>
+                  <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+                    <collectionProp name="Arguments.arguments"/>
                   </elementProp>
                   <stringProp name="HTTPSampler.domain"></stringProp>
                   <stringProp name="HTTPSampler.port"></stringProp>
@@ -15410,9 +15094,5 @@ You should see MyValue=...</stringProp>
       </kg.apc.jmeter.listener.GraphsGeneratorListener>
       <hashTree/>
     </hashTree>
-    <WorkBench guiclass="WorkBenchGui" testclass="WorkBench" testname="WorkBench" enabled="true">
-      <boolProp name="WorkBench.save">true</boolProp>
-    </WorkBench>
-    <hashTree/>
   </hashTree>
 </jmeterTestPlan>
