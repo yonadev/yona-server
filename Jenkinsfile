@@ -1,4 +1,4 @@
-def buildConfigPath = "/opt/ope-cloudbees/yona/k8s/helm"
+def buildValuesYaml = "/opt/ope-cloudbees/yona/k8s/helm/values.yaml"
 
 pipeline {
 	agent none
@@ -63,13 +63,13 @@ pipeline {
 			}
 			steps {
 				withCredentials([string( credentialsId: 'gitlab-yonabuild', variable: 'token')]) {
-					getValuesYaml(token, 4, "/helm/values.yaml", buildConfigPath)
+					getValuesYaml(token, 4, "/helm/values.yaml", buildValuesYaml)
 				}
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
 				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
-				sh "helm upgrade --install --namespace yona --values ${buildConfigPath}/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona"
+				sh "helm upgrade --install --namespace yona --values ${buildValuesYaml} --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona"
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -238,9 +238,9 @@ pipeline {
 	}
 }
 
-void getValuesYaml(def token, def repoNumber, def srcPath, def targetFolder)
+void getValuesYaml(def token, def repoNumber, def srcPath, def targetPath)
 {
 	def encodedPath = java.net.URLEncoder.encode(srcPath, "UTF-8")
-	sh "mkdir --parents ${targetFolder}"
-	sh "curl --fail --request GET --header 'PRIVATE-TOKEN: ${token}' https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/infrastructure${encodedPath}/raw?ref=master > ${targetFolder}/values.yaml"
+	sh "mkdir --parents `dirname ${targetPath}`"
+	sh "curl --fail --request GET --header 'PRIVATE-TOKEN: ${token}' https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/infrastructure${encodedPath}/raw?ref=master > ${targetPath}"
 }
