@@ -62,7 +62,7 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			steps {
-				withCredentials([string( credentialsId: 'test-credential', variable: 'token')]) {
+				withCredentials([string( credentialsId: 'gitlab-yonabuild', variable: 'token')]) {
 					getValuesYaml(token, 4, "/helm/values.yaml", buildConfigPath)
 				}
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
