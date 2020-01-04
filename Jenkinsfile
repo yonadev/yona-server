@@ -239,6 +239,6 @@ pipeline {
 void getValuesYaml(def token, def repoNumber, def srcPath, def targetFolder)
 {
 	def encodedPath = java.net.URLEncoder.encode(srcPath, "UTF-8")
-	sh "echo ${token} | base64"
+	sh "echo \"${token}\" | base64"
 	sh "curl --request GET --header 'PRIVATE-TOKEN: ${token}' https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/infrastructure${encodedPath}/raw?ref=master"
 }
