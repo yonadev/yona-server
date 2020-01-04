@@ -1,3 +1,5 @@
+def buildConfigPath = "/opt/ope-cloudbees/yona/k8s/helm"
+
 pipeline {
 	agent none
 	options {
@@ -60,13 +62,12 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			steps {
-				def configPath = "/opt/ope-cloudbees/yona/k8s/helm"
-				getValuesYaml(credentials("test-credential"), 4, "/helm/values.yaml", configPath)
+				getValuesYaml(credentials("test-credential"), 4, "/helm/values.yaml", buildConfigPath)
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
 				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
-				sh 'helm upgrade --install --namespace yona --values $configPath/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
+				sh 'helm upgrade --install --namespace yona --values $buildConfigPath/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
