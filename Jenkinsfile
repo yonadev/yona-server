@@ -245,6 +245,6 @@ void getValuesYaml(def repoNumber, def srcPath, def targetPath)
 	def encodedPath = java.net.URLEncoder.encode(srcPath, "UTF-8")
 	sh "mkdir --parents `dirname ${targetPath}`"
 	withCredentials([string( credentialsId: 'gitlab-yonabuild', variable: 'token')]) {
-		sh "curl --fail --request GET --header 'PRIVATE-TOKEN: ${token}' https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/infrastructure${encodedPath}/raw?ref=master > ${targetPath}"
+		sh "wget --header='PRIVATE-TOKEN: ${token}' --output-document=${targetPath} https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/infrastructure${encodedPath}/raw?ref=master"
 	}
 }
