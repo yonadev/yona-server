@@ -1,4 +1,4 @@
-def valuesYamlPath = "/opt/ope-cloudbees/yona/k8s/helm/values.yaml"
+def valuesYamlPath = "values.yaml"
 
 pipeline {
 	agent none
