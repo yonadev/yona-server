@@ -1,3 +1,6 @@
+def valuesYamlOnRegressionTestServer = "/opt/ope-cloudbees/yona/k8s/helm/values.yaml"
+def valuesYamlOnDockerizedAgent = "/config/values.yaml"
+
 pipeline {
 	agent none
 	options {
@@ -60,11 +63,12 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			steps {
+				getValuesYaml(4, "/helm/values.yaml", valuesYamlOnRegressionTestServer)
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
 				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
-				sh 'helm upgrade --install --namespace yona --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
+				sh "helm upgrade --install --namespace yona --values ${valuesYamlOnRegressionTestServer} --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona"
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -109,8 +113,9 @@ pipeline {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
+				getValuesYaml(2, "/helm/values.yaml", valuesYamlOnDockerizedAgent)
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh 'helm upgrade --install -f ${valuesYamlOnDockerizedAgent} --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -137,9 +142,10 @@ pipeline {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
+				getValuesYaml(2, "/helm/values_loadtest.yaml", valuesYamlOnDockerizedAgent)
 				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f /config/values.yaml --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
+				sh 'helm upgrade --install -f ${valuesYamlOnDockerizedAgent} --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -211,8 +217,9 @@ pipeline {
 				environment name: 'DEPLOY_TO_PRD', value: 'yes'
 			}
 			steps {
+				getValuesYaml(1, "/helm/values.yaml", valuesYamlOnDockerizedAgent)
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh 'helm upgrade --install -f ${valuesYamlOnDockerizedAgent} --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -230,5 +237,14 @@ pipeline {
 				}
 			}
 		}
+	}
+}
+
+void getValuesYaml(def repoNumber, def srcPath, def targetPath)
+{
+	def encodedPath = java.net.URLEncoder.encode(srcPath, "UTF-8")
+	sh "mkdir --parents `dirname ${targetPath}`"
+	withCredentials([string( credentialsId: 'gitlab-yonabuild', variable: 'token')]) {
+		sh "wget --header='PRIVATE-TOKEN: ${token}' --output-document=${targetPath} https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/infrastructure${encodedPath}/raw?ref=master"
 	}
 }

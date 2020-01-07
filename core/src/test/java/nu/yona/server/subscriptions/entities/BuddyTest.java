@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
 import java.lang.reflect.Field;
@@ -17,9 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -27,12 +24,12 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.TimeUtil;
 
 @ExtendWith(MockitoExtension.class)
 @InCryptoSession("PASSWORD")
 public class BuddyTest
 {
-	private final Field translatorStaticField = JUnitUtil.getAccessibleField(Translator.class, "staticReference");
 	private final Field userUserPrivateField = JUnitUtil.getAccessibleField(User.class, "userPrivate");
 	private final Field privateUserPropertiesFirstNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
 			"firstName");
@@ -49,21 +46,8 @@ public class BuddyTest
 	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
-		translatorStaticField.set(null, translator);
-
 		lenient().when(messageSource.getId()).thenReturn(UUID.randomUUID());
-		lenient().when(translator.getLocalizedMessage(any(String.class), any())).thenAnswer(new Answer<String>() {
-			@Override
-			public String answer(InvocationOnMock invocation) throws Throwable
-			{
-				Object[] args = invocation.getArguments();
-				assert args.length == 2;
-				String messageId = (String) args[0];
-				String insertion = (String) args[1];
-				return messageId + ":" + insertion;
-			}
-		});
-
+		JUnitUtil.setupTranslatorMock(translator);
 	}
 
 	@Test
@@ -128,8 +112,9 @@ public class BuddyTest
 	private User createUser(String firstName, String lastName, String nickname)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, UUID.randomUUID(), UUID.randomUUID(),
-				messageSource);
-		return new User(UUID.randomUUID(), initializationVector, "+31123456", userPrivate, messageDestination);
+		UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname, UUID.randomUUID(),
+				UUID.randomUUID(), messageSource);
+		return new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), "+31123456", userPrivate,
+				messageDestination);
 	}
 }
