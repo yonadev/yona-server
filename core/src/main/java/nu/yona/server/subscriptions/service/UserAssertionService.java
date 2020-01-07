@@ -89,6 +89,8 @@ class UserAssertionService
 
 	private static void assertNoLeadingZeros(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
 	{
+		// Format the number in the international format. Leading zeros would disappear but spaces and hyphens might be added.
+		// After removal of the spaces and hyphens, the formatted number should be identical to the original one.
 		if (!mobileNumberStr.equals(util.format(mobileNumber, PhoneNumberFormat.INTERNATIONAL).replaceAll("[ -]", "")))
 		{
 			throw InvalidDataException.numberWithLeadingZeros(mobileNumberStr);
