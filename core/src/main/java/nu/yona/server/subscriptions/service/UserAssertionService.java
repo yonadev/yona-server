@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
+import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
@@ -68,26 +70,39 @@ class UserAssertionService
 		}
 	}
 
-	public static void assertValidMobileNumber(String mobileNumber)
-	{
-		Require.that(REGEX_PHONE.matcher(mobileNumber).matches(), () -> InvalidDataException.invalidMobileNumber(mobileNumber));
-		assertNumberIsMobile(mobileNumber);
-	}
-
-	private static void assertNumberIsMobile(String mobileNumber)
+	public static void assertValidMobileNumber(String mobileNumberStr)
 	{
 		try
 		{
+			Require.that(REGEX_PHONE.matcher(mobileNumberStr).matches(),
+					() -> InvalidDataException.invalidMobileNumber(mobileNumberStr));
 			PhoneNumberUtil util = PhoneNumberUtil.getInstance();
-			PhoneNumberType numberType = util.getNumberType(util.parse(mobileNumber, null));
-			if ((numberType != PhoneNumberType.MOBILE) && (numberType != PhoneNumberType.FIXED_LINE_OR_MOBILE))
-			{
-				throw InvalidDataException.notAMobileNumber(mobileNumber, numberType.toString());
-			}
+			PhoneNumber mobileNumber = util.parse(mobileNumberStr, null);
+			assertNoLeadingZeros(util, mobileNumberStr, mobileNumber);
+			assertIsMobile(util, mobileNumberStr, mobileNumber);
 		}
 		catch (NumberParseException e)
 		{
 			throw YonaException.unexpected(e);
+		}
+	}
+
+	private static void assertNoLeadingZeros(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
+	{
+		// Format the number in the international format. Leading zeros would disappear but spaces and hyphens might be added.
+		// After removal of the spaces and hyphens, the formatted number should be identical to the original one.
+		if (!mobileNumberStr.equals(util.format(mobileNumber, PhoneNumberFormat.INTERNATIONAL).replaceAll("[ -]", "")))
+		{
+			throw InvalidDataException.numberWithLeadingZeros(mobileNumberStr);
+		}
+	}
+
+	private static void assertIsMobile(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
+	{
+		PhoneNumberType numberType = util.getNumberType(mobileNumber);
+		if ((numberType != PhoneNumberType.MOBILE) && (numberType != PhoneNumberType.FIXED_LINE_OR_MOBILE))
+		{
+			throw InvalidDataException.notAMobileNumber(mobileNumberStr, numberType.toString());
 		}
 	}
 
