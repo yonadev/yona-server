@@ -37,6 +37,7 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserPrivate;
+import nu.yona.server.util.TimeUtil;
 
 public class JUnitUtil
 {
@@ -105,9 +106,9 @@ public class JUnitUtil
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource namedMessageSource = MessageSource.createInstance();
 		MessageSource.getRepository().save(namedMessageSource);
-		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, johnAnonymized.getId(),
-				anonymousMessageSource.getId(), namedMessageSource);
-		User user = new User(UUID.randomUUID(), initializationVector, mobileNumber, userPrivate,
+		UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname,
+				johnAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
+		User user = new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 		return User.getRepository().save(user);
 	}

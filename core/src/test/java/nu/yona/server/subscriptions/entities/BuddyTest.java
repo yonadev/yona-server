@@ -24,6 +24,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.TimeUtil;
 
 @ExtendWith(MockitoExtension.class)
 @InCryptoSession("PASSWORD")
@@ -111,8 +112,9 @@ public class BuddyTest
 	private User createUser(String firstName, String lastName, String nickname)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		UserPrivate userPrivate = UserPrivate.createInstance(firstName, lastName, nickname, UUID.randomUUID(), UUID.randomUUID(),
-				messageSource);
-		return new User(UUID.randomUUID(), initializationVector, "+31123456", userPrivate, messageDestination);
+		UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname, UUID.randomUUID(),
+				UUID.randomUUID(), messageSource);
+		return new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), "+31123456", userPrivate,
+				messageDestination);
 	}
 }

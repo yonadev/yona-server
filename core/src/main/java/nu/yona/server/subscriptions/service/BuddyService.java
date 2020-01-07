@@ -781,7 +781,7 @@ public class BuddyService
 	public BuddyDto updateLastStatusChangeTime(UUID userId, UUID buddyId, LocalDateTime lastStatusChangeTime)
 	{
 		Require.that(yonaProperties.isTestServer(),
-				() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set goal creation time"));
+				() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set last status change time on buddy relation"));
 		User userEntity = userService.getUserEntityById(userId);
 		LocalDateTime userCreationTime = userEntity.getCreationTime();
 		Require.that(!lastStatusChangeTime.isBefore(userCreationTime),

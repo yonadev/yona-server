@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.UserDeviceDto;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
 import nu.yona.server.exceptions.YonaException;
@@ -91,9 +93,7 @@ public class UserAddService
 	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
-		Require.that(user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1,
-				() -> YonaException.illegalState("Number of devices must be 1"));
-		UserAssertionService.assertValidUserFields(user, UserService.UserPurpose.USER);
+		assertIsValidNewUser(user);
 
 		handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
 
@@ -112,6 +112,15 @@ public class UserAddService
 		return userDto;
 	}
 
+	private void assertIsValidNewUser(UserDto user)
+	{
+		Require.that(user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1,
+				() -> YonaException.illegalState("Number of devices must be 1"));
+		UserAssertionService.assertValidUserFields(user, UserService.UserPurpose.USER);
+		Require.that(user.getCreationTime().isEmpty() || yonaProperties.isTestServer(),
+				() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set user creation time"));
+	}
+
 	private User createUserEntity(UserDto user, UserSignUp signUp)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
@@ -120,11 +129,13 @@ public class UserAddService
 		Set<Goal> goals = buildGoalsSet(user, signUp);
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getFirstName(),
-				user.getOwnPrivateData().getLastName(), user.getOwnPrivateData().getNickname(), userAnonymized.getId(),
-				anonymousMessageSource.getId(), namedMessageSource);
-		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getMobileNumber(), userPrivate,
-				namedMessageSource.getDestination());
+		UserPrivate userPrivate = UserPrivate.createInstance(user.getCreationTime().orElse(TimeUtil.utcNow()),
+				user.getOwnPrivateData().getFirstName(), user.getOwnPrivateData().getLastName(),
+				user.getOwnPrivateData().getNickname(), userAnonymized.getId(), anonymousMessageSource.getId(),
+				namedMessageSource);
+		User userEntity = new User(UUID.randomUUID(), initializationVector,
+				user.getCreationTime().map(LocalDateTime::toLocalDate).orElse(TimeUtil.utcNow().toLocalDate()),
+				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
 		addMandatoryGoals(userEntity);
 		return userEntity;
 	}
