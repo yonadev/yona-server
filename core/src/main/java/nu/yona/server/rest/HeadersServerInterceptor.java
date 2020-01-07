@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Stichting Yona Foundation
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -15,9 +15,9 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 public class HeadersServerInterceptor extends HandlerInterceptorAdapter
 {
-	private final HeadersHolder headersHolder;
+	private final PassThroughHeadersHolder headersHolder;
 
-	public HeadersServerInterceptor(HeadersHolder headersHolder)
+	public HeadersServerInterceptor(PassThroughHeadersHolder headersHolder)
 	{
 		this.headersHolder = headersHolder;
 	}

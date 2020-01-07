@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
@@ -9,7 +9,10 @@ import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 
-public class HeadersHolder
+/**
+ * Holds the headers that are received in an incoming HTTP request, which needs to be passed-through in outgoing HTTP requests.
+ */
+public class PassThroughHeadersHolder
 {
 	private final Map<String, String> storedHeaders = new HashMap<>();
 

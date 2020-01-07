@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Stichting Yona Foundation
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -55,10 +55,10 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		User bobAndroid = addBob(true, "ANDROID", "nl-NL")
 		bobAndroid.emailAddress = "bob@dunn.com"
 		User bobIos = appService.addDevice(bobAndroid, "Bob's iPhone", "IOS", Device.SOME_APP_VERSION)
-		def appOs = "ANDROID"
-		def appVersionCode = 123
-		def appVersionName = "1.2 (I'm Rich)"
-		def headers = ["Yona-App-Version" : "$appOs/$appVersionCode/$appVersionName"]
+		def richardAppOs = "ANDROID"
+		def richardAppVersionCode = 123
+		def richardAppVersionName = "1.2 (I'm Rich)"
+		def headers = ["Yona-App-Version" : "$richardAppOs/$richardAppVersionCode/$richardAppVersionName"]
 		appService.sendBuddyConnectRequest(richard, bobAndroid, true, [:], headers)
 
 		when:
@@ -70,9 +70,9 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		responseBobAndroid.responseData.title == "Bericht ontvangen"
 		responseBobAndroid.responseData.body == "Tik om het bericht te openen"
 		messageUrlBobAndroid.endsWith(responseBobAndroid.responseData.data.messageId.toString())
-		responseBobAndroid.responseData.appOs == appOs
-		responseBobAndroid.responseData.appVersionCode == appVersionCode
-		responseBobAndroid.responseData.appVersionName == appVersionName
+		responseBobAndroid.responseData.appOs == richardAppOs
+		responseBobAndroid.responseData.appVersionCode == richardAppVersionCode
+		responseBobAndroid.responseData.appVersionName == richardAppVersionName
 
 		when:
 		def messageUrlBobIos = appService.getMessages(bobIos).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
@@ -83,9 +83,9 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		responseBobIos.responseData.title == "Message received"
 		responseBobIos.responseData.body == "Tap to open message"
 		messageUrlBobIos.endsWith(responseBobIos.responseData.data.messageId.toString())
-		responseBobIos.responseData.appOs == appOs
-		responseBobIos.responseData.appVersionCode == appVersionCode
-		responseBobIos.responseData.appVersionName == appVersionName
+		responseBobIos.responseData.appOs == richardAppOs
+		responseBobIos.responseData.appVersionCode == richardAppVersionCode
+		responseBobIos.responseData.appVersionName == richardAppVersionName
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -178,10 +178,10 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
 		ZonedDateTime endTime = startTime.plusHours(1)
-		def appOs = "ANDROID"
-		def appVersionCode = 123
-		def appVersionName = "1.2 (I'm Rich)"
-		def headers = ["Yona-App-Version" : "$appOs/$appVersionCode/$appVersionName"]
+		def richardAppOs = "ANDROID"
+		def richardAppVersionCode = 123
+		def richardAppVersionName = "1.2 (I'm Rich)"
+		def headers = ["Yona-App-Version" : "$richardAppOs/$richardAppVersionCode/$richardAppVersionName"]
 
 		when:
 		assertResponseStatusNoContent(appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, AppActivity.singleActivity("Poker App", startTime, endTime), [:], headers))
@@ -193,9 +193,9 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		responseRichard.responseData.title == "Message received"
 		responseRichard.responseData.body == "Tap to open message"
 		messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
-		responseRichard.responseData.appOs == appOs
-		responseRichard.responseData.appVersionCode == appVersionCode
-		responseRichard.responseData.appVersionName == appVersionName
+		responseRichard.responseData.appOs == richardAppOs
+		responseRichard.responseData.appVersionCode == richardAppVersionCode
+		responseRichard.responseData.appVersionName == richardAppVersionName
 
 
 		def responseBob = analysisService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
@@ -204,9 +204,9 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		responseBob.responseData.title == "Message received"
 		responseBob.responseData.body == "Tap to open message"
 		messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
-		responseBob.responseData.appOs == appOs
-		responseBob.responseData.appVersionCode == appVersionCode
-		responseBob.responseData.appVersionName == appVersionName
+		responseBob.responseData.appOs == richardAppOs
+		responseBob.responseData.appVersionCode == richardAppVersionCode
+		responseBob.responseData.appVersionName == richardAppVersionName
 
 		cleanup:
 		appService.deleteUser(richard)
