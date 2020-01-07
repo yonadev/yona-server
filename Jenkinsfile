@@ -114,7 +114,7 @@ pipeline {
 			steps {
 				getValuesYaml(2, "/helm/values.yaml", valuesYamlPath)
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f ${valuesYamlPath} --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh "helm upgrade --install -f ${valuesYamlPath} --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona"
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -144,7 +144,7 @@ pipeline {
 				getValuesYaml(2, "/helm/values_loadtest.yaml", valuesYamlPath)
 				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f ${valuesYamlPath} --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
+				sh "helm upgrade --install -f ${valuesYamlPath} --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona"
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -218,7 +218,7 @@ pipeline {
 			steps {
 				getValuesYaml(1, "/helm/values.yaml", valuesYamlPath)
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f ${valuesYamlPath} --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh "helm upgrade --install -f ${valuesYamlPath} --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona"
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
