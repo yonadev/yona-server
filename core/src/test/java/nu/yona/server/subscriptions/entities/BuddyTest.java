@@ -6,7 +6,6 @@ package nu.yona.server.subscriptions.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
 import java.lang.reflect.Field;
@@ -17,9 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -33,7 +30,6 @@ import nu.yona.server.util.TimeUtil;
 @InCryptoSession("PASSWORD")
 public class BuddyTest
 {
-	private final Field translatorStaticField = JUnitUtil.getAccessibleField(Translator.class, "staticReference");
 	private final Field userUserPrivateField = JUnitUtil.getAccessibleField(User.class, "userPrivate");
 	private final Field privateUserPropertiesFirstNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
 			"firstName");
@@ -50,21 +46,8 @@ public class BuddyTest
 	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
-		translatorStaticField.set(null, translator);
-
 		lenient().when(messageSource.getId()).thenReturn(UUID.randomUUID());
-		lenient().when(translator.getLocalizedMessage(any(String.class), any())).thenAnswer(new Answer<String>() {
-			@Override
-			public String answer(InvocationOnMock invocation) throws Throwable
-			{
-				Object[] args = invocation.getArguments();
-				assert args.length == 2;
-				String messageId = (String) args[0];
-				String insertion = (String) args[1];
-				return messageId + ":" + insertion;
-			}
-		});
-
+		JUnitUtil.setupTranslatorMock(translator);
 	}
 
 	@Test
