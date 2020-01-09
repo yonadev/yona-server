@@ -1,5 +1,3 @@
-def valuesYamlPath = "values.yaml"
-
 pipeline {
 	agent none
 	options {
@@ -66,7 +64,7 @@ pipeline {
 				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
-				helmUpgradeOrInstall(4, "infrastructure/helm/values.yaml", valuesYamlPath, "yona")
+				helmUpgradeOrInstall(4, "infrastructure/helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -112,7 +110,7 @@ pipeline {
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(2, "/helm/values.yaml", valuesYamlPath, "yona")
+				helmUpgradeOrInstall(2, "/helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -141,7 +139,7 @@ pipeline {
 			steps {
 				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(2, "/helm/values_loadtest.yaml", valuesYamlPath, "loadtest")
+				helmUpgradeOrInstall(2, "/helm/values_loadtest.yaml", "loadtest")
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -214,7 +212,7 @@ pipeline {
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(1, "/helm/values.yaml", valuesYamlPath, "yona")
+				helmUpgradeOrInstall(1, "/helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
