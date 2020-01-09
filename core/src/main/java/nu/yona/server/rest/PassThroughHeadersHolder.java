@@ -11,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 
 /**
  * Holds the headers that are received in an incoming HTTP request, which needs to be passed-through in outgoing HTTP requests.
+ * See {@link HeadersServerInterceptor} for the place where the incoming headers are stored in the holder and
+ * {@link HeadersClientInterceptor} for the place where the headers are read.
  */
 public class PassThroughHeadersHolder
 {
