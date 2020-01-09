@@ -62,13 +62,11 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			steps {
-				getValuesYaml(4, "infrastructure/helm/values.yaml", valuesYamlPath)
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
 				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
-				sh "helm upgrade --install --namespace yona --values ${valuesYamlPath} --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona"
-				sh "rm ${valuesYamlPath}"
+				helmUpgradeOrInstall(4, "infrastructure/helm/values.yaml", valuesYamlPath, "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -113,10 +111,8 @@ pipeline {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				getValuesYaml(2, "/helm/values.yaml", valuesYamlPath)
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh "helm upgrade --install -f ${valuesYamlPath} --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona"
-				sh "rm ${valuesYamlPath}"
+				helmUpgradeOrInstall(2, "/helm/values.yaml", valuesYamlPath, "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -143,11 +139,9 @@ pipeline {
 				environment name: 'DEPLOY_TO_TEST_SERVERS', value: 'yes'
 			}
 			steps {
-				getValuesYaml(2, "/helm/values_loadtest.yaml", valuesYamlPath)
 				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh "helm upgrade --install -f ${valuesYamlPath} --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona"
-				sh "rm ${valuesYamlPath}"
+				helmUpgradeOrInstall(2, "/helm/values_loadtest.yaml", valuesYamlPath, "loadtest")
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -219,10 +213,8 @@ pipeline {
 				environment name: 'DEPLOY_TO_PRD', value: 'yes'
 			}
 			steps {
-				getValuesYaml(1, "/helm/values.yaml", valuesYamlPath)
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh "helm upgrade --install -f ${valuesYamlPath} --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona"
-				sh "rm ${valuesYamlPath}"
+				helmUpgradeOrInstall(1, "/helm/values.yaml", valuesYamlPath, "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -243,10 +235,15 @@ pipeline {
 	}
 }
 
-void getValuesYaml(def repoNumber, def srcPath, def targetPath)
+void helmUpgradeOrInstall(def repoNumber, def srcPath, def name)
 {
+	def namespace = name
+	def deploymentName = name
 	def encodedPath = java.net.URLEncoder.encode(srcPath, "UTF-8")
+	def url = "https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/${encodedPath}/raw?ref=master"
 	withCredentials([string( credentialsId: 'gitlab-yonabuild', variable: 'token')]) {
-		sh "wget --header='PRIVATE-TOKEN: ${token}' --output-document=${targetPath} https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/${encodedPath}/raw?ref=master"
+		withEnv(["TOKEN=${token}"]) {
+			sh "wget --header='PRIVATE-TOKEN: ${TOKEN}' --output-document=- ${url} | helm upgrade --install --values - --namespace ${namespace} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${deploymentName} yona/yona"
+		}
 	}
 }
