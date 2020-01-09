@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
+import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
@@ -31,7 +32,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
@@ -62,7 +62,7 @@ public class PinResetRequestController extends ControllerBase
 	@PostMapping(value = "/request")
 	@ResponseBody
 	public ResponseEntity<ConfirmationCodeDelayDto> requestPinReset(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
@@ -76,9 +76,8 @@ public class PinResetRequestController extends ControllerBase
 
 	@PostMapping(value = "/verify")
 	@ResponseBody
-	public ResponseEntity<Void> verifyPinResetConfirmationCode(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
-			@RequestBody ConfirmationCodeDto confirmationCode)
+	public ResponseEntity<Void> verifyPinResetConfirmationCode(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @RequestBody ConfirmationCodeDto confirmationCode)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
@@ -91,8 +90,8 @@ public class PinResetRequestController extends ControllerBase
 
 	@PostMapping(value = "/resend")
 	@ResponseBody
-	public ResponseEntity<Void> resendPinResetConfirmationCode(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
+	public ResponseEntity<Void> resendPinResetConfirmationCode(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
@@ -104,7 +103,7 @@ public class PinResetRequestController extends ControllerBase
 
 	@PostMapping(value = "/clear")
 	@ResponseBody
-	public ResponseEntity<Void> clearPinResetRequest(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	public ResponseEntity<Void> clearPinResetRequest(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,

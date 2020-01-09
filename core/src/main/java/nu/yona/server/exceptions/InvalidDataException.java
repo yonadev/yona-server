@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
-import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.RestConstants;
 
 /**
  * This exception is to be used in case data is wrong in DTOs. So whenever a field has a wrong value you should throw this
@@ -177,7 +177,8 @@ public class InvalidDataException extends YonaException
 
 	public static InvalidDataException invalidAppVersionHeader(String header)
 	{
-		return new InvalidDataException("error.request.with.invalid.app.version.header", Constants.APP_VERSION_HEADER, header);
+		return new InvalidDataException("error.request.with.invalid.app.version.header", RestConstants.APP_VERSION_HEADER,
+				header);
 	}
 
 	public static InvalidDataException invalidVersionCode(String versionCodeString)

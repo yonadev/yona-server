@@ -1,14 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
+
+import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
 
 import java.io.Serializable;
 import java.util.UUID;
 
 import nu.yona.server.exceptions.YonaException;
-import nu.yona.server.rest.Constants;
 
 public class UserServiceException extends YonaException
 {
@@ -31,7 +32,7 @@ public class UserServiceException extends YonaException
 
 	public static UserServiceException missingPasswordHeader()
 	{
-		return new UserServiceException("error.missing.password.header", Constants.PASSWORD_HEADER);
+		return new UserServiceException("error.missing.password.header", PASSWORD_HEADER);
 	}
 
 	public static UserServiceException userExistsCreatedOnBuddyRequest(String mobileNumber)
