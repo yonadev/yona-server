@@ -25,7 +25,7 @@ public class PassThroughHeadersHolder
 
 	private void storeIfPresent(HttpHeaders headers, String name)
 	{
-		String value = headers.getFirst(Constants.APP_VERSION_HEADER);
+		String value = headers.getFirst(name);
 		if (value != null)
 		{
 			storedHeaders.put(name, value);

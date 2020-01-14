@@ -12,7 +12,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 /**
- * Intercept all incoming HTTP requests, with the intend to store headers that are to be passed through in outgoing HTTP requests.
+ * Intercept all incoming HTTP requests, with the intent to store headers that are to be passed through in outgoing HTTP requests.
  * See {@link PassThroughHeadersHolder} for the class that stores the headers and {@link HeadersClientInterceptor} for the class
  * that writes the headers into outgoing HTTP requests.
  */
