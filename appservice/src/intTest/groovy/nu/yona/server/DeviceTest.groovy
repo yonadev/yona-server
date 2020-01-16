@@ -363,7 +363,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		"IOS" | null | 5000 | 400
 	}
 
-	def 'Use different app version headers'(appVersionHeader, responseStatus)
+	def 'Use different app version headers'(appVersionHeader, expectedStatus, expectedMessagePattern)
 	{
 		given:
 		def ts = timestamp
@@ -371,24 +371,27 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
 
 		when:
-		def response = appService.getResourceWithPassword(john.url, john.password, ["Yona-App-Version" : appVersionHeader])
+		def response = appService.getResourceWithPassword(john.url, john.password, [:], ["Yona-App-Version" : appVersionHeader])
 
 		then:
-		assertResponseStatus(response, responseStatus)
+		assertResponseStatus(response, expectedStatus)
+		expectedStatus == 200 || response.responseData.message ==~/$expectedMessagePattern/
+
 
 		cleanup:
 		appService.deleteUser(john)
 
 		where:
-		appVersionHeader | responseStatus
-		"ANDROID/123/1.2 build 360" | 200
-		"IOS/123/1.2 build 360" | 200
-		"IOS/123/1.2" | 200
-		"ANDROID/abc/1.2 build 360" | 400
-		"ANDROID/-1/1.2 build 360" | 400
-		"ANDROID/0/1.2 build 360" | 400
-		"ANDROID/123" | 400
-		"ANDROID/123/a/b" | 400
+		appVersionHeader | expectedStatus | expectedMessagePattern
+		"ANDROID/123/1.2 build 360" | 200 | "n/a"
+		"IOS/123/1.2 build 360" | 200 | "n/a"
+		"IOS/123/1.2" | 200 | "n/a"
+		"ANDROID/abc/1.2 build 360" | 400 | ".*contains an invalid version code: 'abc'.*. Must be an integer value > 0"
+		"ANDROID/-1/1.2 build 360" | 400 | ".*contains an invalid version code: '-1'.*. Must be an integer value > 0"
+		"ANDROID/0/1.2 build 360" | 400 | ".*contains an invalid version code: '0'.*. Must be an integer value > 0"
+		"ANDROID/123" | 400 | ".*is invalid: 'ANDROID/123'. Should follow the format.*"
+		"ANDROID/123/a/b" | 400 | ".*is invalid: 'ANDROID/123/a/b'. Should follow the format.*"
+		"" | 400 | ".*is invalid: ''. Should follow the format.*"
 	}
 
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem, firebaseInstanceId = null)

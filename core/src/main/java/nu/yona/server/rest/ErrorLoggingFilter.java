@@ -22,9 +22,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jboss.logging.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.stereotype.Component;
@@ -46,11 +46,8 @@ public class ErrorLoggingFilter implements Filter
 	{
 		private static final String TRACE_ID_HEADER = "x-b3-traceid";
 		private static final String CORRELATION_ID_MDC_KEY = "yona.correlation.id";
-		private static final String APP_OS_MDC_KEY = "yona.app.os";
-		private static final String APP_VERSION_CODE_MDC_KEY = "yona.app.versionCode";
-		private static final String APP_VERSION_NAME_MDC_KEY = "yona.app.versionName";
-		private static final List<String> MDC_KEYS = Arrays.asList(CORRELATION_ID_MDC_KEY, APP_OS_MDC_KEY,
-				APP_VERSION_CODE_MDC_KEY, APP_VERSION_NAME_MDC_KEY);
+		private static final List<String> MDC_KEYS = Arrays.asList(CORRELATION_ID_MDC_KEY, Constants.APP_OS_MDC_KEY,
+				Constants.APP_VERSION_CODE_MDC_KEY, Constants.APP_VERSION_NAME_MDC_KEY);
 
 		private LoggingContext()
 		{
@@ -73,7 +70,7 @@ public class ErrorLoggingFilter implements Filter
 
 		public static String getCorrelationId()
 		{
-			return (String) MDC.get(CORRELATION_ID_MDC_KEY);
+			return MDC.get(CORRELATION_ID_MDC_KEY);
 		}
 
 		private static String getCorrelationId(HttpServletRequest request)
@@ -90,11 +87,11 @@ public class ErrorLoggingFilter implements Filter
 		{
 			String[] parts = header.split("/");
 			String operatingSystem = parts[0];
-			int versionCode = Integer.parseInt(parts[1]);
+			String versionCode = parts[1];
 			String versionName = parts[2];
-			MDC.put(APP_OS_MDC_KEY, operatingSystem);
-			MDC.put(APP_VERSION_CODE_MDC_KEY, versionCode);
-			MDC.put(APP_VERSION_NAME_MDC_KEY, versionName);
+			MDC.put(Constants.APP_OS_MDC_KEY, operatingSystem);
+			MDC.put(Constants.APP_VERSION_CODE_MDC_KEY, versionCode);
+			MDC.put(Constants.APP_VERSION_NAME_MDC_KEY, versionName);
 		}
 
 		private static void assertValidHeaders(HttpServletRequest request)
@@ -159,6 +156,7 @@ public class ErrorLoggingFilter implements Filter
 		catch (YonaException e)
 		{
 			response.sendError(e.getStatusCode().value(), e.getMessage());
+			logger.error("Invalid header", e);
 			logResponseStatus(request, response, e.getStatusCode().series());
 			return;
 		}

@@ -83,7 +83,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def deviceName = makeDeviceName("Bob", operatingSystem)
 		User bob = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bob", "Dunn", "BD",
-				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, null, ["Accept-Language" : language])
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, null, [:], ["Accept-Language" : language])
 		bob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)

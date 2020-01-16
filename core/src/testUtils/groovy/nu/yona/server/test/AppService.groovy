@@ -34,33 +34,33 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, headers = [:], parameters = [:])
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:], headers = [:])
 	{
 		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber)
-		def response = addUser(jsonStr, headers, parameters)
+		def response = addUser(jsonStr, parameters, headers)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, headers = [:], parameters = [:]) // YD-623
+	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:], headers = [:]) // YD-623
 	{
 		def jsonStr = User.makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber)
-		def response = addUser(jsonStr, headers, parameters)
+		def response = addUser(jsonStr, parameters, headers)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId = null, headers = [:], parameters = [:])
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId = null, parameters = [:], headers = [:])
 	{
 		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId)
-		def response = addUser(jsonStr, headers, parameters)
+		def response = addUser(jsonStr, parameters, headers)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(jsonString, headers = [:], parameters = [:])
+	def addUser(jsonString, parameters = [:], headers = [:])
 	{
-		yonaServer.createResource(USERS_PATH, jsonString, headers, parameters)
+		yonaServer.createResource(USERS_PATH, jsonString, parameters, headers)
 	}
 
 	def getUser(Closure asserter, userUrl, boolean includePrivateData, password = null)
@@ -144,7 +144,7 @@ class AppService extends Service
 
 	def updateUser(userUrl, jsonString)
 	{
-		yonaServer.updateResource(userUrl, jsonString, [:], [:])
+		yonaServer.updateResource(userUrl, jsonString)
 	}
 
 	def deleteUser(User user, message = "")
@@ -174,7 +174,7 @@ class AppService extends Service
 		assert processUrl == null // Processing happens automatically these days
 	}
 
-	def sendBuddyConnectRequest(sendingUser, receivingUser, assertSuccess = true)
+	def sendBuddyConnectRequest(sendingUser, receivingUser, assertSuccess = true, parameters = [:], headers = [:])
 	{
 		// Send the buddy request
 		def response = requestBuddy(sendingUser, """{
@@ -189,7 +189,7 @@ class AppService extends Service
 			"message":"Would you like to be my buddy?",
 			"sendingStatus":"REQUESTED",
 			"receivingStatus":"REQUESTED"
-		}""", sendingUser.password)
+		}""", sendingUser.password, parameters, headers)
 		if (assertSuccess) {
 			assertResponseStatusCreated(response)
 		}
@@ -277,12 +277,12 @@ class AppService extends Service
 
 	def requestOverwriteUser(mobileNumber)
 	{
-		yonaServer.postJson(OVERWRITE_USER_REQUEST_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
+		yonaServer.postJson(OVERWRITE_USER_REQUEST_PATH, """{ }""", ["mobileNumber":mobileNumber])
 	}
 
-	def requestBuddy(User user, jsonString, password)
+	def requestBuddy(User user, jsonString, password, parameters = [:], headers = [:])
 	{
-		yonaServer.createResourceWithPassword(user.buddiesUrl, jsonString, password)
+		yonaServer.createResourceWithPassword(user.buddiesUrl, jsonString, password, parameters, headers)
 	}
 
 	def removeBuddy(User user, Buddy buddy, message)
@@ -297,7 +297,7 @@ class AppService extends Service
 
 	def getAllActivityCategoriesWithLanguage(language)
 	{
-		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH, ["Accept-Language":language])
+		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH, [:], ["Accept-Language":language])
 	}
 
 	List<Buddy> getBuddies(User user)
@@ -313,9 +313,9 @@ class AppService extends Service
 		response.responseData._embedded."yona:buddies".collect{new Buddy(it)}
 	}
 
-	def getMessages(User user, parameters = [:])
+	def getMessages(User user, parameters = [:], headers = [:])
 	{
-		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, parameters)
+		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, parameters, headers)
 	}
 
 	def getWeekActivityOverviews(User user, parameters = [:])
@@ -422,7 +422,7 @@ class AppService extends Service
 
 	def getNewDeviceRequest(mobileNumber, newDeviceRequestPassword = null)
 	{
-		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
+		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", [:], ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword])
 	}
 
 	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
@@ -436,7 +436,7 @@ class AppService extends Service
 				"appVersionCode": "$appVersionCode",
 				"firebaseInstanceId": $firebaseInstanceIdString
 				}"""
-		yonaServer.postJson(url, json, ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
+		yonaServer.postJson(url, json, [:], ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword])
 	}
 
 	def clearNewDeviceRequest(mobileNumber, password)
@@ -467,7 +467,7 @@ class AppService extends Service
 
 	def addGoal(User user, Goal goal, message = "")
 	{
-		yonaServer.postJson(user.goalsUrl, goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
+		yonaServer.postJson(user.goalsUrl, goal.convertToJsonString(), ["message": message], ["Yona-Password": user.password])
 	}
 
 	Goal updateGoal(Closure asserter, User user, String url, Goal goal, message = "")
@@ -479,13 +479,13 @@ class AppService extends Service
 
 	def updateGoal(User user, String url, Goal goal, message = "")
 	{
-		yonaServer.putJson(url, goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
+		yonaServer.putJson(url, goal.convertToJsonString(), ["message": message], ["Yona-Password": user.password])
 	}
 
 	def updateLastStatusChangeTime(User user, Buddy buddy, ZonedDateTime lastStatusChangeTime)
 	{
 		def lastStatusChangeTimeStr = yonaServer.toIsoDateTimeString(lastStatusChangeTime)
-		def response = yonaServer.putJson(buddy.editUrl, """{"lastStatusChangeTime":"$lastStatusChangeTimeStr"}""", ["Yona-Password": user.password])
+		def response = yonaServer.putJson(buddy.editUrl, """{"lastStatusChangeTime":"$lastStatusChangeTimeStr"}""", [:], ["Yona-Password": user.password])
 		assertResponseStatusOk(response)
 		return new Buddy(response.responseData)
 	}
@@ -497,7 +497,7 @@ class AppService extends Service
 
 	def getGoals(User user)
 	{
-		yonaServer.getResource(user.goalsUrl, ["Yona-Password": user.password])
+		yonaServer.getResource(user.goalsUrl, [:], ["Yona-Password": user.password])
 	}
 
 	def postMessageActionWithPassword(path, properties, password)
@@ -512,17 +512,17 @@ class AppService extends Service
 
 	def postMessageActionWithPassword(path, String jsonString, password)
 	{
-		postMessageAction(path, jsonString, ["Yona-Password": password])
+		postMessageAction(path, jsonString, [:], ["Yona-Password": password])
 	}
 
-	def postMessageAction(path, jsonString, headers = [:])
+	def postMessageAction(path, jsonString, parameters = [:], headers = [:])
 	{
-		yonaServer.postJson(path, jsonString, headers)
+		yonaServer.postJson(path, jsonString, parameters, headers)
 	}
 
-	def postAppActivityToAnalysisEngine(User user, Device device, AppActivity appActivity)
+	def postAppActivityToAnalysisEngine(User user, Device device, AppActivity appActivity, parameters = [:], headers = [:])
 	{
-		yonaServer.createResourceWithPassword(device.appActivityUrl, appActivity.getJson(), user.password)
+		yonaServer.createResourceWithPassword(device.appActivityUrl, appActivity.getJson(), user.password, parameters, headers)
 	}
 
 	def composeActivityCategoryUrl(def activityCategoryId) {
