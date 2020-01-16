@@ -45,25 +45,25 @@ abstract class Service
 
 	void setEnableStatistics(def enable)
 	{
-		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
+		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", ["enable" : enable])
 		assert response.status == 204 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
 	}
 
 	void resetStatistics()
 	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "true"])
+		def response = getResource("/hibernateStatistics/", ["reset" : "true"])
 		assertResponseStatusOk(response)
 	}
 
 	void clearCaches()
 	{
-		def response = yonaServer.createResource("/hibernateStatistics/clearCaches/", "{}", [:], [:])
+		def response = yonaServer.createResource("/hibernateStatistics/clearCaches/", "{}")
 		assertResponseStatusNoContent(response)
 	}
 
 	def getStatistics()
 	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "false"])
+		def response = getResource("/hibernateStatistics/", ["reset" : "false"])
 		assertResponseStatusOk(response)
 		response.responseData
 	}
@@ -88,44 +88,38 @@ abstract class Service
 		response.status >= 200 && response.status < 300
 	}
 
-	def createResourceWithPassword(path, jsonString, password, headers = [:], parameters = [:])
+	def createResourceWithPassword(path, jsonString, password, parameters = [:], headers = [:])
 	{
-		def headersWithPassword = headers.clone()
-		headersWithPassword["Yona-Password"] = password
-		yonaServer.createResource(path, jsonString, headersWithPassword, parameters)
+		yonaServer.createResource(path, jsonString, parameters, YonaServer.addPasswordToHeaders(headers, password))
 	}
 
-	def updateResourceWithPassword(path, jsonString, password, headers = [:], parameters = [:])
+	def updateResourceWithPassword(path, jsonString, password, parameters = [:], headers = [:])
 	{
-		def headersWithPassword = headers.clone()
-		headersWithPassword["Yona-Password"] = password
-		yonaServer.updateResource(path, jsonString, headersWithPassword, parameters)
+		yonaServer.updateResource(path, jsonString, parameters, YonaServer.addPasswordToHeaders(headers, password))
 	}
 
-	def deleteResourceWithPassword(path, password, headers = [:], parameters = [:])
+	def deleteResourceWithPassword(path, password, parameters = [:], headers = [:])
 	{
-		yonaServer.deleteResourceWithPassword(path, password, parameters)
+		yonaServer.deleteResourceWithPassword(path, password, parameters, headers)
 	}
 
-	def getResourceWithPassword(path, password, headers = [:], parameters = [:])
+	def getResourceWithPassword(path, password, parameters = [:], headers = [:])
 	{
-		def headersWithPassword = headers.clone()
-		headersWithPassword["Yona-Password"] = password
-		yonaServer.getResource(path, headersWithPassword, parameters)
+		yonaServer.getResource(path, parameters, YonaServer.addPasswordToHeaders(headers, password))
 	}
 
-	def getResource(path, headers = [:], parameters = [:])
+	def getResource(path, parameters = [:], headers = [:])
 	{
-		yonaServer.getResource(path, headers, parameters)
+		yonaServer.getResource(path, parameters, headers)
 	}
 
-	def updateResource(path, jsonString, headers = [:], parameters = [:])
+	def updateResource(path, jsonString, parameters = [:], headers = [:])
 	{
-		yonaServer.updateResource(path, jsonString, headers, parameters)
+		yonaServer.updateResource(path, jsonString, parameters, headers)
 	}
 
-	def deleteResource(path, headers = [:], parameters = [:])
+	def deleteResource(path, parameters = [:], headers = [:])
 	{
-		yonaServer.deleteResource(path, headers, parameters)
+		yonaServer.deleteResource(path, parameters, headers)
 	}
 }

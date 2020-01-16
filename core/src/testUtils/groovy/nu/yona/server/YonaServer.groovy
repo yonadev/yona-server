@@ -42,50 +42,65 @@ class YonaServer
 		formatter.format(now)
 	}
 
-	def createResourceWithPassword(path, jsonString, password, parameters = [:])
+	def createResourceWithPassword(path, jsonString, password, parameters = [:], headers = [:])
 	{
-		createResource(path, jsonString, ["Yona-Password": password], parameters)
+		createResource(path, jsonString, parameters, addPasswordToHeaders(headers, password))
 	}
 
-	def createResource(path, jsonString, headers = [:], parameters = [:])
+	public static addPasswordToHeaders(headers, password)
 	{
-		postJson(path, jsonString, headers, parameters)
+		def headersWithPassword = cloneMap(headers)
+		if (password)
+		{
+			headersWithPassword["Yona-Password"] = password
+		}
+		return headersWithPassword
 	}
 
-	def updateResourceWithPassword(path, jsonString, password, parameters = [:])
+	private static def cloneMap(map)
 	{
-		updateResource(path, jsonString, ["Yona-Password": password], parameters)
+		map.getClass().newInstance(map)
 	}
 
-	def updateResource(path, jsonString, headers = [:], parameters = [:])
+	def createResource(path, jsonString, parameters = [:], headers = [:])
 	{
-		putJson(path, jsonString, headers, parameters)
+		postJson(path, jsonString, parameters, headers)
 	}
 
-	def deleteResourceWithPassword(path, password, parameters = [:])
+	def updateResourceWithPassword(path, jsonString, password, parameters = [:], headers = [:])
 	{
-		deleteResource(path, ["Yona-Password": password], parameters)
+		updateResource(path, jsonString, parameters, addPasswordToHeaders(headers, password))
 	}
 
-	def deleteResource(path, headers = [:], parameters = [:])
+	def updateResource(path, jsonString, parameters = [:], headers = [:])
 	{
-		restClient.delete(path: stripQueryString(path), headers: headers, query:parameters + getQueryParams(path))
+		putJson(path, jsonString, parameters, headers)
 	}
 
-	def getResourceWithPassword(path, password, parameters = [:])
+	def deleteResourceWithPassword(path, password, parameters = [:], headers = [:])
 	{
-		getResource(path, password ? ["Yona-Password": password] : [ : ], parameters)
+		deleteResource(path, parameters, addPasswordToHeaders(headers, password))
 	}
 
-	def getResource(path, headers = [:], parameters = [:])
+	def deleteResource(path, parameters = [:], headers = [:])
+	{
+		restClient.delete(path: stripQueryString(path), query:parameters + getQueryParams(path), headers: headers)
+	}
+
+	def getResourceWithPassword(path, password, parameters = [:], headers =[:])
+	{
+		getResource(path, parameters, addPasswordToHeaders(headers, password))
+	}
+
+	def getResource(path, parameters = [:], headers = [:])
 	{
 		restClient.get(path: stripQueryString(path),
 		contentType:'application/json',
-		headers: headers,
-		query: parameters + getQueryParams(path))
+		query: parameters + getQueryParams(path),
+		headers: headers)
 	}
 
-	def postJson(path, jsonString, headers = [:], parameters = [:])
+	def postJson(path, jsonString, parameters = [:], headers = [:])
 	{
 		def object = null
 		if (jsonString instanceof Map)
@@ -100,11 +115,11 @@ class YonaServer
 		restClient.post(path: stripQueryString(path),
 		body: object,
 		contentType:'application/json',
-		headers: headers,
-		query: parameters + getQueryParams(path))
+		query: parameters + getQueryParams(path),
+		headers: headers)
 	}
 
-	def putJson(path, jsonString, headers = [:], parameters = [:])
+	def putJson(path, jsonString, parameters = [:], headers = [:])
 	{
 		def object = null
 		if (jsonString instanceof Map)

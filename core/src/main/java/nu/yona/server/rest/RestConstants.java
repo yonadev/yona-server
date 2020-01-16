@@ -9,6 +9,9 @@ public final class RestConstants
 	public static final String PASSWORD_HEADER = "Yona-Password";
 	public static final String NEW_DEVICE_REQUEST_PASSWORD_HEADER = "Yona-NewDeviceRequestPassword";
 	public static final String APP_VERSION_HEADER = "Yona-App-Version";
+	public static final String APP_OS_MDC_KEY = "yona.app.os";
+	public static final String APP_VERSION_CODE_MDC_KEY = "yona.app.versionCode";
+	public static final String APP_VERSION_NAME_MDC_KEY = "yona.app.versionName";
 
 	private RestConstants()
 	{

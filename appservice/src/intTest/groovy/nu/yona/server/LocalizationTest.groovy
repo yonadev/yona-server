@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation
+ * Copyright (c) 2015, 2019 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -7,8 +7,6 @@
 package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
-
-import groovy.json.*
 
 class LocalizationTest extends AbstractAppServiceIntegrationTest
 {
@@ -18,7 +16,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		def wrongNumber = "NotANumber"
 		when:
 		def successResponse = appService.yonaServer.getResource(GAMBLING_ACT_CAT_URL)
-		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Yona-NewDeviceRequestPassword" : ""])
+		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Yona-NewDeviceRequestPassword" : ""])
 
 		then:
 		assertResponseStatusOk(successResponse)
@@ -37,8 +35,8 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		given:
 		def wrongNumber = "NotANumber"
 		when:
-		def successResponse = appService.yonaServer.getResource(GAMBLING_ACT_CAT_URL, ["Accept-Language" : "nl-NL"])
-		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Accept-Language" : "nl-NL", "Yona-NewDeviceRequestPassword" : ""])
+		def successResponse = appService.yonaServer.getResource(GAMBLING_ACT_CAT_URL, [:], ["Accept-Language" : "nl-NL"])
+		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Accept-Language" : "nl-NL", "Yona-NewDeviceRequestPassword" : ""])
 
 		then:
 		assertResponseStatusOk(successResponse)
@@ -57,8 +55,8 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		given:
 		def wrongNumber = "NotANumber"
 		when:
-		def successResponse = appService.yonaServer.getResource(GAMBLING_ACT_CAT_URL, ["Accept-Language" : "la"])
-		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Accept-Language" : "la", "Yona-NewDeviceRequestPassword" : ""])
+		def successResponse = appService.yonaServer.getResource(GAMBLING_ACT_CAT_URL, [:], ["Accept-Language" : "la"])
+		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Accept-Language" : "la", "Yona-NewDeviceRequestPassword" : ""])
 
 		then:
 		assertResponseStatusOk(successResponse)

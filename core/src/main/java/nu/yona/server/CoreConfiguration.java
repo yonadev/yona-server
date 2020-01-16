@@ -7,12 +7,15 @@ package nu.yona.server;
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.CustomScopeConfigurer;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.context.support.SimpleThreadScope;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.UriTemplate;
@@ -24,14 +27,10 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
-import nu.yona.server.rest.RestClientErrorHandler;
 
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
@@ -107,10 +106,10 @@ public class CoreConfiguration
 	}
 
 	@Bean
-	public RestTemplate restTemplate(ObjectMapper objectMapper)
+	public static CustomScopeConfigurer customScopeConfigurer()
 	{
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.setErrorHandler(new RestClientErrorHandler(objectMapper));
-		return restTemplate;
+		CustomScopeConfigurer configurer = new CustomScopeConfigurer();
+		configurer.addScope(ThreadScope.class.getAnnotation(Scope.class).value(), new SimpleThreadScope());
+		return configurer;
 	}
 }
