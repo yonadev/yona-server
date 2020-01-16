@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
@@ -100,7 +100,7 @@ public class GoalService
 	@Transactional
 	public GoalDto addGoal(UUID userId, GoalDto goal, Optional<String> message)
 	{
-		goal.validate();
+		assertIsValidNewGoal(goal);
 		User userEntity = userService.getUserEntityById(userId);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Optional<Goal> conflictingExistingGoal = userAnonymizedEntity.getGoals().stream()
@@ -119,6 +119,13 @@ public class GoalService
 		broadcastGoalChangeMessage(userEntity, goalEntity.getActivityCategory(), GoalChangeMessage.Change.GOAL_ADDED, message);
 
 		return GoalDto.createInstance(goalEntity);
+	}
+
+	private void assertIsValidNewGoal(GoalDto goal)
+	{
+		goal.assertIsValid();
+		Require.that(goal.getCreationTime().isEmpty() || yonaProperties.isTestServer(),
+				() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set goal creation time"));
 	}
 
 	@Transactional
@@ -176,7 +183,7 @@ public class GoalService
 
 	private void assertValidGoalUpdate(Goal existingGoal, GoalDto newGoalDto)
 	{
-		newGoalDto.validate();
+		newGoalDto.assertIsValid();
 		GoalDto existingGoalDto = GoalDto.createInstance(existingGoal);
 		assertNoTypeChange(newGoalDto, existingGoalDto);
 		assertNoActivityCategoryChange(newGoalDto, existingGoalDto);

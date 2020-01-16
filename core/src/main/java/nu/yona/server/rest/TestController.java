@@ -31,6 +31,7 @@ import nu.yona.server.email.EmailService.EmailDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.service.FirebaseService;
+import nu.yona.server.messaging.service.FirebaseService.MessageData;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.util.Require;
 
@@ -111,7 +112,7 @@ public class TestController extends ControllerBase
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
-		Optional<Message> lastMessage = firebaseService.getLastMessage(registrationToken);
+		Optional<MessageData> lastMessage = firebaseService.getLastMessage(registrationToken);
 		if (lastMessage.isEmpty())
 		{
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -131,7 +132,7 @@ public class TestController extends ControllerBase
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
-		Optional<Message> lastMessage = firebaseService.clearLastMessage(registrationToken);
+		Optional<MessageData> lastMessage = firebaseService.clearLastMessage(registrationToken);
 		if (lastMessage.isEmpty())
 		{
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -153,29 +154,50 @@ public class TestController extends ControllerBase
 		private final String title;
 		private final String body;
 		private final Map<String, String> data;
+		private final String appOs;
+		private final int appVersionCode;
+		private final String appVersionName;
 
-		public FirebaseMessageDto(String title, String body, Map<String, String> data)
+		public FirebaseMessageDto(String title, String body, Map<String, String> data, String appOs, int appVersionCode,
+				String appVersionName)
 		{
 			this.title = title;
 			this.body = body;
 			this.data = data;
+			this.appOs = appOs;
+			this.appVersionCode = appVersionCode;
+			this.appVersionName = appVersionName;
 		}
 
 		@SuppressWarnings("unchecked")
-		public static FirebaseMessageDto createInstance(Message message)
+		public static FirebaseMessageDto createInstance(MessageData messageData)
 		{
 			try
 			{
-				Notification notification = (Notification) notificationField.get(message);
-				Map<String, String> data = (Map<String, String>) dataField.get(message);
+				Notification notification = (Notification) notificationField.get(messageData.firebaseMessage);
+				Map<String, String> data = (Map<String, String>) dataField.get(messageData.firebaseMessage);
 				String title = (String) titleField.get(notification);
 				String body = (String) bodyField.get(notification);
-				return new FirebaseMessageDto(title, body, data);
+				String appOs = getStringValueFromMdc(messageData, Constants.APP_OS_MDC_KEY).orElse(null);
+				int appVersionCode = getIntValueFromMdc(messageData, Constants.APP_VERSION_CODE_MDC_KEY);
+				String appVersionName = getStringValueFromMdc(messageData, Constants.APP_VERSION_NAME_MDC_KEY).orElse(null);
+
+				return new FirebaseMessageDto(title, body, data, appOs, appVersionCode, appVersionName);
 			}
-			catch (Exception e)
+			catch (IllegalArgumentException | IllegalAccessException e)
 			{
 				throw YonaException.unexpected(e);
 			}
+		}
+
+		private static Optional<String> getStringValueFromMdc(MessageData messageData, String key)
+		{
+			return messageData.mdc.map(mdc -> mdc.get(key));
+		}
+
+		private static Integer getIntValueFromMdc(MessageData messageData, String key)
+		{
+			return getStringValueFromMdc(messageData, key).map(Integer::parseInt).orElse(0);
 		}
 
 		private static Field getFieldAndSetAccessible(Class<?> clazz, String fieldName)
@@ -199,6 +221,21 @@ public class TestController extends ControllerBase
 		public Map<String, String> getData()
 		{
 			return data;
+		}
+
+		public String getAppOs()
+		{
+			return appOs;
+		}
+
+		public int getAppVersionCode()
+		{
+			return appVersionCode;
+		}
+
+		public String getAppVersionName()
+		{
+			return appVersionName;
 		}
 	}
 

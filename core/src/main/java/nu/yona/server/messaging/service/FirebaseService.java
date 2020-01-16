@@ -16,6 +16,7 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,8 @@ import com.google.firebase.messaging.Notification;
 import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.AsyncExecutor;
+import nu.yona.server.util.AsyncExecutor.ThreadData;
 import nu.yona.server.util.Require;
 
 @Service
@@ -37,13 +40,16 @@ public class FirebaseService
 {
 	private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
 
-	private final Map<String, Message> lastMessageByRegistrationToken = new HashMap<>();
+	private final Map<String, MessageData> lastMessageByRegistrationToken = new HashMap<>();
 
 	@Autowired
 	private Translator translator;
 
 	@Autowired
 	private YonaProperties yonaProperties;
+
+	@Autowired
+	private AsyncExecutor asyncExecutor;
 
 	@PostConstruct
 	private void init()
@@ -78,19 +84,11 @@ public class FirebaseService
 		Message firebaseMessage = Message.builder().setNotification(new Notification(title, body))
 				.putData("messageId", Long.toString(getMessageId(message))).setToken(registrationToken).build();
 
-		if (yonaProperties.getFirebase().isEnabled())
-		{
-			logger.info("Sending Firebase message");
-			// Sending takes quite a bit of time, so do it asynchronously
-			CompletableFuture.runAsync(() -> sendMessage(firebaseMessage))
-					.whenCompleteAsync((r, t) -> logIfCompletedWithException(t));
-		}
-		else
-		{
-			logger.info("Firebase message not sent because Firebase is disabled");
-			// Store for testability
-			lastMessageByRegistrationToken.put(registrationToken, firebaseMessage);
-		}
+		// Sending takes quite a bit of time, so do it asynchronously
+		ThreadData threadData = asyncExecutor.getThreadData();
+		CompletableFuture
+				.runAsync(() -> asyncExecutor.initThreadAndDo(threadData, () -> sendMessage(registrationToken, firebaseMessage)))
+				.whenCompleteAsync((r, t) -> logIfCompletedWithException(t, registrationToken));
 	}
 
 	private long getMessageId(nu.yona.server.messaging.entities.Message message)
@@ -99,21 +97,32 @@ public class FirebaseService
 		return message.getId();
 	}
 
-	public Optional<Message> getLastMessage(String registrationToken)
+	public Optional<MessageData> getLastMessage(String registrationToken)
 	{
 		return Optional.ofNullable(lastMessageByRegistrationToken.get(registrationToken));
 	}
 
-	public Optional<Message> clearLastMessage(String registrationToken)
+	public Optional<MessageData> clearLastMessage(String registrationToken)
 	{
 		return Optional.ofNullable(lastMessageByRegistrationToken.remove(registrationToken));
 	}
 
-	private void sendMessage(Message firebaseMessage)
+	private void sendMessage(String registrationToken, Message firebaseMessage)
 	{
 		try
 		{
-			FirebaseMessaging.getInstance().send(firebaseMessage);
+			if (yonaProperties.getFirebase().isEnabled())
+			{
+				logger.info("Sending Firebase message");
+				FirebaseMessaging.getInstance().send(firebaseMessage);
+			}
+			else
+			{
+				logger.info("Firebase message not sent because Firebase is disabled");
+				// Store for testability
+				lastMessageByRegistrationToken.put(registrationToken,
+						MessageData.createInstance(MDC.getCopyOfContextMap(), firebaseMessage));
+			}
 		}
 		catch (FirebaseMessagingException e)
 		{
@@ -121,15 +130,33 @@ public class FirebaseService
 		}
 	}
 
-	private void logIfCompletedWithException(Throwable throwable)
+	private void logIfCompletedWithException(Throwable throwable, String token)
 	{
-		if (throwable == null)
+		if (throwable != null)
+		{
+			logger.error("Fatal error: Exception while sending Firebase message to '" + token + "'", throwable);
+			return;
+		}
+		if (yonaProperties.getFirebase().isEnabled())
 		{
 			logger.info("Firebase message sent successfully");
 		}
-		else
+	}
+
+	public static class MessageData
+	{
+		public final Optional<Map<String, String>> mdc;
+		public final Message firebaseMessage;
+
+		public MessageData(Map<String, String> mdc, Message firebaseMessage)
 		{
-			logger.error("Fatal error: Exception while sending Firebase message", throwable);
+			this.mdc = Optional.ofNullable(mdc);
+			this.firebaseMessage = firebaseMessage;
+		}
+
+		public static MessageData createInstance(Map<String, String> mdc, Message firebaseMessage)
+		{
+			return new MessageData(mdc, firebaseMessage);
 		}
 	}
 }

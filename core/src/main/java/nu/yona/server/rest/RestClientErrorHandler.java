@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
 
@@ -39,11 +39,12 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 	public void handleError(ClientHttpResponse response) throws IOException
 	{
 		logger.error("Response error: {} {}", getStatusCode(response), response.getStatusText());
-		Optional<ErrorResponseDto> yonaErrorResponse = getYonaErrorResponse(response);
+		String responseBody = convertStreamToString(response.getBody());
+		Optional<ErrorResponseDto> yonaErrorResponse = getYonaErrorResponse(response, responseBody);
 		yonaErrorResponse.ifPresent(yer -> {
 			throw UpstreamException.yonaException(getStatusCode(response), yer.getCode(), yer.getMessage());
 		});
-		throw UpstreamException.remoteServiceError(getStatusCode(response), convertStreamToString(response.getBody()));
+		throw UpstreamException.remoteServiceError(getStatusCode(response), responseBody);
 	}
 
 	@Override
@@ -64,13 +65,13 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 		}
 	}
 
-	private Optional<ErrorResponseDto> getYonaErrorResponse(ClientHttpResponse response)
+	private Optional<ErrorResponseDto> getYonaErrorResponse(ClientHttpResponse response, String responseBody)
 	{
 		try
 		{
 			if (getStatusCode(response).series() == HttpStatus.Series.CLIENT_ERROR)
 			{
-				return Optional.ofNullable(objectMapper.readValue(response.getBody(), ErrorResponseDto.class));
+				return Optional.ofNullable(objectMapper.readValue(responseBody, ErrorResponseDto.class));
 			}
 		}
 		catch (IOException e)

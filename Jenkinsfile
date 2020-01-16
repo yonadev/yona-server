@@ -64,7 +64,7 @@ pipeline {
 				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
-				sh 'helm upgrade --install --namespace yona --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
+				helmUpgradeOrInstall(4, "infrastructure/helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -110,7 +110,7 @@ pipeline {
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				helmUpgradeOrInstall(2, "/helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -139,7 +139,7 @@ pipeline {
 			steps {
 				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f /config/values.yaml --namespace loadtest --version 1.2.${BUILD_NUMBER_TO_DEPLOY} loadtest yona/yona'
+				helmUpgradeOrInstall(2, "/helm/values_loadtest.yaml", "loadtest")
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -212,7 +212,7 @@ pipeline {
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				helmUpgradeOrInstall(1, "/helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -229,6 +229,19 @@ pipeline {
 					slackSend color: 'danger', channel: '#devops', message: "<${currentBuild.absoluteUrl}|Server build ${env.BUILD_NUMBER}> failed to deploy build ${env.BUILD_NUMBER_TO_DEPLOY} to production"
 				}
 			}
+		}
+	}
+}
+
+void helmUpgradeOrInstall(def repoNumber, def srcPath, def name)
+{
+	def namespace = name
+	def deploymentName = name
+	def encodedPath = java.net.URLEncoder.encode(srcPath, "UTF-8")
+	def url = "https://git.ops.yona.nu/api/v4/projects/${repoNumber}/repository/files/${encodedPath}/raw?ref=master"
+	withCredentials([string( credentialsId: 'gitlab-yonabuild', variable: 'token')]) {
+		withEnv(["TOKEN=${token}"]) {
+			sh "wget --header='PRIVATE-TOKEN: ${TOKEN}' --output-document=- ${url} | helm upgrade --install --values - --namespace ${namespace} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${deploymentName} yona/yona"
 		}
 	}
 }

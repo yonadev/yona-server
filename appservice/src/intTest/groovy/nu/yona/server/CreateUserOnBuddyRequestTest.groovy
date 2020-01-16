@@ -382,7 +382,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def inviteUrl = getInviteUrl()
 
 		when:
-		def response = appService.getResource(YonaServer.stripQueryString(inviteUrl), [:], ["tempPassword": "hack", "requestingUserId": richard.getId()])
+		def response = appService.getResource(YonaServer.stripQueryString(inviteUrl), ["tempPassword": "hack", "requestingUserId": richard.getId()])
 
 		then:
 		assertResponseStatus(response, 400)
@@ -406,7 +406,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 				"lastName":"Quin",
 				"nickname":"RQ",
 				"mobileNumber":"${makeMobileNumber(timestamp)}"
-			}""", [:], ["tempPassword": "hack"])
+			}""", ["tempPassword": "hack"])
 
 		then:
 		assertResponseStatus(response, 400)
@@ -423,7 +423,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def response = appService.getResource(richard.url, [:], ["tempPassword": richard.password, "requestingUserId": richard.getId()])
+		def response = appService.getResource(richard.url, ["tempPassword": richard.password, "requestingUserId": richard.getId()])
 
 		then:
 		assertResponseStatus(response, 400)
@@ -465,7 +465,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 				"lastName":"Quin",
 				"nickname":"RQ",
 				"mobileNumber":"${makeMobileNumber(timestamp)}"
-			}""", [:], ["tempPassword": "hack"])
+			}""", ["tempPassword": "hack"])
 
 		then:
 		assertResponseStatus(response, 400)
@@ -490,7 +490,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(response)
 
 		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "Bob Changed",
-				"Dunn Changed", "BD Changed", mobileNumberBob, [:], ["overwriteUserConfirmationCode": "1234"])
+				"Dunn Changed", "BD Changed", mobileNumberBob, ["overwriteUserConfirmationCode": "1234"])
 		bob
 		bob.firstName == "Bob Changed"
 		bob.lastName == "Dunn Changed"
@@ -534,7 +534,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def inviteUrl = getInviteUrl()
 		appService.requestOverwriteUser(mobileNumberBob)
 		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "Bob Changed",
-				"Dunn Changed", "BD Changed", mobileNumberBob, [:], ["overwriteUserConfirmationCode": "1234"])
+				"Dunn Changed", "BD Changed", mobileNumberBob, ["overwriteUserConfirmationCode": "1234"])
 		bob.emailAddress = "bob@dunn.net"
 
 		when:
@@ -589,7 +589,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		updatedBobJson.deviceAppVersionCode = 10000
 		updatedBobJson.deviceFirebaseInstanceId = "SomeLongString"
 		updatedBobJson.remove(propertyToRemove)
-		def response = appService.updateResource(inviteUrl, updatedBobJson, [:], [:])
+		def response = appService.updateResource(inviteUrl, updatedBobJson)
 
 		then:
 		assertResponseStatus(response, expectedStatus)
@@ -624,7 +624,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		when:
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.mobileNumber = richard.mobileNumber
-		def response = appService.updateResource(inviteUrl, updatedBobJson, [:], [:])
+		def response = appService.updateResource(inviteUrl, updatedBobJson)
 
 		then:
 		assertResponseStatus(response, 400)
