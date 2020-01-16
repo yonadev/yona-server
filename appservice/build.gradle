@@ -68,7 +68,7 @@ docker {
 
 task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 	inputDir = mkdir("build/docker")
-	tags = [ "${dockerImageName}:${project.ext.docker_tag}" ]
+	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
 	doFirst {
 		copy {
 			from bootJar
@@ -83,8 +83,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 }
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	imageName = dockerImageName
-	tag = project.ext.docker_tag
+	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
 }
 
 sourceSets {
