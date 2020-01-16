@@ -20,7 +20,7 @@ public class PassThroughHeadersHolder
 
 	public void readFrom(HttpHeaders headers)
 	{
-		storeIfPresent(headers, Constants.APP_VERSION_HEADER);
+		storeIfPresent(headers, RestConstants.APP_VERSION_HEADER);
 	}
 
 	private void storeIfPresent(HttpHeaders headers, String name)

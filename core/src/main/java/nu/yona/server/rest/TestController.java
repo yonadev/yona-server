@@ -178,9 +178,9 @@ public class TestController extends ControllerBase
 				Map<String, String> data = (Map<String, String>) dataField.get(messageData.firebaseMessage);
 				String title = (String) titleField.get(notification);
 				String body = (String) bodyField.get(notification);
-				String appOs = getStringValueFromMdc(messageData, Constants.APP_OS_MDC_KEY).orElse(null);
-				int appVersionCode = getIntValueFromMdc(messageData, Constants.APP_VERSION_CODE_MDC_KEY);
-				String appVersionName = getStringValueFromMdc(messageData, Constants.APP_VERSION_NAME_MDC_KEY).orElse(null);
+				String appOs = getStringValueFromMdc(messageData, RestConstants.APP_OS_MDC_KEY).orElse(null);
+				int appVersionCode = getIntValueFromMdc(messageData, RestConstants.APP_VERSION_CODE_MDC_KEY);
+				String appVersionName = getStringValueFromMdc(messageData, RestConstants.APP_VERSION_NAME_MDC_KEY).orElse(null);
 
 				return new FirebaseMessageDto(title, body, data, appOs, appVersionCode, appVersionName);
 			}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2018, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -28,6 +28,7 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 
+import nu.yona.server.Constants;
 import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
@@ -134,7 +135,7 @@ public class FirebaseService
 	{
 		if (throwable != null)
 		{
-			logger.error("Fatal error: Exception while sending Firebase message to '" + token + "'", throwable);
+			logger.error(Constants.ALERT_MARKER, "Fatal error: Exception while sending Firebase message to '" + token + "'", throwable);
 			return;
 		}
 		if (yonaProperties.getFirebase().isEnabled())

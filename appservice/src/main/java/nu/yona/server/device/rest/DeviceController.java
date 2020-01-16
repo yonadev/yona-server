@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.rest;
 
-import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
+import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
@@ -75,7 +75,7 @@ import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.RestConstants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.rest.RestUtil;
@@ -167,7 +167,7 @@ public class DeviceController extends ControllerBase
 	@PostMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<UserResource> registerDevice(
-			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) String newDeviceRequestPassword,
+			@RequestHeader(value = RestConstants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) String newDeviceRequestPassword,
 			@PathVariable UUID userId, @RequestBody DeviceRegistrationRequestDto request)
 	{
 		assertValidDeviceDataForRegister(request);
@@ -194,7 +194,7 @@ public class DeviceController extends ControllerBase
 
 	@PostMapping(value = "/{deviceId}/openApp")
 	@ResponseBody
-	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = RestConstants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppOpenEventDto request)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
@@ -228,7 +228,7 @@ public class DeviceController extends ControllerBase
 	@GetMapping(value = "/{deviceId}/apple.mobileconfig")
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleMobileConfig(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@RequestHeader(value = RestConstants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID deviceId)
 	{
 		HttpHeaders headers = new HttpHeaders();

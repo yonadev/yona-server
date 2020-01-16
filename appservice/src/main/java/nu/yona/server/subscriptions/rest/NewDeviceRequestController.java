@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
+import static nu.yona.server.rest.RestConstants.NEW_DEVICE_REQUEST_PASSWORD_HEADER;
+import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
@@ -34,7 +36,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.rest.DeviceController;
-import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
@@ -61,7 +62,7 @@ public class NewDeviceRequestController extends ControllerBase
 
 	@PutMapping(value = "/{mobileNumber}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) String password,
+	public void setNewDeviceRequestForUser(@RequestHeader(value = PASSWORD_HEADER) String password,
 			@PathVariable String mobileNumber, @RequestBody NewDeviceRequestCreationDto newDeviceRequestCreation)
 	{
 		try
@@ -86,7 +87,7 @@ public class NewDeviceRequestController extends ControllerBase
 	@GetMapping(value = "/{mobileNumber}")
 	@ResponseBody
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
-			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
+			@RequestHeader(value = NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
 			@PathVariable String mobileNumber)
 	{
 		try
@@ -107,7 +108,7 @@ public class NewDeviceRequestController extends ControllerBase
 	@DeleteMapping(value = "/{mobileNumber}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	public void clearNewDeviceRequestForUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable String mobileNumber)
 	{
 		try
@@ -189,8 +190,7 @@ public class NewDeviceRequestController extends ControllerBase
 
 		private void addUserLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource
-					.add(UserController.getUserLink(BuddyDto.USER_REL_NAME, user.getId(), Optional.empty()));
+			newDeviceRequestResource.add(UserController.getUserLink(BuddyDto.USER_REL_NAME, user.getId(), Optional.empty()));
 		}
 
 		private void addRegisterDeviceLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)

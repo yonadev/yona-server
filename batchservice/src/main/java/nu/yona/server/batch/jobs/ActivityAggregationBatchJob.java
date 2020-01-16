@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.jobs;
@@ -79,8 +79,8 @@ public class ActivityAggregationBatchJob
 	@Bean("activityAggregationJob")
 	public Job activityAggregationBatchJob()
 	{
-		return jobBuilderFactory.get("activityAggregationBatchJob").incrementer(new RunIdIncrementer())
-				.flow(aggregateDayActivities()).next(aggregateWeekActivities()).end().build();
+		return jobBuilderFactory.get("activityAggregationBatchJob").listener(new ErrorLoggingListener())
+				.incrementer(new RunIdIncrementer()).flow(aggregateDayActivities()).next(aggregateWeekActivities()).end().build();
 	}
 
 	private Step aggregateDayActivities()
