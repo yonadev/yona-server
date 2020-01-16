@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
@@ -28,8 +28,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class JsonRootLinkRelationProvider implements LinkRelationProvider
 {
-	public static final LinkRelation EDIT_REL = LinkRelation.of("edit");
-
 	private final DefaultLinkRelationProvider defaultLinkRelationProvider = new DefaultLinkRelationProvider();
 
 	@Override

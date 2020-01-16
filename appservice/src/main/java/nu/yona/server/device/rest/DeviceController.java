@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.rest;
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
@@ -77,7 +78,6 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.rest.RestUtil;
 import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.AppleMobileConfigSigner;
@@ -583,7 +583,7 @@ public class DeviceController extends ControllerBase
 
 		private void addEditLink(WebMvcLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
 		{
-			deviceResource.add(selfLinkBuilder.withRel(JsonRootLinkRelationProvider.EDIT_REL));
+			deviceResource.add(selfLinkBuilder.withRel(IanaLinkRelations.EDIT));
 		}
 
 		private void addPostOpenAppEventLink(DeviceResource deviceResource)

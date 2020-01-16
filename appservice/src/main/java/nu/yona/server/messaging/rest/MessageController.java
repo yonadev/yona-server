@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.rest;
@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.PagedModel;
@@ -53,7 +54,6 @@ import nu.yona.server.messaging.service.MessageActionDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
@@ -301,7 +301,7 @@ public class MessageController extends ControllerBase
 
 		private void addEditLink(WebMvcLinkBuilder selfLinkBuilder, MessageDto messageResource)
 		{
-			messageResource.add(selfLinkBuilder.withRel(JsonRootLinkRelationProvider.EDIT_REL));
+			messageResource.add(selfLinkBuilder.withRel(IanaLinkRelations.EDIT));
 		}
 
 		private void addActionLinks(WebMvcLinkBuilder selfLinkBuilder, MessageDto messageResource)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.rest;
@@ -15,6 +15,7 @@ import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.mediatype.hal.CurieProvider;
@@ -44,7 +45,6 @@ import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.rest.RestUtil;
 import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -248,7 +248,7 @@ public class GoalController extends ControllerBase
 
 		private void addEditLink(WebMvcLinkBuilder selfLinkBuilder, GoalDto goalResource)
 		{
-			goalResource.add(selfLinkBuilder.withRel(JsonRootLinkRelationProvider.EDIT_REL));
+			goalResource.add(selfLinkBuilder.withRel(IanaLinkRelations.EDIT));
 		}
 	}
 }

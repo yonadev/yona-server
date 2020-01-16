@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -19,6 +19,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.mediatype.hal.CurieProvider;
 import org.springframework.hateoas.server.ExposesResourceFor;
@@ -51,7 +52,6 @@ import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.rest.GoalController.GoalResourceAssembler;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -314,7 +314,7 @@ public class BuddyController extends ControllerBase
 
 		private void addEditLink(WebMvcLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
-			buddyResource.add(selfLinkBuilder.withRel(JsonRootLinkRelationProvider.EDIT_REL));
+			buddyResource.add(selfLinkBuilder.withRel(IanaLinkRelations.EDIT));
 		}
 
 		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)

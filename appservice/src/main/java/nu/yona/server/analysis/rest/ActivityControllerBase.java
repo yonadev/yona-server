@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
@@ -78,8 +78,6 @@ abstract class ActivityControllerBase extends ControllerBase
 	protected static final int WEEKS_DEFAULT_PAGE_SIZE = 2;
 	protected static final int DAYS_DEFAULT_PAGE_SIZE = 3;
 	protected static final int MESSAGES_DEFAULT_PAGE_SIZE = 4;
-	protected static final LinkRelation PREV_REL = LinkRelation.of("prev"); // IANA reserved, so will not be prefixed
-	protected static final LinkRelation NEXT_REL = LinkRelation.of("next"); // IANA reserved, so will not be prefixed
 
 	protected HttpEntity<PagedModel<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
 			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
@@ -413,13 +411,13 @@ abstract class ActivityControllerBase extends ControllerBase
 			{
 				weekActivityResource
 						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getPreviousDateStr(),
-								weekActivityResource.getContent().getGoalId()).withRel(PREV_REL));
+								weekActivityResource.getContent().getGoalId()).withRel(IanaLinkRelations.PREV));
 			}
 			if (weekActivityResource.getContent().hasNext())
 			{
 				weekActivityResource
 						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getNextDateStr(),
-								weekActivityResource.getContent().getGoalId()).withRel(NEXT_REL));
+								weekActivityResource.getContent().getGoalId()).withRel(IanaLinkRelations.NEXT));
 			}
 		}
 
@@ -501,13 +499,13 @@ abstract class ActivityControllerBase extends ControllerBase
 			{
 				dayActivityResource
 						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getPreviousDateStr(),
-								dayActivityResource.getContent().getGoalId()).withRel(PREV_REL));
+								dayActivityResource.getContent().getGoalId()).withRel(IanaLinkRelations.PREV));
 			}
 			if (dayActivityResource.getContent().hasNext())
 			{
 				dayActivityResource
 						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getNextDateStr(),
-								dayActivityResource.getContent().getGoalId()).withRel(NEXT_REL));
+								dayActivityResource.getContent().getGoalId()).withRel(IanaLinkRelations.NEXT));
 			}
 		}
 

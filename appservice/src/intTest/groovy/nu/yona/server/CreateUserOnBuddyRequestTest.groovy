@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -439,7 +439,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		def responseAddBuddy = sendBuddyRequestForBobby(richard, mobileNumberBob)
-		// Take invite URL and remove "tempPassword=abcd&" or "&tempPassword=ab&cd" (varying order occurs)
+		// Take invite URL and remove "tempPassword=ab%26cd&" or "&tempPassword=ab%26cd" (varying order occurs)
 		def urlToTry = getInviteUrl().replaceFirst(/tempPassword=$ENCODED_TEST_TEMP_PASSWORD&/, "").replaceFirst(/&tempPassword=$ENCODED_TEST_TEMP_PASSWORD*/, "")
 
 		when:

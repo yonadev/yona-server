@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -36,7 +37,6 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.rest.DeviceController;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.DeviceRequestException;
@@ -184,7 +184,7 @@ public class NewDeviceRequestController extends ControllerBase
 		private void addEditLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)
 		{
 			newDeviceRequestResource.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber())
-					.withRel(JsonRootLinkRelationProvider.EDIT_REL));
+					.withRel(IanaLinkRelations.EDIT));
 		}
 
 		private void addUserLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)

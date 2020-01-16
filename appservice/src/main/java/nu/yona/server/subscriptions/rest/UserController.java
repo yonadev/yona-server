@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -74,7 +74,6 @@ import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
-import nu.yona.server.rest.JsonRootLinkRelationProvider;
 import nu.yona.server.rest.RestUtil;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -699,7 +698,7 @@ public class UserController extends ControllerBase
 		private void addEditLink(EntityModel<UserDto> userResource)
 		{
 			userResource.add(getUpdateUserLinkBuilder(userResource.getContent().getId(), requestingDeviceId)
-					.withRel(JsonRootLinkRelationProvider.EDIT_REL).expand());
+					.withRel(IanaLinkRelations.EDIT).expand());
 		}
 
 		private void addConfirmMobileNumberLink(EntityModel<UserDto> userResource)
