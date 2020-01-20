@@ -12,7 +12,7 @@ plugins {
 	id "eclipse"
 	id "groovy"
 	id "io.spring.dependency-management" version "1.0.6.RELEASE"
-	id "org.springframework.boot" version "2.2.3.RELEASE" apply false
+	id "org.springframework.boot" version "2.2.4.RELEASE" apply false
 	id "net.researchgate.release" version "2.6.0"
 	id "com.bmuschko.docker-remote-api" version "6.1.2" apply false
 	id 'project-report'
