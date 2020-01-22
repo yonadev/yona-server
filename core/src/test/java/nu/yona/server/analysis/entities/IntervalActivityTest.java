@@ -30,6 +30,7 @@ class IntervalActivityTest
 {
 	@Mock
 	private ActivityCategory ACTIVITY_CATEGORY;
+	protected static final LocalDate MANDATORY_GOAL_PRESET_CREATION_DATE = LocalDate.of(2017, 1, 1);
 	private final static LocalDate FIRST_MONDAY_OF_MARCH = LocalDate.of(2019, 3, 4);
 
 	@ParameterizedTest
@@ -47,11 +48,11 @@ class IntervalActivityTest
 	{
 		// @formatter:off
 		return Stream.of(
-				Arguments.of(FIRST_MONDAY_OF_MARCH, FIRST_MONDAY_OF_MARCH.plusDays(19), FIRST_MONDAY_OF_MARCH, ChronoUnit.DAYS, false), // User creation day
+				Arguments.of(FIRST_MONDAY_OF_MARCH, MANDATORY_GOAL_PRESET_CREATION_DATE, FIRST_MONDAY_OF_MARCH, ChronoUnit.DAYS, false), // User creation day
 				Arguments.of(FIRST_MONDAY_OF_MARCH, FIRST_MONDAY_OF_MARCH.plusDays(19), FIRST_MONDAY_OF_MARCH.plusDays(1), ChronoUnit.DAYS, false), // Before goal creation
 				Arguments.of(FIRST_MONDAY_OF_MARCH, FIRST_MONDAY_OF_MARCH.plusDays(19), FIRST_MONDAY_OF_MARCH.plusDays(19), ChronoUnit.DAYS, false), // Goal creation day
 				Arguments.of(FIRST_MONDAY_OF_MARCH, FIRST_MONDAY_OF_MARCH.plusDays(19), FIRST_MONDAY_OF_MARCH.plusDays(20), ChronoUnit.DAYS, true), // Day after goal creation
-				Arguments.of(FIRST_MONDAY_OF_MARCH, FIRST_MONDAY_OF_MARCH.plusDays(19), FIRST_MONDAY_OF_MARCH.minusDays(1), ChronoUnit.WEEKS, false), // User creation week
+				Arguments.of(FIRST_MONDAY_OF_MARCH, MANDATORY_GOAL_PRESET_CREATION_DATE, FIRST_MONDAY_OF_MARCH.minusDays(1), ChronoUnit.WEEKS, false), // User creation week
 				Arguments.of(FIRST_MONDAY_OF_MARCH, FIRST_MONDAY_OF_MARCH.plusDays(19), FIRST_MONDAY_OF_MARCH.minusDays(1).plusDays(7), ChronoUnit.WEEKS, false), // Before goal creation
 				Arguments.of(FIRST_MONDAY_OF_MARCH, FIRST_MONDAY_OF_MARCH.plusDays(19), FIRST_MONDAY_OF_MARCH.minusDays(1).plusDays(14), ChronoUnit.WEEKS, false), // Goal creation week
 				Arguments.of(FIRST_MONDAY_OF_MARCH, FIRST_MONDAY_OF_MARCH.plusDays(19), FIRST_MONDAY_OF_MARCH.minusDays(1).plusDays(21), ChronoUnit.WEEKS, true) // Week after goal creation
