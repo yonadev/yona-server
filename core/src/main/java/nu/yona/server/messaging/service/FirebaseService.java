@@ -40,7 +40,7 @@ import nu.yona.server.util.Require;
 @Service
 public class FirebaseService
 {
-	private final static String FIREBASE_ID_NOT_REGISTERED = "registration-token-not-registered";
+	private static final String FIREBASE_ID_NOT_REGISTERED = "registration-token-not-registered";
 	private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
 
 	private final Map<String, MessageData> lastMessageByRegistrationToken = new HashMap<>();
