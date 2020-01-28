@@ -105,6 +105,12 @@ public class DeviceService
 				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(userAnonymizedId, deviceAnonymizedId));
 	}
 
+	private DeviceAnonymized getDeviceAnonymizedEntity(UUID deviceAnonymizedId)
+	{
+		return deviceAnonymizedRepository.findById(deviceAnonymizedId)
+				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(deviceAnonymizedId));
+	}
+
 	@Transactional
 	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
 	{
@@ -500,5 +506,13 @@ public class DeviceService
 	{
 		return (isVpnConnected) ? translator.getLocalizedMessage("message.buddy.device.vpn.connect", deviceName)
 				: translator.getLocalizedMessage("message.buddy.device.vpn.disconnect", deviceName);
+	}
+
+	@Transactional
+	public void clearFirebaseInstanceId(UUID deviceAnonymizedId)
+	{
+		DeviceAnonymized deviceAnonymized = getDeviceAnonymizedEntity(deviceAnonymizedId);
+		deviceAnonymized.clearFirebaseInstanceId();
+		deviceAnonymizedRepository.save(deviceAnonymized);
 	}
 }

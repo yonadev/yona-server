@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -355,9 +355,8 @@ public class MessageService
 
 	private void sendFirebaseNotification(DeviceAnonymizedDto deviceAnonymized, Message message)
 	{
-		LocaleContextHelper.inLocaleContext(
-				() -> firebaseService.sendMessage(deviceAnonymized.getFirebaseInstanceId().get(), message),
-				deviceAnonymized.getLocale());
+		LocaleContextHelper.inLocaleContext(() -> firebaseService.sendMessage(deviceAnonymized.getId(),
+				deviceAnonymized.getFirebaseInstanceId().get(), message), deviceAnonymized.getLocale());
 	}
 
 	@Transactional

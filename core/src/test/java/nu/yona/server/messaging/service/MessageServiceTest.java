@@ -171,7 +171,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 
 		service.sendMessage(message, UserAnonymizedDto.createInstance(userAnonEntity));
 
-		verify(mockFirebaseService, times(1)).sendMessage(FIREBASE_REGISTRATION_TOKEN, message);
+		verify(mockFirebaseService, times(1)).sendMessage(deviceAnonEntity.getId(), FIREBASE_REGISTRATION_TOKEN, message);
 	}
 
 	@Test
@@ -233,6 +233,6 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 			service.prepareMessageCollection(user);
 		}
 
-		verify(mockFirebaseService, times(1)).sendMessage(FIREBASE_REGISTRATION_TOKEN, message);
+		verify(mockFirebaseService, times(1)).sendMessage(deviceAnonEntity.getId(), FIREBASE_REGISTRATION_TOKEN, message);
 	}
 }

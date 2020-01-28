@@ -6,6 +6,7 @@ package nu.yona.server.rest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.HttpHeaders;
 
@@ -50,5 +51,10 @@ public class PassThroughHeadersHolder
 	public void clear()
 	{
 		storedHeaders.clear();
+	}
+
+	public void removeAll(Set<String> headerNames)
+	{
+		storedHeaders.keySet().removeAll(headerNames);
 	}
 }

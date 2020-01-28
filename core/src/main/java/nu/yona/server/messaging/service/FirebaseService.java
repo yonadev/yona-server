@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -30,6 +30,7 @@ import com.google.firebase.messaging.Notification;
 
 import nu.yona.server.Constants;
 import nu.yona.server.Translator;
+import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.util.AsyncExecutor;
@@ -39,6 +40,7 @@ import nu.yona.server.util.Require;
 @Service
 public class FirebaseService
 {
+	private final static String FIREBASE_ID_NOT_REGISTERED = "registration-token-not-registered";
 	private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
 
 	private final Map<String, MessageData> lastMessageByRegistrationToken = new HashMap<>();
@@ -51,6 +53,9 @@ public class FirebaseService
 
 	@Autowired
 	private AsyncExecutor asyncExecutor;
+
+	@Autowired
+	private DeviceService deviceService;
 
 	@PostConstruct
 	private void init()
@@ -76,7 +81,7 @@ public class FirebaseService
 		}
 	}
 
-	public void sendMessage(String registrationToken, nu.yona.server.messaging.entities.Message message)
+	public void sendMessage(UUID deviceAnonymizedId, String registrationToken, nu.yona.server.messaging.entities.Message message)
 	{
 		// The message URL might seem useful notification payload, but that is not possible as messages can be sent from anonymous
 		// contexts, while the URL requires the user ID.
@@ -87,10 +92,8 @@ public class FirebaseService
 
 		// Sending takes quite a bit of time, so do it asynchronously
 		ThreadData threadData = asyncExecutor.getThreadData();
-		CompletableFuture
-				.runAsync(() -> asyncExecutor.initThreadAndDo(threadData, () -> sendMessage(registrationToken, firebaseMessage)))
-				.whenCompleteAsync((r, t) -> asyncExecutor.initThreadAndDo(threadData,
-						() -> logIfCompletedWithException(t, registrationToken)));
+		asyncExecutor.execAsync(threadData, () -> sendMessage(registrationToken, firebaseMessage),
+				t -> handleCompletion(t, deviceAnonymizedId, registrationToken));
 	}
 
 	private long getMessageId(nu.yona.server.messaging.entities.Message message)
@@ -132,14 +135,32 @@ public class FirebaseService
 		}
 	}
 
-	private void logIfCompletedWithException(Throwable throwable, String token)
+	private void handleCompletion(Optional<Throwable> throwable, UUID deviceAnonymizedId, String token)
 	{
-		if (throwable != null)
+		throwable.ifPresentOrElse(t -> handleFailedSend(token, deviceAnonymizedId, t), this::logSuccessfulSend);
+	}
+
+	private void handleFailedSend(String token, UUID deviceAnonymizedId, Throwable throwable)
+	{
+		if (throwable instanceof FirebaseMessagingException
+				&& FIREBASE_ID_NOT_REGISTERED.equals(((FirebaseMessagingException) throwable).getErrorCode()))
 		{
-			logger.error(Constants.ALERT_MARKER, "Fatal error: Exception while sending Firebase message to '" + token + "'",
-					throwable);
+			handleNotRegisteredDevice(deviceAnonymizedId);
 			return;
 		}
+		logger.error(Constants.ALERT_MARKER, "Fatal error: Exception while sending Firebase message to '" + token + "'",
+				throwable);
+	}
+
+	private void handleNotRegisteredDevice(UUID deviceAnonymizedId)
+	{
+		deviceService.clearFirebaseInstanceId(deviceAnonymizedId);
+		logger.info("Firebase instance ID for device anonymized {} cleared, as it was not longer registered with Firebase",
+				deviceAnonymizedId);
+	}
+
+	private void logSuccessfulSend()
+	{
 		if (yonaProperties.getFirebase().isEnabled())
 		{
 			logger.info("Firebase message sent successfully");
