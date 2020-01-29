@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -507,25 +507,48 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		}
 	}
 
-	void assertDayDetail(User user, dayActivityOverviewResponse, Goal goal, expectedValues, weeksBack, shortDay)
+	def getWeekDetail(User user, weekActivityOverview, Goal goal)
+	{
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
+		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
+		def weekActivityDetailUrl =  weekActivityForGoal._links."yona:weekDetails".href
+		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)
+		assertResponseStatusOk(response)
+
+		return response.responseData
+	}
+
+	def getDayDetail(User user, dayActivityOverviewResponse, Goal goal, weeksBack, shortDay)
 	{
 		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
-		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
+		getDayDetail(user, dayActivityOverviewResponse, goal, dayOffset)
+	}
+
+	def getDayDetail(User user, dayActivityOverviewResponse, Goal goal, dayOffset)
+	{
 		def dayActivityOverview = dayActivityOverviewResponse.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
 		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
 		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
-		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def dayActivityDetailUrl =  dayActivityForGoal._links."yona:dayDetails".href
 		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
 		assertResponseStatusOk(response)
-		assert response.responseData.spread?.size() == 96
-		assert response.responseData.totalActivityDurationMinutes ==  calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread))
-		assert response.responseData.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
-		assert response.responseData.totalMinutesBeyondGoal == expectedDataForDayAndGoal.minutesBeyondGoal
-		assert response.responseData.date =~ /\d{4}\-\d{2}\-\d{2}/
-		assert response.responseData.timeZoneId == "Europe/Amsterdam"
-		assert response.responseData._links."yona:goal"
-		boolean isForBuddy = dayActivityDetailUrl.startsWith(YonaServer.stripQueryString(user.url) + "/buddies/")
-		assert (response.responseData._links?."yona:buddy" != null) == isForBuddy
+
+		return response.responseData
+	}
+
+	void assertDayDetail(User user, dayActivityOverviewResponse, Goal goal, expectedValues, weeksBack, shortDay)
+	{
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
+		def dayDetail = getDayDetail(user, dayActivityOverviewResponse, goal, weeksBack, shortDay)
+		assert dayDetail.spread?.size() == 96
+		assert dayDetail.totalActivityDurationMinutes ==  calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread))
+		assert dayDetail.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
+		assert dayDetail.totalMinutesBeyondGoal == expectedDataForDayAndGoal.minutesBeyondGoal
+		assert dayDetail.date =~ /\d{4}\-\d{2}\-\d{2}/
+		assert dayDetail.timeZoneId == "Europe/Amsterdam"
+		assert dayDetail._links."yona:goal"
+		boolean isForBuddy = dayDetail._links.self.href.startsWith(YonaServer.stripQueryString(user.url) + "/buddies/")
+		assert (dayDetail._links?."yona:buddy" != null) == isForBuddy
 	}
 
 	void assertDayOverviewWithBuddiesBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
