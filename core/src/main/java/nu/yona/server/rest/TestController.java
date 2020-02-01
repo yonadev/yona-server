@@ -8,7 +8,13 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
@@ -43,6 +49,8 @@ import nu.yona.server.util.Require;
 @RequestMapping(value = "/test", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class TestController extends ControllerBase
 {
+	private static final Logger logger = LoggerFactory.getLogger(TestController.class);
+
 	@Autowired
 	private YonaProperties yonaProperties;
 
@@ -51,6 +59,11 @@ public class TestController extends ControllerBase
 
 	@Autowired
 	private FirebaseService firebaseService;
+
+	@Autowired
+	private PassThroughHeadersHolder headersHolder;
+
+	private final CyclicBarrier barrier = new CyclicBarrier(2);
 
 	/**
 	 * Returns the last e-mail that was prepared to be sent (but not sent because e-mail was disabled).
@@ -69,35 +82,6 @@ public class TestController extends ControllerBase
 	private EmailResourceAssembler createEMailResourceAssembler()
 	{
 		return new EmailResourceAssembler();
-	}
-
-	static class EmailResource extends Resource<EmailDto>
-	{
-		public EmailResource(EmailDto email)
-		{
-			super(email);
-		}
-
-	}
-
-	static class EmailResourceAssembler extends ResourceAssemblerSupport<EmailDto, EmailResource>
-	{
-		public EmailResourceAssembler()
-		{
-			super(TestController.class, EmailResource.class);
-		}
-
-		@Override
-		public EmailResource toResource(EmailDto email)
-		{
-			return instantiateResource(email);
-		}
-
-		@Override
-		protected EmailResource instantiateResource(EmailDto email)
-		{
-			return new EmailResource(email);
-		}
 	}
 
 	/**
@@ -143,6 +127,77 @@ public class TestController extends ControllerBase
 	private FirebaseMessageResourceAssembler createFirebaseMessageResourceAssembler()
 	{
 		return new FirebaseMessageResourceAssembler();
+	}
+
+	/**
+	 * Returns the headers stored in the {@link PassThroughHeadersHolder}. This method blocks till a second request is done, thus
+	 * enforcing multithreading.
+	 * 
+	 * @return the headers stored in the {@link PassThroughHeadersHolder}
+	 */
+	@GetMapping(value = "/passThrougHeaders")
+	@ResponseBody
+	public HttpEntity<PassThroughHeadersResource> getPassThroughHeaders()
+	{
+		Require.that(yonaProperties.isTestServer(),
+				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /passThrougHeaders is not available"));
+		passBarrier();
+		PassThroughHeadersDto passThroughHeaders = PassThroughHeadersDto.createInstance(headersHolder.export());
+		return createOkResponse(passThroughHeaders, createPassThroughHeadersResourceAssembler());
+	}
+
+	private void passBarrier()
+	{
+		try
+		{
+			logger.info("GET on /passThroughHeaders: Going to wait for barrier. Current number waiting: {}",
+					barrier.getNumberWaiting());
+			barrier.await(30, TimeUnit.SECONDS); // If it takes more than 30 seconds before the next request arrives, something is
+													// wrong in the test
+		}
+		catch (InterruptedException e)
+		{
+			Thread.currentThread().interrupt();
+			throw YonaException.unexpected(e);
+		}
+		catch (BrokenBarrierException | TimeoutException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	private PassThroughHeadersResourceAssembler createPassThroughHeadersResourceAssembler()
+	{
+		return new PassThroughHeadersResourceAssembler();
+	}
+
+	static class EmailResource extends Resource<EmailDto>
+	{
+		public EmailResource(EmailDto email)
+		{
+			super(email);
+		}
+
+	}
+
+	static class EmailResourceAssembler extends ResourceAssemblerSupport<EmailDto, EmailResource>
+	{
+		public EmailResourceAssembler()
+		{
+			super(TestController.class, EmailResource.class);
+		}
+
+		@Override
+		public EmailResource toResource(EmailDto email)
+		{
+			return instantiateResource(email);
+		}
+
+		@Override
+		protected EmailResource instantiateResource(EmailDto email)
+		{
+			return new EmailResource(email);
+		}
 	}
 
 	public static class FirebaseMessageDto
@@ -265,6 +320,56 @@ public class TestController extends ControllerBase
 		protected FirebaseMessageResource instantiateResource(FirebaseMessageDto email)
 		{
 			return new FirebaseMessageResource(email);
+		}
+	}
+
+	public static class PassThroughHeadersDto
+	{
+		private final Map<String, String> passThroughHeaders;
+
+		private PassThroughHeadersDto(Map<String, String> passThroughHeaders)
+		{
+			this.passThroughHeaders = passThroughHeaders;
+		}
+
+		static PassThroughHeadersDto createInstance(Map<String, String> passThroughHeaders)
+		{
+			return new PassThroughHeadersDto(passThroughHeaders);
+		}
+
+		public Map<String, String> getPassThroughHeaders()
+		{
+			return passThroughHeaders;
+		}
+	}
+
+	static class PassThroughHeadersResource extends Resource<PassThroughHeadersDto>
+	{
+		public PassThroughHeadersResource(PassThroughHeadersDto passThroughHeaders)
+		{
+			super(passThroughHeaders);
+		}
+
+	}
+
+	static class PassThroughHeadersResourceAssembler
+			extends ResourceAssemblerSupport<PassThroughHeadersDto, PassThroughHeadersResource>
+	{
+		public PassThroughHeadersResourceAssembler()
+		{
+			super(TestController.class, PassThroughHeadersResource.class);
+		}
+
+		@Override
+		public PassThroughHeadersResource toResource(PassThroughHeadersDto email)
+		{
+			return instantiateResource(email);
+		}
+
+		@Override
+		protected PassThroughHeadersResource instantiateResource(PassThroughHeadersDto email)
+		{
+			return new PassThroughHeadersResource(email);
 		}
 	}
 }
