@@ -59,8 +59,8 @@ class AsyncExecutorTest
 				(t) -> completionHandler(doneSignal, completionHandlerData, t));
 		doneSignal.await();
 
-		assertReturnedData(completionHandlerData, expectedData);
-		assertReturnedData(actionHandlerData, expectedData);
+		assertActionHandlerData(actionHandlerData, expectedData);
+		assertCompletionHandlerData(completionHandlerData, expectedData);
 	}
 
 	@Test
@@ -76,9 +76,8 @@ class AsyncExecutorTest
 				(t) -> completionHandler(doneSignal, completionHandlerData, t));
 		doneSignal.await();
 
-		assertReturnedData(completionHandlerData, expectedData);
-		expectedData.exception = Optional.empty();
-		assertReturnedData(actionHandlerData, expectedData);
+		assertActionHandlerData(actionHandlerData, expectedData);
+		assertCompletionHandlerData(completionHandlerData, expectedData);
 	}
 
 	private DataCarrier initializeThread()
@@ -113,11 +112,16 @@ class AsyncExecutorTest
 		doneSignal.countDown();
 	}
 
-	private void assertReturnedData(DataCarrier returnedData, DataCarrier expectedData)
+	private void assertActionHandlerData(DataCarrier returnedData, DataCarrier expectedData)
 	{
 		assertThat(returnedData.mdc, is(expectedData.mdc));
 		assertThat(returnedData.headers, is(expectedData.headers));
 		assertNotEquals(Thread.currentThread().getName(), returnedData.threadName);
+	}
+
+	private void assertCompletionHandlerData(DataCarrier returnedData, DataCarrier expectedData)
+	{
+		assertActionHandlerData(returnedData, expectedData);
 		assertEquals(expectedData.exception, returnedData.exception);
 	}
 
