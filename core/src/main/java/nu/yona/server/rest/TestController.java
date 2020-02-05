@@ -63,7 +63,7 @@ public class TestController extends ControllerBase
 	@Autowired
 	private PassThroughHeadersHolder headersHolder;
 
-	private final CyclicBarrier barrier = new CyclicBarrier(2);
+	private final CyclicBarrier passThroughHeadersRequestBarrier = new CyclicBarrier(2);
 
 	/**
 	 * Returns the last e-mail that was prepared to be sent (but not sent because e-mail was disabled).
@@ -135,12 +135,12 @@ public class TestController extends ControllerBase
 	 * 
 	 * @return the headers stored in the {@link PassThroughHeadersHolder}
 	 */
-	@GetMapping(value = "/passThrougHeaders")
+	@GetMapping(value = "/passThroughHeaders")
 	@ResponseBody
 	public HttpEntity<PassThroughHeadersResource> getPassThroughHeaders()
 	{
 		Require.that(yonaProperties.isTestServer(),
-				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /passThrougHeaders is not available"));
+				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /passThroughHeaders is not available"));
 		passBarrier();
 		PassThroughHeadersDto passThroughHeaders = PassThroughHeadersDto.createInstance(headersHolder.export());
 		return createOkResponse(passThroughHeaders, createPassThroughHeadersResourceAssembler());
@@ -151,9 +151,9 @@ public class TestController extends ControllerBase
 		try
 		{
 			logger.info("GET on /passThroughHeaders: Going to wait for barrier. Current number waiting: {}",
-					barrier.getNumberWaiting());
-			barrier.await(30, TimeUnit.SECONDS); // If it takes more than 30 seconds before the next request arrives, something is
-													// wrong in the test
+					passThroughHeadersRequestBarrier.getNumberWaiting());
+			passThroughHeadersRequestBarrier.await(30, TimeUnit.SECONDS); // If it takes more than 30 seconds before the next
+																			// request arrives, something is wrong in the test
 		}
 		catch (InterruptedException e)
 		{

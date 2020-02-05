@@ -30,6 +30,7 @@ public class PassThroughHeadersHolder
 
 	public void readFrom(HttpHeaders headers)
 	{
+		getHeadersMap().clear();
 		storeIfPresent(headers, RestConstants.APP_VERSION_HEADER);
 	}
 
@@ -38,27 +39,33 @@ public class PassThroughHeadersHolder
 		String value = headers.getFirst(name);
 		if (value != null)
 		{
-			threadLocal.get().put(name, value);
+			getHeadersMap().put(name, value);
 		}
+	}
+
+	private Map<String, String> getHeadersMap()
+	{
+		return threadLocal.get();
 	}
 
 	public void writeTo(HttpHeaders headers)
 	{
-		threadLocal.get().forEach(headers::add);
+		getHeadersMap().forEach(headers::add);
 	}
 
 	public void importFrom(Map<String, String> headersToImport)
 	{
-		threadLocal.get().putAll(headersToImport);
+		getHeadersMap().clear();
+		getHeadersMap().putAll(headersToImport);
 	}
 
 	public Map<String, String> export()
 	{
-		return new HashMap<>(threadLocal.get());
+		return new HashMap<>(getHeadersMap());
 	}
 
 	public void clear()
 	{
-		threadLocal.get().clear();
+		getHeadersMap().clear();
 	}
 }

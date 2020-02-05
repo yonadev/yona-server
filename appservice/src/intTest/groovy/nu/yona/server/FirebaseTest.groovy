@@ -225,8 +225,8 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		given:
 		def appHeader1 = "ANDROID/1111/1.1.1"
 		def appHeader2 = "ANDROID/2222/2.2.2"
-		Future task1 = getResource("/test/passThrougHeaders", ["Yona-App-Version":appHeader1])
-		Future task2 = getResource("/test/passThrougHeaders", ["Yona-App-Version":appHeader2])
+		Future task1 = getResource("/test/passThroughHeaders", ["Yona-App-Version":appHeader1])
+		Future task2 = getResource("/test/passThroughHeaders", ["Yona-App-Version":appHeader2])
 
 		when:
 		def responseData1 = task1.get()
