@@ -9,13 +9,17 @@ package nu.yona.server
 import static nu.yona.server.test.CommonAssertions.*
 
 import java.time.ZonedDateTime
+import java.util.concurrent.Future
 
+import groovyx.net.http.AsyncHTTPBuilder
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
 class FirebaseTest extends AbstractAppServiceIntegrationTest
 {
+	def asyncHttpClient = new AsyncHTTPBuilder(poolSize: 5, uri: appService.yonaServer.restClient.uri)
+
 	def 'Richard and Bob both have a notification for the buddy request/acceptance'()
 	{
 		given:
@@ -168,6 +172,9 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	/*
+	 * Note that this test also verifies the pass-through headers functionality, as the app usage is posted on the app service while the Firebase notification is sent from the analysis service.
+	 */
 	def 'Richard and Bob get notifications on app usage goal conflict'()
 	{
 		given:
@@ -211,5 +218,32 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def 'Pass-through headers are handled correctly during multithreading'()
+	{
+		given:
+		def appHeader1 = "ANDROID/1111/1.1.1"
+		def appHeader2 = "ANDROID/2222/2.2.2"
+		Future task1 = getResource("/test/passThroughHeaders", ["Yona-App-Version":appHeader1])
+		Future task2 = getResource("/test/passThroughHeaders", ["Yona-App-Version":appHeader2])
+
+		when:
+		def responseData1 = task1.get()
+		def responseData2 = task2.get()
+
+		then:
+		responseData1.passThroughHeaders."Yona-App-Version" == appHeader1
+		responseData2.passThroughHeaders."Yona-App-Version" == appHeader2
+	}
+
+	Future getResource(path, headers = [:])
+	{
+		Map<String,?> args = [
+			path: YonaServer.stripQueryString(path),
+			contentType:'application/json',
+			headers: headers]
+		def retVal = asyncHttpClient.get( args )
+		return retVal
 	}
 }
