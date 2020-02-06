@@ -24,6 +24,7 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
@@ -31,6 +32,7 @@ import nu.yona.server.rest.JsonRootRelProvider;
 
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
+@EnableAsync
 @Configuration
 @EnableAutoConfiguration(exclude = { LdapAutoConfiguration.class })
 public class CoreConfiguration

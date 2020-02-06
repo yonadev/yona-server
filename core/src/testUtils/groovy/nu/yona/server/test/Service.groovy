@@ -75,7 +75,18 @@ abstract class Service
 
 	def getLastFirebaseMessage(def firebaseInstanceId)
 	{
-		getResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
+		// Firebase message is sent asynchronously, so wait till it is done, at most 5 seconds
+		def response
+		for (def i = 0; i < 10; i++)
+		{
+			response = getResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
+			if (response.status != 404)
+			{
+				return response
+			}
+			sleep(500)
+		}
+		return response
 	}
 
 	def clearLastFirebaseMessage(def firebaseInstanceId)
