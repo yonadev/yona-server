@@ -72,6 +72,6 @@ public class PassThroughHeadersHolder
 
 	public void removeAll(Set<String> headerNames)
 	{
-		storedHeaders.keySet().removeAll(headerNames);
+		getHeadersMap().keySet().removeAll(headerNames);
 	}
 }
