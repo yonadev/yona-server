@@ -142,13 +142,13 @@ public class FirebaseService
 
 	private void handleFailedSend(String token, UUID deviceAnonymizedId, Throwable throwable)
 	{
-		if (throwable instanceof FirebaseMessagingException)
+		if (throwable.getCause() instanceof FirebaseMessagingException)
 		{
-			String errorCode = ((FirebaseMessagingException) throwable).getErrorCode();
+			String errorCode = ((FirebaseMessagingException) throwable.getCause()).getErrorCode();
 			logger.error("Firebase error code: {}", errorCode);
 		}
-		if (throwable instanceof FirebaseMessagingException
-				&& FIREBASE_ID_NOT_REGISTERED.equals(((FirebaseMessagingException) throwable).getErrorCode()))
+		if (throwable.getCause() instanceof FirebaseMessagingException
+				&& FIREBASE_ID_NOT_REGISTERED.equals(((FirebaseMessagingException) throwable.getCause()).getErrorCode()))
 		{
 			handleNotRegisteredDevice(deviceAnonymizedId);
 			return;
