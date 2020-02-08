@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
+import static nu.yona.server.rest.RestConstants.NEW_DEVICE_REQUEST_PASSWORD_HEADER;
+import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -35,7 +37,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.rest.DeviceController;
-import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -61,7 +62,7 @@ public class NewDeviceRequestController extends ControllerBase
 
 	@PutMapping(value = "/{mobileNumber}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) String password,
+	public void setNewDeviceRequestForUser(@RequestHeader(value = PASSWORD_HEADER) String password,
 			@PathVariable String mobileNumber, @RequestBody NewDeviceRequestCreationDto newDeviceRequestCreation)
 	{
 		try
@@ -86,7 +87,7 @@ public class NewDeviceRequestController extends ControllerBase
 	@GetMapping(value = "/{mobileNumber}")
 	@ResponseBody
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
-			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
+			@RequestHeader(value = NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
 			@PathVariable String mobileNumber)
 	{
 		try
@@ -107,7 +108,7 @@ public class NewDeviceRequestController extends ControllerBase
 	@DeleteMapping(value = "/{mobileNumber}")
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	public void clearNewDeviceRequestForUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable String mobileNumber)
 	{
 		try

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -7,6 +7,7 @@ package nu.yona.server.analysis.entities;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "INTERVAL_ACTIVITIES", uniqueConstraints = @UniqueConstraint(name = "no_duplicate_activities", columnNames = {
@@ -119,9 +121,9 @@ public abstract class IntervalActivity extends EntityWithId
 
 	public abstract ZonedDateTime getEndTime();
 
-	public boolean hasPrevious()
+	public boolean hasPrevious(LocalDate earliestPossibleDate)
 	{
-		return hasPrevious(goal, getStartTime(), getTimeUnit());
+		return hasPrevious(earliestPossibleDate, goal, getStartTime(), getTimeUnit());
 	}
 
 	public boolean hasNext()
@@ -129,9 +131,19 @@ public abstract class IntervalActivity extends EntityWithId
 		return hasNext(getStartTime(), getTimeUnit());
 	}
 
-	public static boolean hasPrevious(Goal goal, ZonedDateTime startTime, TemporalUnit timeUnit)
+	public static boolean hasPrevious(LocalDate earliestPossibleDate, Goal goal, ZonedDateTime startTime, TemporalUnit timeUnit)
 	{
-		return goal.wasActiveAtInterval(startTime.minus(1, timeUnit), timeUnit);
+		ZonedDateTime previousIntervalStart = startTime.minus(1, timeUnit);
+		LocalDate previousIntervalStartDate = previousIntervalStart.toLocalDate();
+		if (timeUnit == ChronoUnit.WEEKS)
+		{
+			earliestPossibleDate = TimeUtil.getStartOfWeek(earliestPossibleDate);
+		}
+		if (previousIntervalStartDate.isBefore(earliestPossibleDate))
+		{
+			return false;
+		}
+		return goal.wasActiveAtInterval(previousIntervalStart, timeUnit);
 	}
 
 	public static boolean hasNext(ZonedDateTime startTime, TemporalUnit timeUnit)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -67,18 +67,30 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewBasics(responseDayOverviews, 1, 1)
 		assertWeekOverviewBasics(responseWeekOverviews, [2], 1)
 
-		def weekActivityForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == goal.url}
-		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
-		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
-		def response = appService.getResourceWithPassword(weekActivityDetailUrl, richard.password)
-		assertResponseStatusOk(response)
+		def weekActivityOverviewForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == goal.url}
+		weekActivityOverviewForGoal?._links?."yona:weekDetails"?.href
+		weekActivityOverviewForGoal?._links?."next"?.href == null
+		weekActivityOverviewForGoal?._links?."prev"?.href == null
+		def weekActivityDetailUrl = weekActivityOverviewForGoal?._links?."yona:weekDetails"?.href
+		def responseWeekDetails = appService.getResourceWithPassword(weekActivityDetailUrl, richard.password)
+		assertResponseStatusOk(responseWeekDetails)
+		def weekActivityDetails = responseWeekDetails.responseData
+		weekActivityDetails._links."yona:goal".href == weekActivityOverviewForGoal._links."yona:goal".href
+		weekActivityDetails?._links?."next"?.href == null
+		weekActivityDetails?._links?."prev"?.href == null
 
 		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[0]
-		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
-		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
-		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def dayActivityOverviewForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		dayActivityOverviewForGoal?._links?."yona:dayDetails"?.href
+		dayActivityOverviewForGoal?._links?."next"?.href == null
+		dayActivityOverviewForGoal?._links?."prev"?.href == null
+		def dayActivityDetailUrl =  dayActivityOverviewForGoal?._links?."yona:dayDetails"?.href
 		def responseDayDetail = appService.getResourceWithPassword(dayActivityDetailUrl, richard.password)
 		assertResponseStatusOk(responseDayDetail)
+		def dayActivityDetails = responseDayDetail.responseData
+		dayActivityDetails._links."yona:goal".href == dayActivityOverviewForGoal._links."yona:goal".href
+		dayActivityDetails?._links?."next"?.href == null
+		dayActivityDetails?._links?."prev"?.href == null
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -317,6 +329,80 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseBuddyDayOverview = appService.getResourceWithPassword(buddyDayOverviewLink, richard.password)
 		assertResponseStatusOk(responseBuddyDayOverview)
 		assert responseBuddyDayOverview.data.date == responseBuddyDayOverviews.responseData._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset].date
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard gets proper navigation links between day and week details'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		setCreationTime(richard, "W-2 Mon 02:18")
+		User bob = richardAndBob.bob
+		setCreationTime(bob, "W-2 Mon 02:18")
+
+		addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, "W-2 Thu 18:00")
+
+		richard = appService.reloadUser(richard)
+		Goal noGoGoalGamblingRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
+		Goal budgetGoalSocialBob = richard.buddies[0].findActiveGoal(SOCIAL_ACT_CAT_URL)
+
+		def weekOverviewsPageSize = 3
+		def dayOverviewsPageSize = 21
+
+		when:
+		def responseDayOverviews = appService.getDayActivityOverviews(richard, ["size": dayOverviewsPageSize])
+		assertResponseStatusOk(responseDayOverviews)
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard, ["size": weekOverviewsPageSize])
+		assertResponseStatusOk(responseWeekOverviews)
+		def responseBuddyDayOverviews = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": dayOverviewsPageSize])
+		assertResponseStatusOk(responseBuddyDayOverviews)
+		def responseBuddyWeekOverviews = appService.getWeekActivityOverviews(richard, richard.buddies[0], ["size": weekOverviewsPageSize])
+		assertResponseStatusOk(responseBuddyWeekOverviews)
+
+		then:
+		def dayDetailRichardGamblingFirstDay = getDayDetail(richard, responseDayOverviews, noGoGoalGamblingRichard, 2, "Mon")
+		def dayDetailRichardGamblingSecondDay = getDayDetail(richard, responseDayOverviews, noGoGoalGamblingRichard, 2, "Tue")
+		def dayDetailRichardGamblingToday = getDayDetail(richard, responseDayOverviews, noGoGoalGamblingRichard, 0)
+		dayDetailRichardGamblingFirstDay._links.prev == null
+		dayDetailRichardGamblingFirstDay._links.next != null
+		dayDetailRichardGamblingSecondDay._links.prev != null
+		dayDetailRichardGamblingSecondDay._links.next != null
+		dayDetailRichardGamblingToday._links.prev != null
+		dayDetailRichardGamblingToday._links.next == null
+
+		def dayDetailBobSocialFirstDay = getDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBob, 2, "Thu")
+		def dayDetailBobSocialSecondDay = getDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBob, 2, "Fri")
+		def dayDetailBobSocialToday = getDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBob, 0)
+		dayDetailBobSocialFirstDay._links.prev == null
+		dayDetailBobSocialFirstDay._links.next != null
+		dayDetailBobSocialSecondDay._links.prev != null
+		dayDetailBobSocialSecondDay._links.next != null
+		dayDetailBobSocialToday._links.prev != null
+		dayDetailBobSocialToday._links.next == null
+
+		def weekDetailRichardGamblingFirstWeek = getWeekDetail(richard, responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2], noGoGoalGamblingRichard)
+		def weekDetailRichardGamblingSecondWeek = getWeekDetail(richard, responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1], noGoGoalGamblingRichard)
+		def weekDetailRichardGamblingThisWeek = getWeekDetail(richard, responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0], noGoGoalGamblingRichard)
+		weekDetailRichardGamblingFirstWeek._links.prev == null
+		weekDetailRichardGamblingFirstWeek._links.next != null
+		weekDetailRichardGamblingSecondWeek._links.prev != null
+		weekDetailRichardGamblingSecondWeek._links.next != null
+		weekDetailRichardGamblingThisWeek._links.prev != null
+		weekDetailRichardGamblingThisWeek._links.next == null
+
+		def weekDetailBobSocialFirstWeek = getWeekDetail(richard, responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2], budgetGoalSocialBob)
+		def weekDetailBobSocialSecondWeek = getWeekDetail(richard, responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1], budgetGoalSocialBob)
+		def weekDetailBobSocialThisWeek = getWeekDetail(richard, responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0], budgetGoalSocialBob)
+		weekDetailBobSocialFirstWeek._links.prev == null
+		weekDetailBobSocialFirstWeek._links.next != null
+		weekDetailBobSocialSecondWeek._links.prev != null
+		weekDetailBobSocialSecondWeek._links.next != null
+		weekDetailBobSocialThisWeek._links.prev != null
+		weekDetailBobSocialThisWeek._links.next == null
 
 		cleanup:
 		appService.deleteUser(richard)

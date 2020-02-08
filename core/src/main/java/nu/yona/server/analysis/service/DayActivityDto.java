@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -95,12 +95,12 @@ public class DayActivityDto extends IntervalActivityDto
 		return date.format(ISO8601_DAY_FORMATTER);
 	}
 
-	static DayActivityDto createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	static DayActivityDto createInstance(LocalDate earliestPossibleDate, DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
 		return new DayActivityDto(dayActivity.getGoal().getId(), dayActivity.getGoal().getActivityCategory().getId(),
 				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DAY_DETAIL, getSpread(dayActivity, levelOfDetail),
 				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(),
-				dayActivity.getTotalMinutesBeyondGoal(), dayActivity.hasPrevious(), dayActivity.hasNext());
+				dayActivity.getTotalMinutesBeyondGoal(), dayActivity.hasPrevious(earliestPossibleDate), dayActivity.hasNext());
 	}
 
 	static DayActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, GoalDto goal, ZonedDateTime startTime,

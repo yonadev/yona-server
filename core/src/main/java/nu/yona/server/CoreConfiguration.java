@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
@@ -7,15 +7,12 @@ package nu.yona.server;
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.CustomScopeConfigurer;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.context.support.SimpleThreadScope;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.UriTemplate;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
@@ -27,6 +24,7 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
@@ -34,6 +32,7 @@ import nu.yona.server.rest.JsonRootLinkRelationProvider;
 
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
+@EnableAsync
 @Configuration
 @EnableAutoConfiguration(exclude = { LdapAutoConfiguration.class })
 public class CoreConfiguration
@@ -103,13 +102,5 @@ public class CoreConfiguration
 	public CurieProvider curieProvider()
 	{
 		return new DefaultCurieProvider("yona", UriTemplate.of("http://dev.yona.nu/rels/{rel}"));
-	}
-
-	@Bean
-	public static CustomScopeConfigurer customScopeConfigurer()
-	{
-		CustomScopeConfigurer configurer = new CustomScopeConfigurer();
-		configurer.addScope(ThreadScope.class.getAnnotation(Scope.class).value(), new SimpleThreadScope());
-		return configurer;
 	}
 }

@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.rest;
 
-import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
+import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 

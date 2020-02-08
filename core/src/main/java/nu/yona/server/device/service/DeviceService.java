@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
@@ -14,6 +14,8 @@ import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,8 @@ public class DeviceService
 	// User-friendly minimum version, used for error message
 	private static final String ANDROID_MIN_APP_VERSION = "1.2";
 	private static final String IOS_MIN_APP_VERSION = ANDROID_MIN_APP_VERSION;
+
+	private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
 
 	@Autowired(required = false)
 	private UserService userService;
@@ -99,6 +103,12 @@ public class DeviceService
 	{
 		return deviceAnonymizedRepository.findById(deviceAnonymizedId)
 				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(userAnonymizedId, deviceAnonymizedId));
+	}
+
+	private DeviceAnonymized getDeviceAnonymizedEntity(UUID deviceAnonymizedId)
+	{
+		return deviceAnonymizedRepository.findById(deviceAnonymizedId)
+				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(deviceAnonymizedId));
 	}
 
 	@Transactional
@@ -214,11 +224,21 @@ public class DeviceService
 	{
 		DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
 		Optional<String> oldFirebaseInstanceId = deviceAnonymized.getFirebaseInstanceId();
-		if (changeRequest.firebaseInstanceId.isPresent() && !oldFirebaseInstanceId.equals(changeRequest.firebaseInstanceId))
+		changeRequest.firebaseInstanceId
+				.ifPresent(fid -> saveFirebaseInstanceIdIfUpdated(deviceAnonymized, fid, oldFirebaseInstanceId));
+	}
+
+	private void saveFirebaseInstanceIdIfUpdated(DeviceAnonymized deviceAnonymized, String newFirebaseInstanceId,
+			Optional<String> oldFirebaseInstanceId)
+	{
+		if (oldFirebaseInstanceId.equals(Optional.of(newFirebaseInstanceId)))
 		{
-			deviceAnonymized.setFirebaseInstanceId(changeRequest.firebaseInstanceId.get());
-			deviceAnonymizedRepository.save(deviceAnonymized);
+			return;
 		}
+		deviceAnonymized.setFirebaseInstanceId(newFirebaseInstanceId);
+		deviceAnonymizedRepository.save(deviceAnonymized);
+		logger.info("Changed Firebase instance ID from {} to {}", oldFirebaseInstanceId.orElse("<not set>"),
+				newFirebaseInstanceId);
 	}
 
 	public UserDeviceDto createDefaultUserDeviceDto()
@@ -486,5 +506,13 @@ public class DeviceService
 	{
 		return (isVpnConnected) ? translator.getLocalizedMessage("message.buddy.device.vpn.connect", deviceName)
 				: translator.getLocalizedMessage("message.buddy.device.vpn.disconnect", deviceName);
+	}
+
+	@Transactional
+	public void clearFirebaseInstanceId(UUID deviceAnonymizedId)
+	{
+		DeviceAnonymized deviceAnonymized = getDeviceAnonymizedEntity(deviceAnonymizedId);
+		deviceAnonymized.clearFirebaseInstanceId();
+		deviceAnonymizedRepository.save(deviceAnonymized);
 	}
 }

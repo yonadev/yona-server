@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
@@ -12,18 +12,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
 import org.quartz.CronTrigger;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.JobListener;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
+import org.quartz.impl.matchers.EverythingMatcher;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.Constants;
 import nu.yona.server.exceptions.YonaException;
 
 @Service
@@ -38,6 +44,19 @@ public class TriggerManagementService
 
 	@Autowired
 	private Scheduler scheduler;
+
+	@PostConstruct
+	void setLoggingListener()
+	{
+		try
+		{
+			scheduler.getListenerManager().addJobListener(new LoggingListener(), EverythingMatcher.allJobs());
+		}
+		catch (SchedulerException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
 
 	public Set<CronTriggerDto> getAllTriggers()
 	{
@@ -187,6 +206,40 @@ public class TriggerManagementService
 		catch (SchedulerException e)
 		{
 			throw YonaException.unexpected(e);
+		}
+	}
+
+	private class LoggingListener implements JobListener
+	{
+
+		@Override
+		public String getName()
+		{
+			return "YonaLoggingListener";
+		}
+
+		@Override
+		public void jobToBeExecuted(JobExecutionContext context)
+		{
+			// Nothing to do here
+		}
+
+		@Override
+		public void jobExecutionVetoed(JobExecutionContext context)
+		{
+			// Nothing to do here
+		}
+
+		@Override
+		public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException)
+		{
+			if (jobException == null)
+			{
+				return;
+			}
+			logger.error(Constants.ALERT_MARKER,
+					"Fatal error: Quartz job '" + context.getJobDetail().getKey() + "' threw an unhandled exception",
+					jobException);
 		}
 	}
 }

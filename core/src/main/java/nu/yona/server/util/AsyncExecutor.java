@@ -4,11 +4,14 @@
  *******************************************************************************/
 package nu.yona.server.util;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.rest.PassThroughHeadersHolder;
@@ -38,10 +41,47 @@ public class AsyncExecutor
 		return new ThreadData(MDC.getCopyOfContextMap(), headersHolder.export());
 	}
 
-	public void initThreadAndDo(ThreadData threadData, Runnable action)
+	@Async
+	public void execAsync(ThreadData threadData, Runnable action, Consumer<Optional<Throwable>> completionHandler)
 	{
-		threadData.contextMap.ifPresent(MDC::setContextMap);
-		headersHolder.importFrom(threadData.headers);
-		action.run();
+		try (Handler handler = Handler.initialize(headersHolder, threadData))
+		{
+			try
+			{
+				action.run();
+				completionHandler.accept(Optional.empty());
+			}
+			catch (Throwable e)
+			{
+				completionHandler.accept(Optional.of(e));
+				throw e;
+			}
+		}
+	}
+
+	private static class Handler implements AutoCloseable
+	{
+		private final ThreadData threadData;
+		private final PassThroughHeadersHolder headersHolder;
+
+		private Handler(PassThroughHeadersHolder headersHolder, ThreadData threadData)
+		{
+			this.headersHolder = headersHolder;
+			this.threadData = threadData;
+		}
+
+		static Handler initialize(PassThroughHeadersHolder headersHolder, ThreadData threadData)
+		{
+			threadData.contextMap.ifPresent(MDC::setContextMap);
+			headersHolder.importFrom(threadData.headers);
+			return new Handler(headersHolder, threadData);
+		}
+
+		@Override
+		public void close()
+		{
+			threadData.contextMap.ifPresent(m -> MDC.setContextMap(Collections.emptyMap()));
+			headersHolder.removeAll(threadData.headers.keySet());
+		}
 	}
 }

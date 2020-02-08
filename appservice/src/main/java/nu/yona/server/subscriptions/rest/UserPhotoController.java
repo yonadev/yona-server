@@ -1,9 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
+import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -42,7 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
-import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
@@ -74,8 +73,7 @@ public class UserPhotoController extends ControllerBase
 
 	@PutMapping(value = "/users/{userId}/photo", consumes = "multipart/form-data")
 	@ResponseBody
-	public ResponseEntity<UserPhotoResource> uploadUserPhoto(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	public ResponseEntity<UserPhotoResource> uploadUserPhoto(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "file", required = false) MultipartFile userPhoto, @PathVariable UUID userId)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
@@ -96,8 +94,7 @@ public class UserPhotoController extends ControllerBase
 
 	@DeleteMapping(value = "/users/{userId}/photo")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void removeUserPhoto(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId)
+	public void removeUserPhoto(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))

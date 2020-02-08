@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -100,7 +100,7 @@ public class WeekActivityDto extends IntervalActivityDto
 		return ISO8601_WEEK_FORMATTER.format(mondayDate);
 	}
 
-	static WeekActivityDto createInstance(WeekActivity weekActivity, LevelOfDetail levelOfDetail)
+	static WeekActivityDto createInstance(LocalDate earliestPossibleDate, WeekActivity weekActivity, LevelOfDetail levelOfDetail)
 	{
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WEEK_DETAIL;
 		return new WeekActivityDto(weekActivity.getGoal().getId(), weekActivity.getStartTime(), includeDetail,
@@ -108,8 +108,8 @@ public class WeekActivityDto extends IntervalActivityDto
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
 				weekActivity.getDayActivities().stream()
 						.collect(Collectors.toMap(dayActivity -> dayActivity.getStartDate().getDayOfWeek(),
-								dayActivity -> DayActivityDto.createInstance(dayActivity, levelOfDetail))),
-				weekActivity.hasPrevious(), weekActivity.hasNext());
+								dayActivity -> DayActivityDto.createInstance(earliestPossibleDate, dayActivity, levelOfDetail))),
+				weekActivity.hasPrevious(earliestPossibleDate), weekActivity.hasNext());
 	}
 
 	public static WeekActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate,
@@ -120,7 +120,7 @@ public class WeekActivityDto extends IntervalActivityDto
 		WeekActivityDto weekActivity = new WeekActivityDto(goal.getId(), startOfWeek, includeDetail,
 				includeDetail ? DayActivityDto.createInactiveSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(0) : Optional.empty(), new HashMap<>(),
-				IntervalActivity.hasPrevious(goal, startOfWeek, ChronoUnit.WEEKS),
+				IntervalActivity.hasPrevious(earliestPossibleDate, goal, startOfWeek, ChronoUnit.WEEKS),
 				IntervalActivity.hasNext(startOfWeek, ChronoUnit.WEEKS));
 		weekActivity.createRequiredInactivityDays(userAnonymized, earliestPossibleDate,
 				userAnonymized.getGoalsForActivityCategory(goal.getActivityCategory()), levelOfDetail, missingInactivities);

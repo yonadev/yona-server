@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
@@ -25,10 +25,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.slf4j.Marker;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.stereotype.Component;
 
+import nu.yona.server.Constants;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.util.Require;
@@ -39,15 +41,15 @@ public class ErrorLoggingFilter implements Filter
 	@FunctionalInterface
 	public interface LogMethod
 	{
-		void log(String format, Object... insertions);
+		void log(Marker marker, String format, Object... insertions);
 	}
 
 	public static class LoggingContext implements AutoCloseable
 	{
 		private static final String TRACE_ID_HEADER = "x-b3-traceid";
 		private static final String CORRELATION_ID_MDC_KEY = "yona.correlation.id";
-		private static final List<String> MDC_KEYS = Arrays.asList(CORRELATION_ID_MDC_KEY, Constants.APP_OS_MDC_KEY,
-				Constants.APP_VERSION_CODE_MDC_KEY, Constants.APP_VERSION_NAME_MDC_KEY);
+		private static final List<String> MDC_KEYS = Arrays.asList(CORRELATION_ID_MDC_KEY, RestConstants.APP_OS_MDC_KEY,
+				RestConstants.APP_VERSION_CODE_MDC_KEY, RestConstants.APP_VERSION_NAME_MDC_KEY);
 
 		private LoggingContext()
 		{
@@ -63,7 +65,7 @@ public class ErrorLoggingFilter implements Filter
 		public static LoggingContext createInstance(HttpServletRequest request)
 		{
 			MDC.put(CORRELATION_ID_MDC_KEY, getCorrelationId(request));
-			Optional<String> yonaAppVersionHeader = Optional.ofNullable(request.getHeader(Constants.APP_VERSION_HEADER));
+			Optional<String> yonaAppVersionHeader = Optional.ofNullable(request.getHeader(RestConstants.APP_VERSION_HEADER));
 			yonaAppVersionHeader.ifPresent(LoggingContext::putAppVersionContext);
 			return new LoggingContext();
 		}
@@ -89,14 +91,14 @@ public class ErrorLoggingFilter implements Filter
 			String operatingSystem = parts[0];
 			String versionCode = parts[1];
 			String versionName = parts[2];
-			MDC.put(Constants.APP_OS_MDC_KEY, operatingSystem);
-			MDC.put(Constants.APP_VERSION_CODE_MDC_KEY, versionCode);
-			MDC.put(Constants.APP_VERSION_NAME_MDC_KEY, versionName);
+			MDC.put(RestConstants.APP_OS_MDC_KEY, operatingSystem);
+			MDC.put(RestConstants.APP_VERSION_CODE_MDC_KEY, versionCode);
+			MDC.put(RestConstants.APP_VERSION_NAME_MDC_KEY, versionName);
 		}
 
 		private static void assertValidHeaders(HttpServletRequest request)
 		{
-			Optional.ofNullable(request.getHeader(Constants.APP_VERSION_HEADER))
+			Optional.ofNullable(request.getHeader(RestConstants.APP_VERSION_HEADER))
 					.ifPresent(LoggingContext::validateAppVersionHeader);
 		}
 
@@ -141,6 +143,13 @@ public class ErrorLoggingFilter implements Filter
 		map.put(Series.CLIENT_ERROR, logger::warn);
 		map.put(Series.SERVER_ERROR, logger::error);
 		seriesToLoggerMap = Collections.unmodifiableMap(map);
+	}
+	private static final Map<Series, Marker> seriesToMarkerMap;
+	static
+	{
+		Map<Series, Marker> map = new EnumMap<>(Series.class);
+		map.put(Series.SERVER_ERROR, Constants.ALERT_MARKER);
+		seriesToMarkerMap = Collections.unmodifiableMap(map);
 	}
 
 	@Override
@@ -187,7 +196,8 @@ public class ErrorLoggingFilter implements Filter
 		{
 			throw new IllegalStateException("Status " + responseStatus + " is not supported");
 		}
-		logMethod.log("Status {} returned from {} (request content length: {})", response.getStatus(),
+		Marker marker = seriesToMarkerMap.get(responseStatus);
+		logMethod.log(marker, "Status {} returned from {} (request content length: {})", response.getStatus(),
 				GlobalExceptionMapping.buildRequestInfo(request), request.getContentLength());
 	}
 
