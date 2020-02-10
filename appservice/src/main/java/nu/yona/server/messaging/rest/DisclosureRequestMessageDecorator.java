@@ -19,6 +19,6 @@ public class DisclosureRequestMessageDecorator implements MessageResourceDecorat
 		DisclosureRequestMessageDto disclosureRequestMessage = (DisclosureRequestMessageDto) message;
 		String dateStr = DayActivityDto.formatDate(disclosureRequestMessage.getGoalConflictStartTime());
 		message.add(UserActivityController.getUserDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(), dateStr,
-				disclosureRequestMessage.getGoalId()).withRel(UserActivityController.DAY_DETAIL_LINK));
+				disclosureRequestMessage.getGoalId()).withRel(UserActivityController.DAY_DETAIL_REL));
 	}
 }

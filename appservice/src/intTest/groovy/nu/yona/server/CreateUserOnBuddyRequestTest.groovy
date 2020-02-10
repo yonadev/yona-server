@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -14,7 +14,8 @@ import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 {
-	static final def dummyTempPassword = "abcd"
+	static final def TEST_TEMP_PASSWORD = "ab&cd"
+	static final def ENCODED_TEST_TEMP_PASSWORD = URLEncoder.encode(TEST_TEMP_PASSWORD, "UTF-8")
 
 	def 'Richard cannot create a buddy request before confirming his own mobile number'()
 	{
@@ -438,11 +439,11 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		def responseAddBuddy = sendBuddyRequestForBobby(richard, mobileNumberBob)
-		// Take invite URL and remove "tempPassword=abcd&" or "&tempPassword=abcd" (varying order occurs)
-		def urlToTry = getInviteUrl().replaceFirst(/tempPassword=[^&]*&/, "").replaceFirst(/&tempPassword=[^&]*/, "")
+		// Take invite URL and remove "tempPassword=ab%26cd&" or "&tempPassword=ab%26cd" (varying order occurs)
+		def urlToTry = getInviteUrl().replaceFirst(/tempPassword=$ENCODED_TEST_TEMP_PASSWORD&/, "").replaceFirst(/&tempPassword=$ENCODED_TEST_TEMP_PASSWORD*/, "")
 
 		when:
-		def response = appService.getUser(urlToTry, dummyTempPassword)
+		def response = appService.getUser(urlToTry, TEST_TEMP_PASSWORD)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -671,12 +672,18 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		assert response.responseData.to == "Bobby Dun <bobdunn325@gmail.com>"
 		assert response.responseData.subject == "Become friend of Richard Quinn on Yona!"
 		assert response.responseData.body ==~ /(?s).*Return to this mail and click <a href=\"http.*/
+		String inviteUrl = getInviteUrl(response)
+		assert inviteUrl ==~ /.*$ENCODED_TEST_TEMP_PASSWORD.*/
 	}
 
 	String getInviteUrl()
 	{
 		def response = appService.getLastEmail()
 		assertResponseStatusOk(response)
+		getInviteUrl(response)
+	}
+
+	String getInviteUrl(response) {
 		def matcher = response.responseData.body =~ /(?s).*Return to this mail and click <a href=\"([^\"]*)\".*/
 		assert matcher.matches()
 		matcher[0][1]

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
@@ -10,8 +10,9 @@ import java.util.Arrays;
 import org.atteo.evo.inflector.English;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.hateoas.RelProvider;
-import org.springframework.hateoas.core.DefaultRelProvider;
+import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.server.LinkRelationProvider;
+import org.springframework.hateoas.server.core.DefaultLinkRelationProvider;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -25,30 +26,29 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
  * the embedded resource.
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class JsonRootRelProvider implements RelProvider
+public class JsonRootLinkRelationProvider implements LinkRelationProvider
 {
-	public static final String EDIT_REL = "edit";
-
-	private DefaultRelProvider defaultRelProvider = new DefaultRelProvider();
+	private final DefaultLinkRelationProvider defaultLinkRelationProvider = new DefaultLinkRelationProvider();
 
 	@Override
-	public String getItemResourceRelFor(Class<?> type)
+	public LinkRelation getItemResourceRelFor(Class<?> type)
 	{
 		Class<?> baseType = determineBaseType(type);
 		JsonRootName rootName = getAnnotationByType(baseType, JsonRootName.class);
-		return (rootName == null) ? defaultRelProvider.getItemResourceRelFor(baseType) : rootName.value();
+		return (rootName == null) ? defaultLinkRelationProvider.getItemResourceRelFor(baseType)
+				: LinkRelation.of(rootName.value());
 	}
 
 	@Override
-	public String getCollectionResourceRelFor(Class<?> type)
+	public LinkRelation getCollectionResourceRelFor(Class<?> type)
 	{
-		return English.plural(getItemResourceRelFor(type));
+		return LinkRelation.of(English.plural(getItemResourceRelFor(type).value()));
 	}
 
 	@Override
-	public boolean supports(Class<?> delimiter)
+	public boolean supports(LookupContext delimiter)
 	{
-		return defaultRelProvider.supports(delimiter);
+		return defaultLinkRelationProvider.supports(delimiter);
 	}
 
 	private <T extends Annotation> T getAnnotationByType(Class<?> type, Class<T> annotationType)

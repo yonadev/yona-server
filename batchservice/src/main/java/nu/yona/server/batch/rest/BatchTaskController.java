@@ -5,7 +5,7 @@
 package nu.yona.server.batch.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,10 +51,10 @@ public class BatchTaskController
 
 	// NOTICE: For integration test purposes. It executes the job synchronously.
 	@PostMapping(value = "/aggregateActivities/")
-	public HttpEntity<Resource<BatchJobResultDto>> aggregateActivities()
+	public HttpEntity<EntityModel<BatchJobResultDto>> aggregateActivities()
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /batch/aggregateActivities/ is not available"));
-		return new ResponseEntity<>(new Resource<>(batchTaskService.aggregateActivities()), HttpStatus.OK);
+		return new ResponseEntity<>(new EntityModel<>(batchTaskService.aggregateActivities()), HttpStatus.OK);
 	}
 }

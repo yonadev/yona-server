@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.hateoas.LinkRelation;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -32,8 +33,8 @@ public class BuddyDto
 {
 	private static final Logger logger = LoggerFactory.getLogger(BuddyDto.class);
 
-	public static final String USER_REL_NAME = "user";
-	public static final String GOALS_REL_NAME = "goals";
+	public static final LinkRelation USER_REL = LinkRelation.of("user");
+	public static final LinkRelation GOALS_REL = LinkRelation.of("goals");
 
 	private final UUID id;
 	private final UserDto user;

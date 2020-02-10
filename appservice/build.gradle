@@ -34,7 +34,7 @@ dependencies {
 
 	testCompile project(path: ":core", configuration: "testUtils")
 	testCompile "org.apache.httpcomponents:httpmime:4.5.3"
-	testCompile "org.mockito:mockito-core:2.21.0"
+	testCompile "org.mockito:mockito-core"
 
 	intTestCompile "org.codehaus.groovy:groovy-all:2.5.5"
 	intTestCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
@@ -68,7 +68,7 @@ docker {
 
 task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 	inputDir = mkdir("build/docker")
-	tags = [ "${dockerImageName}:${project.ext.docker_tag}" ]
+	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
 	doFirst {
 		copy {
 			from bootJar
@@ -83,8 +83,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 }
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	imageName = dockerImageName
-	tag = project.ext.docker_tag
+	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
 }
 
 sourceSets {

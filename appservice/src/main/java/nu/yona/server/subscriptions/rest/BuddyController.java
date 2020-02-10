@@ -5,8 +5,8 @@
 package nu.yona.server.subscriptions.rest;
 
 import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -17,13 +17,14 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.hal.CurieProvider;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.mediatype.hal.CurieProvider;
+import org.springframework.hateoas.server.ExposesResourceFor;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,7 +52,6 @@ import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.rest.GoalController.GoalResourceAssembler;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -86,8 +86,8 @@ public class BuddyController extends ControllerBase
 	 */
 	@GetMapping(value = "/")
 	@ResponseBody
-	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId)
+	public HttpEntity<CollectionModel<BuddyResource>> getAllBuddies(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
@@ -157,23 +157,23 @@ public class BuddyController extends ControllerBase
 
 	private BuddyDto convertToBuddy(PostBuddyDto postBuddy)
 	{
-		String userRelName = curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME);
-		UserDto user = postBuddy.userInMap.get(userRelName);
+		LinkRelation userRel = curieProvider.getNamespacedRelFor(BuddyDto.USER_REL);
+		UserDto user = postBuddy.userInMap.get(userRel.value());
 		if (user == null)
 		{
-			throw BuddyServiceException.missingUser(userRelName);
+			throw BuddyServiceException.missingUser(userRel);
 		}
 		return new BuddyDto(user, postBuddy.message, postBuddy.sendingStatus, postBuddy.receivingStatus, TimeUtil.utcNow());
 	}
 
-	public static Resources<BuddyResource> createAllBuddiesCollectionResource(CurieProvider curieProvider, UUID userId,
+	public static CollectionModel<BuddyResource> createAllBuddiesCollectionResource(CurieProvider curieProvider, UUID userId,
 			Set<BuddyDto> allBuddiesOfUser)
 	{
-		return new Resources<>(new BuddyResourceAssembler(curieProvider, userId).toResources(allBuddiesOfUser),
+		return new CollectionModel<>(new BuddyResourceAssembler(curieProvider, userId).toCollectionModel(allBuddiesOfUser),
 				getAllBuddiesLinkBuilder(userId).withSelfRel());
 	}
 
-	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID userId)
+	static WebMvcLinkBuilder getAllBuddiesLinkBuilder(UUID userId)
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getAllBuddies(null, userId));
@@ -181,19 +181,7 @@ public class BuddyController extends ControllerBase
 
 	public String getInviteUrl(UUID newUserId, String tempPassword)
 	{
-		// getUserSelfLinkWithTempPassword should actually call expand, so we don't need to strip template parameters
-		// This is not being done because of https://github.com/spring-projects/spring-hateoas/issues/703
-		return stripTemplateParameters(UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword));
-	}
-
-	private String stripTemplateParameters(Link link)
-	{
-		String linkString = link.getHref();
-		if (link.isTemplated())
-		{
-			return linkString.substring(0, linkString.indexOf('{'));
-		}
-		return linkString;
+		return UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword).getHref();
 	}
 
 	private BuddyResourceAssembler createResourceAssembler(UUID userId)
@@ -201,25 +189,27 @@ public class BuddyController extends ControllerBase
 		return new BuddyResourceAssembler(curieProvider, userId);
 	}
 
-	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
+	public static CollectionModel<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
 			Set<GoalDto> allGoalsOfUser)
 	{
-		return new Resources<>(new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId))
-				.toResources(allGoalsOfUser), getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
+		return new CollectionModel<>(
+				new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId))
+						.toCollectionModel(allGoalsOfUser),
+				getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
 	}
 
-	public static ControllerLinkBuilder getBuddyLinkBuilder(UUID userId, UUID buddyId)
+	public static WebMvcLinkBuilder getBuddyLinkBuilder(UUID userId, UUID buddyId)
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getBuddy(Optional.empty(), userId, buddyId));
 	}
 
-	public static ControllerLinkBuilder getGoalLinkBuilder(UUID requestingUserId, UUID userId, UUID goalId)
+	public static WebMvcLinkBuilder getGoalLinkBuilder(UUID requestingUserId, UUID userId, UUID goalId)
 	{
 		return GoalController.getGoalLinkBuilder(requestingUserId, userId, goalId);
 	}
 
-	private static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID requestingUserId, UUID userId)
+	private static WebMvcLinkBuilder getAllGoalsLinkBuilder(UUID requestingUserId, UUID userId)
 	{
 		return GoalController.getAllGoalsLinkBuilder(requestingUserId, userId);
 	}
@@ -256,7 +246,7 @@ public class BuddyController extends ControllerBase
 		}
 	}
 
-	static class BuddyResource extends Resource<BuddyDto>
+	static class BuddyResource extends EntityModel<BuddyDto>
 	{
 		private final CurieProvider curieProvider;
 		private final UUID userId;
@@ -272,14 +262,14 @@ public class BuddyController extends ControllerBase
 		public Map<String, Object> getEmbeddedResources()
 		{
 			HashMap<String, Object> result = new HashMap<>();
-			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), UserController.UserResourceAssembler
-					.createInstanceForBuddy(curieProvider, userId).toResource(getContent().getUser()));
+			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL).value(), UserController.UserResourceAssembler
+					.createInstanceForBuddy(curieProvider, userId).toModel(getContent().getUser()));
 
 			return result;
 		}
 	}
 
-	static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDto, BuddyResource>
+	static class BuddyResourceAssembler extends RepresentationModelAssemblerSupport<BuddyDto, BuddyResource>
 	{
 		private final UUID userId;
 		private final CurieProvider curieProvider;
@@ -292,10 +282,10 @@ public class BuddyController extends ControllerBase
 		}
 
 		@Override
-		public BuddyResource toResource(BuddyDto buddy)
+		public BuddyResource toModel(BuddyDto buddy)
 		{
-			BuddyResource buddyResource = instantiateResource(buddy);
-			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getId());
+			BuddyResource buddyResource = instantiateModel(buddy);
+			WebMvcLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getId());
 			addSelfLink(selfLinkBuilder, buddyResource);
 			addEditLink(selfLinkBuilder, buddyResource);
 			if (buddy.getSendingStatus() == Status.ACCEPTED)
@@ -307,38 +297,38 @@ public class BuddyController extends ControllerBase
 		}
 
 		@Override
-		protected BuddyResource instantiateResource(BuddyDto buddy)
+		protected BuddyResource instantiateModel(BuddyDto buddy)
 		{
 			return new BuddyResource(curieProvider, userId, buddy);
 		}
 
-		private ControllerLinkBuilder getSelfLinkBuilder(UUID buddyId)
+		private WebMvcLinkBuilder getSelfLinkBuilder(UUID buddyId)
 		{
 			return getBuddyLinkBuilder(userId, buddyId);
 		}
 
-		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
+		private void addSelfLink(WebMvcLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
+		private void addEditLink(WebMvcLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
-			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+			buddyResource.add(selfLinkBuilder.withRel(IanaLinkRelations.EDIT));
 		}
 
 		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)
 		{
 			buddyResource.add(
 					BuddyActivityController.getBuddyWeekActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
-							.withRel(BuddyActivityController.WEEK_OVERVIEW_LINK));
+							.withRel(BuddyActivityController.WEEK_OVERVIEW_REL));
 		}
 
 		private void addDayActivityOverviewsLink(BuddyResource buddyResource)
 		{
 			buddyResource.add(
 					BuddyActivityController.getBuddyDayActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
-							.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
+							.withRel(BuddyActivityController.DAY_OVERVIEW_REL));
 		}
 	}
 }

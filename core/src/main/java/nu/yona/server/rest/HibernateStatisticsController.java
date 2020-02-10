@@ -5,8 +5,9 @@
 package nu.yona.server.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.SimpleRepresentationModelAssembler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.util.HibernateStatisticsService;
+import nu.yona.server.util.HibernateStatisticsService.StatisticsDto;
 
 @Controller
 @RequestMapping(value = "hibernateStatistics", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -46,7 +48,7 @@ public class HibernateStatisticsController extends ControllerBase
 
 	@GetMapping(value = "/", params = { "reset" })
 	@ResponseBody
-	public ResponseEntity<StatisticsResource> getStatistics(
+	public ResponseEntity<EntityModel<HibernateStatisticsService.StatisticsDto>> getStatistics(
 			@RequestParam(value = "reset", defaultValue = "false") String resetStr)
 	{
 		if (!hibernateStatisticsService.isStatisticsEnabled())
@@ -54,8 +56,8 @@ public class HibernateStatisticsController extends ControllerBase
 			return createResponse(HttpStatus.NOT_FOUND);
 		}
 
-		ResponseEntity<StatisticsResource> responseEntity = createOkResponse(hibernateStatisticsService.getStatistics(),
-				createResourceAssembler());
+		ResponseEntity<EntityModel<HibernateStatisticsService.StatisticsDto>> responseEntity = createOkResponse(
+				hibernateStatisticsService.getStatistics(), createResourceAssembler());
 		if (Boolean.TRUE.toString().equals(resetStr))
 		{
 			hibernateStatisticsService.resetStatistics();
@@ -82,32 +84,21 @@ public class HibernateStatisticsController extends ControllerBase
 		return new StatisticsResourceAssembler();
 	}
 
-	public static class StatisticsResource extends Resource<HibernateStatisticsService.StatisticsDto>
+	static class StatisticsResourceAssembler
+			implements SimpleRepresentationModelAssembler<HibernateStatisticsService.StatisticsDto>
 	{
-		public StatisticsResource(HibernateStatisticsService.StatisticsDto statistics)
-		{
-			super(statistics);
-		}
-	}
 
-	private static class StatisticsResourceAssembler
-			extends ResourceAssemblerSupport<HibernateStatisticsService.StatisticsDto, StatisticsResource>
-	{
-		public StatisticsResourceAssembler()
+		@Override
+		public void addLinks(EntityModel<StatisticsDto> resource)
 		{
-			super(HibernateStatisticsController.class, StatisticsResource.class);
+			// No links needed
+
 		}
 
 		@Override
-		public StatisticsResource toResource(HibernateStatisticsService.StatisticsDto statistics)
+		public void addLinks(CollectionModel<EntityModel<StatisticsDto>> resources)
 		{
-			return instantiateResource(statistics);
-		}
-
-		@Override
-		protected StatisticsResource instantiateResource(HibernateStatisticsService.StatisticsDto statistics)
-		{
-			return new StatisticsResource(statistics);
+			// No links needed
 		}
 	}
 }

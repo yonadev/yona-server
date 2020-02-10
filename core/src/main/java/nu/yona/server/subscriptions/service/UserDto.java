@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.hateoas.LinkRelation;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,9 +37,9 @@ import nu.yona.server.util.TimeUtil;
 @JsonRootName("user")
 public class UserDto
 {
-	public static final String BUDDIES_REL_NAME = "buddies";
-	public static final String GOALS_REL_NAME = "goals";
-	public static final String DEVICES_REL_NAME = "devices";
+	public static final LinkRelation BUDDIES_REL = LinkRelation.of("buddies");
+	public static final LinkRelation GOALS_REL = LinkRelation.of("goals");
+	public static final LinkRelation DEVICES_REL = LinkRelation.of("devices");
 
 	private UUID id;
 	private final Optional<LocalDateTime> creationTime;

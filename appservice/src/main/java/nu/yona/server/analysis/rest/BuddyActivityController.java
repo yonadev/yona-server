@@ -5,8 +5,8 @@
 package nu.yona.server.analysis.rest;
 
 import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -15,8 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -58,7 +58,7 @@ public class BuddyActivityController extends ActivityControllerBase
 
 	@GetMapping(value = WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT)
 	@ResponseBody
-	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getBuddyWeekActivityOverviews(
+	public HttpEntity<PagedModel<WeekActivityOverviewResource>> getBuddyWeekActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler)
@@ -91,7 +91,7 @@ public class BuddyActivityController extends ActivityControllerBase
 
 	@GetMapping(value = DAY_OVERVIEWS_URI_FRAGMENT)
 	@ResponseBody
-	public HttpEntity<PagedResources<DayActivityOverviewResource>> getBuddyDayActivityOverviews(
+	public HttpEntity<PagedModel<DayActivityOverviewResource>> getBuddyDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
@@ -141,7 +141,7 @@ public class BuddyActivityController extends ActivityControllerBase
 
 	@GetMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT)
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageDto>> getBuddyWeekActivityDetailMessages(
+	public HttpEntity<PagedModel<MessageDto>> getBuddyWeekActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId,
@@ -193,7 +193,7 @@ public class BuddyActivityController extends ActivityControllerBase
 
 	@GetMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT)
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageDto>> getBuddyDayActivityDetailMessages(
+	public HttpEntity<PagedModel<MessageDto>> getBuddyDayActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId,
@@ -235,31 +235,31 @@ public class BuddyActivityController extends ActivityControllerBase
 		addStandardLinks(goalIdMapping, linkProvider, activity, message);
 	}
 
-	public static ControllerLinkBuilder getBuddyDayActivityOverviewsLinkBuilder(UUID userId, UUID buddyId)
+	public static WebMvcLinkBuilder getBuddyDayActivityOverviewsLinkBuilder(UUID userId, UUID buddyId)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 		return linkTo(methodOn.getBuddyDayActivityOverviews(null, userId, buddyId, null, null));
 	}
 
-	public static ControllerLinkBuilder getBuddyWeekActivityOverviewsLinkBuilder(UUID userId, UUID buddyId)
+	public static WebMvcLinkBuilder getBuddyWeekActivityOverviewsLinkBuilder(UUID userId, UUID buddyId)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 		return linkTo(methodOn.getBuddyWeekActivityOverviews(null, userId, buddyId, null, null));
 	}
 
-	public static ControllerLinkBuilder getBuddyWeekActivityOverviewLinkBuilder(UUID userId, UUID buddyId, String dateStr)
+	public static WebMvcLinkBuilder getBuddyWeekActivityOverviewLinkBuilder(UUID userId, UUID buddyId, String dateStr)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 		return linkTo(methodOn.getBuddyWeekActivityOverview(null, userId, buddyId, dateStr));
 	}
 
-	public static ControllerLinkBuilder getBuddyDayActivityOverviewLinkBuilder(UUID userId, UUID buddyId, String dateStr)
+	public static WebMvcLinkBuilder getBuddyDayActivityOverviewLinkBuilder(UUID userId, UUID buddyId, String dateStr)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 		return linkTo(methodOn.getBuddyDayActivityOverview(null, userId, buddyId, dateStr));
 	}
 
-	public static ControllerLinkBuilder getBuddyDayActivityDetailLinkBuilder(UUID userId, UUID buddyId, String dateStr,
+	public static WebMvcLinkBuilder getBuddyDayActivityDetailLinkBuilder(UUID userId, UUID buddyId, String dateStr,
 			UUID goalId)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
@@ -280,38 +280,38 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public ControllerLinkBuilder getWeekActivityOverviewLinkBuilder(String dateStr)
+		public WebMvcLinkBuilder getWeekActivityOverviewLinkBuilder(String dateStr)
 		{
 			return getBuddyWeekActivityOverviewLinkBuilder(requestingUserId, buddyId, dateStr);
 		}
 
 		@Override
-		public ControllerLinkBuilder getDayActivityOverviewLinkBuilder(String dateStr)
+		public WebMvcLinkBuilder getDayActivityOverviewLinkBuilder(String dateStr)
 		{
 			return getBuddyDayActivityOverviewLinkBuilder(requestingUserId, buddyId, dateStr);
 		}
 
 		@Override
-		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalId)
+		public WebMvcLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalId)
 		{
 			return getBuddyDayActivityDetailLinkBuilder(requestingUserId, buddyId, dateStr, goalId);
 		}
 
 		@Override
-		public ControllerLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalId)
+		public WebMvcLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalId)
 		{
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 			return linkTo(methodOn.getBuddyWeekActivityDetail(null, requestingUserId, buddyId, dateStr, goalId));
 		}
 
 		@Override
-		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalId)
+		public WebMvcLinkBuilder getGoalLinkBuilder(UUID goalId)
 		{
 			return BuddyController.getGoalLinkBuilder(requestingUserId, userId, goalId);
 		}
 
 		@Override
-		public ControllerLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId)
+		public WebMvcLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId)
 		{
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 			return linkTo(methodOn.getBuddyDayActivityDetailMessages(Optional.empty(), requestingUserId, buddyId, dateStr, goalId,
@@ -319,7 +319,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public Optional<ControllerLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId)
+		public Optional<WebMvcLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId)
 		{
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 			return Optional.of(linkTo(methodOn.addBuddyDayActivityDetailMessage(Optional.empty(), requestingUserId, buddyId,
@@ -327,7 +327,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public ControllerLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId)
+		public WebMvcLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId)
 		{
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 			return linkTo(methodOn.getBuddyWeekActivityDetailMessages(Optional.empty(), requestingUserId, buddyId, dateStr,
@@ -335,7 +335,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public Optional<ControllerLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId)
+		public Optional<WebMvcLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId)
 		{
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 			return Optional.of(linkTo(methodOn.addBuddyWeekActivityDetailMessage(Optional.empty(), requestingUserId, buddyId,
@@ -343,7 +343,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public Optional<ControllerLinkBuilder> getBuddyLinkBuilder()
+		public Optional<WebMvcLinkBuilder> getBuddyLinkBuilder()
 		{
 			return Optional.of(BuddyController.getBuddyLinkBuilder(requestingUserId, buddyId));
 		}

@@ -32,7 +32,7 @@ docker {
 
 task buildDockerImage(type: DockerBuildImage) {
 	inputDir = mkdir("build/docker")
-	tags = [ "${dockerImageName}:${project.ext.docker_tag}" ]
+	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
 	doFirst {
 		copy {
 			from "src/main/liquibase"
@@ -48,8 +48,7 @@ task buildDockerImage(type: DockerBuildImage) {
 }
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	imageName = dockerImageName
-	tag = project.ext.docker_tag
+	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
 }
 
 task pathingJar(type: Jar) {

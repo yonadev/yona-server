@@ -1,20 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.ExposesResourceFor;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,14 +40,14 @@ public class JobController extends ControllerBase
 
 	@GetMapping(value = "/")
 	@ResponseBody
-	public HttpEntity<Resources<JobResource>> getAllJobs()
+	public HttpEntity<CollectionModel<JobResource>> getAllJobs()
 	{
 		return createOkResponse(jobManagementService.getAllJobs(), createResourceAssembler(), getAllJobsLinkBuilder());
 	}
 
 	@GetMapping(value = "/{group}/")
 	@ResponseBody
-	public HttpEntity<Resources<JobResource>> getJobsInGroup(@PathVariable String group)
+	public HttpEntity<CollectionModel<JobResource>> getJobsInGroup(@PathVariable String group)
 	{
 		return createOkResponse(jobManagementService.getJobsInGroup(group), createResourceAssembler(),
 				getJobsInGroupLinkBuilder(group));
@@ -55,7 +55,7 @@ public class JobController extends ControllerBase
 
 	@PutMapping(value = "/{group}/")
 	@ResponseBody
-	public HttpEntity<Resources<JobResource>> updateJobGroup(@PathVariable String group, @RequestBody Set<JobDto> jobs)
+	public HttpEntity<CollectionModel<JobResource>> updateJobGroup(@PathVariable String group, @RequestBody Set<JobDto> jobs)
 	{
 		return createOkResponse(jobManagementService.updateJobGroup(group, jobs), createResourceAssembler(),
 				getJobsInGroupLinkBuilder(group));
@@ -66,7 +66,7 @@ public class JobController extends ControllerBase
 	@ResponseStatus(HttpStatus.OK)
 	public JobResource getJob(@PathVariable String group, @PathVariable String name)
 	{
-		return new JobResourceAssembler().toResource(jobManagementService.getJob(name, group));
+		return new JobResourceAssembler().toModel(jobManagementService.getJob(name, group));
 	}
 
 	@PostMapping(value = "/{group}/")
@@ -75,7 +75,7 @@ public class JobController extends ControllerBase
 	public JobResource addJob(@PathVariable String group, @RequestBody JobDto job)
 	{
 		job.setGroup(group);
-		return new JobResourceAssembler().toResource(jobManagementService.addJob(group, job));
+		return new JobResourceAssembler().toModel(jobManagementService.addJob(group, job));
 	}
 
 	private JobResourceAssembler createResourceAssembler()
@@ -83,25 +83,25 @@ public class JobController extends ControllerBase
 		return new JobResourceAssembler();
 	}
 
-	private static ControllerLinkBuilder getAllJobsLinkBuilder()
+	private static WebMvcLinkBuilder getAllJobsLinkBuilder()
 	{
 		JobController methodOn = methodOn(JobController.class);
 		return linkTo(methodOn.getAllJobs());
 	}
 
-	private static ControllerLinkBuilder getJobsInGroupLinkBuilder(String group)
+	private static WebMvcLinkBuilder getJobsInGroupLinkBuilder(String group)
 	{
 		JobController methodOn = methodOn(JobController.class);
 		return linkTo(methodOn.getJobsInGroup(group));
 	}
 
-	static ControllerLinkBuilder getJobLinkBuilder(String group, String name)
+	static WebMvcLinkBuilder getJobLinkBuilder(String group, String name)
 	{
 		JobController methodOn = methodOn(JobController.class);
 		return linkTo(methodOn.getJob(group, name));
 	}
 
-	static class JobResource extends Resource<JobDto>
+	static class JobResource extends EntityModel<JobDto>
 	{
 		public JobResource(JobDto job)
 		{
@@ -109,7 +109,7 @@ public class JobController extends ControllerBase
 		}
 	}
 
-	public static class JobResourceAssembler extends ResourceAssemblerSupport<JobDto, JobResource>
+	public static class JobResourceAssembler extends RepresentationModelAssemblerSupport<JobDto, JobResource>
 	{
 		public JobResourceAssembler()
 		{
@@ -117,25 +117,25 @@ public class JobController extends ControllerBase
 		}
 
 		@Override
-		public JobResource toResource(JobDto job)
+		public JobResource toModel(JobDto job)
 		{
-			JobResource jobResource = instantiateResource(job);
+			JobResource jobResource = instantiateModel(job);
 			addSelfLink(jobResource);
 			return jobResource;
 		}
 
 		@Override
-		protected JobResource instantiateResource(JobDto job)
+		protected JobResource instantiateModel(JobDto job)
 		{
 			return new JobResource(job);
 		}
 
-		private void addSelfLink(Resource<JobDto> job)
+		private void addSelfLink(EntityModel<JobDto> job)
 		{
 			job.add(getLinkBuilder(job).withSelfRel());
 		}
 
-		private ControllerLinkBuilder getLinkBuilder(Resource<JobDto> job)
+		private WebMvcLinkBuilder getLinkBuilder(EntityModel<JobDto> job)
 		{
 			return JobController.getJobLinkBuilder(job.getContent().getGroup(), job.getContent().getName());
 		}

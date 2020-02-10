@@ -6,8 +6,8 @@ package nu.yona.server.subscriptions.rest;
 
 import static nu.yona.server.rest.RestConstants.NEW_DEVICE_REQUEST_PASSWORD_HEADER;
 import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -15,10 +15,11 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.server.ExposesResourceFor;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,7 +38,6 @@ import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.rest.DeviceController;
 import nu.yona.server.rest.ControllerBase;
-import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.DeviceRequestException;
@@ -134,13 +134,13 @@ public class NewDeviceRequestController extends ControllerBase
 		return new NewDeviceRequestResourceAssembler(user);
 	}
 
-	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)
+	static WebMvcLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)
 	{
 		NewDeviceRequestController methodOn = methodOn(NewDeviceRequestController.class);
 		return linkTo(methodOn.getNewDeviceRequestForUser(null, mobileNumber));
 	}
 
-	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDto>
+	public static class NewDeviceRequestResource extends EntityModel<NewDeviceRequestDto>
 	{
 		public NewDeviceRequestResource(NewDeviceRequestDto newDeviceRequest)
 		{
@@ -149,7 +149,7 @@ public class NewDeviceRequestController extends ControllerBase
 	}
 
 	public static class NewDeviceRequestResourceAssembler
-			extends ResourceAssemblerSupport<NewDeviceRequestDto, NewDeviceRequestResource>
+			extends RepresentationModelAssemblerSupport<NewDeviceRequestDto, NewDeviceRequestResource>
 	{
 		private final UserDto user;
 
@@ -160,9 +160,9 @@ public class NewDeviceRequestController extends ControllerBase
 		}
 
 		@Override
-		public NewDeviceRequestResource toResource(NewDeviceRequestDto newDeviceRequest)
+		public NewDeviceRequestResource toModel(NewDeviceRequestDto newDeviceRequest)
 		{
-			NewDeviceRequestResource newDeviceRequestResource = instantiateResource(newDeviceRequest);
+			NewDeviceRequestResource newDeviceRequestResource = instantiateModel(newDeviceRequest);
 			addSelfLink(newDeviceRequestResource);
 			addEditLink(newDeviceRequestResource);/* always editable */
 			addUserLink(newDeviceRequestResource);
@@ -171,29 +171,29 @@ public class NewDeviceRequestController extends ControllerBase
 		}
 
 		@Override
-		protected NewDeviceRequestResource instantiateResource(NewDeviceRequestDto newDeviceRequest)
+		protected NewDeviceRequestResource instantiateModel(NewDeviceRequestDto newDeviceRequest)
 		{
 			return new NewDeviceRequestResource(newDeviceRequest);
 		}
 
-		private void addSelfLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
+		private void addSelfLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)
 		{
 			newDeviceRequestResource
 					.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber()).withSelfRel());
 		}
 
-		private void addEditLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
+		private void addEditLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)
 		{
 			newDeviceRequestResource.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber())
-					.withRel(JsonRootRelProvider.EDIT_REL));
+					.withRel(IanaLinkRelations.EDIT));
 		}
 
-		private void addUserLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
+		private void addUserLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource.add(UserController.getUserLink(BuddyDto.USER_REL_NAME, user.getId(), Optional.empty()));
+			newDeviceRequestResource.add(UserController.getUserLink(BuddyDto.USER_REL, user.getId(), Optional.empty()));
 		}
 
-		private void addRegisterDeviceLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
+		private void addRegisterDeviceLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)
 		{
 			newDeviceRequestResource.add(DeviceController.getRegisterDeviceLinkBuilder(user.getId()).withRel("registerDevice"));
 		}

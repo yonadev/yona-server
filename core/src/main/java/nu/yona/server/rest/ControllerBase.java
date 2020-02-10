@@ -8,11 +8,11 @@ import java.util.Collection;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.ResourceSupport;
-import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.server.RepresentationModelAssembler;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -41,46 +41,46 @@ public abstract class ControllerBase
 		return new ResponseEntity<>(status);
 	}
 
-	protected <T, U extends ResourceSupport> ResponseEntity<U> createOkResponse(T dto,
-			ResourceAssemblerSupport<T, U> resourceAssembler)
+	protected <T, U extends RepresentationModel<?>> ResponseEntity<U> createOkResponse(T dto,
+			RepresentationModelAssembler<T, U> resourceAssembler)
 	{
 		return createResponse(dto, HttpStatus.OK, resourceAssembler);
 	}
 
-	protected <T, U extends ResourceSupport> ResponseEntity<U> createResponse(T dto, HttpStatus status,
-			ResourceAssemblerSupport<T, U> resourceAssembler)
+	protected <T, U extends RepresentationModel<?>> ResponseEntity<U> createResponse(T dto, HttpStatus status,
+			RepresentationModelAssembler<T, U> resourceAssembler)
 	{
-		return new ResponseEntity<>(resourceAssembler.toResource(dto), status);
+		return new ResponseEntity<>(resourceAssembler.toModel(dto), status);
 	}
 
-	protected <T, U extends ResourceSupport> ResponseEntity<Resources<U>> createOkResponse(Collection<T> dtos,
-			ResourceAssemblerSupport<T, U> resourceAssembler, ControllerLinkBuilder linkBuilder)
+	protected <T, U extends RepresentationModel<?>> ResponseEntity<CollectionModel<U>> createOkResponse(Collection<T> dtos,
+			RepresentationModelAssembler<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
 	{
 		return createResponse(dtos, HttpStatus.OK, resourceAssembler, linkBuilder);
 	}
 
-	protected <T, U extends ResourceSupport> ResponseEntity<Resources<U>> createResponse(Collection<T> dtos, HttpStatus status,
-			ResourceAssemblerSupport<T, U> resourceAssembler, ControllerLinkBuilder linkBuilder)
+	protected <T, U extends RepresentationModel<?>> ResponseEntity<CollectionModel<U>> createResponse(Collection<T> dtos,
+			HttpStatus status, RepresentationModelAssembler<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
 	{
 		return new ResponseEntity<>(createCollectionResource(dtos, resourceAssembler, linkBuilder), status);
 	}
 
-	protected <T, U extends ResourceSupport> ResponseEntity<PagedResources<U>> createOkResponse(Page<T> dtos,
-			PagedResourcesAssembler<T> pagedResourceAssembler, ResourceAssemblerSupport<T, U> resourceAssembler)
+	protected <T, U extends RepresentationModel<?>> ResponseEntity<PagedModel<U>> createOkResponse(Page<T> dtos,
+			PagedResourcesAssembler<T> pagedResourceAssembler, RepresentationModelAssembler<T, U> resourceAssembler)
 	{
 		return createResponse(dtos, HttpStatus.OK, pagedResourceAssembler, resourceAssembler);
 	}
 
-	protected <T, U extends ResourceSupport> ResponseEntity<PagedResources<U>> createResponse(Page<T> dtos, HttpStatus status,
-			PagedResourcesAssembler<T> pagedResourceAssembler, ResourceAssemblerSupport<T, U> resourceAssembler)
+	protected <T, U extends RepresentationModel<?>> ResponseEntity<PagedModel<U>> createResponse(Page<T> dtos, HttpStatus status,
+			PagedResourcesAssembler<T> pagedResourceAssembler, RepresentationModelAssembler<T, U> resourceAssembler)
 	{
-		return new ResponseEntity<>(pagedResourceAssembler.toResource(dtos, resourceAssembler), status);
+		return new ResponseEntity<>(pagedResourceAssembler.toModel(dtos, resourceAssembler), status);
 	}
 
-	public static <T, U extends ResourceSupport> Resources<U> createCollectionResource(Collection<T> dtos,
-			ResourceAssemblerSupport<T, U> resourceAssembler, ControllerLinkBuilder linkBuilder)
+	public static <T, U extends RepresentationModel<?>> CollectionModel<U> createCollectionResource(Collection<T> dtos,
+			RepresentationModelAssembler<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
 	{
-		return new Resources<>(resourceAssembler.toResources(dtos), linkBuilder.withSelfRel());
+		return new CollectionModel<>(resourceAssembler.toCollectionModel(dtos), linkBuilder.withSelfRel());
 	}
 
 }

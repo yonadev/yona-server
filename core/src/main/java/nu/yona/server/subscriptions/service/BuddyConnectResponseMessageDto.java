@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,7 +35,8 @@ import nu.yona.server.subscriptions.entities.User;
 @JsonRootName("buddyConnectResponseMessage")
 public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 {
-	private static final String PROCESS = "process";
+	private static final String PROCESS_REL_NAME = "process";
+	private static final LinkRelation PROCESS_REL = LinkRelation.of(PROCESS_REL_NAME);
 	private final Status status;
 	private final boolean isProcessed;
 
@@ -53,12 +55,12 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@Override
-	public Set<String> getPossibleActions()
+	public Set<LinkRelation> getPossibleActions()
 	{
-		Set<String> possibleActions = super.getPossibleActions();
+		Set<LinkRelation> possibleActions = super.getPossibleActions();
 		if (!isProcessed)
 		{
-			possibleActions.add(PROCESS);
+			possibleActions.add(PROCESS_REL);
 		}
 		return possibleActions;
 	}
@@ -121,7 +123,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 
 			switch (action)
 			{
-				case PROCESS:
+				case PROCESS_REL_NAME:
 					return handleAction_Process(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
 				default:
 					return super.handleAction(actingUser, messageEntity, action, requestPayload);

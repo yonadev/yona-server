@@ -30,6 +30,6 @@ public class DisclosureResponseMessageDecorator implements MessageResourceDecora
 		message.add(BuddyActivityController
 				.getBuddyDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(),
 						assembler.getSenderBuddyId(message), dateStr, message.getGoalId())
-				.withRel(BuddyActivityController.DAY_DETAIL_LINK));
+				.withRel(BuddyActivityController.DAY_DETAIL_REL));
 	}
 }

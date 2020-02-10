@@ -7,7 +7,7 @@ package nu.yona.server.analysis.rest;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -77,7 +77,7 @@ public class AnalysisEngineController
 		return new ResponseEntity<>(new CategoriesResource(categories), HttpStatus.OK);
 	}
 
-	public static class CategoriesResource extends Resource<CategoriesDto>
+	public static class CategoriesResource extends EntityModel<CategoriesDto>
 	{
 		public CategoriesResource(CategoriesDto categories)
 		{

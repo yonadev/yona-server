@@ -14,6 +14,7 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -40,7 +41,8 @@ import nu.yona.server.util.TimeUtil;
 @JsonRootName("goalConflictMessage")
 public class GoalConflictMessageDto extends MessageDto
 {
-	private static final String REQUEST_DISCLOSURE = "requestDisclosure";
+	private static final String REQUEST_DISCLOSURE_REL_NAME = "requestDisclosure";
+	private static final LinkRelation REQUEST_DISCLOSURE_REL = LinkRelation.of(REQUEST_DISCLOSURE_REL_NAME);
 	private final Optional<String> url;
 	private final Status status;
 	private final LocalDateTime activityStartTime;
@@ -70,12 +72,12 @@ public class GoalConflictMessageDto extends MessageDto
 	}
 
 	@Override
-	public Set<String> getPossibleActions()
+	public Set<LinkRelation> getPossibleActions()
 	{
-		Set<String> possibleActions = super.getPossibleActions();
+		Set<LinkRelation> possibleActions = super.getPossibleActions();
 		if (this.isSentFromBuddy() && this.status == Status.ANNOUNCED)
 		{
-			possibleActions.add(REQUEST_DISCLOSURE);
+			possibleActions.add(REQUEST_DISCLOSURE_REL);
 		}
 		return possibleActions;
 	}
@@ -179,7 +181,7 @@ public class GoalConflictMessageDto extends MessageDto
 		{
 			switch (action)
 			{
-				case REQUEST_DISCLOSURE:
+				case REQUEST_DISCLOSURE_REL_NAME:
 					return handleAction_RequestDisclosure(actingUser, (GoalConflictMessage) messageEntity, requestPayload);
 				default:
 					return super.handleAction(actingUser, messageEntity, action, requestPayload);

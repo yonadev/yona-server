@@ -11,7 +11,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -895,7 +895,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		verify(mockLdapUserService).createVpnAccount(vpnLoginId.capture(), vpnPassword.capture());
 		assertThat(vpnLoginId.getValue(),
 				equalTo(richard.getAnonymized().getId().toString() + "$" + device.getDeviceAnonymized().getDeviceIndex()));
-		assertThat(vpnPassword.getValue(), is(not(isEmptyString())));
+		assertThat(vpnPassword.getValue(), is(not(emptyString())));
 	}
 
 	private void removeDuplicateDefaultDevicesFirstOrSecond(int indexToRetain)

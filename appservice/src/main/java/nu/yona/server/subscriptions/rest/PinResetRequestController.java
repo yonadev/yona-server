@@ -5,8 +5,8 @@
 package nu.yona.server.subscriptions.rest;
 
 import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -28,6 +28,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
@@ -185,6 +188,7 @@ public class PinResetRequestController extends ControllerBase
 			this.delay = delay;
 		}
 
+		@JsonFormat(shape = Shape.STRING)
 		public Duration getDelay()
 		{
 			return delay;

@@ -16,8 +16,8 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -171,7 +171,7 @@ public class TestController extends ControllerBase
 		return new PassThroughHeadersResourceAssembler();
 	}
 
-	static class EmailResource extends Resource<EmailDto>
+	static class EmailResource extends EntityModel<EmailDto>
 	{
 		public EmailResource(EmailDto email)
 		{
@@ -180,7 +180,7 @@ public class TestController extends ControllerBase
 
 	}
 
-	static class EmailResourceAssembler extends ResourceAssemblerSupport<EmailDto, EmailResource>
+	static class EmailResourceAssembler extends RepresentationModelAssemblerSupport<EmailDto, EmailResource>
 	{
 		public EmailResourceAssembler()
 		{
@@ -188,13 +188,13 @@ public class TestController extends ControllerBase
 		}
 
 		@Override
-		public EmailResource toResource(EmailDto email)
+		public EmailResource toModel(EmailDto email)
 		{
-			return instantiateResource(email);
+			return instantiateModel(email);
 		}
 
 		@Override
-		protected EmailResource instantiateResource(EmailDto email)
+		protected EmailResource instantiateModel(EmailDto email)
 		{
 			return new EmailResource(email);
 		}
@@ -294,7 +294,7 @@ public class TestController extends ControllerBase
 		}
 	}
 
-	static class FirebaseMessageResource extends Resource<FirebaseMessageDto>
+	static class FirebaseMessageResource extends EntityModel<FirebaseMessageDto>
 	{
 		public FirebaseMessageResource(FirebaseMessageDto email)
 		{
@@ -303,7 +303,8 @@ public class TestController extends ControllerBase
 
 	}
 
-	static class FirebaseMessageResourceAssembler extends ResourceAssemblerSupport<FirebaseMessageDto, FirebaseMessageResource>
+	static class FirebaseMessageResourceAssembler
+			extends RepresentationModelAssemblerSupport<FirebaseMessageDto, FirebaseMessageResource>
 	{
 		public FirebaseMessageResourceAssembler()
 		{
@@ -311,13 +312,13 @@ public class TestController extends ControllerBase
 		}
 
 		@Override
-		public FirebaseMessageResource toResource(FirebaseMessageDto email)
+		public FirebaseMessageResource toModel(FirebaseMessageDto email)
 		{
-			return instantiateResource(email);
+			return instantiateModel(email);
 		}
 
 		@Override
-		protected FirebaseMessageResource instantiateResource(FirebaseMessageDto email)
+		protected FirebaseMessageResource instantiateModel(FirebaseMessageDto email)
 		{
 			return new FirebaseMessageResource(email);
 		}
@@ -343,7 +344,7 @@ public class TestController extends ControllerBase
 		}
 	}
 
-	static class PassThroughHeadersResource extends Resource<PassThroughHeadersDto>
+	static class PassThroughHeadersResource extends EntityModel<PassThroughHeadersDto>
 	{
 		public PassThroughHeadersResource(PassThroughHeadersDto passThroughHeaders)
 		{
@@ -353,7 +354,7 @@ public class TestController extends ControllerBase
 	}
 
 	static class PassThroughHeadersResourceAssembler
-			extends ResourceAssemblerSupport<PassThroughHeadersDto, PassThroughHeadersResource>
+			extends RepresentationModelAssemblerSupport<PassThroughHeadersDto, PassThroughHeadersResource>
 	{
 		public PassThroughHeadersResourceAssembler()
 		{
@@ -361,13 +362,13 @@ public class TestController extends ControllerBase
 		}
 
 		@Override
-		public PassThroughHeadersResource toResource(PassThroughHeadersDto email)
+		public PassThroughHeadersResource toModel(PassThroughHeadersDto email)
 		{
-			return instantiateResource(email);
+			return instantiateModel(email);
 		}
 
 		@Override
-		protected PassThroughHeadersResource instantiateResource(PassThroughHeadersDto email)
+		protected PassThroughHeadersResource instantiateModel(PassThroughHeadersDto email)
 		{
 			return new PassThroughHeadersResource(email);
 		}
