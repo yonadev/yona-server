@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2018, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
@@ -16,8 +16,9 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.hateoas.server.SimpleRepresentationModelAssembler;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -72,16 +73,16 @@ public class TestController extends ControllerBase
 	 */
 	@GetMapping(value = "/emails/last")
 	@ResponseBody
-	public HttpEntity<EmailResource> getLastEMail()
+	public HttpEntity<EntityModel<EmailDto>> getLastEMail()
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /emails/last is not available"));
-		return createOkResponse(emailService.getLastEmail(), createEMailResourceAssembler());
+		return createOkResponse(emailService.getLastEmail(), createEMailRepresentationModelAssembler());
 	}
 
-	private EmailResourceAssembler createEMailResourceAssembler()
+	private EmailRepresentationModelAssembler createEMailRepresentationModelAssembler()
 	{
-		return new EmailResourceAssembler();
+		return new EmailRepresentationModelAssembler();
 	}
 
 	/**
@@ -92,7 +93,7 @@ public class TestController extends ControllerBase
 	 */
 	@GetMapping(value = "/firebase/messages/last/{registrationToken}")
 	@ResponseBody
-	public HttpEntity<FirebaseMessageResource> getLastFirebaseMessage(@PathVariable String registrationToken)
+	public HttpEntity<EntityModel<FirebaseMessageDto>> getLastFirebaseMessage(@PathVariable String registrationToken)
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
@@ -101,7 +102,7 @@ public class TestController extends ControllerBase
 		{
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		return createOkResponse(FirebaseMessageDto.createInstance(lastMessage.get()), createFirebaseMessageResourceAssembler());
+		return createOkResponse(FirebaseMessageDto.createInstance(lastMessage.get()), createFirebaseMessageRepresentationModelAssembler());
 	}
 
 	/**
@@ -112,7 +113,7 @@ public class TestController extends ControllerBase
 	 */
 	@DeleteMapping(value = "/firebase/messages/last/{registrationToken}")
 	@ResponseBody
-	public HttpEntity<FirebaseMessageResource> clearLastFirebaseMessage(@PathVariable String registrationToken)
+	public HttpEntity<EntityModel<FirebaseMessageDto>> clearLastFirebaseMessage(@PathVariable String registrationToken)
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
@@ -121,12 +122,12 @@ public class TestController extends ControllerBase
 		{
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		return createOkResponse(FirebaseMessageDto.createInstance(lastMessage.get()), createFirebaseMessageResourceAssembler());
+		return createOkResponse(FirebaseMessageDto.createInstance(lastMessage.get()), createFirebaseMessageRepresentationModelAssembler());
 	}
 
-	private FirebaseMessageResourceAssembler createFirebaseMessageResourceAssembler()
+	private FirebaseMessageRepresentationModelAssembler createFirebaseMessageRepresentationModelAssembler()
 	{
-		return new FirebaseMessageResourceAssembler();
+		return new FirebaseMessageRepresentationModelAssembler();
 	}
 
 	/**
@@ -137,13 +138,13 @@ public class TestController extends ControllerBase
 	 */
 	@GetMapping(value = "/passThroughHeaders")
 	@ResponseBody
-	public HttpEntity<PassThroughHeadersResource> getPassThroughHeaders()
+	public HttpEntity<EntityModel<PassThroughHeadersDto>> getPassThroughHeaders()
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /passThroughHeaders is not available"));
 		passBarrier();
 		PassThroughHeadersDto passThroughHeaders = PassThroughHeadersDto.createInstance(headersHolder.export());
-		return createOkResponse(passThroughHeaders, createPassThroughHeadersResourceAssembler());
+		return createOkResponse(passThroughHeaders, createPassThroughHeadersRepresentationModelAssembler());
 	}
 
 	private void passBarrier()
@@ -166,37 +167,24 @@ public class TestController extends ControllerBase
 		}
 	}
 
-	private PassThroughHeadersResourceAssembler createPassThroughHeadersResourceAssembler()
+	private PassThroughHeadersRepresentationModelAssembler createPassThroughHeadersRepresentationModelAssembler()
 	{
-		return new PassThroughHeadersResourceAssembler();
+		return new PassThroughHeadersRepresentationModelAssembler();
 	}
 
-	static class EmailResource extends EntityModel<EmailDto>
+	static class EmailRepresentationModelAssembler implements SimpleRepresentationModelAssembler<EmailDto>
 	{
-		public EmailResource(EmailDto email)
+		@Override
+		public void addLinks(EntityModel<EmailDto> model)
 		{
-			super(email);
-		}
+			// No links needed
 
-	}
-
-	static class EmailResourceAssembler extends RepresentationModelAssemblerSupport<EmailDto, EmailResource>
-	{
-		public EmailResourceAssembler()
-		{
-			super(TestController.class, EmailResource.class);
 		}
 
 		@Override
-		public EmailResource toModel(EmailDto email)
+		public void addLinks(CollectionModel<EntityModel<EmailDto>> models)
 		{
-			return instantiateModel(email);
-		}
-
-		@Override
-		protected EmailResource instantiateModel(EmailDto email)
-		{
-			return new EmailResource(email);
+			// No links needed
 		}
 	}
 
@@ -294,33 +282,19 @@ public class TestController extends ControllerBase
 		}
 	}
 
-	static class FirebaseMessageResource extends EntityModel<FirebaseMessageDto>
+	static class FirebaseMessageRepresentationModelAssembler implements SimpleRepresentationModelAssembler<FirebaseMessageDto>
 	{
-		public FirebaseMessageResource(FirebaseMessageDto email)
+		@Override
+		public void addLinks(EntityModel<FirebaseMessageDto> model)
 		{
-			super(email);
-		}
+			// No links needed
 
-	}
-
-	static class FirebaseMessageResourceAssembler
-			extends RepresentationModelAssemblerSupport<FirebaseMessageDto, FirebaseMessageResource>
-	{
-		public FirebaseMessageResourceAssembler()
-		{
-			super(TestController.class, FirebaseMessageResource.class);
 		}
 
 		@Override
-		public FirebaseMessageResource toModel(FirebaseMessageDto email)
+		public void addLinks(CollectionModel<EntityModel<FirebaseMessageDto>> models)
 		{
-			return instantiateModel(email);
-		}
-
-		@Override
-		protected FirebaseMessageResource instantiateModel(FirebaseMessageDto email)
-		{
-			return new FirebaseMessageResource(email);
+			// No links needed
 		}
 	}
 
@@ -344,33 +318,20 @@ public class TestController extends ControllerBase
 		}
 	}
 
-	static class PassThroughHeadersResource extends EntityModel<PassThroughHeadersDto>
+	static class PassThroughHeadersRepresentationModelAssembler
+			implements SimpleRepresentationModelAssembler<PassThroughHeadersDto>
 	{
-		public PassThroughHeadersResource(PassThroughHeadersDto passThroughHeaders)
+		@Override
+		public void addLinks(EntityModel<PassThroughHeadersDto> model)
 		{
-			super(passThroughHeaders);
-		}
+			// No links needed
 
-	}
-
-	static class PassThroughHeadersResourceAssembler
-			extends RepresentationModelAssemblerSupport<PassThroughHeadersDto, PassThroughHeadersResource>
-	{
-		public PassThroughHeadersResourceAssembler()
-		{
-			super(TestController.class, PassThroughHeadersResource.class);
 		}
 
 		@Override
-		public PassThroughHeadersResource toModel(PassThroughHeadersDto email)
+		public void addLinks(CollectionModel<EntityModel<PassThroughHeadersDto>> models)
 		{
-			return instantiateModel(email);
-		}
-
-		@Override
-		protected PassThroughHeadersResource instantiateModel(PassThroughHeadersDto email)
-		{
-			return new PassThroughHeadersResource(email);
+			// No links needed
 		}
 	}
 }

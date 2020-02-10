@@ -26,6 +26,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootLinkRelationProvider;
@@ -80,6 +82,13 @@ public class CoreConfiguration
 		contextSource.setPassword(yonaProperties.getLdap().getAccessUserPassword());
 		contextSource.afterPropertiesSet();
 		return new LdapTemplate(contextSource);
+	}
+
+	@Bean
+	@ConditionalOnProperty("yona.firebase.enabled")
+	public FirebaseMessaging firebaseMessaging()
+	{
+		return FirebaseMessaging.getInstance();
 	}
 
 	@Bean

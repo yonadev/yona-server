@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.test.util;
@@ -10,6 +10,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -133,6 +134,20 @@ public class JUnitUtil
 				.orElseThrow(() -> new IllegalStateException("Cannot find field '" + fieldName + "'"));
 		field.setAccessible(true);
 		return field;
+	}
+
+	public static <T> Constructor<T> getAccessibleConstructor(Class<T> clazz, Class<?>... parameterTypes)
+	{
+		try
+		{
+			Constructor<T> constructor = clazz.getDeclaredConstructor(parameterTypes);
+			constructor.setAccessible(true);
+			return constructor;
+		}
+		catch (NoSuchMethodException | SecurityException e)
+		{
+			throw new IllegalStateException("Cannot find constructor", e);
+		}
 	}
 
 	public static LocalDateTime getRoundedCreationDate(User user)
