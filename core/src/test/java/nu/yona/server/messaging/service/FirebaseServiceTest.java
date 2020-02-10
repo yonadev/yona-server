@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
@@ -24,10 +24,8 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
@@ -39,12 +37,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 
 import nu.yona.server.Translator;
-import nu.yona.server.device.entities.DeviceAnonymizedRepository;
-import nu.yona.server.device.entities.UserDeviceRepository;
 import nu.yona.server.device.service.DeviceService;
-import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
 import nu.yona.server.entities.EntityWithId;
-import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.SystemMessage;
@@ -55,22 +49,11 @@ import nu.yona.server.util.AsyncExecutor;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.messaging.service",
-		"nu.yona.server.subscriptions.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
+		"nu.yona.server.properties" }, includeFilters = {
 				@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.FirebaseService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
 class FirebaseServiceTestConfiguration extends UserRepositoriesConfiguration
 {
-	@Bean
-	UserDeviceRepository getMockDeviceRepository()
-	{
-		return Mockito.spy(new UserDeviceRepositoryMock());
-	}
-
-	@Bean
-	DeviceAnonymizedRepository getMockDeviceAnonymizedRepository()
-	{
-		return Mockito.spy(new DeviceAnonymizedRepositoryMock());
-	}
 }
 
 @ExtendWith(SpringExtension.class)
