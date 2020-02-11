@@ -97,12 +97,7 @@ public class TestController extends ControllerBase
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
-		Optional<MessageData> lastMessage = firebaseService.getLastMessage(registrationToken);
-		if (lastMessage.isEmpty())
-		{
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-		return createOkResponse(FirebaseMessageDto.createInstance(lastMessage.get()), createFirebaseMessageRepresentationModelAssembler());
+		return createResponse(firebaseService.getLastMessage(registrationToken));
 	}
 
 	/**
@@ -117,12 +112,14 @@ public class TestController extends ControllerBase
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /firebase/messages/last/ is not available"));
-		Optional<MessageData> lastMessage = firebaseService.clearLastMessage(registrationToken);
-		if (lastMessage.isEmpty())
-		{
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-		return createOkResponse(FirebaseMessageDto.createInstance(lastMessage.get()), createFirebaseMessageRepresentationModelAssembler());
+		return createResponse(firebaseService.clearLastMessage(registrationToken));
+	}
+
+	private ResponseEntity<EntityModel<FirebaseMessageDto>> createResponse(Optional<MessageData> lastMessage)
+	{
+		return lastMessage.map(
+				m -> createOkResponse(FirebaseMessageDto.createInstance(m), createFirebaseMessageRepresentationModelAssembler()))
+				.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
 
 	private FirebaseMessageRepresentationModelAssembler createFirebaseMessageRepresentationModelAssembler()
