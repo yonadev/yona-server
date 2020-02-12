@@ -118,7 +118,7 @@ public class BuddyService
 
 	private BuddyDto getBuddy(Buddy buddyEntity)
 	{
-		return BuddyDto.createInstance(buddyEntity);
+		return createBuddyDto(buddyEntity);
 	}
 
 	public Set<BuddyDto> getBuddiesOfUser(UUID forUserId)
@@ -200,10 +200,21 @@ public class BuddyService
 				() -> UserServiceException.notFoundById(connectRequestMessageEntity.getSenderUserId()));
 
 		acceptingUser.assertMobileNumberConfirmed();
-		Buddy buddy = createBuddyEntity(connectRequestMessageEntity);
-		BuddyDto buddyDto = BuddyDto.createInstance(buddyRepository.save(buddy));
+		Buddy buddy = buddyRepository.save(createBuddyEntity(connectRequestMessageEntity));
+		BuddyDto buddyDto = createBuddyDto(buddy);
 		userService.addBuddy(acceptingUser, buddyDto);
 		return buddyDto;
+	}
+
+	private BuddyDto createBuddyDto(Buddy buddy)
+	{
+		Optional<UserAnonymizedDto> buddyUserAnonymizedDto = getUserAnonymizedDto(buddy);
+		return BuddyDto.createInstance(buddy, buddyUserAnonymizedDto);
+	}
+
+	private Optional<UserAnonymizedDto> getUserAnonymizedDto(Buddy buddy)
+	{
+		return buddy.getBuddyAnonymized().getUserAnonymizedId().map(userAnonymizedService::getUserAnonymized);
 	}
 
 	private Buddy createBuddyEntity(BuddyConnectRequestMessage connectRequestMessageEntity)
@@ -461,14 +472,7 @@ public class BuddyService
 	Set<BuddyDto> getBuddyDtos(Set<Buddy> buddyEntities)
 	{
 		loadAllBuddiesAnonymizedAtOnce(buddyEntities);
-		loadAllUsersAnonymizedAtOnce(buddyEntities);
 		return buddyEntities.stream().map(this::getBuddy).collect(Collectors.toSet());
-	}
-
-	private void loadAllUsersAnonymizedAtOnce(Set<Buddy> buddyEntities)
-	{
-		UserAnonymized.getRepository().findAllById(buddyEntities.stream().map(Buddy::getUserAnonymizedId)
-				.filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList()));
 	}
 
 	private void loadAllBuddiesAnonymizedAtOnce(Set<Buddy> buddyEntities)
@@ -645,7 +649,7 @@ public class BuddyService
 		buddy.getUser().setUserId(buddyUserEntity.getId());
 		Buddy buddyEntity = buddy.createBuddyEntity();
 		Buddy savedBuddyEntity = buddyRepository.save(buddyEntity);
-		BuddyDto savedBuddy = BuddyDto.createInstance(savedBuddyEntity);
+		BuddyDto savedBuddy = createBuddyDto(savedBuddyEntity);
 		userService.addBuddy(requestingUser, savedBuddy);
 
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
@@ -687,7 +691,7 @@ public class BuddyService
 		Set<BuddyDto> buddies = user.getBuddies();
 		for (BuddyDto buddy : buddies)
 		{
-			if (buddy.getUserAnonymizedId().filter(id -> id.equals(userAnonymizedId)).isPresent())
+			if (buddy.getUserAnonymized().map(UserAnonymizedDto::getId).filter(id -> id.equals(userAnonymizedId)).isPresent())
 			{
 				return Optional.of(buddy);
 			}
@@ -729,7 +733,7 @@ public class BuddyService
 		User userEntity = userService.getUserEntityById(userId);
 		Buddy buddy = userEntity.getBuddies().stream().filter(b -> b.getUserId().equals(buddyUserId)).findAny()
 				.orElseThrow(() -> BuddyNotFoundException.notFoundForUser(userId, buddyUserId));
-		return UserDto.createInstance(userEntity, BuddyUserPrivateDataDto.createInstance(buddy));
+		return UserDto.createInstance(userEntity, BuddyUserPrivateDataDto.createInstance(buddy, getUserAnonymizedDto(buddy)));
 	}
 
 	@Transactional
@@ -791,6 +795,6 @@ public class BuddyService
 		buddyEntity.setLastStatusChangeTime(lastStatusChangeTime);
 		buddyRepository.save(buddyEntity);
 
-		return BuddyDto.createInstance(buddyEntity);
+		return createBuddyDto(buddyEntity);
 	}
 }

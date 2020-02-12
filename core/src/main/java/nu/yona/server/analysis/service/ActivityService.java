@@ -300,7 +300,7 @@ public class ActivityService
 			LocalDate earliestPossibleDate, Interval interval, Set<BuddyDto> buddies)
 	{
 		List<UserAnonymizedIdWithEarliestPossibleDate> userInfo = buddies.stream()
-				.map(b -> new UserAnonymizedIdWithEarliestPossibleDate(b.getUserAnonymizedId().get(),
+				.map(b -> new UserAnonymizedIdWithEarliestPossibleDate(b.getUserAnonymized().map(UserAnonymizedDto::getId).get(),
 						b.getLastStatusChangeTime().toLocalDate()))
 				.collect(Collectors.toList());
 		userInfo.add(new UserAnonymizedIdWithEarliestPossibleDate(userAnonymizedId, earliestPossibleDate));
@@ -370,7 +370,7 @@ public class ActivityService
 
 	private UUID getBuddyUserAnonymizedId(BuddyDto buddy)
 	{
-		return buddy.getUserAnonymizedId()
+		return buddy.getUserAnonymized().map(UserAnonymizedDto::getId)
 				.orElseThrow(() -> new IllegalStateException("Should have user anonymized ID when fetching buddy activity"));
 	}
 

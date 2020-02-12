@@ -36,14 +36,18 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		this.isFetchable = true;
 	}
 
-	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity)
+	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity, UserAnonymizedDto buddyUserAnonymizedDto)
+	{
+		return createInstance(buddyEntity, Optional.of(buddyUserAnonymizedDto));
+	}
+
+	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity, Optional<UserAnonymizedDto> buddyUserAnonymizedDto)
 	{
 		Objects.requireNonNull(buddyEntity, "buddyEntity cannot be null");
 
 		if (canIncludePrivateData(buddyEntity))
 		{
-			Set<GoalDto> goals = UserAnonymizedDto
-					.getGoalsIncludingHistoryItems(buddyEntity.getBuddyAnonymized().getUserAnonymized());
+			Set<GoalDto> goals = buddyUserAnonymizedDto.get().getGoals();
 			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream().map(BuddyDeviceDto::createInstance)
 					.collect(Collectors.toSet());
 			Optional<User> user = Optional.ofNullable(buddyEntity.getUser());

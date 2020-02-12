@@ -258,7 +258,7 @@ class YonaServer
 
 	static String toIsoWeekDateString(ZonedDateTime dateTime)
 	{
-		DateTimeFormatter.ofPattern("YYYY-'W'w").format(dateTime)
+		DateTimeFormatter.ofPattern("YYYY-'W'ww").format(dateTime)
 	}
 
 	static def relativeDateTimeStringToZonedDateTime(relativeDateTimeString)

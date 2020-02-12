@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -36,7 +37,7 @@ public class Activity extends EntityWithId
 	private LocalDateTime endTime;
 	private String app;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.EAGER)
 	private DeviceAnonymized deviceAnonymized;
 
 	@ManyToOne

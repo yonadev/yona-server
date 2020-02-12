@@ -266,8 +266,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardBuddyGoalUrls = buddiesRichard[0].user.goals.collect { YonaServer.stripQueryString(it.url) } // YD-505
 		def richardBuddyUserGoalUrls = buddiesRichard[0].user.goals.collect { YonaServer.stripQueryString(it.url) }
 
-		assert bobGoalUrls == richardBuddyGoalUrls // YD-505
-		assert bobGoalUrls == richardBuddyUserGoalUrls
+		assert bobGoalUrls.sort() == richardBuddyGoalUrls.sort() // YD-505
+		assert bobGoalUrls.sort() == richardBuddyUserGoalUrls.sort()
 
 		buddiesRichard[0].user.goals.each
 		{
