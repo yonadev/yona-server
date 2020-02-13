@@ -47,7 +47,10 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 
 		if (canIncludePrivateData(buddyEntity))
 		{
-			Set<GoalDto> goals = buddyUserAnonymizedDto.get().getGoals();
+			Set<GoalDto> goals = buddyUserAnonymizedDto
+					.orElseThrow(
+							() -> new IllegalStateException("Should have user anonymized when buddy relationship is established"))
+					.getGoals();
 			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream().map(BuddyDeviceDto::createInstance)
 					.collect(Collectors.toSet());
 			Optional<User> user = Optional.ofNullable(buddyEntity.getUser());
