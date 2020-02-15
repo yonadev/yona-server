@@ -9,10 +9,12 @@ package nu.yona.server
 import static nu.yona.server.test.CommonAssertions.*
 
 import java.time.DayOfWeek
+import java.time.Duration
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.SignStyle
+import java.time.temporal.ChronoUnit
 import java.time.temporal.IsoFields
 
 import nu.yona.server.test.AppActivity
@@ -2076,15 +2078,21 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 	private void assertRawActivityData(actualData, expectedDataRelativeDates)
 	{
-		def expectedData = expectedDataRelativeDates.collect { activity ->
-			activity.startTime = YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(activity.startTime))
-			activity.endTime = YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(activity.endTime))
-			activity  // Return activity object so new list contains activity objects
-		}
+		def expectedData = expectedDataRelativeDates.collect {convertExpectedData(it) }
 
 		actualData.sort(this.&compareRawActivities)
 		expectedData.sort(this.&compareRawActivities)
 		assert actualData == expectedData
+	}
+
+	private def convertExpectedData(a)
+	{
+		def activity = a.clone()
+		activity.startTime = YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(a.startTime))
+		activity.endTime = YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(a.endTime))
+		activity.durationMinutes = ChronoUnit.MINUTES.between(YonaServer.relativeDateTimeStringToZonedDateTime(a.startTime), YonaServer.relativeDateTimeStringToZonedDateTime(a.endTime))
+		activity.duration= Duration.ofMinutes(activity.durationMinutes).toString()
+		return activity
 	}
 
 	private int compareRawActivities(x, y)
