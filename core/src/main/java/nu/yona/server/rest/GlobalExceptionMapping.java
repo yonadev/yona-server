@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 
 import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
@@ -79,7 +80,7 @@ public class GlobalExceptionMapping
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler({ MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class,
-			MissingServletRequestParameterException.class })
+			MissingServletRequestParameterException.class, MultipartException.class })
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
 	public ErrorResponseDto handleInvalidRequestException(Exception exception, HttpServletRequest request)
