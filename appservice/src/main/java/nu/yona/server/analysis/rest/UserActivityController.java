@@ -8,7 +8,9 @@ import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -630,6 +632,17 @@ public class UserActivityController extends ActivityControllerBase
 		public ActivityDto getDto()
 		{
 			return dto;
+		}
+
+		public int getDurationMinutes()
+		{
+			return (int) ChronoUnit.MINUTES.between(dto.getStartTime(), dto.getEndTime());
+		}
+
+		@SuppressWarnings("unused") // Used as JSon property
+		public Duration getDuration()
+		{
+			return Duration.ofMinutes(getDurationMinutes());
 		}
 
 		@SuppressWarnings("unused") // Used as JSon property

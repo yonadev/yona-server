@@ -4,8 +4,13 @@
  *******************************************************************************/
 package nu.yona.server;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,7 +31,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootLinkRelationProvider;
 
@@ -37,6 +48,8 @@ import nu.yona.server.rest.JsonRootLinkRelationProvider;
 @EnableAutoConfiguration(exclude = { LdapAutoConfiguration.class })
 public class CoreConfiguration
 {
+	private static final Logger logger = LoggerFactory.getLogger(CoreConfiguration.class);
+
 	@Autowired
 	private YonaProperties yonaProperties;
 
@@ -80,6 +93,26 @@ public class CoreConfiguration
 		contextSource.setPassword(yonaProperties.getLdap().getAccessUserPassword());
 		contextSource.afterPropertiesSet();
 		return new LdapTemplate(contextSource);
+	}
+
+	@Bean
+	@ConditionalOnProperty("yona.firebase.enabled")
+	public FirebaseMessaging firebaseMessaging()
+	{
+		String fileName = yonaProperties.getFirebase().getAdminServiceAccountKeyFile();
+		logger.info("Reading the Firebase service account info from {}", fileName);
+		try (InputStream serviceAccount = new FileInputStream(fileName))
+		{
+			FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
+					.setDatabaseUrl(yonaProperties.getFirebase().getDatabaseUrl()).build();
+
+			FirebaseApp.initializeApp(options);
+			return FirebaseMessaging.getInstance();
+		}
+		catch (IOException e)
+		{
+			throw YonaException.unexpected(e);
+		}
 	}
 
 	@Bean

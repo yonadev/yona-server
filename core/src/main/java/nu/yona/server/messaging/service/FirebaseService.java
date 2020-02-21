@@ -4,9 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -20,9 +17,6 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -57,27 +51,15 @@ public class FirebaseService
 	@Autowired
 	private DeviceService deviceService;
 
+	@Autowired(required = false)
+	private FirebaseMessaging firebaseMessaging;
+
 	@PostConstruct
 	private void init()
 	{
 		if (!yonaProperties.getFirebase().isEnabled())
 		{
 			logger.info("Firebase is disabled");
-			return;
-		}
-
-		String fileName = yonaProperties.getFirebase().getAdminServiceAccountKeyFile();
-		logger.info("Reading the Firebase service account info from {}", fileName);
-		try (InputStream serviceAccount = new FileInputStream(fileName))
-		{
-			FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
-					.setDatabaseUrl(yonaProperties.getFirebase().getDatabaseUrl()).build();
-
-			FirebaseApp.initializeApp(options);
-		}
-		catch (IOException e)
-		{
-			throw YonaException.unexpected(e);
 		}
 	}
 
@@ -92,8 +74,8 @@ public class FirebaseService
 
 		// Sending takes quite a bit of time, so do it asynchronously
 		ThreadData threadData = asyncExecutor.getThreadData();
-		asyncExecutor.execAsync(threadData, () -> sendMessage(registrationToken, firebaseMessage),
-				t -> handleCompletion(t, deviceAnonymizedId, registrationToken));
+		asyncExecutor.execAsync(threadData, () -> sendMessage(registrationToken, deviceAnonymizedId, firebaseMessage),
+				t -> handleCompletion(t, registrationToken));
 	}
 
 	private long getMessageId(nu.yona.server.messaging.entities.Message message)
@@ -112,49 +94,42 @@ public class FirebaseService
 		return Optional.ofNullable(lastMessageByRegistrationToken.remove(registrationToken));
 	}
 
-	private void sendMessage(String registrationToken, Message firebaseMessage)
+	private void sendMessage(String registrationToken, UUID deviceAnonymizedId, Message firebaseMessage)
 	{
 		try
 		{
 			if (yonaProperties.getFirebase().isEnabled())
 			{
 				logger.info("Sending Firebase message");
-				FirebaseMessaging.getInstance().send(firebaseMessage);
+				firebaseMessaging.send(firebaseMessage);
 			}
 			else
 			{
 				logger.info("Firebase message not sent because Firebase is disabled");
-				// Store for testability
-				lastMessageByRegistrationToken.put(registrationToken,
-						MessageData.createInstance(MDC.getCopyOfContextMap(), firebaseMessage));
+				storeForTestability(registrationToken, firebaseMessage);
 			}
 		}
 		catch (FirebaseMessagingException e)
 		{
+			if (FIREBASE_ID_NOT_REGISTERED.equals(e.getErrorCode()))
+			{
+				handleNotRegisteredDevice(deviceAnonymizedId);
+				return;
+			}
 			throw FirebaseServiceException.couldNotSendMessage(e);
 		}
 	}
 
-	private void handleCompletion(Optional<Throwable> throwable, UUID deviceAnonymizedId, String token)
+	private void storeForTestability(String registrationToken, Message firebaseMessage)
 	{
-		throwable.ifPresentOrElse(t -> handleFailedSend(token, deviceAnonymizedId, t), this::logSuccessfulSend);
+		lastMessageByRegistrationToken.put(registrationToken,
+				MessageData.createInstance(MDC.getCopyOfContextMap(), firebaseMessage));
 	}
 
-	private void handleFailedSend(String token, UUID deviceAnonymizedId, Throwable throwable)
+	private void handleCompletion(Optional<Throwable> throwable, String token)
 	{
-		if (throwable.getCause() instanceof FirebaseMessagingException)
-		{
-			String errorCode = ((FirebaseMessagingException) throwable.getCause()).getErrorCode();
-			logger.error("Firebase error code: {}", errorCode);
-		}
-		if (throwable.getCause() instanceof FirebaseMessagingException
-				&& FIREBASE_ID_NOT_REGISTERED.equals(((FirebaseMessagingException) throwable.getCause()).getErrorCode()))
-		{
-			handleNotRegisteredDevice(deviceAnonymizedId);
-			return;
-		}
-		logger.error(Constants.ALERT_MARKER, "Fatal error: Exception while sending Firebase message to '" + token + "'",
-				throwable);
+		throwable.ifPresent(t -> logger.error(Constants.ALERT_MARKER,
+				"Fatal error: Exception while sending Firebase message to '" + token + "'", throwable));
 	}
 
 	private void handleNotRegisteredDevice(UUID deviceAnonymizedId)
@@ -162,14 +137,6 @@ public class FirebaseService
 		deviceService.clearFirebaseInstanceId(deviceAnonymizedId);
 		logger.info("Firebase instance ID for device anonymized {} cleared, as it was not longer registered with Firebase",
 				deviceAnonymizedId);
-	}
-
-	private void logSuccessfulSend()
-	{
-		if (yonaProperties.getFirebase().isEnabled())
-		{
-			logger.info("Firebase message sent successfully");
-		}
 	}
 
 	public static class MessageData
