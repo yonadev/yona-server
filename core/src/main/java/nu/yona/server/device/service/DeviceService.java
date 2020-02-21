@@ -14,8 +14,6 @@ import java.util.stream.IntStream;
 
 import javax.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -54,8 +52,6 @@ public class DeviceService
 	// User-friendly minimum version, used for error message
 	private static final String ANDROID_MIN_APP_VERSION = "1.2";
 	private static final String IOS_MIN_APP_VERSION = ANDROID_MIN_APP_VERSION;
-
-	private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
 
 	@Autowired(required = false)
 	private UserService userService;
@@ -237,8 +233,6 @@ public class DeviceService
 		}
 		deviceAnonymized.setFirebaseInstanceId(newFirebaseInstanceId);
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		logger.info("Changed Firebase instance ID from {} to {}", oldFirebaseInstanceId.orElse("<not set>"),
-				newFirebaseInstanceId);
 	}
 
 	public UserDeviceDto createDefaultUserDeviceDto()
