@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
@@ -189,7 +189,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDevice_tryGetNonExistingDevice_exception() throws Exception
 	{
-		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service.getDevice(UUID.randomUUID()));
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.getDevice(richard.getId(), UUID.randomUUID()));
 		assertEquals("error.device.not.found.id", exception.getMessageId());
 	}
 
@@ -953,7 +954,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	private UserDto createRichardUserDto()
 	{
-		return UserDto.createInstance(richard, Collections.emptySet());
+		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(richard.getAnonymized());
+		return UserDto.createInstance(richard, userAnon, Collections.emptySet());
 	}
 
 	private UserAnonymizedDto createRichardAnonymizedDto()

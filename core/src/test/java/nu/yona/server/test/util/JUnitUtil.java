@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.test.util;
@@ -99,15 +99,15 @@ public class JUnitUtil
 	public static User createUserEntity(String firstName, String lastName, String mobileNumber, String nickname)
 	{
 		MessageSource anonymousMessageSource = MessageSource.createInstance();
-		UserAnonymized johnAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(),
+		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(),
 				Collections.emptySet());
-		UserAnonymized.getRepository().save(johnAnonymized);
+		UserAnonymized.getRepository().save(userAnonymized);
 
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource namedMessageSource = MessageSource.createInstance();
 		MessageSource.getRepository().save(namedMessageSource);
 		UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname,
-				johnAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
+				userAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
 		User user = new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 		return User.getRepository().save(user);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -191,16 +191,16 @@ public class UserDto
 				userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
 	}
 
-	public static UserDto createInstance(User userEntity, Set<BuddyDto> buddies)
+	public static UserDto createInstance(User userEntity, UserAnonymizedDto userAnonymizedDto, Set<BuddyDto> buddies)
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
-				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(),
-				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
-				userEntity.getUserAnonymizedId(),
-				userEntity.getDevices().stream().map(UserDeviceDto::createInstance).collect(Collectors.toSet()));
+				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(), userAnonymizedDto.getGoals(),
+				buddies, userEntity.getUserAnonymizedId(),
+				userEntity.getDevices().stream().map(d -> UserDeviceDto.createInstance(userAnonymizedDto, d,
+						userAnonymizedDto.getDeviceAnonymized(d.getDeviceAnonymizedId()))).collect(Collectors.toSet()));
 	}
 
 	public static UserDto createInstance(User userEntity, BuddyUserPrivateDataDto buddyData)

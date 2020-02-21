@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -159,7 +159,8 @@ public class UserLookupService
 
 	public UserDto createUserDto(User user)
 	{
-		return UserDto.createInstance(user, buddyService.getBuddyDtos(user.getBuddies()));
+		return UserDto.createInstance(user, userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId()),
+				buddyService.getBuddyDtos(user.getBuddies()));
 	}
 
 	<T> T withLockOnUser(UUID userId, Function<User, T> action)
