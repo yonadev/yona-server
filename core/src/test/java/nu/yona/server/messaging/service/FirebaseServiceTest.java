@@ -60,7 +60,7 @@ class FirebaseServiceTestConfiguration extends UserRepositoriesConfiguration
 @ContextConfiguration(classes = { FirebaseServiceTestConfiguration.class })
 public class FirebaseServiceTest extends BaseSpringIntegrationTest
 {
-	private static final Constructor<FirebaseMessagingException> firebaseMessagingConstructor = JUnitUtil
+	private static final Constructor<FirebaseMessagingException> firebaseMessagingExceptionConstructor = JUnitUtil
 			.getAccessibleConstructor(FirebaseMessagingException.class, String.class, String.class, Throwable.class);
 	private static final Field messageIdField = JUnitUtil.getAccessibleField(EntityWithId.class, "id");
 
@@ -104,8 +104,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 	{
 		UUID deviceAnonymizedId = UUID.randomUUID();
 		String registrationToken = "token-" + UUID.randomUUID();
-		SystemMessage message = SystemMessage.createInstance("Hi there!");
-		setId(message, 5); // Make it look like a saved message
+		SystemMessage message = createMessage();
 
 		service.sendMessage(deviceAnonymizedId, registrationToken, message);
 
@@ -118,8 +117,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 	{
 		UUID deviceAnonymizedId = UUID.randomUUID();
 		String registrationToken = "token-" + UUID.randomUUID();
-		SystemMessage message = SystemMessage.createInstance("Hi there!");
-		setId(message, 5); // Make it look like a saved message
+		SystemMessage message = createMessage();
 		when(mockFirebaseMessaging.send(any()))
 				.thenThrow(createFirebaseMessagingException("registration-token-not-registered", "Sorry, failed"));
 
@@ -133,8 +131,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 	{
 		UUID deviceAnonymizedId = UUID.randomUUID();
 		String registrationToken = "token-" + UUID.randomUUID();
-		SystemMessage message = SystemMessage.createInstance("Hi there!");
-		setId(message, 5); // Make it look like a saved message
+		SystemMessage message = createMessage();
 		when(mockFirebaseMessaging.send(any()))
 				.thenThrow(createFirebaseMessagingException("some-unknown-error", "Sorry, failed"));
 
@@ -143,11 +140,18 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 		verify(mockDeviceService, never()).clearFirebaseInstanceId(any());
 	}
 
+	private SystemMessage createMessage()
+	{
+		SystemMessage message = SystemMessage.createInstance("Hi there!");
+		setId(message, 5); // Make it look like a saved message
+		return message;
+	}
+
 	private FirebaseMessagingException createFirebaseMessagingException(String errorCode, String message)
 	{
 		try
 		{
-			return firebaseMessagingConstructor.newInstance(errorCode, message, null);
+			return firebaseMessagingExceptionConstructor.newInstance(errorCode, message, null);
 		}
 		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| SecurityException e)

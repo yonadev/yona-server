@@ -127,9 +127,7 @@ public class FirebaseService
 			else
 			{
 				logger.info("Firebase message not sent because Firebase is disabled");
-				// Store for testability
-				lastMessageByRegistrationToken.put(registrationToken,
-						MessageData.createInstance(MDC.getCopyOfContextMap(), firebaseMessage));
+				storeForTestability(registrationToken, firebaseMessage);
 			}
 		}
 		catch (FirebaseMessagingException e)
@@ -141,6 +139,12 @@ public class FirebaseService
 			}
 			throw FirebaseServiceException.couldNotSendMessage(e);
 		}
+	}
+
+	private void storeForTestability(String registrationToken, Message firebaseMessage)
+	{
+		lastMessageByRegistrationToken.put(registrationToken,
+				MessageData.createInstance(MDC.getCopyOfContextMap(), firebaseMessage));
 	}
 
 	private void handleCompletion(Optional<Throwable> throwable, String token)
