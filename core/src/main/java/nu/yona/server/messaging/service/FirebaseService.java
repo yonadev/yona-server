@@ -4,9 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -20,9 +17,6 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -66,21 +60,6 @@ public class FirebaseService
 		if (!yonaProperties.getFirebase().isEnabled())
 		{
 			logger.info("Firebase is disabled");
-			return;
-		}
-
-		String fileName = yonaProperties.getFirebase().getAdminServiceAccountKeyFile();
-		logger.info("Reading the Firebase service account info from {}", fileName);
-		try (InputStream serviceAccount = new FileInputStream(fileName))
-		{
-			FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
-					.setDatabaseUrl(yonaProperties.getFirebase().getDatabaseUrl()).build();
-
-			FirebaseApp.initializeApp(options);
-		}
-		catch (IOException e)
-		{
-			throw YonaException.unexpected(e);
 		}
 	}
 
