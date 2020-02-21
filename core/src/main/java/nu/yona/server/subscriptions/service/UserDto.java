@@ -194,7 +194,7 @@ public class UserDto
 	public static UserDto createInstance(User userEntity, UserAnonymizedDto userAnonymizedDto, Set<BuddyDto> buddies)
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
-				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
+				userAnonymizedDto.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
 				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(), userAnonymizedDto.getGoals(),

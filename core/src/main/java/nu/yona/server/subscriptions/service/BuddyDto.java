@@ -104,20 +104,19 @@ public class BuddyDto
 				user.getPrivateData().getLastName());
 	}
 
-	public static BuddyDto createInstance(Buddy buddyEntity, Optional<UserAnonymizedDto> userAnonymizedDto)
+	public static BuddyDto createInstance(Buddy buddyEntity, Optional<UserAnonymizedDto> buddyUserAnonymizedDto)
 	{
 		return new BuddyDto(buddyEntity.getId(),
 				UserDto.createInstance(buddyEntity.getUser(),
-						BuddyUserPrivateDataDto.createInstance(buddyEntity, userAnonymizedDto)),
-				userAnonymizedDto, getLastMonitoredActivityDate(buddyEntity), buddyEntity.getSendingStatus(),
-				buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
+						BuddyUserPrivateDataDto.createInstance(buddyEntity, buddyUserAnonymizedDto)),
+				buddyUserAnonymizedDto, getLastMonitoredActivityDate(buddyEntity, buddyUserAnonymizedDto),
+				buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
 	}
 
-	private static Optional<LocalDate> getLastMonitoredActivityDate(Buddy buddyEntity)
+	private static Optional<LocalDate> getLastMonitoredActivityDate(Buddy buddyEntity,
+			Optional<UserAnonymizedDto> buddyUserAnonymizedDto)
 	{
-		return BuddyUserPrivateDataDto.canIncludePrivateData(buddyEntity)
-				? buddyEntity.getBuddyAnonymized().getUserAnonymized().getLastMonitoredActivityDate()
-				: Optional.empty();
+		return buddyUserAnonymizedDto.flatMap(UserAnonymizedDto::getLastMonitoredActivityDate);
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
