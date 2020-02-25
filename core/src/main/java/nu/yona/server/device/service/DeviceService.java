@@ -508,5 +508,6 @@ public class DeviceService
 		DeviceAnonymized deviceAnonymized = getDeviceAnonymizedEntity(deviceAnonymizedId);
 		deviceAnonymized.clearFirebaseInstanceId();
 		deviceAnonymizedRepository.save(deviceAnonymized);
+		userAnonymizedService.updateUserAnonymized(deviceAnonymized.getUserAnonymized());
 	}
 }
