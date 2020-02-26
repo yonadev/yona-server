@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -104,17 +104,18 @@ public class BuddyDto
 				user.getPrivateData().getLastName());
 	}
 
-	public static BuddyDto createInstance(Buddy buddyEntity, Optional<UserAnonymizedDto> buddyUserAnonymizedDto)
+	public static BuddyDto createInstance(Buddy buddyEntity, BuddyAnonymizedDto buddyAnonymizedDto,
+			Optional<UserAnonymizedDto> buddyUserAnonymizedDto)
 	{
 		return new BuddyDto(buddyEntity.getId(),
 				UserDto.createInstance(buddyEntity.getUser(),
-						BuddyUserPrivateDataDto.createInstance(buddyEntity, buddyUserAnonymizedDto)),
-				buddyUserAnonymizedDto, getLastMonitoredActivityDate(buddyEntity, buddyUserAnonymizedDto),
-				buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
+						BuddyUserPrivateDataDto.createInstance(buddyEntity, buddyAnonymizedDto, buddyUserAnonymizedDto)),
+				buddyUserAnonymizedDto, getLastMonitoredActivityDate(buddyUserAnonymizedDto),
+				buddyAnonymizedDto.getSendingStatus(), buddyAnonymizedDto.getReceivingStatus(),
+				buddyEntity.getLastStatusChangeTime());
 	}
 
-	private static Optional<LocalDate> getLastMonitoredActivityDate(Buddy buddyEntity,
-			Optional<UserAnonymizedDto> buddyUserAnonymizedDto)
+	private static Optional<LocalDate> getLastMonitoredActivityDate(Optional<UserAnonymizedDto> buddyUserAnonymizedDto)
 	{
 		return buddyUserAnonymizedDto.flatMap(UserAnonymizedDto::getLastMonitoredActivityDate);
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -39,6 +39,7 @@ import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -61,6 +62,8 @@ import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 import nu.yona.server.subscriptions.entities.BuddyRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.UserPrivate;
+import nu.yona.server.subscriptions.entities.UserPrivateRepository;
 import nu.yona.server.util.Require;
 import nu.yona.server.util.TransactionHelper;
 
@@ -99,6 +102,9 @@ public class BuddyService
 
 	@Autowired(required = false)
 	private BuddyAnonymizedRepository buddyAnonymizedRepository;
+
+	@Autowired(required = false)
+	private UserPrivateRepository userPrivateRepository;
 
 	@Autowired(required = false)
 	private BuddyConnectResponseMessageDto.Manager connectResponseMessageHandler;
@@ -201,7 +207,7 @@ public class BuddyService
 
 		acceptingUser.assertMobileNumberConfirmed();
 		Buddy buddy = buddyRepository.save(createBuddyEntity(connectRequestMessageEntity));
-		BuddyDto buddyDto = createBuddyDto(buddy);
+		BuddyDto buddyDto = createBuddyDtoForNewBuddy(buddy);
 		userService.addBuddy(acceptingUser, buddyDto);
 		return buddyDto;
 	}
@@ -209,12 +215,45 @@ public class BuddyService
 	private BuddyDto createBuddyDto(Buddy buddy)
 	{
 		Optional<UserAnonymizedDto> buddyUserAnonymizedDto = getUserAnonymizedDto(buddy);
-		return BuddyDto.createInstance(buddy, buddyUserAnonymizedDto);
+		BuddyAnonymizedDto buddyAnonymizedDto = getBuddyAnonymized(buddy);
+		return BuddyDto.createInstance(buddy, buddyAnonymizedDto, buddyUserAnonymizedDto);
+	}
+
+	private BuddyDto createBuddyDtoForNewBuddy(Buddy buddy)
+	{
+		Optional<UserAnonymizedDto> buddyUserAnonymizedDto = buddy.getUserAnonymizedId()
+				.map(userAnonymizedService::getUserAnonymized);
+		BuddyAnonymizedDto buddyAnonymizedDto = BuddyAnonymizedDto.createInstance(buddy.getBuddyAnonymized());
+		return BuddyDto.createInstance(buddy, buddyAnonymizedDto, buddyUserAnonymizedDto);
+	}
+
+	private BuddyAnonymizedDto getBuddyAnonymized(Buddy buddy)
+	{
+		return getBuddyAnonymized(buddy, getOwningUserAnonymized(buddy));
+	}
+
+	private BuddyAnonymizedDto getBuddyAnonymized(Buddy buddy, UserAnonymizedDto owningUserAnonymizedDto)
+	{
+		return getOwningUserAnonymized(buddy).getBuddyAnonymized(buddy.getBuddyAnonymizedId());
+	}
+
+	private UserAnonymizedDto getOwningUserAnonymized(Buddy buddy)
+	{
+		Require.isNonNull(buddy.getOwningUserPrivateId(),
+				() -> YonaException.illegalState("Owning user private ID cannot be null"));
+		UserPrivate owningUserPrivate = userPrivateRepository.getOne(buddy.getOwningUserPrivateId());
+		return userAnonymizedService.getUserAnonymized(owningUserPrivate.getUserAnonymizedId());
 	}
 
 	private Optional<UserAnonymizedDto> getUserAnonymizedDto(Buddy buddy)
 	{
-		return buddy.getBuddyAnonymized().getUserAnonymizedId().map(userAnonymizedService::getUserAnonymized);
+		return getUserAnonymizedDto(buddy, getOwningUserAnonymized(buddy));
+	}
+
+	private Optional<UserAnonymizedDto> getUserAnonymizedDto(Buddy buddy, UserAnonymizedDto owningUserAnonymizedDto)
+	{
+		return owningUserAnonymizedDto.getBuddyAnonymized(buddy.getBuddyAnonymizedId()).getUserAnonymizedId()
+				.map(userAnonymizedService::getUserAnonymized);
 	}
 
 	private Buddy createBuddyEntity(BuddyConnectRequestMessage connectRequestMessageEntity)
@@ -471,14 +510,7 @@ public class BuddyService
 
 	Set<BuddyDto> getBuddyDtos(Set<Buddy> buddyEntities)
 	{
-		loadAllBuddiesAnonymizedAtOnce(buddyEntities);
 		return buddyEntities.stream().map(this::getBuddy).collect(Collectors.toSet());
-	}
-
-	private void loadAllBuddiesAnonymizedAtOnce(Set<Buddy> buddyEntities)
-	{
-		buddyAnonymizedRepository
-				.findAllById(buddyEntities.stream().map(Buddy::getBuddyAnonymizedId).collect(Collectors.toList()));
 	}
 
 	public Set<UserAnonymizedDto> getBuddyUsersAnonymized(UserAnonymizedDto user)
@@ -552,7 +584,8 @@ public class BuddyService
 
 	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
 	{
-		Optional<BuddyAnonymizedDto> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymized(userAnonymizedId);
+		Optional<BuddyAnonymizedDto> buddyAnonymized = buddyUserAnonymized
+				.getBuddyAnonymizedByUserAnonymizedIdIfExisting(userAnonymizedId);
 		buddyAnonymized.map(ba -> buddyAnonymizedRepository.findById(ba.getId()).get()).ifPresent(bae -> {
 			bae.setDisconnected();
 			userAnonymizedService.updateUserAnonymized(buddyUserAnonymized.getId());
@@ -649,7 +682,7 @@ public class BuddyService
 		buddy.getUser().setUserId(buddyUserEntity.getId());
 		Buddy buddyEntity = buddy.createBuddyEntity();
 		Buddy savedBuddyEntity = buddyRepository.save(buddyEntity);
-		BuddyDto savedBuddy = createBuddyDto(savedBuddyEntity);
+		BuddyDto savedBuddy = createBuddyDtoForNewBuddy(savedBuddyEntity);
 		userService.addBuddy(requestingUser, savedBuddy);
 
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
@@ -733,7 +766,8 @@ public class BuddyService
 		User userEntity = userService.getUserEntityById(userId);
 		Buddy buddy = userEntity.getBuddies().stream().filter(b -> b.getUserId().equals(buddyUserId)).findAny()
 				.orElseThrow(() -> BuddyNotFoundException.notFoundForUser(userId, buddyUserId));
-		return UserDto.createInstance(userEntity, BuddyUserPrivateDataDto.createInstance(buddy, getUserAnonymizedDto(buddy)));
+		return UserDto.createInstance(userEntity,
+				BuddyUserPrivateDataDto.createInstance(buddy, getBuddyAnonymized(buddy), getUserAnonymizedDto(buddy)));
 	}
 
 	@Transactional

@@ -37,16 +37,18 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		this.isFetchable = true;
 	}
 
-	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity, UserAnonymizedDto buddyUserAnonymizedDto)
+	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity, BuddyAnonymizedDto buddyAnonymizedDto,
+			UserAnonymizedDto buddyUserAnonymizedDto)
 	{
-		return createInstance(buddyEntity, Optional.of(buddyUserAnonymizedDto));
+		return createInstance(buddyEntity, buddyAnonymizedDto, Optional.of(buddyUserAnonymizedDto));
 	}
 
-	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity, Optional<UserAnonymizedDto> buddyUserAnonymizedDtoOptional)
+	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity, BuddyAnonymizedDto buddyAnonymizedDto,
+			Optional<UserAnonymizedDto> buddyUserAnonymizedDtoOptional)
 	{
 		Objects.requireNonNull(buddyEntity, "buddyEntity cannot be null");
 
-		if (canIncludePrivateData(buddyEntity))
+		if (canIncludePrivateData(buddyAnonymizedDto))
 		{
 			UserAnonymizedDto buddyUserAnonymizedDto = buddyUserAnonymizedDtoOptional.orElseThrow(
 					() -> new IllegalStateException("Should have user anonymized when buddy relationship is established"));
@@ -85,8 +87,9 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		return isFetchable;
 	}
 
-	public static boolean canIncludePrivateData(Buddy buddyEntity)
+	public static boolean canIncludePrivateData(BuddyAnonymizedDto buddyAnonymizedDto)
 	{
-		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED);
+		return (buddyAnonymizedDto.getReceivingStatus() == Status.ACCEPTED)
+				|| (buddyAnonymizedDto.getSendingStatus() == Status.ACCEPTED);
 	}
 }
