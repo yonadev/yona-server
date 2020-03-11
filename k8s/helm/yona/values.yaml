@@ -184,15 +184,21 @@ apple:
   ca_certificate_file: apple/AppleWWDRCA.cer
 
 mariadb:
-  mariadbRootPassword: develop
-  mariadbUser: develop
-  mariadbPassword: develop
-  mariadbDatabase: yona
+  db:
+    user: develop
+    password: develop
+    name: yona
+  rootUser:
+    password: develop
   persistence:
-    storageClass: standard
-    size: 2Gi
+    enabled: false
+  replication:
+    enabled: false
+  volumePermissions:
+    enabled: true
   user: develop
   password: develop
+  mariadbDatabase: yona
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
   #hostname_override: yona-mariadb.yona.svc.cluster.local
 

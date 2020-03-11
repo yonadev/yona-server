@@ -1,6 +1,6 @@
 name: yona
 home: https://yona.nu/
-version: 0.0.6
+version: 0.0.7
 appVersion: _ReplaceWithBuildNumber_
 description: The Yona Server backs the Yona mobile app, providing user management, buddy relationship management, web traffic classification and buddy messaging
 sources:
@@ -11,7 +11,3 @@ maintainers:
   - name: Bert Roos
     email: bert@famroos.nu
 icon: http://www.yona.nu/wp-content/themes/yona/assets/img/yona-logo.png
-dependencies:
-  - name: stable/mariadb
-    version: 0.6.3
- 

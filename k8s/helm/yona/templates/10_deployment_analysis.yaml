@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.global.stage | default "develop" }}-analysis
@@ -16,6 +16,10 @@ spec:
     rollingUpdate:
       maxSurge: 2
       maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: analysis
+      stage: {{ .Values.global.stage | default "develop" }}
   template:
     metadata:
       labels:
