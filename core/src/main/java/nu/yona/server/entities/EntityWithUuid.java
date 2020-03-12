@@ -9,7 +9,9 @@ import java.util.UUID;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+import nu.yona.server.goals.entities.Goal;
 import org.hibernate.annotations.Type;
+import org.hibernate.proxy.HibernateProxy;
 
 @MappedSuperclass
 public abstract class EntityWithUuid
@@ -26,6 +28,15 @@ public abstract class EntityWithUuid
 	protected EntityWithUuid(UUID id)
 	{
 		this.id = id;
+	}
+
+	public static UUID getIdWIthoutLoadingEntity(EntityWithUuid entity)
+	{
+		if (entity instanceof HibernateProxy)
+		{
+			return (UUID) ((HibernateProxy) entity).getHibernateLazyInitializer().getIdentifier();
+		}
+		return entity.getId();
 	}
 
 	public UUID getId()

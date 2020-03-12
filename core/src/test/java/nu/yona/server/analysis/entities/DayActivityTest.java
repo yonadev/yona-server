@@ -10,6 +10,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
+import nu.yona.server.goals.entities.IGoal;
 import org.junit.jupiter.api.Test;
 
 import nu.yona.server.goals.entities.Goal;
@@ -333,12 +334,13 @@ public class DayActivityTest extends IntervalActivityTestBase
 	private void assertGoalMinutesBeyondAndAccomplished(DayActivity d, int expectedTotalBeyondGoal,
 			boolean expectedGoalAccomplished)
 	{
+		IGoal goal = d.getGoal();
 		assertThat(d.areAggregatesComputed(), equalTo(false));
-		assertThat(d.isGoalAccomplished(), equalTo(expectedGoalAccomplished));
-		assertThat(d.getTotalMinutesBeyondGoal(), equalTo(expectedTotalBeyondGoal));
+		assertThat(d.isGoalAccomplished(goal), equalTo(expectedGoalAccomplished));
+		assertThat(d.getTotalMinutesBeyondGoal(goal), equalTo(expectedTotalBeyondGoal));
 
 		d.computeAggregates();
-		assertThat(d.isGoalAccomplished(), equalTo(expectedGoalAccomplished));
-		assertThat(d.getTotalMinutesBeyondGoal(), equalTo(expectedTotalBeyondGoal));
+		assertThat(d.isGoalAccomplished(goal), equalTo(expectedGoalAccomplished));
+		assertThat(d.getTotalMinutesBeyondGoal(goal), equalTo(expectedTotalBeyondGoal));
 	}
 }

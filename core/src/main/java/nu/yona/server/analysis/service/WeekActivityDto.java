@@ -100,16 +100,18 @@ public class WeekActivityDto extends IntervalActivityDto
 		return ISO8601_WEEK_FORMATTER.format(mondayDate);
 	}
 
-	static WeekActivityDto createInstance(LocalDate earliestPossibleDate, WeekActivity weekActivity, LevelOfDetail levelOfDetail)
+	static WeekActivityDto createInstance(LocalDate earliestPossibleDate, WeekActivity weekActivity, LevelOfDetail levelOfDetail, UserAnonymizedDto userAnonymized)
 	{
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WEEK_DETAIL;
-		return new WeekActivityDto(weekActivity.getGoal().getId(), weekActivity.getStartTime(), includeDetail,
+		Goal goal = weekActivity.getGoal();
+		return new WeekActivityDto(goal.getId(), weekActivity.getStartTime(), includeDetail,
 				includeDetail ? weekActivity.getSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
 				weekActivity.getDayActivities().stream()
 						.collect(Collectors.toMap(dayActivity -> dayActivity.getStartDate().getDayOfWeek(),
-								dayActivity -> DayActivityDto.createInstance(earliestPossibleDate, dayActivity, levelOfDetail))),
-				weekActivity.hasPrevious(earliestPossibleDate), weekActivity.hasNext());
+								dayActivity -> DayActivityDto.createInstance(earliestPossibleDate, dayActivity, levelOfDetail,
+										userAnonymized))),
+				weekActivity.hasPrevious(earliestPossibleDate, goal), weekActivity.hasNext());
 	}
 
 	public static WeekActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, LocalDate earliestPossibleDate,

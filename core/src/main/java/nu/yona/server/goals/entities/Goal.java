@@ -41,7 +41,7 @@ import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "GOALS")
-public abstract class Goal extends EntityWithUuid implements Serializable
+public abstract class Goal extends EntityWithUuid implements IGoal, Serializable
 {
 	private static final long serialVersionUID = -3209852229834825712L;
 
@@ -127,6 +127,12 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		return creationTime;
 	}
 
+	@Override
+	public LocalDateTime getCreationTimeNonOptional()
+	{
+		return getCreationTime();
+	}
+
 	/**
 	 * For test purposes only.
 	 */
@@ -135,9 +141,9 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		this.creationTime = creationTime;
 	}
 
-	public LocalDateTime getEndTime()
+	public Optional<LocalDateTime> getEndTime()
 	{
-		return endTime;
+		return Optional.ofNullable(endTime);
 	}
 
 	public Optional<Goal> getPreviousVersionOfThisGoal()
@@ -211,18 +217,6 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 	public abstract boolean isGoalAccomplished(DayActivity dayActivity);
 
 	public abstract int computeTotalMinutesBeyondGoal(DayActivity dayActivity);
-
-	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
-	{
-		return wasActiveAtInterval(creationTime, Optional.ofNullable(endTime), dateAtStartOfInterval, timeUnit);
-	}
-
-	public static boolean wasActiveAtInterval(LocalDateTime creationTime, Optional<LocalDateTime> endTime,
-			ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
-	{
-		LocalDateTime startNextInterval = TimeUtil.toUtcLocalDateTime(dateAtStartOfInterval.plus(1, timeUnit));
-		return creationTime.isBefore(startNextInterval) && endTime.map(end -> end.isAfter(startNextInterval)).orElse(true);
-	}
 
 	public Set<UUID> getIdsIncludingHistoryItems()
 	{

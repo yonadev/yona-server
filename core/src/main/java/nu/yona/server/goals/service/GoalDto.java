@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import nu.yona.server.goals.entities.IGoal;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -37,7 +38,7 @@ import nu.yona.server.util.TimeUtil;
 @JsonRootName("goal")
 @JsonSubTypes({ @Type(value = BudgetGoalDto.class, name = "BudgetGoal"),
 		@Type(value = TimeZoneGoalDto.class, name = "TimeZoneGoal") })
-public abstract class GoalDto extends PolymorphicDto implements Serializable
+public abstract class GoalDto extends PolymorphicDto implements IGoal, Serializable
 {
 	private static final long serialVersionUID = 2825849099414812967L;
 
@@ -114,6 +115,18 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 		return Optional.ofNullable(creationTime);
 	}
 
+	@JsonIgnore
+	public LocalDateTime getCreationTimeNonOptional()
+	{
+		return creationTime;
+	}
+
+	@JsonIgnore
+	public Optional<LocalDateTime> getEndTime()
+	{
+		return Optional.ofNullable(endTime);
+	}
+
 	public boolean isHistoryItem()
 	{
 		return endTime != null;
@@ -125,7 +138,7 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 		{
 			return false;
 		}
-		return Goal.wasActiveAtInterval(creationTime, Optional.ofNullable(endTime), dateAtStartOfInterval, timeUnit);
+		return IGoal.super.wasActiveAtInterval(dateAtStartOfInterval, timeUnit);
 	}
 
 	@JsonIgnore

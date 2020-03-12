@@ -20,6 +20,7 @@ import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
+import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -146,5 +147,11 @@ public class UserAnonymizedDto implements Serializable
 	{
 		return devicesAnonymized.stream().filter(da -> da.getId().equals(deviceAnonymizedId)).findFirst()
 				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(id, deviceAnonymizedId));
+	}
+
+	public GoalDto getGoal(UUID goalId)
+	{
+		return goals.stream().filter(g -> g.getGoalId().equals(goalId)).findFirst()
+				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(id, goalId));
 	}
 }

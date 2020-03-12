@@ -12,7 +12,7 @@ import javax.persistence.Entity;
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Entity
-public class BudgetGoal extends Goal
+public class BudgetGoal extends Goal implements IBudgetGoal
 {
 	private static final long serialVersionUID = -2070046758903687364L;
 
@@ -72,12 +72,12 @@ public class BudgetGoal extends Goal
 	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
-		return dayActivity.getTotalActivityDurationMinutes() <= this.getMaxDurationMinutes();
+		return IBudgetGoal.super.isGoalAccomplished(dayActivity);
 	}
 
 	@Override
 	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
-		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
+		return IBudgetGoal.super.computeTotalMinutesBeyondGoal(dayActivity);
 	}
 }

@@ -23,7 +23,7 @@ import javax.persistence.Entity;
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Entity
-public class TimeZoneGoal extends Goal
+public class TimeZoneGoal extends Goal implements ITimezoneGoal
 {
 	private static final long serialVersionUID = -8166664564237587040L;
 
@@ -83,32 +83,19 @@ public class TimeZoneGoal extends Goal
 		return createInstance(this, endTime);
 	}
 
-	@Override
-	public boolean isGoalAccomplished(DayActivity dayActivity)
+	@Override public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
-		int[] spread = determineSpreadOutsideGoal(dayActivity);
-		return !Arrays.stream(spread).anyMatch(i -> (i > 0));
+		return ITimezoneGoal.super.isGoalAccomplished(dayActivity);
 	}
 
-	private int[] determineSpreadOutsideGoal(DayActivity dayActivity)
+	@Override public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
-		int[] spread = dayActivity.getSpread().stream().mapToInt(Integer::intValue).toArray();
-		getSpreadCellsIntStream().forEach(i -> spread[i] = 0);
-		return spread;
+		return ITimezoneGoal.super.computeTotalMinutesBeyondGoal(dayActivity);
 	}
 
-	private IntStream getSpreadCellsIntStream()
+	@Override public byte[] getSpreadCells()
 	{
-		return IntStream.range(0, spreadCells.length).map(i -> spreadCells[i]);
-	}
-
-	@Override
-	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
-	{
-		int[] spread = determineSpreadOutsideGoal(dayActivity);
-		int sumOfSpreadOutsideGoal = Arrays.stream(spread).sum();
-		// Due to rounding, the sum of the spread might be more than the total duration, so take the lowest of the two
-		return Math.min(dayActivity.getTotalActivityDurationMinutes(), sumOfSpreadOutsideGoal);
+		return spreadCells;
 	}
 
 	private static byte[] integerListToByteArray(List<Integer> spreadCells)
@@ -148,11 +135,6 @@ public class TimeZoneGoal extends Goal
 	{
 		TemporalAccessor begin = formatter.parse(timeString);
 		return begin.get(ChronoField.MINUTE_OF_DAY) / 15;
-	}
-
-	public List<Integer> getSpreadCells()
-	{
-		return getSpreadCellsIntStream().boxed().collect(Collectors.toList());
 	}
 
 	public static String listToString(List<String> entityValue)

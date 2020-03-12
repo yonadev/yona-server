@@ -22,10 +22,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.exceptions.InvalidDataException;
-import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.TimeZoneGoalDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -95,12 +92,16 @@ public class DayActivityDto extends IntervalActivityDto
 		return date.format(ISO8601_DAY_FORMATTER);
 	}
 
-	static DayActivityDto createInstance(LocalDate earliestPossibleDate, DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	static DayActivityDto createInstance(LocalDate earliestPossibleDate, DayActivity dayActivity, LevelOfDetail levelOfDetail,
+			UserAnonymizedDto userAnonymized)
 	{
-		return new DayActivityDto(dayActivity.getGoal().getId(), dayActivity.getGoal().getActivityCategory().getId(),
-				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DAY_DETAIL, getSpread(dayActivity, levelOfDetail),
-				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(),
-				dayActivity.getTotalMinutesBeyondGoal(), dayActivity.hasPrevious(earliestPossibleDate), dayActivity.hasNext());
+		UUID goalId = dayActivity.getGoalId();
+		GoalDto goal = userAnonymized.getGoal(goalId);
+		List<Integer> spread = includeSpread(goal, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
+		return new DayActivityDto(goalId, goal.getActivityCategoryId(),
+				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DAY_DETAIL, spread,
+				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(goal),
+				dayActivity.getTotalMinutesBeyondGoal(goal), dayActivity.hasPrevious(earliestPossibleDate, goal), dayActivity.hasNext());
 	}
 
 	static DayActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, GoalDto goal, ZonedDateTime startTime,
@@ -119,16 +120,6 @@ public class DayActivityDto extends IntervalActivityDto
 		return new ArrayList<>(Collections.nCopies(96, 0));
 	}
 
-	private static List<Integer> getSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
-	{
-		return includeSpread(dayActivity.getGoal(), levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
-	}
-
-	private static boolean includeSpread(Goal goal, LevelOfDetail levelOfDetail)
-	{
-		return includeSpread(isTimeZoneGoal(goal), levelOfDetail);
-	}
-
 	private static boolean includeSpread(GoalDto goal, LevelOfDetail levelOfDetail)
 	{
 		return includeSpread(isTimeZoneGoal(goal), levelOfDetail);
@@ -137,11 +128,6 @@ public class DayActivityDto extends IntervalActivityDto
 	private static boolean includeSpread(boolean isTimeZoneGoal, LevelOfDetail levelOfDetail)
 	{
 		return levelOfDetail == LevelOfDetail.DAY_DETAIL || levelOfDetail == LevelOfDetail.DAY_OVERVIEW && isTimeZoneGoal;
-	}
-
-	private static boolean isTimeZoneGoal(Goal goal)
-	{
-		return EntityUtil.enforceLoading(goal) instanceof TimeZoneGoal;
 	}
 
 	private static boolean isTimeZoneGoal(GoalDto goal)

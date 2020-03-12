@@ -6,35 +6,31 @@ package nu.yona.server.goals.service;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.*;
 
 import nu.yona.server.Constants;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.ITimezoneGoal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("timeZoneGoal")
-public class TimeZoneGoalDto extends GoalDto
+public class TimeZoneGoalDto extends GoalDto implements ITimezoneGoal
 {
 	private static final long serialVersionUID = 7479427103494945857L;
 
 	private static Pattern zonePattern = Pattern.compile("[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]");
 	private final List<String> zones;
 	private final List<Integer> spreadCells;
+	private transient byte[] spreadCellBytes;
 
-	@JsonCreator
-	public TimeZoneGoalDto(
+	@JsonCreator public TimeZoneGoalDto(
 			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
 			@JsonProperty(required = true, value = "zones") List<String> zones)
 	{
@@ -53,14 +49,12 @@ public class TimeZoneGoalDto extends GoalDto
 		this.spreadCells = spreadCells;
 	}
 
-	@Override
-	public String getType()
+	@Override public String getType()
 	{
 		return "TimeZoneGoal";
 	}
 
-	@Override
-	public void assertIsValid()
+	@Override public void assertIsValid()
 	{
 		if ((zones == null) || zones.isEmpty())
 		{
@@ -125,14 +119,12 @@ public class TimeZoneGoalDto extends GoalDto
 		}
 	}
 
-	@Override
-	public void updateGoalEntity(Goal existingGoal)
+	@Override public void updateGoalEntity(Goal existingGoal)
 	{
 		((TimeZoneGoal) existingGoal).setZones(zones);
 	}
 
-	@Override
-	public boolean isNoGoGoal()
+	@Override public boolean isNoGoGoal()
 	{
 		return false;
 	}
@@ -142,7 +134,7 @@ public class TimeZoneGoalDto extends GoalDto
 		return zones;
 	}
 
-	public List<Integer> getSpreadCells()
+	@JsonProperty("spreadCells") public List<Integer> getSpreadCellsAsIntegerList()
 	{
 		return spreadCells;
 	}
@@ -150,14 +142,32 @@ public class TimeZoneGoalDto extends GoalDto
 	static TimeZoneGoalDto createInstance(TimeZoneGoal entity)
 	{
 		return new TimeZoneGoalDto(entity.getId(), entity.getActivityCategory().getId(), entity.getZones(),
-				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.getSpreadCells());
+				entity.getCreationTime(), entity.getEndTime(), entity.getSpreadCellsIntStream().boxed().collect(Collectors.toList()));
 	}
 
-	@Override
-	public TimeZoneGoal createGoalEntity()
+	@Override public TimeZoneGoal createGoalEntity()
 	{
 		ActivityCategory activityCategory = ActivityCategory.getRepository().findById(this.getActivityCategoryId())
 				.orElseThrow(() -> ActivityCategoryException.notFound(this.getActivityCategoryId()));
 		return TimeZoneGoal.createInstance(getCreationTime().orElse(TimeUtil.utcNow()), activityCategory, this.zones);
+	}
+
+	@JsonIgnore @Override public byte[] getSpreadCells()
+	{
+		if (spreadCellBytes == null)
+		{
+			determineSpreadCellBytes();
+		}
+		return spreadCellBytes;
+	}
+
+	private void determineSpreadCellBytes()
+	{
+		spreadCellBytes = new byte[spreadCells.size()];
+
+		int i = 0;
+		for (Integer cell : spreadCells) {
+			spreadCellBytes[i++] = cell.byteValue();
+		}
 	}
 }
