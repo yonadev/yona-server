@@ -37,7 +37,7 @@ public class Activity extends EntityWithId
 	private LocalDateTime endTime;
 	private String app;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	private DeviceAnonymized deviceAnonymized;
 
 	@ManyToOne

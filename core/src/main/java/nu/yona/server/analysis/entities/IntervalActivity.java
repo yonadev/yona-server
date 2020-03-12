@@ -32,7 +32,7 @@ public abstract class IntervalActivity extends EntityWithId
 
 	public static final int SPREAD_COUNT = 96;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	private UserAnonymized userAnonymized;
 
 	@ManyToOne(fetch = FetchType.LAZY)
