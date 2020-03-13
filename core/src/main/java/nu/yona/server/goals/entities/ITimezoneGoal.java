@@ -35,7 +35,7 @@ public interface ITimezoneGoal extends IGoal
 		return !Arrays.stream(spread).anyMatch(i -> (i > 0));
 	}
 
-	default public IntStream getSpreadCellsIntStream()
+	default IntStream getSpreadCellsIntStream()
 	{
 		byte[] spreadCells = getSpreadCells();
 		return IntStream.range(0, spreadCells.length).map(i -> spreadCells[i]);

@@ -229,11 +229,6 @@ public class BuddyService
 
 	private BuddyAnonymizedDto getBuddyAnonymized(Buddy buddy)
 	{
-		return getBuddyAnonymized(buddy, getOwningUserAnonymized(buddy));
-	}
-
-	private BuddyAnonymizedDto getBuddyAnonymized(Buddy buddy, UserAnonymizedDto owningUserAnonymizedDto)
-	{
 		return getOwningUserAnonymized(buddy).getBuddyAnonymized(buddy.getBuddyAnonymizedId());
 	}
 
