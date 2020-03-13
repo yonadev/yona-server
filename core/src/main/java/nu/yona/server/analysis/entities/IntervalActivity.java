@@ -9,16 +9,32 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
-import nu.yona.server.entities.*;
-import nu.yona.server.goals.entities.IGoal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
+import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.IGoal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.util.TimeUtil;
 

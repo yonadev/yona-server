@@ -10,10 +10,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
-import nu.yona.server.goals.entities.IGoal;
 import org.junit.jupiter.api.Test;
 
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.IGoal;
 
 public class DayActivityTest extends IntervalActivityTestBase
 {

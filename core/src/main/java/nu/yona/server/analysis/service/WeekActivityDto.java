@@ -100,7 +100,8 @@ public class WeekActivityDto extends IntervalActivityDto
 		return ISO8601_WEEK_FORMATTER.format(mondayDate);
 	}
 
-	static WeekActivityDto createInstance(LocalDate earliestPossibleDate, WeekActivity weekActivity, LevelOfDetail levelOfDetail, UserAnonymizedDto userAnonymized)
+	static WeekActivityDto createInstance(LocalDate earliestPossibleDate, WeekActivity weekActivity, LevelOfDetail levelOfDetail,
+			UserAnonymizedDto userAnonymized)
 	{
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WEEK_DETAIL;
 		Goal goal = weekActivity.getGoal();

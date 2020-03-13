@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import nu.yona.server.goals.entities.IGoal;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -26,6 +25,7 @@ import nu.yona.server.Constants;
 import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.IGoal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.rest.PolymorphicDto;
 import nu.yona.server.util.TimeUtil;
@@ -115,12 +115,14 @@ public abstract class GoalDto extends PolymorphicDto implements IGoal, Serializa
 		return Optional.ofNullable(creationTime);
 	}
 
+	@Override
 	@JsonIgnore
 	public LocalDateTime getCreationTimeNonOptional()
 	{
 		return creationTime;
 	}
 
+	@Override
 	@JsonIgnore
 	public Optional<LocalDateTime> getEndTime()
 	{
@@ -132,6 +134,7 @@ public abstract class GoalDto extends PolymorphicDto implements IGoal, Serializa
 		return endTime != null;
 	}
 
+	@Override
 	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
 	{
 		if (creationTime == null)

@@ -98,10 +98,10 @@ public class DayActivityDto extends IntervalActivityDto
 		UUID goalId = dayActivity.getGoalId();
 		GoalDto goal = userAnonymized.getGoal(goalId);
 		List<Integer> spread = includeSpread(goal, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
-		return new DayActivityDto(goalId, goal.getActivityCategoryId(),
-				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DAY_DETAIL, spread,
-				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(goal),
-				dayActivity.getTotalMinutesBeyondGoal(goal), dayActivity.hasPrevious(earliestPossibleDate, goal), dayActivity.hasNext());
+		return new DayActivityDto(goalId, goal.getActivityCategoryId(), dayActivity.getStartTime(),
+				levelOfDetail == LevelOfDetail.DAY_DETAIL, spread, dayActivity.getTotalActivityDurationMinutes(),
+				dayActivity.isGoalAccomplished(goal), dayActivity.getTotalMinutesBeyondGoal(goal),
+				dayActivity.hasPrevious(earliestPossibleDate, goal), dayActivity.hasNext());
 	}
 
 	static DayActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, GoalDto goal, ZonedDateTime startTime,

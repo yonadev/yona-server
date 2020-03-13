@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -83,17 +82,20 @@ public class TimeZoneGoal extends Goal implements ITimezoneGoal
 		return createInstance(this, endTime);
 	}
 
-	@Override public boolean isGoalAccomplished(DayActivity dayActivity)
+	@Override
+	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
 		return ITimezoneGoal.super.isGoalAccomplished(dayActivity);
 	}
 
-	@Override public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
+	@Override
+	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
 		return ITimezoneGoal.super.computeTotalMinutesBeyondGoal(dayActivity);
 	}
 
-	@Override public byte[] getSpreadCells()
+	@Override
+	public byte[] getSpreadCells()
 	{
 		return spreadCells;
 	}

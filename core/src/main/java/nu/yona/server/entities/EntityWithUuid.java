@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.entities;
 
@@ -9,7 +9,6 @@ import java.util.UUID;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import nu.yona.server.goals.entities.Goal;
 import org.hibernate.annotations.Type;
 import org.hibernate.proxy.HibernateProxy;
 
