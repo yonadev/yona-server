@@ -61,22 +61,7 @@ public class AppServiceApplication implements WebMvcConfigurer
 	{
 		PropertyInitializer.initializePropertiesFromEnvironment();
 		ConfigurableApplicationContext context = SpringApplication.run(AppServiceApplication.class, args);
-		addLoggerForContextClosedEvent(context);
-	}
-
-	private static void addLoggerForContextClosedEvent(ConfigurableApplicationContext context)
-	{
-		context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
-			@Override
-			public void onApplicationEvent(ContextClosedEvent event)
-			{
-				if (event.getApplicationContext() != context)
-				{
-					return;
-				}
-				logger.info(Constants.ALERT_MARKER, "Application closed");
-			}
-		});
+		ApplicationStatusLogger.addLoggerForContextClosedEvent(context);
 	}
 
 	@PostConstruct
