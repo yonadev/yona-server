@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -66,7 +66,11 @@ public class PinResetRequestService
 	@Transactional
 	public void sendPinResetConfirmationCode(UUID userId)
 	{
-		User user = userService.getUserEntityById(userId);
+		userService.getUserEntityByIdIfExisting(userId).ifPresent(this::sendPinResetConfirmationCode);
+	}
+
+	private void sendPinResetConfirmationCode(User user)
+	{
 		logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'", user.getMobileNumber(),
 				user.getId());
 		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();

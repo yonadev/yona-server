@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -191,6 +191,11 @@ public class UserLookupService
 	@Transactional
 	public User getUserEntityById(UUID id)
 	{
+		return getUserEntityByIdIfExisting(id).orElseThrow(() -> UserServiceException.notFoundById(id));
+	}
+
+	public Optional<User> getUserEntityByIdIfExisting(UUID id)
+	{
 		return getUserEntityById(id, LockModeType.NONE);
 	}
 
@@ -204,18 +209,18 @@ public class UserLookupService
 	 */
 	private User getUserEntityByIdWithUpdateLock(UUID id)
 	{
-		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
+		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE).orElseThrow(() -> UserServiceException.notFoundById(id));
 	}
 
-	private User getUserEntityById(UUID id, LockModeType lockModeType)
+	private Optional<User> getUserEntityById(UUID id, LockModeType lockModeType)
 	{
 		Require.isNonNull(id, InvalidDataException::emptyUserId);
 
-		User entity;
+		Optional<User> entity;
 		switch (lockModeType)
 		{
 			case NONE:
-				entity = userRepository.findById(id).orElseThrow(() -> UserServiceException.notFoundById(id));
+				entity = userRepository.findById(id);
 				break;
 			case PESSIMISTIC_WRITE:
 				entity = userRepository.findByIdForUpdate(id);
@@ -223,8 +228,6 @@ public class UserLookupService
 			default:
 				throw new IllegalArgumentException("Lock mode type " + lockModeType + " is unsupported");
 		}
-
-		Require.isNonNull(entity, () -> UserServiceException.notFoundById(id));
 
 		return entity;
 	}
