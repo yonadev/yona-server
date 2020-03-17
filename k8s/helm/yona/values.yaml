@@ -196,9 +196,6 @@ mariadb:
     enabled: false
   volumePermissions:
     enabled: true
-  user: develop
-  password: develop
-  mariadbDatabase: yona
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
   #hostname_override: yona-mariadb.yona.svc.cluster.local
 
