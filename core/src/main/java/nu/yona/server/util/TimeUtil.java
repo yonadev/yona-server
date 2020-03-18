@@ -4,7 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.util;
 
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -27,7 +32,7 @@ public class TimeUtil
 
 	public static LocalDateTime utcNow()
 	{
-		return LocalDateTime.now();
+		return LocalDateTime.now(ZoneOffset.UTC);
 	}
 
 	public static LocalDateTime toUtcLocalDateTime(Date date)
