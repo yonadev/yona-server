@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.global.stage | default "develop" }}-admin
@@ -16,6 +16,10 @@ spec:
     rollingUpdate:
       maxSurge: 2
       maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: admin
+      stage: {{ .Values.global.stage | default "develop" }}
   template:
     metadata:
       labels:
@@ -34,9 +38,9 @@ spec:
           image: craftypenguins/k8s-init-mysql:latest
           env:
             - name: DBUSER
-              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+              value: {{ .Values.mariadb.db.user | default "develop" | quote }}
             - name: DBPASSWORD
-              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+              value: {{ .Values.mariadb.db.password | default "develop" | quote }}
             - name: DBHOST
               {{- if .Values.mariadb.hostname_override }}
               value: {{ .Values.mariadb.hostname_override | quote }}
@@ -44,7 +48,7 @@ spec:
               value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
               {{- end }}
             - name: DBNAME
-              value: {{ .Values.mariadb.mariadbDatabase | quote }}
+              value: {{ .Values.mariadb.db.name | quote }}
             - name: TIMEOUT
               value: "10s"
       containers:
@@ -52,14 +56,14 @@ spec:
           image: '{{ .Values.global.imagebase | default "yonadev" }}/adminservice:build-{{ .Chart.AppVersion }}'
           env:       
             - name: YONA_DB_USER_NAME
-              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+              value: {{ .Values.mariadb.db.user | default "develop" | quote }}
             - name: YONA_DB_PASSWORD
-              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+              value: {{ .Values.mariadb.db.password | default "develop" | quote }}
             - name: YONA_DB_URL
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
             {{- end }}
             - name: YONA_BATCH_SERVICE_SERVICE_URL
             {{- if hasKey .Values.batch "url_override" }}
