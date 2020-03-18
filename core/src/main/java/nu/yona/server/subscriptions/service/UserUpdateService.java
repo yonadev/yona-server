@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +15,8 @@ import java.util.function.Consumer;
 
 import javax.transaction.Transactional;
 
+import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,13 +103,31 @@ public class UserUpdateService
 	@Transactional
 	public void setOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(), existingUserEntity -> {
-			ConfirmationCode confirmationCode = createConfirmationCode();
-			existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
-			sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
-			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
-					existingUserEntity.getMobileNumber(), existingUserEntity.getId());
-		});
+		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(), user -> setOverwriteUserConfirmationCodeIfNotDoneRecently(mobileNumber, user));
+	}
+
+	private void setOverwriteUserConfirmationCodeIfNotDoneRecently(String mobileNumber, User user)
+	{
+		if (isOverwriteUserConfirmationCodeStillValid(user.getOverwriteUserConfirmationCode())) {
+			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code, but the current one is still valid, so no new code is sent",
+					user.getMobileNumber(), user.getId());
+			return;
+		}
+		ConfirmationCode confirmationCode = createConfirmationCode();
+		user.setOverwriteUserConfirmationCode(confirmationCode);
+		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
+		logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
+				user.getMobileNumber(), user.getId());
+	}
+
+	private boolean isOverwriteUserConfirmationCodeStillValid(Optional<ConfirmationCode> overwriteUserConfirmationCode)
+	{
+		return overwriteUserConfirmationCode.map(this::isOverwriteUserConfirmationCodeStillValid).orElse(false);
+	}
+
+	private boolean isOverwriteUserConfirmationCodeStillValid(ConfirmationCode overwriteUserConfirmationCode)
+	{
+		return overwriteUserConfirmationCode.getCreationTime().isAfter(TimeUtil.utcNow().minus(yonaProperties.getOverwriteUserConfirmationCodeValidityTime()));
 	}
 
 	@Transactional
@@ -272,7 +293,9 @@ public class UserUpdateService
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
-		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
+		ConfirmationCode mobileNumberConfirmationCode = savedUserEntity.getMobileNumberConfirmationCode().orElseThrow(() ->
+				YonaException.illegalState("Mobile number confirmation code must exist in this state"));
+		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), mobileNumberConfirmationCode,
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		UserDto userDto = userLookupService.createUserDto(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),

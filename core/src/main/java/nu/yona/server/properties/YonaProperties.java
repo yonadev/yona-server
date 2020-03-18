@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -60,6 +61,8 @@ public class YonaProperties
 	private boolean isEnableHibernateStatsAllowed;
 
 	private boolean isTestServer;
+
+	private Duration overwriteUserConfirmationCodeValidityTime = Duration.ofSeconds(30);
 
 	public AnalysisServiceProperties getAnalysisService()
 	{
@@ -190,5 +193,15 @@ public class YonaProperties
 	public void setTestServer(boolean isTestServer)
 	{
 		this.isTestServer = isTestServer;
+	}
+
+	public Duration getOverwriteUserConfirmationCodeValidityTime()
+	{
+		return overwriteUserConfirmationCodeValidityTime;
+	}
+
+	public void setOverwriteUserConfirmationCodeValidityTime(Duration overwriteUserConfirmationCodeValidityTime)
+	{
+		this.overwriteUserConfirmationCodeValidityTime = overwriteUserConfirmationCodeValidityTime;
 	}
 }

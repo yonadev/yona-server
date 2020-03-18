@@ -1,11 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
@@ -69,7 +70,8 @@ public class PinResetRequestService
 		User user = userService.getUserEntityById(userId);
 		logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'", user.getMobileNumber(),
 				user.getId());
-		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
+		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode()
+				.orElseThrow(() -> PinResetRequestConfirmationException.confirmationCodeNotSet(user.getMobileNumber()));
 		pinResetConfirmationCode.setCode(userService.generateConfirmationCode());
 		sendConfirmationCodeTextMessage(user, pinResetConfirmationCode);
 	}
@@ -80,9 +82,10 @@ public class PinResetRequestService
 		User userEntity = userService.getUserEntityById(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to verify the pin reset confirmation code",
 				userEntity.getMobileNumber(), userId);
-		ConfirmationCode confirmationCode = userEntity.getPinResetConfirmationCode();
-		Require.that((confirmationCode != null) && !isExpired(confirmationCode),
+		Optional<ConfirmationCode> confirmationCodeOpt = userEntity.getPinResetConfirmationCode();
+		Require.that(isValidConfirmationCode(confirmationCodeOpt),
 				() -> PinResetRequestConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()));
+		ConfirmationCode confirmationCode = confirmationCodeOpt.get();
 
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
 		Require.that(remainingAttempts > 0,
@@ -94,6 +97,11 @@ public class PinResetRequestService
 			throw PinResetRequestConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
 					userProvidedConfirmationCode, remainingAttempts - 1);
 		}
+	}
+
+	public boolean isValidConfirmationCode(Optional<ConfirmationCode> confirmationCode)
+	{
+		return confirmationCode.map(cc -> !isExpired(cc)).orElse(false);
 	}
 
 	@Transactional
@@ -136,7 +144,7 @@ public class PinResetRequestService
 		userService.updateUser(userId, user -> user.setPinResetConfirmationCode(confirmationCode));
 	}
 
-	public boolean isExpired(ConfirmationCode confirmationCode)
+	private boolean isExpired(ConfirmationCode confirmationCode)
 	{
 		LocalDateTime creationTime = confirmationCode.getCreationTime();
 		return creationTime.plus(yonaProperties.getSecurity().getPinResetRequestExpirationTime()).isBefore(TimeUtil.utcNow());

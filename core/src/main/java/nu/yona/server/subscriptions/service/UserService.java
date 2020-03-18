@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -88,7 +88,7 @@ public class UserService
 	}
 
 	@Transactional
-	public void setOverwriteUserConfirmationCode(String mobileNumber)
+	public void requestOverwriteUserConfirmationCode(String mobileNumber)
 	{
 		userUpdateService.setOverwriteUserConfirmationCode(mobileNumber);
 	}
@@ -108,7 +108,7 @@ public class UserService
 	public UserDto confirmMobileNumber(UUID userId, String userProvidedConfirmationCode)
 	{
 		User updatedUserEntity = updateUser(userId, userEntity -> {
-			ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
+			Optional<ConfirmationCode> confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
 			userAddService.assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 					() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),

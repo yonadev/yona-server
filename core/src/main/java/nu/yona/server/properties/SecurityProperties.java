@@ -26,6 +26,8 @@ public class SecurityProperties
 	 */
 	private boolean isCorsAllowed;
 
+	private int maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow = 3;
+
 	public int getConfirmationCodeDigits()
 	{
 		return confirmationCodeDigits;
@@ -154,5 +156,15 @@ public class SecurityProperties
 	public void setOvpnProfileFile(String ovpnProfileFile)
 	{
 		this.ovpnProfileFile = ovpnProfileFile;
+	}
+
+	public int getMaxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow()
+	{
+		return maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow;
+	}
+
+	public void setMaxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow(int maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow)
+	{
+		this.maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow = maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow;
 	}
 }
