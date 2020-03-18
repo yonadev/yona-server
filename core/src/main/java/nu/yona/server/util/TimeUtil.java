@@ -10,8 +10,6 @@ import java.util.Date;
 
 public class TimeUtil
 {
-	private static Clock utcClock = Clock.systemUTC();
-	
 	private TimeUtil()
 	{
 		// No instances
@@ -29,7 +27,7 @@ public class TimeUtil
 
 	public static LocalDateTime utcNow()
 	{
-		return LocalDateTime.now(utcClock);
+		return LocalDateTime.now();
 	}
 
 	public static LocalDateTime toUtcLocalDateTime(Date date)
