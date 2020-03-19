@@ -4,19 +4,21 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
-import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.sms.SmsService;
-import nu.yona.server.sms.SmsTemplate;
-import nu.yona.server.subscriptions.entities.ConfirmationCode;
-import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.test.util.JUnitUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,19 +32,17 @@ import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
+import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.sms.SmsService;
+import nu.yona.server.sms.SmsTemplate;
+import nu.yona.server.subscriptions.entities.ConfirmationCode;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
-import nu.yona.server.util.LockPool;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import nu.yona.server.test.util.JUnitUtil;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
@@ -115,7 +115,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void requestOverwriteUserConfirmationCode_justCreated_notSentAgain()
 	{
-		ConfirmationCode confirmationCode =  ConfirmationCode.createInstance("9876");
+		ConfirmationCode confirmationCode = ConfirmationCode.createInstance("9876");
 		richard.setOverwriteUserConfirmationCode(confirmationCode);
 		Optional<ConfirmationCode> initialOverwriteUserConfirmationCode = richard.getOverwriteUserConfirmationCode();
 
@@ -131,7 +131,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	public void requestOverwriteUserConfirmationCode_olderExisting_sentAgain()
 	{
 		LocalDateTime startTime = JUnitUtil.mockCurrentTime("2020-03-19T20:47:00.000");
-		ConfirmationCode confirmationCode =  ConfirmationCode.createInstance("9876");
+		ConfirmationCode confirmationCode = ConfirmationCode.createInstance("9876");
 		richard.setOverwriteUserConfirmationCode(confirmationCode);
 		Optional<ConfirmationCode> initialOverwriteUserConfirmationCode = richard.getOverwriteUserConfirmationCode();
 		JUnitUtil.mockCurrentTime(startTime.plus(yonaProperties.getOverwriteUserConfirmationCodeValidityTime()).plusSeconds(1));

@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -288,7 +287,8 @@ public class AnalysisEngineServiceTest
 
 		mockExistingActivity(gamblingGoal, now());
 
-		// Advance clock just enough to pass a period Execute the analysis engine service after a period of inactivity longer than the conflict interval.
+		// Advance clock just enough to pass a period Execute the analysis engine service after a period of inactivity longer than
+		// the conflict interval.
 		// Mock advance of time by 11 ms
 		JUnitUtil.mockCurrentTime(startTime.plus(Duration.parse("PT0.011S")));
 

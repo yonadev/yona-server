@@ -163,7 +163,8 @@ public class SecurityProperties
 		return maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow;
 	}
 
-	public void setMaxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow(int maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow)
+	public void setMaxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow(
+			int maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow)
 	{
 		this.maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow = maxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow;
 	}

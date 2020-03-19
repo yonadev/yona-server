@@ -262,8 +262,8 @@ public class UserAddService
 	}
 
 	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
-	void assertValidConfirmationCode(User userEntity, Optional<ConfirmationCode> confirmationCode, String userProvidedConfirmationCode,
-			Supplier<YonaException> noConfirmationCodeExceptionSupplier,
+	void assertValidConfirmationCode(User userEntity, Optional<ConfirmationCode> confirmationCode,
+			String userProvidedConfirmationCode, Supplier<YonaException> noConfirmationCodeExceptionSupplier,
 			IntFunction<YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
@@ -272,8 +272,8 @@ public class UserAddService
 				tooManyAttemptsExceptionSupplier);
 	}
 
-	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode, String userProvidedConfirmationCode,
-			Supplier<YonaException> noConfirmationCodeExceptionSupplier,
+	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode,
+			String userProvidedConfirmationCode, Supplier<YonaException> noConfirmationCodeExceptionSupplier,
 			IntFunction<YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{

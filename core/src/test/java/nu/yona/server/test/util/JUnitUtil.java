@@ -9,9 +9,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import mockit.Mock;
-import mockit.MockUp;
-
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -33,6 +30,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.support.Repositories;
 
+import mockit.MockUp;
+import mockit.Mock;
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.RepositoryProvider;
@@ -272,7 +271,8 @@ public class JUnitUtil
 		assumeTrue(now.isBefore(now.withHour(hour).withMinute(minute).withSecond(0)), description);
 	}
 
-	public static LocalDateTime mockCurrentTime(String dateTimeUtc) {
+	public static LocalDateTime mockCurrentTime(String dateTimeUtc)
+	{
 		return mockCurrentTime(LocalDateTime.parse(dateTimeUtc));
 	}
 
@@ -282,7 +282,8 @@ public class JUnitUtil
 
 		new MockUp<TimeUtil>() {
 			@Mock
-			public LocalDateTime utcNow() {
+			public LocalDateTime utcNow()
+			{
 				return LocalDateTime.now(clock);
 			}
 		};

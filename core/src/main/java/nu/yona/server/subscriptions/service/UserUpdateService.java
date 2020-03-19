@@ -1,10 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,8 +14,6 @@ import java.util.function.Consumer;
 
 import javax.transaction.Transactional;
 
-import nu.yona.server.exceptions.YonaException;
-import nu.yona.server.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +26,7 @@ import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.messaging.service.MessageService;
@@ -42,6 +40,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.util.Require;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class UserUpdateService
@@ -103,13 +102,16 @@ public class UserUpdateService
 	@Transactional
 	public void requestOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(), user -> setOverwriteUserConfirmationCodeIfNotDoneRecently(mobileNumber, user));
+		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(),
+				user -> setOverwriteUserConfirmationCodeIfNotDoneRecently(mobileNumber, user));
 	}
 
 	private void setOverwriteUserConfirmationCodeIfNotDoneRecently(String mobileNumber, User user)
 	{
-		if (isOverwriteUserConfirmationCodeStillValid(user.getOverwriteUserConfirmationCode())) {
-			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code, but the current one is still valid, so no new code is sent",
+		if (isOverwriteUserConfirmationCodeStillValid(user.getOverwriteUserConfirmationCode()))
+		{
+			logger.info(
+					"User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code, but the current one is still valid, so no new code is sent",
 					user.getMobileNumber(), user.getId());
 			return;
 		}
@@ -127,7 +129,8 @@ public class UserUpdateService
 
 	private boolean isOverwriteUserConfirmationCodeStillValid(ConfirmationCode overwriteUserConfirmationCode)
 	{
-		return overwriteUserConfirmationCode.getCreationTime().isAfter(TimeUtil.utcNow().minus(yonaProperties.getOverwriteUserConfirmationCodeValidityTime()));
+		return overwriteUserConfirmationCode.getCreationTime()
+				.isAfter(TimeUtil.utcNow().minus(yonaProperties.getOverwriteUserConfirmationCodeValidityTime()));
 	}
 
 	@Transactional
@@ -293,8 +296,8 @@ public class UserUpdateService
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
-		ConfirmationCode mobileNumberConfirmationCode = savedUserEntity.getMobileNumberConfirmationCode().orElseThrow(() ->
-				YonaException.illegalState("Mobile number confirmation code must exist in this state"));
+		ConfirmationCode mobileNumberConfirmationCode = savedUserEntity.getMobileNumberConfirmationCode()
+				.orElseThrow(() -> YonaException.illegalState("Mobile number confirmation code must exist in this state"));
 		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), mobileNumberConfirmationCode,
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		UserDto userDto = userLookupService.createUserDto(savedUserEntity);
