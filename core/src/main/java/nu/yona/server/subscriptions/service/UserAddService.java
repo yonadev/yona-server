@@ -268,13 +268,11 @@ public class UserAddService
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
 		assertValidConfirmationCode(userEntity, confirmationCode.orElseThrow(noConfirmationCodeExceptionSupplier),
-				userProvidedConfirmationCode, noConfirmationCodeExceptionSupplier, invalidConfirmationCodeExceptionSupplier,
-				tooManyAttemptsExceptionSupplier);
+				userProvidedConfirmationCode, invalidConfirmationCodeExceptionSupplier, tooManyAttemptsExceptionSupplier);
 	}
 
 	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode,
-			String userProvidedConfirmationCode, Supplier<YonaException> noConfirmationCodeExceptionSupplier,
-			IntFunction<YonaException> invalidConfirmationCodeExceptionSupplier,
+			String userProvidedConfirmationCode, IntFunction<YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
