@@ -65,8 +65,8 @@ dependencies {
 }
 
 test {
-	// Enable assertions
-	jvmArgs '-ea'
+	enableAssertions = true
+	jvmArgs "-javaagent:${classpath.find { it.name.contains('jmockit') }.absolutePath}"
 	useJUnitPlatform()
 }
 

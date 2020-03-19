@@ -101,7 +101,7 @@ public class UserUpdateService
 	}
 
 	@Transactional
-	public void setOverwriteUserConfirmationCode(String mobileNumber)
+	public void requestOverwriteUserConfirmationCode(String mobileNumber)
 	{
 		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(), user -> setOverwriteUserConfirmationCodeIfNotDoneRecently(mobileNumber, user));
 	}

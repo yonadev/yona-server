@@ -90,7 +90,7 @@ public class UserService
 	@Transactional
 	public void requestOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		userUpdateService.setOverwriteUserConfirmationCode(mobileNumber);
+		userUpdateService.requestOverwriteUserConfirmationCode(mobileNumber);
 	}
 
 	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
