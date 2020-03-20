@@ -19,6 +19,7 @@ import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.util.Require;
@@ -40,12 +41,15 @@ class UserAssertionService
 	@Autowired(required = false)
 	private UserRepository userRepository;
 
+	@Autowired(required = false)
+	private YonaProperties yonaProperties;
+
 	public void assertValidatedUser(User user)
 	{
 		user.assertMobileNumberConfirmed();
 	}
 
-	static void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
+	void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
 	{
 		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getFirstName()), InvalidDataException::blankFirstName);
 		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getLastName()), InvalidDataException::blankLastName);
@@ -70,7 +74,7 @@ class UserAssertionService
 		}
 	}
 
-	public static void assertValidMobileNumber(String mobileNumberStr)
+	public void assertValidMobileNumber(String mobileNumberStr)
 	{
 		try
 		{
@@ -78,6 +82,7 @@ class UserAssertionService
 					() -> InvalidDataException.invalidMobileNumber(mobileNumberStr));
 			PhoneNumberUtil util = PhoneNumberUtil.getInstance();
 			PhoneNumber mobileNumber = util.parse(mobileNumberStr, null);
+			assertIsSupportedCountryCode(mobileNumberStr, mobileNumber);
 			assertNoLeadingZeros(util, mobileNumberStr, mobileNumber);
 			assertIsMobile(util, mobileNumberStr, mobileNumber);
 		}
@@ -87,7 +92,16 @@ class UserAssertionService
 		}
 	}
 
-	private static void assertNoLeadingZeros(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
+	private void assertIsSupportedCountryCode(String mobileNumberStr, PhoneNumber mobileNumber)
+	{
+		int countryCode = mobileNumber.getCountryCode();
+		if (!yonaProperties.getSupportedCountryCodes().contains(countryCode))
+		{
+			throw InvalidDataException.countryCodeNotSupported(mobileNumberStr, countryCode);
+		}
+	}
+
+	private void assertNoLeadingZeros(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
 	{
 		// Format the number in the international format. Leading zeros would disappear but spaces and hyphens might be added.
 		// After removal of the spaces and hyphens, the formatted number should be identical to the original one.
@@ -97,7 +111,7 @@ class UserAssertionService
 		}
 	}
 
-	private static void assertIsMobile(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
+	private void assertIsMobile(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
 	{
 		PhoneNumberType numberType = util.getNumberType(mobileNumber);
 		if ((numberType != PhoneNumberType.MOBILE) && (numberType != PhoneNumberType.FIXED_LINE_OR_MOBILE))
@@ -106,7 +120,7 @@ class UserAssertionService
 		}
 	}
 
-	public static void assertValidEmailAddress(String emailAddress)
+	public void assertValidEmailAddress(String emailAddress)
 	{
 		Require.that(REGEX_EMAIL.matcher(emailAddress).matches(), () -> InvalidDataException.invalidEmailAddress(emailAddress));
 	}
@@ -125,5 +139,4 @@ class UserAssertionService
 		}
 		throw UserServiceException.userExists(mobileNumber);
 	}
-
 }

@@ -271,7 +271,7 @@ public class UserService
 
 	void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
 	{
-		UserAssertionService.assertValidUserFields(user, purpose);
+		userAssertionService.assertValidUserFields(user, purpose);
 	}
 
 	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
@@ -281,11 +281,11 @@ public class UserService
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		UserAssertionService.assertValidMobileNumber(mobileNumber);
+		userAssertionService.assertValidMobileNumber(mobileNumber);
 	}
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		UserAssertionService.assertValidEmailAddress(emailAddress);
+		userAssertionService.assertValidEmailAddress(emailAddress);
 	}
 }

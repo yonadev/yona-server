@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import nu.yona.server.properties.YonaProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +45,9 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	private MessageSourceRepository mockMessageSourceRepository;
 
 	@Autowired
+	private YonaProperties yonaProperties;
+
+	@Autowired
 	private UserService service;
 
 	@MockBean
@@ -52,6 +56,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	@BeforeEach
 	public void setUpPerTest()
 	{
+		yonaProperties.setSupportedCountryCodes("31");
 	}
 
 	@Override
