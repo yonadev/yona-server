@@ -14,15 +14,21 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
+import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.goals.entities.Goal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
@@ -81,7 +87,16 @@ class PinResetRequestServiceTest extends BaseSpringIntegrationTest
 	{
 		String code = "9876";
 		when(userService.generateConfirmationCode()).thenReturn(code);
-		when(userService.getUserEntityByIdIfExisting(eq(richard.getId()))).thenReturn(Optional.of(richard));
+		when(userService.updateUserIfExisting(any(UUID.class), any(Consumer.class)))
+			.thenAnswer(new Answer<Optional<User>>() {
+				@Override
+				public Optional<User> answer(InvocationOnMock invocation) throws Throwable
+				{
+					Consumer<User> updateAction = invocation.getArgument(1);
+					updateAction.accept(richard);
+					return Optional.of(richard);
+				}
+			});
 
 		ConfirmationCode confirmationCode = new ConfirmationCode();
 		richard.setPinResetConfirmationCode(confirmationCode);

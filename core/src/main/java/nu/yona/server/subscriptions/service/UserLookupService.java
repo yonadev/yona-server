@@ -169,6 +169,11 @@ public class UserLookupService
 		return action.apply(user);
 	}
 
+	<T> Optional<T> withLockOnUserIfExisting(UUID userId, Function<User, T> action)
+	{
+		return getUserEntityByIdWithUpdateLockIfExisting(userId).map(action);
+	}
+
 	static User findUserByMobileNumber(String mobileNumber)
 	{
 		User userEntity = User.getRepository().findByMobileNumber(mobileNumber);
@@ -209,7 +214,19 @@ public class UserLookupService
 	 */
 	private User getUserEntityByIdWithUpdateLock(UUID id)
 	{
-		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE).orElseThrow(() -> UserServiceException.notFoundById(id));
+		return getUserEntityByIdWithUpdateLockIfExisting(id).orElseThrow(() -> UserServiceException.notFoundById(id));
+	}
+
+	/**
+	 * This method returns a user entity, if it exists. The passed on Id is checked whether or not it is set. A pessimistic
+	 * database write lock is claimed when fetching the entity.
+	 *
+	 * @param id the ID of the user
+	 * @return an {@code Optional} describing the user, or an empty {@code Optional} if a user with this ID cannot be found
+	 */
+	private Optional<User> getUserEntityByIdWithUpdateLockIfExisting(UUID id)
+	{
+		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
 	}
 
 	private Optional<User> getUserEntityById(UUID id, LockModeType lockModeType)

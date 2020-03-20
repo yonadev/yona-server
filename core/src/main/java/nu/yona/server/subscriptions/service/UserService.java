@@ -173,6 +173,24 @@ public class UserService
 		return userUpdateService.updateUser(id, updateAction);
 	}
 
+	/**
+	 * Performs the given update action on the user with the specified ID (if the user exists), while holding a write-lock on
+	 * the user. After the update, the entity is saved to the repository.<br/>
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing the user
+	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
+	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
+	 * would cause the GETs to fail rather than to wait for the other one to complete.
+	 *
+	 * @param id The ID of the user to update
+	 * @param updateAction The update action to perform
+	 * @return an {@code Optional} describing the updated and saved user, or an empty {@code Optional} if a user with this ID cannot be found
+	 */
+	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
+	public Optional<User> updateUserIfExisting(UUID id, Consumer<User> updateAction)
+	{
+		return userUpdateService.updateUserIfExisting(id, updateAction);
+	}
+
 	@Transactional
 	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
 	{

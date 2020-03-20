@@ -186,16 +186,47 @@ public class UserUpdateService
 	{
 		// We add a lock here to prevent concurrent user updates.
 		// The lock is per user, so concurrency is not an issue.
-		return userLookupService.withLockOnUser(id, user -> {
-			updateAction.accept(user);
-			if (user.canAccessPrivateData())
-			{
-				// The private data is accessible and might be updated, including the UserAnonymized
-				// Let the UserAnonymizedService save that to the repository and cache it
-				userAnonymizedService.updateUserAnonymized(user.getAnonymized());
-			}
-			return userRepository.save(user);
-		});
+		return userLookupService.withLockOnUser(id, user -> updateUser(user, updateAction));
+	}
+
+	/**
+	 * Performs the given update action on the user with the specified ID (if the user exists), while holding a write-lock on
+	 * the user. After the update, the entity is saved to the repository.<br/>
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing the user
+	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
+	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
+	 * would cause the GETs to fail rather than to wait for the other one to complete.
+	 *
+	 * @param id The ID of the user to update
+	 * @param updateAction The update action to perform
+	 * @return an {@code Optional} describing the updated and saved user, or an empty {@code Optional} if a user with this ID cannot be found
+	 */
+	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
+	public Optional<User> updateUserIfExisting(UUID id, Consumer<User> updateAction)
+	{
+		// We add a lock here to prevent concurrent user updates.
+		// The lock is per user, so concurrency is not an issue.
+		return userLookupService.withLockOnUserIfExisting(id, user -> updateUser(user, updateAction));
+	}
+
+	/**
+	 * Applies the given udpate action on the user and saves the user to the repository.<br/>
+	 * NOTE: This method is intended to be called while holding a pessimistic lock on the user entity.
+	 *
+	 * @param user The  user to update
+	 * @param updateAction The update action to perform
+	 * @return the updated and saved user
+	 */
+	private User updateUser(User user, Consumer<User> updateAction)
+	{
+		updateAction.accept(user);
+		if (user.canAccessPrivateData())
+		{
+			// The private data is accessible and might be updated, including the UserAnonymized
+			// Let the UserAnonymizedService save that to the repository and cache it
+			userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+		}
+		return userRepository.save(user);
 	}
 
 	@Transactional

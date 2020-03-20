@@ -46,7 +46,12 @@ public class PinResetRequestService
 	@Transactional
 	public void requestPinReset(UUID userId)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		userService.updateUser(userId, this::requestPinReset);
+	}
+
+	private void requestPinReset(User userEntity)
+	{
+		UUID userId = userEntity.getId();
 		logger.info("User with mobile number '{}' and ID '{}' requested a pin reset confirmation code",
 				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.DELAYED);
@@ -66,7 +71,7 @@ public class PinResetRequestService
 	@Transactional
 	public void sendPinResetConfirmationCode(UUID userId)
 	{
-		userService.getUserEntityByIdIfExisting(userId).ifPresent(this::sendPinResetConfirmationCode);
+		userService.updateUserIfExisting(userId, this::sendPinResetConfirmationCode);
 	}
 
 	private void sendPinResetConfirmationCode(User user)
@@ -103,9 +108,14 @@ public class PinResetRequestService
 	@Transactional
 	public void resendPinResetConfirmationCode(UUID userId)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		userService.updateUser(userId, this::resendPinResetConfirmationCode);
+	}
+
+	private void resendPinResetConfirmationCode(User userEntity)
+	{
+		UUID userId = userEntity.getId();
 		logger.info("User with mobile number '{}' and ID '{}' requested to resend the pin reset confirmation code",
-				userEntity.getMobileNumber(), userEntity.getId());
+				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.IMMEDIATELY);
 		setConfirmationCode(userId, confirmationCode);
 		sendConfirmationCodeTextMessage(userEntity, confirmationCode);
