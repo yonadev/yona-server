@@ -115,10 +115,10 @@ public class Buddy extends PrivateUserProperties
 
 	public User getUser()
 	{
-		return getUserIfExists().orElseThrow(() -> UserServiceException.notFoundById(userId));
+		return getUserIfExisting().orElseThrow(() -> UserServiceException.notFoundById(userId));
 	}
 
-	public Optional<User> getUserIfExists()
+	public Optional<User> getUserIfExisting()
 	{
 		return User.getRepository().findById(userId);
 	}

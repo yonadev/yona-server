@@ -53,8 +53,10 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 			UserAnonymizedDto buddyUserAnonymizedDto = buddyUserAnonymizedDtoOptional.orElseThrow(
 					() -> new IllegalStateException("Should have user anonymized when buddy relationship is established"));
 			Set<GoalDto> goals = buddyUserAnonymizedDto.getGoals();
-			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream().map(bd -> BuddyDeviceDto.createInstance(bd,
-					getDeviceAnonymized(buddyUserAnonymizedDto, bd.getDeviceAnonymizedId()))).collect(Collectors.toSet());
+			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream()
+					.map(bd -> BuddyDeviceDto.createInstance(bd,
+							getDeviceAnonymizedIfExisting(buddyUserAnonymizedDto, bd.getDeviceAnonymizedId())))
+					.collect(Collectors.toSet());
 			Optional<User> user = Optional.ofNullable(buddyEntity.getUser());
 			String firstName = buddyEntity.determineFirstName(user);
 			String lastName = buddyEntity.determineLastName(user);
@@ -66,12 +68,11 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 				buddyEntity.getUserPhotoId(), true);
 	}
 
-	private static Optional<DeviceAnonymizedDto> getDeviceAnonymized(UserAnonymizedDto buddyUserAnonymizedDto,
+	private static Optional<DeviceAnonymizedDto> getDeviceAnonymizedIfExisting(UserAnonymizedDto buddyUserAnonymizedDto,
 			UUID deviceAnonymizedId)
 	{
 		// We cannot use UserAnonymizedDto.getDeviceAnonymized here because the device anonymized isn't always available
-		return buddyUserAnonymizedDto.getDevicesAnonymized().stream().filter(da -> da.getId().equals(deviceAnonymizedId))
-				.findAny();
+		return buddyUserAnonymizedDto.getDeviceAnonymizedIfExisting(deviceAnonymizedId);
 	}
 
 	public static BuddyUserPrivateDataDto createInstance(String firstName, String lastName, String nickname,

@@ -145,8 +145,13 @@ public class UserAnonymizedDto implements Serializable
 
 	public DeviceAnonymizedDto getDeviceAnonymized(UUID deviceAnonymizedId)
 	{
-		return devicesAnonymized.stream().filter(da -> da.getId().equals(deviceAnonymizedId)).findFirst()
+		return getDeviceAnonymizedIfExisting(deviceAnonymizedId)
 				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(id, deviceAnonymizedId));
+	}
+
+	public Optional<DeviceAnonymizedDto> getDeviceAnonymizedIfExisting(UUID deviceAnonymizedId)
+	{
+		return devicesAnonymized.stream().filter(da -> da.getId().equals(deviceAnonymizedId)).findAny();
 	}
 
 	public GoalDto getGoal(UUID goalId)
