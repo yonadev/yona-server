@@ -38,6 +38,8 @@ import nu.yona.server.util.TimeUtil;
 @Entity
 public class DayActivity extends IntervalActivity
 {
+	private int UNUSED;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	private WeekActivity weekActivity;
 
