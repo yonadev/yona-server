@@ -38,7 +38,11 @@ import nu.yona.server.util.TimeUtil;
 @Entity
 public class DayActivity extends IntervalActivity
 {
-	private int UNUSED;
+	static {
+		Optional<Object> oo = Optional.empty();
+		Object o = oo.get();
+		System.out.println("Optional contains: " + o); // See whether SonarQube triggers on this.
+	}
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private WeekActivity weekActivity;
