@@ -131,7 +131,7 @@ public class UserUpdateService
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user.getMobileNumber(),
 				originalUser.getMobileNumber(), userEntity);
 			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
-					SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION );
+					SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
 	}
 
 	private void updateUser(UserDto user, User userEntity, UserDto originalUser)
