@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -329,7 +329,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Goal conflict of Bob immediately after Bob\'s buddy acceptance is reported to Richard and Bob'()
+	def 'Goal conflict of Bob immediately after Richard processed Bob\'s buddy response is reported to Richard and Bob'()
 	{
 		given:
 		User richard = addRichard()
@@ -338,6 +338,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		assertResponseStatusOk(appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password))
+		assertResponseStatusOk(appService.getMessages(richard)) // Causes processing of Bob's buddy connect response message
 
 		when:
 		def response = analysisService.postToAnalysisEngine(bob.requestingDevice, ["news/media"], "http://www.refdag.nl")
