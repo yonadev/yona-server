@@ -32,9 +32,9 @@ function waitTillK8SInstanceWorks() {
 	until [ $n -ge $iterations ]
 	do
 	if [ "$2" == "Succeeded" ]; then  #Hack to deal with Job differently
- 		kubectl get pods -a --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -q -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}" && echo -e "\n - Success\n" && break
+ 		kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -q -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}" && echo -e "\n - Success\n" && break
 	else
-		kubectl get pods -a --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} &&
+		kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} &&
 echo -e "\n - Success\n" && break
 	fi
 	echo -n '.'
@@ -57,7 +57,7 @@ then
 	n=0
 	until [ $n -ge $iterations ]
 	do
-		kubectl get pods -a --selector=job-name=${BUILD_NUMBER_TO_DEPLOY}-develop-liquibase-update -o jsonpath='{.items[*].status.phase}' | grep Succeeded && echo && break
+		kubectl get pods --selector=job-name=${BUILD_NUMBER_TO_DEPLOY}-develop-liquibase-update -o jsonpath='{.items[*].status.phase}' | grep Succeeded && echo && break
 		n=$[$n + 1]
 		sleep $sleepTime
 	done
