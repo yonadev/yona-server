@@ -131,6 +131,29 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Request resend of pin reset confirmation code'()
+	{
+		given:
+		User richard = addRichard()
+		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], [:], ["Yona-Password" : richard.password])
+		sleepTillPinResetCodeIsGenerated(richard, resetRequestResponse.responseData.delay)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsPinResetRequestedAndGenerated)
+
+		when:
+		def response = appService.yonaServer.postJson(richard.resendPinResetConfirmationCodeUrl, """{}""", [:], ["Yona-Password" : richard.password])
+
+		then:
+		assertResponseStatusNoContent(response)
+		User  richardAfterGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsPinResetRequestedAndGenerated)
+		!richardAfterGet.pinResetRequestUrl
+		richardAfterGet.verifyPinResetUrl
+		richardAfterGet.clearPinResetUrl
+		richardAfterGet.resendPinResetConfirmationCodeUrl
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Hacking attempt: Try to verify pin reset confirmation code before end of delay period'()
 	{
 		given:
@@ -144,6 +167,40 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.pin.reset.request.confirmation.code.mismatch"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Hacking attempt: Try to request pin reset confirmation code resend without requesting a pin reset confirmation code'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		def response = appService.yonaServer.postJson(YonaServer.stripQueryString(richard.url) + "/pinResetRequest/resend", """{}""", [:], ["Yona-Password" : richard.password])
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.pin.reset.request.confirmation.code.not.set"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Hacking attempt: Try to request pin reset confirmation code resend before end of delay period'()
+	{
+		given:
+		User richard = addRichard()
+		def responsePost = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], [:], ["Yona-Password" : richard.password])
+		sleepTillMidOfPinResetCodeGenerationInterval(richard, responsePost.responseData.delay)
+
+		when:
+		def response = appService.yonaServer.postJson(YonaServer.stripQueryString(richard.url) + "/pinResetRequest/resend", """{}""", [:], ["Yona-Password" : richard.password])
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.pin.reset.request.confirmation.code.not.set"
 
 		cleanup:
 		appService.deleteUser(richard)
