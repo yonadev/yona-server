@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -16,7 +16,6 @@ import nu.yona.server.device.service.BuddyDeviceDto;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.User;
 
 public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
@@ -72,6 +71,6 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 
 	public static boolean canIncludePrivateData(Buddy buddyEntity)
 	{
-		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED);
+		return buddyEntity.isAccepted();
 	}
 }

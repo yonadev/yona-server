@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -258,5 +258,10 @@ public class Buddy extends PrivateUserProperties
 		// The app will fetch the message, causing processing of all unprocessed messages. That'll fill in the first and last
 		// name in the buddy entity, so from then onward, the user will see the right data
 		return Translator.getInstance().getLocalizedMessage(fallbackMessageId, nickname);
+	}
+
+	public boolean isAccepted()
+	{
+		return (getReceivingStatus() == Status.ACCEPTED) || (getSendingStatus() == Status.ACCEPTED);
 	}
 }

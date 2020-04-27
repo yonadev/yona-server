@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -21,6 +21,7 @@ import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserRepository;
+import nu.yona.server.util.HibernateHelperService;
 import nu.yona.server.util.Require;
 
 @Service
@@ -40,9 +41,18 @@ class UserAssertionService
 	@Autowired(required = false)
 	private UserRepository userRepository;
 
+	@Autowired(required = false)
+	private HibernateHelperService hibernateHelperService;
+
 	public void assertValidatedUser(User user)
 	{
 		user.assertMobileNumberConfirmed();
+	}
+
+	public void assertUserEntityLockedForUpdate(User userEntity)
+	{
+		Require.that(hibernateHelperService.isLockedForUpdate(userEntity),
+				() -> YonaException.illegalState("User entity must be locked for update"));
 	}
 
 	static void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)

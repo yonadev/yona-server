@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -20,6 +20,7 @@ import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyVpnConnectionStatusChangeMessage;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("buddyVpnConnectionStatusChangeMessage")
 public class BuddyVpnConnectionStatusChangeMessageDto extends BuddyMessageLinkedUserDto
@@ -62,7 +63,7 @@ public class BuddyVpnConnectionStatusChangeMessageDto extends BuddyMessageLinked
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
 			return BuddyVpnConnectionStatusChangeMessageDto.createInstance((BuddyVpnConnectionStatusChangeMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));

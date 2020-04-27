@@ -1,16 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server
 
-
 import static nu.yona.server.test.CommonAssertions.*
 
 import java.time.Duration
 
+import groovyx.net.http.AsyncHTTPBuilder
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
 
@@ -28,6 +28,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		richardAfterGet.pinResetRequestUrl
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
+		!richardAfterGet.resendPinResetConfirmationCodeUrl
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -49,12 +50,14 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
+		!richardAfterGet.resendPinResetConfirmationCodeUrl
 
 		sleepTillPinResetCodeIsGenerated(richard, response.responseData.delay)
 		User  richardAfterDelayedGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsPinResetRequestedAndGenerated)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
 		richardAfterDelayedGet.verifyPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/verify"
 		richardAfterDelayedGet.clearPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/clear"
+		richardAfterDelayedGet.resendPinResetConfirmationCodeUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/resend"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -84,13 +87,14 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
+		!richardAfterGet.resendPinResetConfirmationCodeUrl
 
 		sleepTillPinResetCodeIsGenerated(richard, response.responseData.delay)
 		User  richardAfterDelayedGet = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsPinResetRequestedAndGenerated)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
 		richardAfterDelayedGet.verifyPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/verify"
 		richardAfterDelayedGet.clearPinResetUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/clear"
-
+		richardAfterDelayedGet.resendPinResetConfirmationCodeUrl == YonaServer.stripQueryString(richard.url) + "/pinResetRequest/resend"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -121,6 +125,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		!richardAfterGet.pinResetRequestUrl
 		richardAfterGet.verifyPinResetUrl
 		richardAfterGet.clearPinResetUrl
+		richardAfterGet.resendPinResetConfirmationCodeUrl
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -169,6 +174,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		richardAfterGet.pinResetRequestUrl
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
+		!richardAfterGet.resendPinResetConfirmationCodeUrl
 		def verifyPinResetAttemptResponse = appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "1234"}""", [:], ["Yona-Password" : richard.password])
 		assertResponseStatus(verifyPinResetAttemptResponse, 400)
 		verifyPinResetAttemptResponse.responseData.code == "error.pin.reset.request.confirmation.code.not.set"
@@ -196,6 +202,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		richardAfterGet.pinResetRequestUrl
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
+		!richardAfterGet.resendPinResetConfirmationCodeUrl
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -237,5 +244,41 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richard)
+	}
+
+	def 'Concurrent resend requests cause no errors'()
+	{
+		given:
+		User richard = addRichard()
+		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], [:], ["Yona-Password" : richard.password])
+		sleepTillPinResetCodeIsGenerated(richard, resetRequestResponse.responseData.delay)
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsPinResetRequestedAndGenerated)
+		def numberOfTimes = 5
+
+		when:
+		def responses = postNTimes(numberOfTimes, richard.resendPinResetConfirmationCodeUrl, [:], ["Yona-Password" : richard.password])
+
+		then:
+		responses.size() == numberOfTimes
+		def p = responses.each{ assert it == 204}
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	private def postNTimes(numberOfTimes, path, body, headers)
+	{
+		def asyncHttpClient = new AsyncHTTPBuilder(poolSize: numberOfTimes, uri: appService.yonaServer.restClient.uri)
+		asyncHttpClient.handler.success = { resp -> resp.status }
+		asyncHttpClient.handler.failure = asyncHttpClient.handler.success
+		def futures = (1..numberOfTimes).collect
+		{
+			asyncHttpClient.post( [
+				path: YonaServer.stripQueryString(path),
+				body: body,
+				contentType:'application/json',
+				headers: headers] )
+		}
+		futures.collect{it.get()}
 	}
 }

@@ -21,6 +21,7 @@ import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserRepository;
+import nu.yona.server.util.HibernateHelperService;
 import nu.yona.server.util.Require;
 
 @Service
@@ -43,6 +44,9 @@ public class UserLookupService
 
 	@Autowired(required = false)
 	private UserAssertionService userAssertionService;
+
+	@Autowired(required = false)
+	private HibernateHelperService hibernateHelperService;
 
 	@Transactional
 	public boolean doPreparationsAndCheckCanAccessPrivateData(UUID id)
@@ -162,6 +166,22 @@ public class UserLookupService
 		return UserDto.createInstance(user, buddyService.getBuddyDtos(user.getBuddies()));
 	}
 
+	/**
+	 * Locks the user entity with the given ID for update, thus preventing concurrent updates on that user. To prevent from using
+	 * stale data that was retrieved before any previous update completed, the Hibernate session is cleared. This operation fails
+	 * if the session is dirty. Callers should obtain the lock on the user entity prior to any checks or updates. Note that this
+	 * operation is idempotent: if the user was already locked during this session, that user will be returned. The session won't
+	 * be cleared.
+	 *
+	 * @param userId The ID of the user to lock
+	 * @return The locked user entity
+	 */
+	@Transactional
+	public User lockUserForUpdate(UUID userId)
+	{
+		return getUserEntityByIdWithUpdateLock(userId);
+	}
+
 	<T> T withLockOnUser(UUID userId, Function<User, T> action)
 	{
 		User user = getUserEntityByIdWithUpdateLock(userId);
@@ -240,6 +260,7 @@ public class UserLookupService
 				entity = userRepository.findById(id);
 				break;
 			case PESSIMISTIC_WRITE:
+				hibernateHelperService.clearSessionIfNotLockedYet(User.class, id);
 				entity = userRepository.findByIdForUpdate(id);
 				break;
 			default:

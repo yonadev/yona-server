@@ -181,7 +181,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.ADD, device.getDeviceAnonymizedId(), Optional.empty(), Optional.of(deviceName));
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -213,7 +213,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.RENAME, device.getDeviceAnonymizedId(), Optional.of(orgDeviceName), Optional.of(newDeviceName));
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -250,7 +250,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.DELETE, device2.getDeviceAnonymizedId(), Optional.of(deviceName2), Optional.empty());
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -281,7 +281,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.DELETE, device1.getDeviceAnonymizedId(), Optional.of(deviceName1), Optional.empty());
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());

@@ -41,9 +41,9 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.rest.ControllerBase;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
-import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -155,7 +155,7 @@ abstract class ActivityControllerBase extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getValidatedUser(userId);
+			User user = userService.getValidatedUserEntity(userId);
 			return messageController.createOkResponse(user, messageSupplier.get(), pagedResourcesAssembler);
 		}
 	}
@@ -182,7 +182,7 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	protected GoalIdMapping createGoalIdMapping(UUID userId)
 	{
-		return GoalIdMapping.createInstance(userService.getUser(userId));
+		return GoalIdMapping.createInstance(userService.getUserEntityById(userId));
 	}
 
 	public abstract void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDto message);

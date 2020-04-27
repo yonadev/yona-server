@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserPhoto;
 import nu.yona.server.subscriptions.entities.UserPhotoRepository;
 
@@ -26,8 +27,9 @@ public class UserPhotoService
 	@Transactional
 	public UserPhotoDto addUserPhoto(UUID userId, UserPhotoDto userPhoto)
 	{
+		User user = userService.lockUserForUpdate(userId);
 		UserPhoto userPhotoEntity = userPhotoRepository.save(UserPhoto.createInstance(userPhoto.getPngBytes()));
-		userService.updateUserPhoto(userId, Optional.of(userPhotoEntity.getId()));
+		userService.updateUserPhoto(user, Optional.of(userPhotoEntity));
 		return UserPhotoDto.createInstance(userPhotoEntity);
 	}
 
@@ -42,6 +44,7 @@ public class UserPhotoService
 	@Transactional
 	public void removeUserPhoto(UUID userId)
 	{
-		userService.updateUserPhoto(userId, Optional.empty());
+		User user = userService.lockUserForUpdate(userId);
+		userService.updateUserPhoto(user, Optional.empty());
 	}
 }

@@ -86,7 +86,7 @@ public class PinResetRequestService
 	@Transactional(dontRollbackOn = PinResetRequestConfirmationException.class)
 	public void verifyPinResetConfirmationCode(UUID userId, String userProvidedConfirmationCode)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		User userEntity = userService.lockUserForUpdate(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to verify the pin reset confirmation code",
 				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = userEntity.getPinResetConfirmationCode();
@@ -99,7 +99,7 @@ public class PinResetRequestService
 
 		if (!userProvidedConfirmationCode.equals(confirmationCode.getCode()))
 		{
-			userService.registerFailedAttempt(userEntity, confirmationCode);
+			confirmationCode.incrementAttempts();
 			throw PinResetRequestConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
 					userProvidedConfirmationCode, remainingAttempts - 1);
 		}

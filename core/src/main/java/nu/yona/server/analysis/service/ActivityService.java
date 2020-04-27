@@ -49,6 +49,7 @@ import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyNotFoundException;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -726,7 +727,7 @@ public class ActivityService
 	public MessageDto addMessageToActivity(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			ActivitySupplier activitySupplier, PostPutActivityCommentMessageDto message)
 	{
-		UserDto sendingUser = userService.getUser(userId);
+		User sendingUser = userService.getUserEntityById(userId);
 		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		IntervalActivity dayActivityEntity = activitySupplier.get(buddy, date, goalId);
 		if (dayActivityEntity == null)
@@ -738,10 +739,10 @@ public class ActivityService
 				Optional.empty(), message.getMessage());
 	}
 
-	private MessageDto sendMessagePair(UserDto sendingUser, UUID targetUserAnonymizedId, IntervalActivity intervalActivityEntity,
+	private MessageDto sendMessagePair(User sendingUser, UUID targetUserAnonymizedId, IntervalActivity intervalActivityEntity,
 			Optional<Message> repliedMessageOfSelf, Optional<Message> repliedMessageOfBuddy, String message)
 	{
-		UUID sendingUserAnonymizedId = sendingUser.getOwnPrivateData().getUserAnonymizedId();
+		UUID sendingUserAnonymizedId = sendingUser.getUserAnonymizedId();
 		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, sendingUserAnonymizedId, intervalActivityEntity,
 				repliedMessageOfBuddy, false, message);
 		ActivityCommentMessage messageToSelf = createMessage(sendingUser, targetUserAnonymizedId, intervalActivityEntity,
@@ -766,7 +767,7 @@ public class ActivityService
 		}
 	}
 
-	private ActivityCommentMessage createMessage(UserDto sendingUser, UUID relatedUserAnonymizedId,
+	private ActivityCommentMessage createMessage(User sendingUser, UUID relatedUserAnonymizedId,
 			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String messageText)
 	{
 		ActivityCommentMessage message;
@@ -799,7 +800,7 @@ public class ActivityService
 	}
 
 	@Transactional
-	public MessageDto replyToMessage(UserDto sendingUser, ActivityCommentMessage repliedMessage, String message)
+	public MessageDto replyToMessage(User sendingUser, ActivityCommentMessage repliedMessage, String message)
 	{
 		UUID targetUserAnonymizedId = repliedMessage.getRelatedUserAnonymizedId().get();
 		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivity(),

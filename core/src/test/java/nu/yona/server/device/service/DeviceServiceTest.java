@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
@@ -85,6 +85,7 @@ import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.HibernateHelperService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
 
@@ -157,6 +158,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	@MockBean
 	private LockPool<UUID> mockUserSynchronizer;
+
+	@MockBean
+	private HibernateHelperService hibernateHelperService;
 
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;

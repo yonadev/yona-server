@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -39,6 +39,7 @@ import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -137,9 +138,9 @@ public class BuddyService
 	public BuddyDto addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDto buddy,
 			BiFunction<UUID, String, String> inviteUrlGetter)
 	{
-		UserDto requestingUser = userService.getUser(idOfRequestingUser);
 		assertMobileNumberOfRequestingUserConfirmed(idOfRequestingUser);
-		assertValidBuddy(requestingUser, buddy);
+		User requestingUserEntity = userService.getValidatedUserEntity(idOfRequestingUser);
+		assertValidBuddy(requestingUserEntity, buddy);
 
 		boolean buddyUserExists = buddyUserExists(buddy);
 		if (!buddyUserExists)
@@ -151,7 +152,7 @@ public class BuddyService
 
 		logger.info(
 				"User with mobile number '{}' and ID '{}' sent buddy connect message to {} user with mobile number '{}' and ID '{}' as buddy",
-				requestingUser.getMobileNumber(), requestingUser.getId(), (buddyUserExists) ? "existing" : "new",
+				requestingUserEntity.getMobileNumber(), idOfRequestingUser, (buddyUserExists) ? "existing" : "new",
 				buddy.getUser().getMobileNumber(), buddy.getUser().getId());
 
 		return savedBuddy;
@@ -181,28 +182,29 @@ public class BuddyService
 		requestingUser.assertMobileNumberConfirmed();
 	}
 
-	private void assertValidBuddy(UserDto requestingUser, BuddyDto buddy)
+	private void assertValidBuddy(User requestingUser, BuddyDto buddy)
 	{
 		userService.assertValidUserFields(buddy.getUser(), UserService.UserPurpose.BUDDY);
 		Require.that(buddy.getSendingStatus() == Status.REQUESTED && buddy.getReceivingStatus() == Status.REQUESTED,
 				BuddyServiceException::onlyTwoWayBuddiesAllowed);
 		String buddyMobileNumber = buddy.getUser().getMobileNumber();
 		Require.that(!requestingUser.getMobileNumber().equals(buddyMobileNumber), BuddyServiceException::cannotInviteSelf);
-		Require.that(requestingUser.getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getMobileNumber())
+		Require.that(requestingUser.getBuddies().stream().map(b -> b.getUser().getMobileNumber())
 				.noneMatch(m -> m.equals(buddyMobileNumber)), BuddyServiceException::cannotInviteExistingBuddy);
 	}
 
 	@Transactional
-	public BuddyDto addBuddyToAcceptingUser(UserDto acceptingUser, BuddyConnectRequestMessage connectRequestMessageEntity)
+	public BuddyDto addBuddyToAcceptingUser(User acceptingUserEntity, BuddyConnectRequestMessage connectRequestMessageEntity)
 	{
-		Require.isNonNull(acceptingUser, BuddyServiceException::acceptingUserIsNull);
+		Require.isNonNull(acceptingUserEntity, BuddyServiceException::acceptingUserIsNull);
 		Require.isPresent(connectRequestMessageEntity.getSenderUser(),
 				() -> UserServiceException.notFoundById(connectRequestMessageEntity.getSenderUserId()));
+		Require.that(acceptingUserEntity.isMobileNumberConfirmed(),
+				() -> MobileNumberConfirmationException.notConfirmed(acceptingUserEntity.getMobileNumber()));
 
-		acceptingUser.assertMobileNumberConfirmed();
 		Buddy buddy = createBuddyEntity(connectRequestMessageEntity);
 		BuddyDto buddyDto = BuddyDto.createInstance(buddyRepository.save(buddy));
-		userService.addBuddy(acceptingUser, buddyDto);
+		userService.addBuddy(acceptingUserEntity, buddyDto);
 		return buddyDto;
 	}
 
@@ -257,7 +259,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddy(UUID idOfRequestingUser, UUID buddyId, Optional<String> message)
 	{
-		User user = userService.getValidatedUserById(idOfRequestingUser);
+		User user = userService.lockUserForUpdate(idOfRequestingUser);
 		Buddy buddy = getEntityById(buddyId);
 
 		if (buddy.getSendingStatus() == Status.REQUESTED || buddy.getReceivingStatus() == Status.REQUESTED)
@@ -295,18 +297,17 @@ public class BuddyService
 		final int pageSize = 50;
 		Page<Message> messagePage;
 		boolean messageFound = false;
-		UserDto user = userService.createUserDto(userEntity);
 		do
 		{
-			messagePage = messageService.getReceivedMessageEntitiesSinceDate(user.getId(), buddy.getLastStatusChangeTime(),
+			messagePage = messageService.getReceivedMessageEntitiesSinceDate(userEntity.getId(), buddy.getLastStatusChangeTime(),
 					PageRequest.of(page++, pageSize));
 
-			messageFound = processPossiblePendingBuddyResponseMessage(user, buddy, messagePage);
+			messageFound = processPossiblePendingBuddyResponseMessage(userEntity, buddy, messagePage);
 		}
 		while (!messageFound && messagePage.getNumberOfElements() == pageSize);
 	}
 
-	private boolean processPossiblePendingBuddyResponseMessage(UserDto user, Buddy buddy, Page<Message> messagePage)
+	private boolean processPossiblePendingBuddyResponseMessage(User user, Buddy buddy, Page<Message> messagePage)
 	{
 
 		Stream<BuddyConnectResponseMessage> buddyConnectResponseMessages = messagePage.getContent().stream()
@@ -435,7 +436,7 @@ public class BuddyService
 				.ifPresent(b -> removeBuddy(user.getId(), b));
 	}
 
-	public void setBuddyAcceptedWithSecretUserInfo(UserDto actingUser, BuddyConnectResponseMessage connectResponseMessageEntity)
+	public void setBuddyAcceptedWithSecretUserInfo(User actingUser, BuddyConnectResponseMessage connectResponseMessageEntity)
 	{
 		Buddy buddy = getEntityById(connectResponseMessageEntity.getBuddyId());
 		if (buddy.getSendingStatus() == Status.REQUESTED)
@@ -453,7 +454,7 @@ public class BuddyService
 		buddy.setUserPhotoId(connectResponseMessageEntity.getSenderUserPhotoId());
 		createBuddyDevices(connectResponseMessageEntity).forEach(buddy::addDevice);
 		buddyRepository.save(buddy);
-		UUID userAnonymizedId = actingUser.getOwnPrivateData().getUserAnonymizedId();
+		UUID userAnonymizedId = actingUser.getUserAnonymizedId();
 		userAnonymizedService.updateUserAnonymized(userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId)
 				.orElseThrow(() -> InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId)));
 	}
@@ -638,21 +639,20 @@ public class BuddyService
 		return (properties.getEmail().isEnabled()) ? userService.generatePassword() : "ab&cd";
 	}
 
-	private BuddyDto handleBuddyRequestForExistingUser(UUID idOfRequestingUser, BuddyDto buddy)
+	private BuddyDto handleBuddyRequestForExistingUser(UUID requestingUserEntityId, BuddyDto buddy)
 	{
-		UserDto requestingUser = userService.getUser(idOfRequestingUser);
+		User requestingUserEntity = userService.lockUserForUpdate(requestingUserEntityId);
 		User buddyUserEntity = UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		buddy.getUser().setUserId(buddyUserEntity.getId());
 		Buddy buddyEntity = buddy.createBuddyEntity();
 		Buddy savedBuddyEntity = buddyRepository.save(buddyEntity);
 		BuddyDto savedBuddy = BuddyDto.createInstance(savedBuddyEntity);
-		userService.addBuddy(requestingUser, savedBuddy);
+		userService.addBuddy(requestingUserEntity, savedBuddy);
 
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
-		User requestingUserEntity = userService.getUserEntityById(idOfRequestingUser);
 		messageService.sendDirectMessageAndFlushToDatabase(
-				BuddyConnectRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUser),
+				BuddyConnectRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUserEntity),
 						buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), requestingUserEntity.getDevices(),
 						isRequestingSending, isRequestingReceiving),
 				buddyUserEntity);
@@ -682,10 +682,10 @@ public class BuddyService
 		}
 	}
 
-	public Optional<BuddyDto> getBuddyOfUserByUserAnonymizedId(OwnUserPrivateDataDto user, UUID userAnonymizedId)
+	public Optional<Buddy> getBuddyOfUserByUserAnonymizedId(User user, UUID userAnonymizedId)
 	{
-		Set<BuddyDto> buddies = user.getBuddies();
-		for (BuddyDto buddy : buddies)
+		Set<Buddy> buddies = user.getBuddies();
+		for (Buddy buddy : buddies)
 		{
 			if (buddy.getUserAnonymizedId().filter(id -> id.equals(userAnonymizedId)).isPresent())
 			{
