@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -7,6 +7,8 @@
 package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
+
+import org.apache.commons.lang.StringUtils
 
 import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
@@ -428,6 +430,45 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def 'Comment using (too) long messages'(messageLength, expectedStatus)
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		when:
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
+		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
+
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		assert budgetGoalNewsBuddyBob
+		def responseOverviewsBobAsBuddyAll = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
+		assertResponseStatusOk(responseOverviewsBobAsBuddyAll)
+		def responseDetailsBobAsBuddy = appService.getDayDetailsFromOverview(responseOverviewsBobAsBuddyAll, richard, budgetGoalNewsBuddyBob, 1, "Tue")
+		assertResponseStatusOk(responseDetailsBobAsBuddy)
+		def messageText = StringUtils.repeat("*", messageLength)
+		def messageJson = """{"message": "$messageText"}"""
+
+		then:
+		def response = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, messageJson, richard.password)
+		assertResponseStatus(response, expectedStatus)
+		expectedStatus == 200 || response.responseData.message == "The string 'message' is too long. It contains $messageLength characters while only 200 are allowed"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+
+		where:
+		messageLength | expectedStatus
+		200 | 200
+		201 | 400
 	}
 
 	public void assertCommentingWorks(User richard, User bob, boolean isWeek, Closure userOverviewRetriever, Closure buddyOverviewRetriever, Closure detailsRetriever)

@@ -165,6 +165,11 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.invalid.date.too.early", date, earliestPossibleDate);
 	}
 
+	public static InvalidDataException stringTooLong(String name, int actualLength, int maxLength)
+	{
+		return new InvalidDataException("error.invalid.string.too.long", name, actualLength, maxLength);
+	}
+
 	public static InvalidDataException missingRequestParameter(String name, String hint)
 	{
 		return new InvalidDataException("error.request.missing.request.parameter", name, hint);
