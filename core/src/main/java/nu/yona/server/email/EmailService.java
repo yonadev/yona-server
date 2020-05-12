@@ -49,7 +49,14 @@ public class EmailService
 				subjectTemplateName, bodyTemplateName, templateParameters);
 		if (yonaProperties.getEmail().isEnabled())
 		{
-			mailSender.send(preparator);
+			try
+			{
+				logger.info("About to call mailSender.send");
+				mailSender.send(preparator);}
+			finally
+			{
+				logger.info("mailSender.send completed, possibly with an exception");
+			}
 			logger.info("E-mail sent succesfully.");
 		}
 		else
