@@ -9,6 +9,7 @@ pipeline {
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
 				GIT = credentials('github-yonabuild')
+				GITHUB_APP = credentials('github-app')
 				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
 			}
 			steps {
@@ -24,7 +25,7 @@ pipeline {
 					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GIT_USR $GIT_PSW /opt/ope-cloudbees/yona/k8s/helm helm-charts'
 				}
 				sh 'git tag -a build-$BUILD_NUMBER -m "Jenkins"'
-				sh 'git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags'
+				sh 'git push https://${x-access-token:${GITHUB_APP_PSW}@github.com/yonadev/yona-server.git --tags'
 				script {
 					env.BUILD_NUMBER_TO_DEPLOY = env.BUILD_NUMBER
 				}
