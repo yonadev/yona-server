@@ -5,10 +5,9 @@ set -ex
 BUILD_NUMBER=$1
 VERSION=$2
 CHART=$3
-GIT_USR=$4
-GIT_PSW=$5
-HELM_DIR=$6
-HELM_REPO=$7
+GITHUB_APP_JWT=$4
+HELM_DIR=$5
+HELM_REPO=$6
 
 HELM_REPO_DIR=$HELM_DIR/$HELM_REPO
 PACKAGE_DIR=$HELM_REPO_DIR/docs
@@ -32,5 +31,5 @@ export GIT_AUTHOR_EMAIL=dev@yona.nu
 export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
 export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
 git commit -am "Package for build $BUILD_NUMBER"
-git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/$HELM_REPO.git master
+git push https://$x-access-token:${GITHUB_APP_PSW}@github.com/yonadev/$HELM_REPO.git master
 popd
