@@ -110,7 +110,7 @@ pipeline {
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(2, "/helm/values.yaml", "yona")
+				helmUpgradeOrInstall(2, "helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -139,7 +139,7 @@ pipeline {
 			steps {
 				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(2, "/helm/values_loadtest.yaml", "loadtest")
+				helmUpgradeOrInstall(2, "helm/values_loadtest.yaml", "loadtest")
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -212,7 +212,7 @@ pipeline {
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(1, "/helm/values.yaml", "yona")
+				helmUpgradeOrInstall(1, "helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
