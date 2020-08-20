@@ -61,7 +61,7 @@ pipeline {
 			}
 			steps {
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
-				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
+				sh script: 'helm uninstall yona --namespace yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
 				helmUpgradeOrInstall(4, "infrastructure/helm/values.yaml", "yona")
