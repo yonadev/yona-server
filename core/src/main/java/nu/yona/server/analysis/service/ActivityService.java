@@ -7,6 +7,7 @@ package nu.yona.server.analysis.service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -589,9 +590,17 @@ public class ActivityService
 		return getUserCreationDate(user);
 	}
 
+	/**
+	 * Returns the user creation date, in the time zone of the user.
+	 * 
+	 * @param user The user
+	 * @return the user creation date, in the time zone of the user.
+	 */
 	private LocalDate getUserCreationDate(UserDto user)
 	{
-		return user.getCreationTime().map(LocalDateTime::toLocalDate)
+		ZoneId userTimeZone = userAnonymizedService.getUserAnonymized(user.getOwnPrivateData().getUserAnonymizedId())
+				.getTimeZone();
+		return user.getCreationTime().map(dt -> TimeUtil.toLocalDateTimeInZone(dt, userTimeZone).toLocalDate())
 				.orElseThrow(() -> YonaException.illegalState("creation time must be available in this state"));
 	}
 
