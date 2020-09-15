@@ -71,7 +71,11 @@ public class PinResetRequestService
 	@Transactional
 	public void sendPinResetConfirmationCode(UUID userId)
 	{
-		User user = userService.lockUserForUpdate(userId);
+		userService.updateUserIfExisting(userId, this::sendPinResetConfirmationCode);
+	}
+
+	private void sendPinResetConfirmationCode(User user)
+	{
 		logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'", user.getMobileNumber(),
 				user.getId());
 		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
