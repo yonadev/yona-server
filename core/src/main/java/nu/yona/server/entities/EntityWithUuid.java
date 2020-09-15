@@ -29,7 +29,7 @@ public abstract class EntityWithUuid
 		this.id = id;
 	}
 
-	public static UUID getIdWIthoutLoadingEntity(EntityWithUuid entity)
+	public static UUID getIdWithoutLoadingEntity(EntityWithUuid entity)
 	{
 		if (entity instanceof HibernateProxy)
 		{

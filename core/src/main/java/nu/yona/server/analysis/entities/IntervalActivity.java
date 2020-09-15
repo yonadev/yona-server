@@ -111,7 +111,7 @@ public abstract class IntervalActivity extends EntityWithId
 
 	public UUID getGoalId()
 	{
-		return EntityWithUuid.getIdWIthoutLoadingEntity(goal);
+		return EntityWithUuid.getIdWithoutLoadingEntity(goal);
 	}
 
 	public ZoneId getTimeZone()
