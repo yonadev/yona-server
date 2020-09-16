@@ -554,7 +554,7 @@ public class UserController extends ControllerBase
 				devices.ifPresent(d -> result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL).value(),
 						DeviceController.createAllDevicesCollectionResource(userId, d, requestingDeviceId)));
 
-				Optional<Set<GoalDto>> goals = getContent().getPrivateData().getGoals();
+				Optional<Set<GoalDto>> goals = getContent().getPrivateData().getGoalsIncludingHistoryItems();
 				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL).value(),
 						GoalController.createAllGoalsCollectionResource(requestingUserId, userId, g)));
 			}

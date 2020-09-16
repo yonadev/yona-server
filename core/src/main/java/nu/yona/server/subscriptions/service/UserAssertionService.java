@@ -71,7 +71,7 @@ class UserAssertionService
 			Require.that(StringUtils.isNotBlank(user.getEmailAddress()), InvalidDataException::blankEmailAddress);
 			assertValidEmailAddress(user.getEmailAddress());
 
-			Require.that(user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty(),
+			Require.that(user.getOwnPrivateData().getGoalsIncludingHistoryItems().orElse(Collections.emptySet()).isEmpty(),
 					InvalidDataException::goalsNotSupported);
 		}
 		else

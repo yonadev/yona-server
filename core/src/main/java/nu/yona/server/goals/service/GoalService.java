@@ -60,7 +60,7 @@ public class GoalService
 	public Set<GoalDto> getGoalsOfUser(UUID forUserId)
 	{
 		UserDto user = userService.getUser(forUserId);
-		return user.getOwnPrivateData().getGoals().orElse(Collections.emptySet());
+		return user.getOwnPrivateData().getGoalsIncludingHistoryItems().orElse(Collections.emptySet());
 	}
 
 	public GoalDto getGoalForUserId(UUID userId, UUID goalId)

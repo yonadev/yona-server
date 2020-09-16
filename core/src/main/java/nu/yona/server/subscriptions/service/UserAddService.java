@@ -156,7 +156,7 @@ public class UserAddService
 		}
 		else
 		{
-			goals = user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).stream().map(GoalDto::createGoalEntity)
+			goals = user.getOwnPrivateData().getGoalsIncludingHistoryItems().orElse(Collections.emptySet()).stream().map(GoalDto::createGoalEntity)
 					.collect(Collectors.toSet());
 		}
 		return goals;
