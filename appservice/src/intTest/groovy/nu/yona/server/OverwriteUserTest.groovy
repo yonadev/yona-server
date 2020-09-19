@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -441,6 +441,31 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		{
 			appService.deleteUser(userUrl, "Password")
 		}
+	}
+
+	def 'After Richard overwrote his account, Bob does not get goal conflict message of Richard anymore'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richardBeforeOverwrite = richardAndBob.richard
+		User bob = richardAndBob.bob
+		appService.requestOverwriteUser(richardBeforeOverwrite.mobileNumber)
+		User richardAfterOverwrite = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richardBeforeOverwrite.firstName}Changed",
+				"${richardBeforeOverwrite.lastName}Changed", "${richardBeforeOverwrite.nickname}Changed", richardBeforeOverwrite.mobileNumber,
+				["overwriteUserConfirmationCode": "1234"])
+		bob = appService.reloadUser(bob)
+
+		when:
+		analysisService.postToAnalysisEngine(richardBeforeOverwrite.requestingDevice, ["news/media"], "http://www.refdag.nl")
+
+		then:
+		def responseGetMessagesBob = appService.getMessages(bob)
+		assertResponseStatusOk(responseGetMessagesBob)
+		assert responseGetMessagesBob.responseData._embedded?."yona:messages"?.find{ it."@type" == "GoalConflictMessage"} == null
+
+		cleanup:
+		appService.deleteUser(richardAfterOverwrite)
+		appService.deleteUser(bob)
 	}
 
 	private def assertUserOverwriteResponseDetails(def response)

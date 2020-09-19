@@ -512,7 +512,17 @@ public class BuddyService
 	{
 		return user.getBuddiesAnonymized().stream().filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
 				.map(BuddyAnonymizedDto::getUserAnonymizedId).filter(Optional::isPresent).map(Optional::get)
+				.filter(buddyUserAnonymizedId -> otherBuddyAnonymizedStillExists(user, buddyUserAnonymizedId))
 				.map(buaid -> userAnonymizedService.getUserAnonymized(buaid)).collect(Collectors.toSet());
+	}
+
+	private boolean otherBuddyAnonymizedStillExists(UserAnonymizedDto user, UUID buddyUserAnonymizedId)
+	{
+		// If a user overwrites their account, the user anonymized entity will continue to exist. If a device still uses the old
+		// VPN account after overwriting their user account, the analysis engine might still create goal conflict messages for
+		// buddies, though the buddies do not know the user anymore. To prevent that, we should filter out the buddy anonymized
+		// entities that do not have a corresponding buddy anonymized entity at the receiving end.
+		return buddyAnonymizedRepository.existsByOwningUserAnonymizedIdAndUserAnonymizedId(buddyUserAnonymizedId, user.getId());
 	}
 
 	public Set<MessageDestination> getBuddyDestinations(UserAnonymized user)
