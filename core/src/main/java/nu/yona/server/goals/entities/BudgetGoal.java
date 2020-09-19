@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
@@ -12,7 +12,7 @@ import javax.persistence.Entity;
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Entity
-public class BudgetGoal extends Goal
+public class BudgetGoal extends Goal implements IBudgetGoal
 {
 	private static final long serialVersionUID = -2070046758903687364L;
 
@@ -53,6 +53,7 @@ public class BudgetGoal extends Goal
 		return new BudgetGoal(UUID.randomUUID(), originalGoal, endTime);
 	}
 
+	@Override
 	public int getMaxDurationMinutes()
 	{
 		return maxDurationMinutes;
@@ -72,12 +73,12 @@ public class BudgetGoal extends Goal
 	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
-		return dayActivity.getTotalActivityDurationMinutes() <= this.getMaxDurationMinutes();
+		return IBudgetGoal.super.isGoalAccomplished(dayActivity);
 	}
 
 	@Override
 	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
-		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
+		return IBudgetGoal.super.computeTotalMinutesBeyondGoal(dayActivity);
 	}
 }

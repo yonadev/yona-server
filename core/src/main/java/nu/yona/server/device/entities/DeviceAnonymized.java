@@ -156,6 +156,7 @@ public class DeviceAnonymized extends EntityWithUuid
 	{
 		vpnStatusChangeEvents.add(event);
 		event.setDeviceAnonymized(this);
+		lastVpnStatusChangeEvent = event;
 	}
 
 	public Set<VpnStatusChangeEvent> getVpnStatusChangeEvents()

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,7 +22,7 @@ import javax.persistence.Entity;
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Entity
-public class TimeZoneGoal extends Goal
+public class TimeZoneGoal extends Goal implements ITimezoneGoal
 {
 	private static final long serialVersionUID = -8166664564237587040L;
 
@@ -86,29 +85,19 @@ public class TimeZoneGoal extends Goal
 	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
-		int[] spread = determineSpreadOutsideGoal(dayActivity);
-		return !Arrays.stream(spread).anyMatch(i -> (i > 0));
-	}
-
-	private int[] determineSpreadOutsideGoal(DayActivity dayActivity)
-	{
-		int[] spread = dayActivity.getSpread().stream().mapToInt(Integer::intValue).toArray();
-		getSpreadCellsIntStream().forEach(i -> spread[i] = 0);
-		return spread;
-	}
-
-	private IntStream getSpreadCellsIntStream()
-	{
-		return IntStream.range(0, spreadCells.length).map(i -> spreadCells[i]);
+		return ITimezoneGoal.super.isGoalAccomplished(dayActivity);
 	}
 
 	@Override
 	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
-		int[] spread = determineSpreadOutsideGoal(dayActivity);
-		int sumOfSpreadOutsideGoal = Arrays.stream(spread).sum();
-		// Due to rounding, the sum of the spread might be more than the total duration, so take the lowest of the two
-		return Math.min(dayActivity.getTotalActivityDurationMinutes(), sumOfSpreadOutsideGoal);
+		return ITimezoneGoal.super.computeTotalMinutesBeyondGoal(dayActivity);
+	}
+
+	@Override
+	public byte[] getSpreadCells()
+	{
+		return spreadCells;
 	}
 
 	private static byte[] integerListToByteArray(List<Integer> spreadCells)
@@ -148,11 +137,6 @@ public class TimeZoneGoal extends Goal
 	{
 		TemporalAccessor begin = formatter.parse(timeString);
 		return begin.get(ChronoField.MINUTE_OF_DAY) / 15;
-	}
-
-	public List<Integer> getSpreadCells()
-	{
-		return getSpreadCellsIntStream().boxed().collect(Collectors.toList());
 	}
 
 	public static String listToString(List<String> entityValue)

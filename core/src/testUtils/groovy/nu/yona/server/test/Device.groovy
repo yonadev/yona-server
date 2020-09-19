@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -77,5 +77,10 @@ class VPNProfile
 		this.vpnLoginId = json.vpnLoginID
 		this.vpnPassword = json.vpnPassword
 		this.ovpnProfileUrl = json._links."yona:ovpnProfile".href
+	}
+
+	String toString()
+	{
+		"VPN profile(login ID: ${vpnLoginId}, password: ${vpnPassword}, url: ${ovpnProfileUrl})"
 	}
 }
