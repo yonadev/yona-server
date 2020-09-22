@@ -92,6 +92,11 @@ public class Buddy extends PrivateUserProperties
 		return new Buddy(UUID.randomUUID(), buddyUserId, firstName, lastName, nickname, userPhotoId, buddyAnonymized.getId());
 	}
 
+	public UUID getOwningUserPrivateId()
+	{
+		return owningUserPrivateId;
+	}
+
 	public UUID getBuddyAnonymizedId()
 	{
 		return buddyAnonymizedId;
@@ -110,10 +115,10 @@ public class Buddy extends PrivateUserProperties
 
 	public User getUser()
 	{
-		return getUserIfExists().orElseThrow(() -> UserServiceException.notFoundById(userId));
+		return getUserIfExisting().orElseThrow(() -> UserServiceException.notFoundById(userId));
 	}
 
-	public Optional<User> getUserIfExists()
+	public Optional<User> getUserIfExisting()
 	{
 		return User.getRepository().findById(userId);
 	}

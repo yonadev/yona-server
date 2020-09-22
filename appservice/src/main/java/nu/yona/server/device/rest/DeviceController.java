@@ -76,8 +76,8 @@ import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.rest.RestConstants;
 import nu.yona.server.rest.ControllerBase;
+import nu.yona.server.rest.RestConstants;
 import nu.yona.server.rest.RestUtil;
 import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.AppleMobileConfigSigner;
@@ -159,7 +159,7 @@ public class DeviceController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return createOkResponse(deviceService.getDevice(deviceId),
+			return createOkResponse(deviceService.getDevice(userId, deviceId),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
 		}
 	}
@@ -237,7 +237,7 @@ public class DeviceController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(getDeviceSpecificAppleMobileConfig(deviceService.getDevice(deviceId)), headers,
+			return new ResponseEntity<>(getDeviceSpecificAppleMobileConfig(deviceService.getDevice(userId, deviceId)), headers,
 					HttpStatus.OK);
 		}
 	}

@@ -163,7 +163,8 @@ public class UserLookupService
 
 	public UserDto createUserDto(User user)
 	{
-		return UserDto.createInstance(user, buddyService.getBuddyDtos(user.getBuddies()));
+		return UserDto.createInstance(user, userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId()),
+				buddyService.getBuddyDtos(user.getBuddies()));
 	}
 
 	/**

@@ -13,9 +13,11 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import nu.yona.server.device.service.BuddyDeviceDto;
+import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.User;
 
 public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
@@ -35,15 +37,25 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		this.isFetchable = true;
 	}
 
-	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity)
+	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity, BuddyAnonymizedDto buddyAnonymizedDto,
+			UserAnonymizedDto buddyUserAnonymizedDto)
+	{
+		return createInstance(buddyEntity, buddyAnonymizedDto, Optional.of(buddyUserAnonymizedDto));
+	}
+
+	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity, BuddyAnonymizedDto buddyAnonymizedDto,
+			Optional<UserAnonymizedDto> buddyUserAnonymizedDtoOptional)
 	{
 		Objects.requireNonNull(buddyEntity, "buddyEntity cannot be null");
 
-		if (canIncludePrivateData(buddyEntity))
+		if (canIncludePrivateData(buddyAnonymizedDto))
 		{
-			Set<GoalDto> goals = UserAnonymizedDto
-					.getGoalsIncludingHistoryItems(buddyEntity.getBuddyAnonymized().getUserAnonymized());
-			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream().map(BuddyDeviceDto::createInstance)
+			UserAnonymizedDto buddyUserAnonymizedDto = buddyUserAnonymizedDtoOptional.orElseThrow(
+					() -> new IllegalStateException("Should have user anonymized when buddy relationship is established"));
+			Set<GoalDto> goals = buddyUserAnonymizedDto.getGoals();
+			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream()
+					.map(bd -> BuddyDeviceDto.createInstance(bd,
+							getDeviceAnonymizedIfExisting(buddyUserAnonymizedDto, bd.getDeviceAnonymizedId())))
 					.collect(Collectors.toSet());
 			Optional<User> user = Optional.ofNullable(buddyEntity.getUser());
 			String firstName = buddyEntity.determineFirstName(user);
@@ -54,6 +66,13 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		// Pass true for isFetchable. When there is a buddy entity, the related user entity is always fetchable
 		return new BuddyUserPrivateDataDto(buddyEntity.getFirstName(), buddyEntity.getLastName(), buddyEntity.getNickname(),
 				buddyEntity.getUserPhotoId(), true);
+	}
+
+	private static Optional<DeviceAnonymizedDto> getDeviceAnonymizedIfExisting(UserAnonymizedDto buddyUserAnonymizedDto,
+			UUID deviceAnonymizedId)
+	{
+		// We cannot use UserAnonymizedDto.getDeviceAnonymized here because the device anonymized isn't always available
+		return buddyUserAnonymizedDto.getDeviceAnonymizedIfExisting(deviceAnonymizedId);
 	}
 
 	public static BuddyUserPrivateDataDto createInstance(String firstName, String lastName, String nickname,
@@ -69,8 +88,9 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		return isFetchable;
 	}
 
-	public static boolean canIncludePrivateData(Buddy buddyEntity)
+	public static boolean canIncludePrivateData(BuddyAnonymizedDto buddyAnonymizedDto)
 	{
-		return buddyEntity.isAccepted();
+		return (buddyAnonymizedDto.getReceivingStatus() == Status.ACCEPTED)
+				|| (buddyAnonymizedDto.getSendingStatus() == Status.ACCEPTED);
 	}
 }

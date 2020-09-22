@@ -18,10 +18,11 @@ import nu.yona.server.Constants;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.IBudgetGoal;
 import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("budgetGoal")
-public class BudgetGoalDto extends GoalDto
+public class BudgetGoalDto extends GoalDto implements IBudgetGoal
 {
 	private static final long serialVersionUID = -5887972069171102985L;
 
@@ -80,7 +81,7 @@ public class BudgetGoalDto extends GoalDto
 	public static BudgetGoalDto createInstance(BudgetGoal entity)
 	{
 		return new BudgetGoalDto(entity.getId(), entity.getActivityCategory().getId(), entity.getMaxDurationMinutes(),
-				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.isMandatory());
+				entity.getCreationTime(), entity.getEndTime(), entity.isMandatory());
 	}
 
 	@Override
