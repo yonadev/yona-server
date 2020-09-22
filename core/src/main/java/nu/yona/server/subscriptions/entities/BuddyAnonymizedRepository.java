@@ -6,9 +6,12 @@ package nu.yona.server.subscriptions.entities;
 
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 public interface BuddyAnonymizedRepository extends CrudRepository<BuddyAnonymized, UUID>
 {
-	boolean existsByOwningUserAnonymizedIdAndUserAnonymizedId(UUID owningUserAnonymized, UUID userAnonymizedId);
+	@Query("select count(b) > 0 from BuddyAnonymized b where b.owningUserAnonymized.id = :owningUserAnonymizedId and (userAnonymizedId = :userAnonymizedId or receiving_status = 1)")
+	boolean existsPendingOrEstablishedBuddyRelationship(@Param("owningUserAnonymizedId") UUID owningUserAnonymizedId, @Param("userAnonymizedId") UUID userAnonymizedId);
 }

@@ -15,7 +15,7 @@ public class BuddyAnonymizedRepositoryMock extends MockJpaRepositoryEntityWithUu
 		implements BuddyAnonymizedRepository
 {
 	@Override
-	public boolean existsByOwningUserAnonymizedIdAndUserAnonymizedId(UUID owningUserAnonymized, UUID userAnonymizedId)
+	public boolean existsPendingOrEstablishedBuddyRelationship(UUID owningUserAnonymized, UUID userAnonymizedId)
 	{
 		throw new NotImplementedException();
 	}
