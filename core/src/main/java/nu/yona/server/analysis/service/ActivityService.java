@@ -165,7 +165,7 @@ public class ActivityService
 				weekActivityEntitiesByLocalDate);
 		Map<ZonedDateTime, Set<WeekActivityDto>> weekActivityDtosByZonedDate = mapWeekActivitiesToDtos(earliestPossibleDate,
 				weekActivityEntitiesByZonedDate, userAnonymized);
-		addMissingInactivity(userAnonymized.getGoals(), weekActivityDtosByZonedDate, interval, ChronoUnit.WEEKS, userAnonymized,
+		addMissingInactivity(userAnonymized.getGoalsIncludingHistoryItems(), weekActivityDtosByZonedDate, interval, ChronoUnit.WEEKS, userAnonymized,
 				(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, earliestPossibleDate, goal, startOfWeek,
 						LevelOfDetail.WEEK_OVERVIEW, missingInactivities),
 				Optional.of((g, wa) -> createAndSaveInactivityDays(userAnonymized, earliestPossibleDate,
@@ -352,7 +352,7 @@ public class ActivityService
 			LocalDate earliestPossibleDate, Set<UUID> relevantActivityCategoryIds, Interval interval,
 			Set<IntervalInactivityDto> mia)
 	{
-		Set<GoalDto> relevantGoals = userAnonymizedDto.getGoals().stream()
+		Set<GoalDto> relevantGoals = userAnonymizedDto.getGoalsIncludingHistoryItems().stream()
 				.filter(g -> relevantActivityCategoryIds.contains(g.getActivityCategoryId())).collect(Collectors.toSet());
 		return getDayActivities(userAnonymizedDto, earliestPossibleDate, relevantGoals, interval, mia);
 	}
@@ -414,7 +414,7 @@ public class ActivityService
 	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivities(UserAnonymizedDto userAnonymized,
 			LocalDate earliestPossibleDate, Interval interval, Set<IntervalInactivityDto> missingInactivities)
 	{
-		return getDayActivities(userAnonymized, earliestPossibleDate, userAnonymized.getGoals(), interval, missingInactivities);
+		return getDayActivities(userAnonymized, earliestPossibleDate, userAnonymized.getGoalsIncludingHistoryItems(), interval, missingInactivities);
 	}
 
 	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivities(UserAnonymizedDto userAnonymized,

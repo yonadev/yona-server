@@ -62,9 +62,9 @@ public class GoalIdMapping
 
 	public static GoalIdMapping createInstance(User user)
 	{
-		Set<UUID> userGoalIds = user.getGoals().stream().map(Goal::getId).collect(Collectors.toSet());
+		Set<UUID> userGoalIds = user.getGoalsIncludingHistoryItems().stream().map(Goal::getId).collect(Collectors.toSet());
 		Map<UUID, UUID> goalIdToBuddyIdmapping = new HashMap<>();
-		user.getBuddies().stream().filter(Buddy::isAccepted).forEach(b -> b.getBuddyAnonymized().getUserAnonymized().getGoals()
+		user.getBuddies().stream().filter(Buddy::isAccepted).forEach(b -> b.getBuddyAnonymized().getUserAnonymized().getGoalsIncludingHistoryItems()
 				.forEach(g -> goalIdToBuddyIdmapping.put(g.getId(), b.getId())));
 		Map<UUID, UUID> buddyIdToUserIdmapping = new HashMap<>();
 		user.getBuddies().forEach(b -> buddyIdToUserIdmapping.put(b.getId(), b.getUser().getId()));

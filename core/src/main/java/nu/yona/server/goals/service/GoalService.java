@@ -71,7 +71,7 @@ public class GoalService
 
 	public GoalDto getGoalForUserAnonymizedId(UUID userAnonymizedId, UUID goalId)
 	{
-		return userAnonymizedService.getUserAnonymized(userAnonymizedId).getGoals().stream()
+		return userAnonymizedService.getUserAnonymized(userAnonymizedId).getGoalsIncludingHistoryItems().stream()
 				.filter(g -> g.getGoalId().equals(goalId)).findFirst()
 				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymizedId, goalId));
 	}
@@ -101,7 +101,7 @@ public class GoalService
 	public GoalDto addGoal(UUID userId, GoalDto goal, Optional<String> message)
 	{
 		assertIsValidNewGoal(goal);
-		User userEntity = userService.getUserEntityById(userId);
+		User userEntity = userService.lockUserForUpdate(userId);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Optional<Goal> conflictingExistingGoal = userAnonymizedEntity.getGoals().stream()
 				.filter(existingGoal -> existingGoal.getActivityCategory().getId().equals(goal.getActivityCategoryId()))
@@ -131,7 +131,7 @@ public class GoalService
 	@Transactional
 	public GoalDto updateGoal(UUID userId, UUID goalId, GoalDto newGoalDto, Optional<String> message)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		User userEntity = userService.lockUserForUpdate(userId);
 		Goal existingGoal = getGoalEntity(userEntity, goalId);
 
 		assertValidGoalUpdate(existingGoal, newGoalDto);
@@ -240,7 +240,7 @@ public class GoalService
 	@Transactional
 	public void deleteGoalAndInformBuddies(UUID userId, UUID goalId, Optional<String> message)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		User userEntity = userService.lockUserForUpdate(userId);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Goal goalEntity = userAnonymizedEntity.getGoals().stream().filter(goal -> goal.getId().equals(goalId)).findFirst()
 				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUser(userId, goalId));
