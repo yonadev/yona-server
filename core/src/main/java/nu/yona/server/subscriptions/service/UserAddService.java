@@ -231,7 +231,7 @@ public class UserAddService
 	private void deleteExistingUserToOverwriteIt(String mobileNumber, String userProvidedConfirmationCode)
 	{
 		User existingUserEntity = userLookupService
-				.lockUserForUpdate(userLookupService.findUserByMobileNumber(mobileNumber).getId());
+				.lockUserForUpdate(UserLookupService.findUserByMobileNumber(mobileNumber).getId());
 		ConfirmationCode confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
 
 		assertValidConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,

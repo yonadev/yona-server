@@ -213,7 +213,7 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier)
 	{
-		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getUserEntityById(userId));
+		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userAnonymizedService, userService.getUserEntityById(userId));
 
 		return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
 				createResourceAssembler(userId, requestingDeviceId, goalIdMapping));
@@ -264,7 +264,7 @@ public class UserActivityController extends ActivityControllerBase
 			Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier)
 	{
 		LocalDate date = DayActivityDto.parseDate(dateStr);
-		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getUserEntityById(userId));
+		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userAnonymizedService, userService.getUserEntityById(userId));
 		return createOkResponse(activitySupplier.apply(date), createResourceAssembler(userId, requestingDeviceId, goalIdMapping));
 	}
 

@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -61,6 +62,9 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	@Autowired
 	protected UserService userService;
+
+	@Autowired
+	protected UserAnonymizedService userAnonymizedService;
 
 	@Autowired
 	private MessageController messageController;
@@ -182,7 +186,7 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	protected GoalIdMapping createGoalIdMapping(UUID userId)
 	{
-		return GoalIdMapping.createInstance(userService.getUserEntityById(userId));
+		return GoalIdMapping.createInstance(userAnonymizedService, userService.getUserEntityById(userId));
 	}
 
 	public abstract void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDto message);

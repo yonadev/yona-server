@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +73,9 @@ public class MessageController extends ControllerBase
 	private UserService userService;
 
 	@Autowired
+	private UserAnonymizedService userAnonymizedService;
+
+	@Autowired
 	private CurieProvider curieProvider;
 
 	@Autowired
@@ -121,7 +125,7 @@ public class MessageController extends ControllerBase
 
 	private GoalIdMapping createGoalIdMapping(User user)
 	{
-		return GoalIdMapping.createInstance(user);
+		return GoalIdMapping.createInstance(userAnonymizedService, user);
 	}
 
 	public HttpEntity<MessageDto> createOkResponse(User user, MessageDto message)

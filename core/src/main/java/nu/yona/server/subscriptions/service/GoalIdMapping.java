@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -60,12 +61,12 @@ public class GoalIdMapping
 		return uuid;
 	}
 
-	public static GoalIdMapping createInstance(User user)
+	public static GoalIdMapping createInstance(UserAnonymizedService userAnonymizedService, User user)
 	{
-		Set<UUID> userGoalIds = user.getGoalsIncludingHistoryItems().stream().map(Goal::getId).collect(Collectors.toSet());
+		Set<UUID> userGoalIds = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId()).getGoalsIncludingHistoryItems().stream().map(GoalDto::getGoalId).collect(Collectors.toSet());
 		Map<UUID, UUID> goalIdToBuddyIdmapping = new HashMap<>();
-		user.getBuddies().stream().filter(Buddy::isAccepted).forEach(b -> b.getBuddyAnonymized().getUserAnonymized().getGoalsIncludingHistoryItems()
-				.forEach(g -> goalIdToBuddyIdmapping.put(g.getId(), b.getId())));
+		user.getBuddies().stream().filter(Buddy::isAccepted).forEach(b -> userAnonymizedService.getUserAnonymized(b.getUserAnonymizedId().get()).getGoalsIncludingHistoryItems()
+				.forEach(g -> goalIdToBuddyIdmapping.put(g.getGoalId(), b.getId())));
 		Map<UUID, UUID> buddyIdToUserIdmapping = new HashMap<>();
 		user.getBuddies().forEach(b -> buddyIdToUserIdmapping.put(b.getId(), b.getUser().getId()));
 		return new GoalIdMapping(user.getId(), userGoalIds, goalIdToBuddyIdmapping, buddyIdToUserIdmapping);
