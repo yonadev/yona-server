@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
@@ -18,10 +18,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.Constants;
-import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.VPNProfileDto;
 import nu.yona.server.util.TimeUtil;
 
@@ -116,14 +116,15 @@ public class UserDeviceDto extends DeviceBaseDto
 		return deviceAnonymizedId;
 	}
 
-	public static UserDeviceDto createInstance(UserDevice deviceEntity)
+	public static UserDeviceDto createInstance(UserAnonymizedDto userAnonymizedDto, UserDevice deviceEntity,
+			DeviceAnonymizedDto deviceAnonymizedDto)
 	{
-		DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
-		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(), deviceAnonymized.getOperatingSystem(),
-				deviceAnonymized.getAppVersion(), deviceAnonymized.getAppVersionCode(), deviceAnonymized.getFirebaseInstanceId(),
-				deviceEntity.isVpnConnected(), deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(),
-				deviceAnonymized.getLastMonitoredActivityDate(), deviceEntity.getDeviceAnonymizedId(),
-				VPNProfileDto.createInstance(deviceEntity));
+		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(), deviceAnonymizedDto.getOperatingSystem(),
+				deviceAnonymizedDto.getAppVersion(), deviceAnonymizedDto.getAppVersionCode(),
+				deviceAnonymizedDto.getFirebaseInstanceId(), deviceAnonymizedDto.isVpnConnected(),
+				deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(),
+				deviceAnonymizedDto.getLastMonitoredActivityDate(), deviceEntity.getDeviceAnonymizedId(),
+				VPNProfileDto.createInstance(deviceEntity, userAnonymizedDto));
 	}
 
 	public static UserDeviceDto createDeviceRegistrationInstance(DeviceRegistrationRequestDto deviceRegistration)

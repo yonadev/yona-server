@@ -25,6 +25,7 @@ import nu.yona.server.Constants;
 import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.IGoal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.rest.PolymorphicDto;
 import nu.yona.server.util.TimeUtil;
@@ -37,7 +38,7 @@ import nu.yona.server.util.TimeUtil;
 @JsonRootName("goal")
 @JsonSubTypes({ @Type(value = BudgetGoalDto.class, name = "BudgetGoal"),
 		@Type(value = TimeZoneGoalDto.class, name = "TimeZoneGoal") })
-public abstract class GoalDto extends PolymorphicDto implements Serializable
+public abstract class GoalDto extends PolymorphicDto implements IGoal, Serializable
 {
 	private static final long serialVersionUID = 2825849099414812967L;
 
@@ -114,18 +115,33 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 		return Optional.ofNullable(creationTime);
 	}
 
+	@Override
+	@JsonIgnore
+	public LocalDateTime getCreationTimeNonOptional()
+	{
+		return creationTime;
+	}
+
+	@Override
+	@JsonIgnore
+	public Optional<LocalDateTime> getEndTime()
+	{
+		return Optional.ofNullable(endTime);
+	}
+
 	public boolean isHistoryItem()
 	{
 		return endTime != null;
 	}
 
+	@Override
 	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
 	{
 		if (creationTime == null)
 		{
 			return false;
 		}
-		return Goal.wasActiveAtInterval(creationTime, Optional.ofNullable(endTime), dateAtStartOfInterval, timeUnit);
+		return IGoal.super.wasActiveAtInterval(dateAtStartOfInterval, timeUnit);
 	}
 
 	@JsonIgnore

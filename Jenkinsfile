@@ -8,7 +8,7 @@ pipeline {
 			agent { label 'yona' }
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
-				GIT = credentials('github-yonabuild')
+				GITHUB_APP = credentials('github-app')
 				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
 			}
 			steps {
@@ -21,10 +21,10 @@ pipeline {
 					}
 				}
 				dir ('k8s/helm') {
-					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GIT_USR $GIT_PSW /opt/ope-cloudbees/yona/k8s/helm helm-charts'
+					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GITHUB_APP_PSW /opt/ope-cloudbees/yona/k8s/helm helm-charts'
 				}
 				sh 'git tag -a build-$BUILD_NUMBER -m "Jenkins"'
-				sh 'git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags'
+				sh 'git push https://$x-access-token:${GITHUB_APP_PSW}@github.com/yonadev/yona-server.git --tags'
 				script {
 					env.BUILD_NUMBER_TO_DEPLOY = env.BUILD_NUMBER
 				}
@@ -61,7 +61,7 @@ pipeline {
 			}
 			steps {
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
-				sh script: 'helm delete --purge yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
+				sh script: 'helm uninstall yona --namespace yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh script: 'echo Waiting for purge to complete; sleep 30'
 				sh 'helm repo update'
 				helmUpgradeOrInstall(4, "infrastructure/helm/values.yaml", "yona")
@@ -110,7 +110,7 @@ pipeline {
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(2, "/helm/values.yaml", "yona")
+				helmUpgradeOrInstall(2, "helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -139,7 +139,7 @@ pipeline {
 			steps {
 				sh 'mysql -h $BETA_DB_IP -u $BETA_DB_USR -p$BETA_DB_PSW -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"'
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(2, "/helm/values_loadtest.yaml", "loadtest")
+				helmUpgradeOrInstall(2, "helm/values_loadtest.yaml", "loadtest")
 				sh 'NAMESPACE=loadtest scripts/wait-for-services.sh k8snew'
 			}
 			post {
@@ -212,7 +212,7 @@ pipeline {
 			}
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
-				helmUpgradeOrInstall(1, "/helm/values.yaml", "yona")
+				helmUpgradeOrInstall(1, "helm/values.yaml", "yona")
 				sh 'scripts/wait-for-services.sh k8snew'
 			}
 			post {

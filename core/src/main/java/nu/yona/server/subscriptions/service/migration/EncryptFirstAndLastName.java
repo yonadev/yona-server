@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2018, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service.migration;
 
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 
 @Component
@@ -22,10 +23,14 @@ public class EncryptFirstAndLastName implements MigrationStep
 	@Autowired
 	private BuddyService buddyService;
 
+	@Autowired(required = false)
+	private UserAnonymizedService userAnonymizedService;
+
 	@Override
 	public void upgrade(User user)
 	{
-		UserDto originalUser = UserDto.createInstance(user, Collections.emptySet());
+		UserDto originalUser = UserDto.createInstance(user, userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId()),
+				Collections.emptySet());
 		user.moveFirstAndLastNameToPrivate();
 		buddyService.broadcastUserInfoChangeToBuddies(user, originalUser);
 	}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -32,6 +32,7 @@ import org.hibernate.annotations.BatchSize;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.IGoal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.util.TimeUtil;
 
@@ -198,8 +199,9 @@ public class DayActivity extends IntervalActivity
 	public void computeAggregates()
 	{
 		nonoverlappingActivityIntervals = null; // Ensure blank slate
-		totalMinutesBeyondGoal = computeTotalMinutesBeyondGoal();
-		goalAccomplished = computeGoalAccomplished();
+		Goal goal = getGoal();
+		totalMinutesBeyondGoal = computeTotalMinutesBeyondGoal(goal);
+		goalAccomplished = computeGoalAccomplished(goal);
 
 		super.computeAggregates();
 		nonoverlappingActivityIntervals = null; // Free up memory
@@ -243,34 +245,34 @@ public class DayActivity extends IntervalActivity
 		return getNonoverlappingActivityIntervals().stream().map(ActivityInterval::getDurationMinutes).reduce(0, Integer::sum);
 	}
 
-	public int getTotalMinutesBeyondGoal()
+	public int getTotalMinutesBeyondGoal(IGoal goal)
 	{
 		if (areAggregatesComputed())
 		{
 			return totalMinutesBeyondGoal;
 		}
 
-		return computeTotalMinutesBeyondGoal();
+		return computeTotalMinutesBeyondGoal(goal);
 	}
 
-	private int computeTotalMinutesBeyondGoal()
+	private int computeTotalMinutesBeyondGoal(IGoal goal)
 	{
-		return this.getGoal().computeTotalMinutesBeyondGoal(this);
+		return goal.computeTotalMinutesBeyondGoal(this);
 	}
 
-	public boolean isGoalAccomplished()
+	public boolean isGoalAccomplished(IGoal goal)
 	{
 		if (areAggregatesComputed())
 		{
 			return goalAccomplished;
 		}
 
-		return computeGoalAccomplished();
+		return computeGoalAccomplished(goal);
 	}
 
-	private boolean computeGoalAccomplished()
+	private boolean computeGoalAccomplished(IGoal goal)
 	{
-		return this.getGoal().isGoalAccomplished(this);
+		return goal.isGoalAccomplished(this);
 	}
 
 	private static class ActivityInterval

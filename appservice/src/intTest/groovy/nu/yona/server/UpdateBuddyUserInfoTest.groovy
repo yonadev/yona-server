@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -101,24 +101,23 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 
+		def buddyInfoUpdateMessages = response.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "BuddyInfoChangeMessage" }
+		buddyInfoUpdateMessages.size() == 1
+		buddyInfoUpdateMessages[0].nickname == updatedBobJson.nickname
+
+		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "BuddyConnectResponseMessage" }
+		buddyConnectResponseMessages.size() == 1
+		buddyConnectResponseMessages[0].nickname == updatedBobJson.nickname
+		buddyConnectResponseMessages[0].status == "ACCEPTED"
+
 		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == updatedBobJson.firstName
 		richardWithBuddy.buddies[0].user.nickname == updatedBobJson.nickname
-
-		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
-		{ it."@type" == "BuddyConnectResponseMessage" }
-		buddyConnectResponseMessages.size() == 1
-		buddyConnectResponseMessages[0].nickname == updatedBobJson.nickname
-		buddyConnectResponseMessages[0].status == "ACCEPTED"
-
-
-		def buddyInfoUpdateMessages = response.responseData._embedded."yona:messages".findAll
-		{ it."@type" == "BuddyInfoChangeMessage" }
-		buddyInfoUpdateMessages.size() == 1
-		buddyInfoUpdateMessages[0].nickname == updatedBobJson.nickname
-		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richardWithBuddy.buddies[0].url
+		richardWithBuddy.buddies[0].url == buddyInfoUpdateMessages[0]._links."yona:buddy".href
 
 		cleanup:
 		appService.deleteUser(richard)

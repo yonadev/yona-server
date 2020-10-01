@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -15,10 +15,14 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import nu.yona.server.device.service.DeviceAnonymizedDto;
+import nu.yona.server.device.service.DeviceServiceException;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
+import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.service.MessageDestinationDto;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class UserAnonymizedDto implements Serializable
@@ -93,10 +97,16 @@ public class UserAnonymizedDto implements Serializable
 		return Collections.unmodifiableSet(buddiesAnonymized);
 	}
 
-	public Optional<BuddyAnonymizedDto> getBuddyAnonymized(UUID fromUserAnonymizedId)
+	public Optional<BuddyAnonymizedDto> getBuddyAnonymizedByUserAnonymizedIdIfExisting(UUID fromUserAnonymizedId)
 	{
 		return buddiesAnonymized.stream().filter(ba -> ba.getUserAnonymizedId().equals(Optional.of(fromUserAnonymizedId)))
 				.findFirst();
+	}
+
+	public BuddyAnonymizedDto getBuddyAnonymized(UUID buddyAnonymizedId)
+	{
+		return buddiesAnonymized.stream().filter(da -> da.getId().equals(buddyAnonymizedId)).findFirst()
+				.orElseThrow(() -> InvalidDataException.missingEntity(BuddyAnonymized.class, buddyAnonymizedId));
 	}
 
 	public boolean hasAnyBuddies()
@@ -131,5 +141,22 @@ public class UserAnonymizedDto implements Serializable
 			}
 		});
 		return historyItems;
+	}
+
+	public DeviceAnonymizedDto getDeviceAnonymized(UUID deviceAnonymizedId)
+	{
+		return getDeviceAnonymizedIfExisting(deviceAnonymizedId)
+				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(id, deviceAnonymizedId));
+	}
+
+	public Optional<DeviceAnonymizedDto> getDeviceAnonymizedIfExisting(UUID deviceAnonymizedId)
+	{
+		return devicesAnonymized.stream().filter(da -> da.getId().equals(deviceAnonymizedId)).findAny();
+	}
+
+	public GoalDto getGoal(UUID goalId)
+	{
+		return goals.stream().filter(g -> g.getGoalId().equals(goalId)).findFirst()
+				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(id, goalId));
 	}
 }
