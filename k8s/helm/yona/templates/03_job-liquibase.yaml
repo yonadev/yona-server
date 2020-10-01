@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-liquibase-update
+  name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-liquibase-update
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"

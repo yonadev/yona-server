@@ -84,7 +84,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-springboot
+            name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-springboot
         - name: firebase-resources
           secret:
-            secretName: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle
+            secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle
