@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service.migration;
@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
@@ -50,6 +53,7 @@ import nu.yona.server.device.entities.UserDeviceRepository;
 import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
+import nu.yona.server.entities.GoalRepositoryMock;
 import nu.yona.server.entities.MessageSourceRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
@@ -62,6 +66,7 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 import nu.yona.server.subscriptions.service.LDAPUserService;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -95,6 +100,12 @@ class AddFirstDeviceIntegrationTestConfiguration extends UserRepositoriesConfigu
 	}
 
 	@Bean
+	GoalRepository getMockGoalRepository()
+	{
+		return new GoalRepositoryMock();
+	}
+
+	@Bean
 	DeviceAnonymizedRepository getDeviceAnonymizedRepository()
 	{
 		return new DeviceAnonymizedRepositoryMock();
@@ -124,6 +135,9 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	private BuddyAnonymizedRepository buddyAnonymizedRepository;
 
 	@Autowired
+	private UserAnonymizedRepository userAnonymizedRepository;
+
+	@Autowired
 	private MigrationStep migrationStep;
 
 	@MockBean
@@ -138,8 +152,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	@MockBean
 	private LDAPUserService mockLdapUserService;
 
-	@MockBean
-	private GoalRepository mockGoalRepository;
+	@Autowired
+	private GoalRepository goalRepository;
 
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
@@ -160,7 +174,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	protected Map<Class<?>, Repository<?, ?>> getRepositories()
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
-		repositoriesMap.put(Goal.class, mockGoalRepository);
+		repositoriesMap.put(Goal.class, goalRepository);
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);
 		repositoriesMap.put(MessageSource.class, new MessageSourceRepositoryMock());
@@ -209,6 +223,17 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	@Test
 	public void upgrade_addFirstDevice_userHasDevice()
 	{
+		UserAnonymizedDto userAnonDto = UserAnonymizedDto.createInstance(richard.getAnonymized());
+		when(mockUserAnonymizedService.getUserAnonymized(richard.getUserAnonymizedId())).thenReturn(userAnonDto);
+		when(mockUserAnonymizedService.updateUserAnonymized(richard.getUserAnonymizedId()))
+				.thenAnswer(new Answer<UserAnonymizedDto>() {
+					@Override
+					public UserAnonymizedDto answer(InvocationOnMock invocation)
+					{
+						Object[] args = invocation.getArguments();
+						return UserAnonymizedDto.createInstance(userAnonymizedRepository.findById((UUID) args[0]).get());
+					}
+				});
 		// Verify Richard doesn't have any devices
 		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(0));

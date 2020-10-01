@@ -176,7 +176,7 @@ public class UserPrivate extends PrivateUserProperties
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
 		loadAllBuddyUsersAtOnce();
-		return buddies.stream().filter(b -> !b.getUserIfExists().isPresent()).collect(Collectors.toSet());
+		return buddies.stream().filter(b -> !b.getUserIfExisting().isPresent()).collect(Collectors.toSet());
 	}
 
 	private void loadAllBuddyUsersAtOnce()
