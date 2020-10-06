@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -22,7 +22,7 @@ import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
-import nu.yona.server.subscriptions.service.UserDto;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("disclosureResponseMessage")
 public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
@@ -92,14 +92,14 @@ public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
 			return DisclosureResponseMessageDto.createInstance((DisclosureResponseMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
-		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
+		public MessageActionDto handleAction(User actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
 			switch (action)

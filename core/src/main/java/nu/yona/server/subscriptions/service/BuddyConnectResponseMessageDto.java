@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -109,14 +109,14 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
 			return BuddyConnectResponseMessageDto.createInstance((BuddyConnectResponseMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
-		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
+		public MessageActionDto handleAction(User actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
 			actingUser.assertMobileNumberConfirmed();
@@ -137,7 +137,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 					(BuddyConnectionChangeMessage) messageEntity);
 		}
 
-		MessageActionDto handleAction_Process(UserDto actingUser, BuddyConnectResponseMessage connectResponseMessageEntity,
+		MessageActionDto handleAction_Process(User actingUser, BuddyConnectResponseMessage connectResponseMessageEntity,
 				MessageActionDto payload)
 		{
 
@@ -149,8 +149,6 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 			{
 				buddyService.setBuddyAcceptedWithSecretUserInfo(actingUser, connectResponseMessageEntity);
 			}
-			// refresh after actions
-			actingUser = userService.getUser(actingUser.getId());
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
@@ -160,7 +158,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectResponseMessageEntity));
 		}
 
-		private void logHandledAction_Process(UserDto actingUser, BuddyConnectResponseMessage connectResponseMessageEntity)
+		private void logHandledAction_Process(User actingUser, BuddyConnectResponseMessage connectResponseMessageEntity)
 		{
 			Optional<User> senderUser = connectResponseMessageEntity.getSenderUser();
 			String mobileNumber = senderUser.map(User::getMobileNumber).orElse("already deleted");

@@ -169,7 +169,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return messageController.createOkResponse(userService.getUser(userId), activityService
+			return messageController.createOkResponse(userService.getUserEntityById(userId), activityService
 					.addMessageToWeekActivity(userId, buddyId, WeekActivityDto.parseDate(dateStr), goalId, newMessage));
 		}
 	}
@@ -221,7 +221,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return messageController.createOkResponse(userService.getUser(userId), activityService
+			return messageController.createOkResponse(userService.getUserEntityById(userId), activityService
 					.addMessageToDayActivity(userId, buddyId, DayActivityDto.parseDate(dateStr), goalId, newMessage));
 		}
 	}
@@ -259,8 +259,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		return linkTo(methodOn.getBuddyDayActivityOverview(null, userId, buddyId, dateStr));
 	}
 
-	public static WebMvcLinkBuilder getBuddyDayActivityDetailLinkBuilder(UUID userId, UUID buddyId, String dateStr,
-			UUID goalId)
+	public static WebMvcLinkBuilder getBuddyDayActivityDetailLinkBuilder(UUID userId, UUID buddyId, String dateStr, UUID goalId)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 		return linkTo(methodOn.getBuddyDayActivityDetail(null, userId, buddyId, dateStr, goalId));

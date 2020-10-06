@@ -87,7 +87,7 @@ public class GoalController extends ControllerBase
 
 	private Set<GoalDto> getGoalsOfBuddyUser(UUID requestingUserId, UUID userId)
 	{
-		return buddyService.getUserOfBuddy(requestingUserId, userId).getPrivateData().getGoals()
+		return buddyService.getUserOfBuddy(requestingUserId, userId).getPrivateData().getGoalsIncludingHistoryItems()
 				.orElseThrow(() -> new IllegalStateException("Goals of user " + userId + " are not available"));
 	}
 
