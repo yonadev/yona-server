@@ -20,17 +20,17 @@ public abstract class UserPrivateDataBaseDto
 	private final String lastName;
 	private final String nickname;
 	private final Optional<UUID> userPhotoId;
-	private final Optional<Set<GoalDto>> goals;
+	private final Optional<Set<GoalDto>> goalsIncludingHistoryItems;
 	private final Optional<Set<DeviceBaseDto>> devices;
 
 	protected UserPrivateDataBaseDto(String firstName, String lastName, String nickname, Optional<UUID> userPhotoId,
-			Optional<Set<GoalDto>> goals, Optional<Set<DeviceBaseDto>> devices)
+			Optional<Set<GoalDto>> goalsIncludingHistoryItems, Optional<Set<DeviceBaseDto>> devices)
 	{
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.nickname = nickname;
 		this.userPhotoId = Objects.requireNonNull(userPhotoId);
-		this.goals = Objects.requireNonNull(goals);
+		this.goalsIncludingHistoryItems = Objects.requireNonNull(goalsIncludingHistoryItems);
 		this.devices = Objects.requireNonNull(devices);
 	}
 
@@ -50,9 +50,9 @@ public abstract class UserPrivateDataBaseDto
 	}
 
 	@JsonIgnore
-	public Optional<Set<GoalDto>> getGoals()
+	public Optional<Set<GoalDto>> getGoalsIncludingHistoryItems()
 	{
-		return goals;
+		return goalsIncludingHistoryItems;
 	}
 
 	@JsonIgnore

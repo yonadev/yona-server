@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -26,7 +26,7 @@ import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.messaging.service.SenderInfo;
-import nu.yona.server.subscriptions.service.UserDto;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("activityCommentMessage")
 public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
@@ -111,14 +111,14 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
 			return ActivityCommentMessageDto.createInstance((ActivityCommentMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
-		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
+		public MessageActionDto handleAction(User actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
 			switch (action)
@@ -130,7 +130,7 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 			}
 		}
 
-		private MessageActionDto handleAction_Reply(UserDto actingUser, ActivityCommentMessage messageEntity,
+		private MessageActionDto handleAction_Reply(User actingUser, ActivityCommentMessage messageEntity,
 				MessageActionDto requestPayload)
 		{
 			String message = requestPayload.getProperty(MESSAGE_PROPERTY);

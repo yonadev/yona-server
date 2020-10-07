@@ -21,6 +21,7 @@ import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserRepository;
+import nu.yona.server.util.HibernateHelperService;
 import nu.yona.server.util.Require;
 
 @Service
@@ -43,6 +44,9 @@ public class UserLookupService
 
 	@Autowired(required = false)
 	private UserAssertionService userAssertionService;
+
+	@Autowired(required = false)
+	private HibernateHelperService hibernateHelperService;
 
 	@Transactional
 	public boolean doPreparationsAndCheckCanAccessPrivateData(UUID id)
@@ -163,11 +167,32 @@ public class UserLookupService
 				buddyService.getBuddyDtos(user.getBuddies()));
 	}
 
+	/**
+	 * Locks the user entity with the given ID for update, thus preventing concurrent updates on that user. To prevent from using
+	 * stale data that was retrieved before any previous update completed, the Hibernate session is cleared. This operation fails
+	 * if the session is dirty. Callers should obtain the lock on the user entity prior to any checks or updates. Note that this
+	 * operation is idempotent: if the user was already locked during this session, that user will be returned. The session won't
+	 * be cleared.
+	 *
+	 * @param userId The ID of the user to lock
+	 * @return The locked user entity
+	 */
+	@Transactional
+	public User lockUserForUpdate(UUID userId)
+	{
+		return getUserEntityByIdWithUpdateLock(userId);
+	}
+
 	<T> T withLockOnUser(UUID userId, Function<User, T> action)
 	{
 		User user = getUserEntityByIdWithUpdateLock(userId);
 
 		return action.apply(user);
+	}
+
+	<T> Optional<T> withLockOnUserIfExisting(UUID userId, Function<User, T> action)
+	{
+		return getUserEntityByIdWithUpdateLockIfExisting(userId).map(action);
 	}
 
 	static User findUserByMobileNumber(String mobileNumber)
@@ -192,6 +217,11 @@ public class UserLookupService
 	@Transactional
 	public User getUserEntityById(UUID id)
 	{
+		return getUserEntityByIdIfExisting(id).orElseThrow(() -> UserServiceException.notFoundById(id));
+	}
+
+	public Optional<User> getUserEntityByIdIfExisting(UUID id)
+	{
 		return getUserEntityById(id, LockModeType.NONE);
 	}
 
@@ -205,27 +235,38 @@ public class UserLookupService
 	 */
 	private User getUserEntityByIdWithUpdateLock(UUID id)
 	{
+		return getUserEntityByIdWithUpdateLockIfExisting(id).orElseThrow(() -> UserServiceException.notFoundById(id));
+	}
+
+	/**
+	 * This method returns a user entity, if it exists. The passed on Id is checked whether or not it is set. A pessimistic
+	 * database write lock is claimed when fetching the entity.
+	 *
+	 * @param id the ID of the user
+	 * @return an {@code Optional} describing the user, or an empty {@code Optional} if a user with this ID cannot be found
+	 */
+	private Optional<User> getUserEntityByIdWithUpdateLockIfExisting(UUID id)
+	{
 		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
 	}
 
-	private User getUserEntityById(UUID id, LockModeType lockModeType)
+	private Optional<User> getUserEntityById(UUID id, LockModeType lockModeType)
 	{
 		Require.isNonNull(id, InvalidDataException::emptyUserId);
 
-		User entity;
+		Optional<User> entity;
 		switch (lockModeType)
 		{
 			case NONE:
-				entity = userRepository.findById(id).orElseThrow(() -> UserServiceException.notFoundById(id));
+				entity = userRepository.findById(id);
 				break;
 			case PESSIMISTIC_WRITE:
+				hibernateHelperService.clearSessionIfNotLockedYet(User.class, id);
 				entity = userRepository.findByIdForUpdate(id);
 				break;
 			default:
 				throw new IllegalArgumentException("Lock mode type " + lockModeType + " is unsupported");
 		}
-
-		Require.isNonNull(entity, () -> UserServiceException.notFoundById(id));
 
 		return entity;
 	}

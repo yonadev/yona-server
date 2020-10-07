@@ -409,7 +409,7 @@ public class AnalysisEngineService
 				&& payload.deviceAnonymized.getOperatingSystem() == OperatingSystem.ANDROID;
 		Set<UUID> matchingActivityCategoryIds = payload.activityCategories.stream().map(ActivityCategoryDto::getId)
 				.collect(Collectors.toSet());
-		Set<GoalDto> goalsOfUser = payload.userAnonymized.getGoals();
+		Set<GoalDto> goalsOfUser = payload.userAnonymized.getGoalsIncludingHistoryItems();
 		return goalsOfUser.stream().filter(g -> !g.isHistoryItem())
 				.filter(g -> matchingActivityCategoryIds.contains(g.getActivityCategoryId()))
 				.filter(g -> g.isNoGoGoal() || !onlyNoGoGoals)

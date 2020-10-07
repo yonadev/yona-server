@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.SystemMessage;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
-import nu.yona.server.subscriptions.service.UserDto;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("systemMessage")
 public class SystemMessageDto extends MessageDto
@@ -71,7 +71,7 @@ public class SystemMessageDto extends MessageDto
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
 			return SystemMessageDto.createInstance((SystemMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
