@@ -116,7 +116,7 @@ public class UserAddService
 	{
 		Require.that(user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1,
 				() -> YonaException.illegalState("Number of devices must be 1"));
-		UserAssertionService.assertValidUserFields(user, UserService.UserPurpose.USER);
+		userAssertionService.assertValidUserFields(user, UserService.UserPurpose.USER);
 		Require.that(user.getCreationTime().isEmpty() || yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set user creation time"));
 	}

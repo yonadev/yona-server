@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
@@ -44,6 +44,8 @@ public class YonaProperties
 	private final FirebaseProperties firebase = new FirebaseProperties();
 
 	private final Set<Locale> supportedLocales = new HashSet<>();
+
+	private Set<Integer> supportedCountryCodes = new HashSet<>();
 
 	private Locale defaultLocale;
 
@@ -122,6 +124,17 @@ public class YonaProperties
 		return Collections.unmodifiableSet(supportedLocales);
 	}
 
+	public void setSupportedCountryCodes(String supportedCountryCodes)
+	{
+		this.supportedCountryCodes.addAll(
+				Arrays.asList(supportedCountryCodes.split(",")).stream().map(Integer::parseInt).collect(Collectors.toSet()));
+	}
+
+	public Set<Integer> getSupportedCountryCodes()
+	{
+		return supportedCountryCodes;
+	}
+
 	public void setAppleAppId(String appleAppId)
 	{
 		this.appleAppId = appleAppId;
@@ -191,4 +204,5 @@ public class YonaProperties
 	{
 		this.isTestServer = isTestServer;
 	}
+
 }
