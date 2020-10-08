@@ -50,6 +50,7 @@ import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyNotFoundException;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -166,7 +167,7 @@ public class ActivityService
 				weekActivityEntitiesByLocalDate);
 		Map<ZonedDateTime, Set<WeekActivityDto>> weekActivityDtosByZonedDate = mapWeekActivitiesToDtos(earliestPossibleDate,
 				weekActivityEntitiesByZonedDate, userAnonymized);
-		addMissingInactivity(userAnonymized.getGoals(), weekActivityDtosByZonedDate, interval, ChronoUnit.WEEKS, userAnonymized,
+		addMissingInactivity(userAnonymized.getGoalsIncludingHistoryItems(), weekActivityDtosByZonedDate, interval, ChronoUnit.WEEKS, userAnonymized,
 				(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, earliestPossibleDate, goal, startOfWeek,
 						LevelOfDetail.WEEK_OVERVIEW, missingInactivities),
 				Optional.of((g, wa) -> createAndSaveInactivityDays(userAnonymized, earliestPossibleDate,
@@ -311,7 +312,7 @@ public class ActivityService
 		// Goals of the user should only be included in the withBuddies list
 		// when at least one buddy has a goal in that category
 		Set<UUID> activityCategoryIdsUsedByBuddies = buddies.stream()
-				.map(b -> b.getUser().getPrivateData().getGoals().orElse(Collections.emptySet())).flatMap(Set::stream)
+				.map(b -> b.getUser().getPrivateData().getGoalsIncludingHistoryItems().orElse(Collections.emptySet())).flatMap(Set::stream)
 				.map(GoalDto::getActivityCategoryId).collect(Collectors.toSet());
 
 		Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate = executeAndCreateInactivityEntries(
@@ -353,7 +354,7 @@ public class ActivityService
 			LocalDate earliestPossibleDate, Set<UUID> relevantActivityCategoryIds, Interval interval,
 			Set<IntervalInactivityDto> mia)
 	{
-		Set<GoalDto> relevantGoals = userAnonymizedDto.getGoals().stream()
+		Set<GoalDto> relevantGoals = userAnonymizedDto.getGoalsIncludingHistoryItems().stream()
 				.filter(g -> relevantActivityCategoryIds.contains(g.getActivityCategoryId())).collect(Collectors.toSet());
 		return getDayActivities(userAnonymizedDto, earliestPossibleDate, relevantGoals, interval, mia);
 	}
@@ -415,7 +416,7 @@ public class ActivityService
 	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivities(UserAnonymizedDto userAnonymized,
 			LocalDate earliestPossibleDate, Interval interval, Set<IntervalInactivityDto> missingInactivities)
 	{
-		return getDayActivities(userAnonymized, earliestPossibleDate, userAnonymized.getGoals(), interval, missingInactivities);
+		return getDayActivities(userAnonymized, earliestPossibleDate, userAnonymized.getGoalsIncludingHistoryItems(), interval, missingInactivities);
 	}
 
 	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivities(UserAnonymizedDto userAnonymized,
@@ -762,7 +763,7 @@ public class ActivityService
 		Require.that(message.getMessage().length() <= MAX_MESSAGE_LENGTH,
 				() -> InvalidDataException.stringTooLong("message", message.getMessage().length(), MAX_MESSAGE_LENGTH));
 
-		UserDto sendingUser = userService.getUser(userId);
+		User sendingUser = userService.getUserEntityById(userId);
 		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		IntervalActivity dayActivityEntity = activitySupplier.get(buddy, date, goalId);
 		if (dayActivityEntity == null)
@@ -774,10 +775,10 @@ public class ActivityService
 				Optional.empty(), message.getMessage());
 	}
 
-	private MessageDto sendMessagePair(UserDto sendingUser, UUID targetUserAnonymizedId, IntervalActivity intervalActivityEntity,
+	private MessageDto sendMessagePair(User sendingUser, UUID targetUserAnonymizedId, IntervalActivity intervalActivityEntity,
 			Optional<Message> repliedMessageOfSelf, Optional<Message> repliedMessageOfBuddy, String message)
 	{
-		UUID sendingUserAnonymizedId = sendingUser.getOwnPrivateData().getUserAnonymizedId();
+		UUID sendingUserAnonymizedId = sendingUser.getUserAnonymizedId();
 		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, sendingUserAnonymizedId, intervalActivityEntity,
 				repliedMessageOfBuddy, false, message);
 		ActivityCommentMessage messageToSelf = createMessage(sendingUser, targetUserAnonymizedId, intervalActivityEntity,
@@ -802,7 +803,7 @@ public class ActivityService
 		}
 	}
 
-	private ActivityCommentMessage createMessage(UserDto sendingUser, UUID relatedUserAnonymizedId,
+	private ActivityCommentMessage createMessage(User sendingUser, UUID relatedUserAnonymizedId,
 			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String messageText)
 	{
 		ActivityCommentMessage message;
@@ -835,7 +836,7 @@ public class ActivityService
 	}
 
 	@Transactional
-	public MessageDto replyToMessage(UserDto sendingUser, ActivityCommentMessage repliedMessage, String message)
+	public MessageDto replyToMessage(User sendingUser, ActivityCommentMessage repliedMessage, String message)
 	{
 		UUID targetUserAnonymizedId = repliedMessage.getRelatedUserAnonymizedId().get();
 		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivity(),

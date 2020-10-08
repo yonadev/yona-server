@@ -264,4 +264,9 @@ public class Buddy extends PrivateUserProperties
 		// name in the buddy entity, so from then onward, the user will see the right data
 		return Translator.getInstance().getLocalizedMessage(fallbackMessageId, nickname);
 	}
+
+	public boolean isAccepted()
+	{
+		return (getReceivingStatus() == Status.ACCEPTED) || (getSendingStatus() == Status.ACCEPTED);
+	}
 }

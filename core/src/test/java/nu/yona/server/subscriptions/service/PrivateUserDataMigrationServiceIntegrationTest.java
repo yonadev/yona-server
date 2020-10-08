@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -42,6 +42,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.HibernateHelperService;
 import nu.yona.server.util.LockPool;
 
 @Configuration
@@ -103,6 +104,9 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 
 	@Autowired
 	private PrivateUserDataMigrationService service;
+
+	@MockBean
+	private HibernateHelperService hibernateHelperService;
 
 	@Autowired
 	private UserService userService;

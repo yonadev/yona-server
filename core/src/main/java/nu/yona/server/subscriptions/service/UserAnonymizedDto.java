@@ -33,19 +33,19 @@ public class UserAnonymizedDto implements Serializable
 
 	private final LocalDate lastMonitoredActivityDate;
 	private final ZoneId timeZone;
-	private final Set<GoalDto> goals;
+	private final Set<GoalDto> goalsIncludingHistoryItems;
 	private final MessageDestinationDto anonymousMessageDestination;
 	private final Set<BuddyAnonymizedDto> buddiesAnonymized;
 	private final Set<DeviceAnonymizedDto> devicesAnonymized;
 
-	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, ZoneId timeZone, Set<GoalDto> goals,
+	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, ZoneId timeZone, Set<GoalDto> goalsIncludingHistoryItems,
 			MessageDestinationDto anonymousMessageDestination, Set<BuddyAnonymizedDto> buddiesAnonymized,
 			Set<DeviceAnonymizedDto> devicesAnonymized)
 	{
 		this.id = id;
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate.orElse(null);
 		this.timeZone = timeZone;
-		this.goals = new HashSet<>(goals);
+		this.goalsIncludingHistoryItems = new HashSet<>(goalsIncludingHistoryItems);
 		this.anonymousMessageDestination = anonymousMessageDestination;
 		this.buddiesAnonymized = buddiesAnonymized;
 		this.devicesAnonymized = devicesAnonymized;
@@ -71,14 +71,14 @@ public class UserAnonymizedDto implements Serializable
 		return Optional.ofNullable(lastMonitoredActivityDate);
 	}
 
-	public Set<GoalDto> getGoals()
+	public Set<GoalDto> getGoalsIncludingHistoryItems()
 	{
-		return goals;
+		return goalsIncludingHistoryItems;
 	}
 
 	public Set<GoalDto> getGoalsForActivityCategory(ActivityCategory activityCategory)
 	{
-		return getGoals().stream().filter(g -> g.getActivityCategoryId().equals(activityCategory.getId()))
+		return getGoalsIncludingHistoryItems().stream().filter(g -> g.getActivityCategoryId().equals(activityCategory.getId()))
 				.collect(Collectors.toSet());
 	}
 
@@ -121,26 +121,8 @@ public class UserAnonymizedDto implements Serializable
 
 	static Set<GoalDto> getGoalsIncludingHistoryItems(UserAnonymized userAnonymizedEntity)
 	{
-		userAnonymizedEntity.preloadGoals();
-		Set<Goal> activeGoals = userAnonymizedEntity.getGoals();
-		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);
-		Set<Goal> allGoals = new HashSet<>(activeGoals);
-		allGoals.addAll(historyItems);
+		Set<Goal> allGoals = userAnonymizedEntity.getGoalsIncludingHistoryItems();
 		return allGoals.stream().map(GoalDto::createInstance).collect(Collectors.toSet());
-	}
-
-	private static Set<Goal> getGoalHistoryItems(Set<Goal> activeGoals)
-	{
-		Set<Goal> historyItems = new HashSet<>();
-		activeGoals.stream().forEach(g -> {
-			Optional<Goal> historyItem = g.getPreviousVersionOfThisGoal();
-			while (historyItem.isPresent())
-			{
-				historyItems.add(historyItem.get());
-				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
-			}
-		});
-		return historyItems;
 	}
 
 	public DeviceAnonymizedDto getDeviceAnonymized(UUID deviceAnonymizedId)
@@ -156,7 +138,7 @@ public class UserAnonymizedDto implements Serializable
 
 	public GoalDto getGoal(UUID goalId)
 	{
-		return goals.stream().filter(g -> g.getGoalId().equals(goalId)).findFirst()
+		return goalsIncludingHistoryItems.stream().filter(g -> g.getGoalId().equals(goalId)).findFirst()
 				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(id, goalId));
 	}
 }

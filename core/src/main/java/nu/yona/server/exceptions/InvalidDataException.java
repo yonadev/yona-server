@@ -70,6 +70,12 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.user.mobile.number.not.mobile", number, classification);
 	}
 
+	public static InvalidDataException countryCodeNotSupported(String mobileNumberStr, int countryCode)
+	{
+		return new InvalidDataException("error.user.mobile.number.invalid.unsupported.country.code", mobileNumberStr,
+				countryCode);
+	}
+
 	public static InvalidDataException emptyUserId()
 	{
 		return new InvalidDataException("error.missing.user.id");

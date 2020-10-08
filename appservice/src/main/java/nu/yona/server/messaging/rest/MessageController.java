@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,10 +55,10 @@ import nu.yona.server.messaging.service.MessageActionDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.ControllerBase;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
-import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -70,6 +71,9 @@ public class MessageController extends ControllerBase
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
 	private CurieProvider curieProvider;
@@ -101,7 +105,7 @@ public class MessageController extends ControllerBase
 	private HttpEntity<PagedModel<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
-		UserDto user = userService.getValidatedUser(userId);
+		User user = userService.getValidatedUserEntity(userId);
 		Page<MessageDto> messages = messageService.getReceivedMessages(user, onlyUnreadMessages, pageable);
 		return createOkResponse(user, messages, pagedResourcesAssembler);
 	}
@@ -114,22 +118,22 @@ public class MessageController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getValidatedUser(userId);
+			User user = userService.getValidatedUserEntity(userId);
 			return createOkResponse(user, messageService.getMessage(user, messageId));
 		}
 	}
 
-	private GoalIdMapping createGoalIdMapping(UserDto user)
+	private GoalIdMapping createGoalIdMapping(User user)
 	{
-		return GoalIdMapping.createInstance(user);
+		return GoalIdMapping.createInstance(userAnonymizedService, user);
 	}
 
-	public HttpEntity<MessageDto> createOkResponse(UserDto user, MessageDto message)
+	public HttpEntity<MessageDto> createOkResponse(User user, MessageDto message)
 	{
 		return createOkResponse(message, createResourceAssembler(createGoalIdMapping(user)));
 	}
 
-	public HttpEntity<PagedModel<MessageDto>> createOkResponse(UserDto user, Page<MessageDto> messages,
+	public HttpEntity<PagedModel<MessageDto>> createOkResponse(User user, Page<MessageDto> messages,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return createOkResponse(messages, pagedResourcesAssembler, createResourceAssembler(createGoalIdMapping(user)));
@@ -144,10 +148,10 @@ public class MessageController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getValidatedUser(userId);
+			User user = userService.getValidatedUserEntity(userId);
 
 			return createOkResponse(new MessageActionResource(curieProvider,
-					messageService.handleMessageAction(user, id, action, requestPayload), createGoalIdMapping(user), this));
+					messageService.handleMessageAction(userId, id, action, requestPayload), createGoalIdMapping(user), this));
 		}
 	}
 
@@ -160,7 +164,7 @@ public class MessageController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getValidatedUser(userId);
+			User user = userService.getValidatedUserEntity(userId);
 			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(user, messageId),
 					createGoalIdMapping(user), this));
 		}

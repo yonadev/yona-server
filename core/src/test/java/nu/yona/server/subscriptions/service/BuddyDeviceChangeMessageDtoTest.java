@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -12,13 +12,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -143,9 +140,6 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	@MockBean
 	private LockPool<UUID> mockUserSynchronizer;
 
-	@Captor
-	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
-
 	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
@@ -187,7 +181,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.ADD, device.getDeviceAnonymizedId(), Optional.empty(), Optional.of(deviceName));
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -219,7 +213,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.RENAME, device.getDeviceAnonymizedId(), Optional.of(orgDeviceName), Optional.of(newDeviceName));
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -256,7 +250,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.DELETE, device2.getDeviceAnonymizedId(), Optional.of(deviceName2), Optional.empty());
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -287,7 +281,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 				DeviceChange.DELETE, device1.getDeviceAnonymizedId(), Optional.of(deviceName1), Optional.empty());
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());

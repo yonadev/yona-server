@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -46,7 +46,12 @@ public class PinResetRequestService
 	@Transactional
 	public void requestPinReset(UUID userId)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		userService.updateUser(userId, this::requestPinReset);
+	}
+
+	private void requestPinReset(User userEntity)
+	{
+		UUID userId = userEntity.getId();
 		logger.info("User with mobile number '{}' and ID '{}' requested a pin reset confirmation code",
 				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.DELAYED);
@@ -66,7 +71,11 @@ public class PinResetRequestService
 	@Transactional
 	public void sendPinResetConfirmationCode(UUID userId)
 	{
-		User user = userService.getUserEntityById(userId);
+		userService.updateUserIfExisting(userId, this::sendPinResetConfirmationCode);
+	}
+
+	private void sendPinResetConfirmationCode(User user)
+	{
 		logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'", user.getMobileNumber(),
 				user.getId());
 		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
@@ -77,21 +86,20 @@ public class PinResetRequestService
 	@Transactional(dontRollbackOn = PinResetRequestConfirmationException.class)
 	public void verifyPinResetConfirmationCode(UUID userId, String userProvidedConfirmationCode)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		User user = userService.lockUserForUpdate(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to verify the pin reset confirmation code",
-				userEntity.getMobileNumber(), userId);
-		ConfirmationCode confirmationCode = userEntity.getPinResetConfirmationCode();
+				user.getMobileNumber(), userId);
+		ConfirmationCode confirmationCode = user.getPinResetConfirmationCode();
 		Require.that((confirmationCode != null) && !isExpired(confirmationCode),
-				() -> PinResetRequestConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()));
+				() -> PinResetRequestConfirmationException.confirmationCodeNotSet(user.getMobileNumber()));
 
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
-		Require.that(remainingAttempts > 0,
-				() -> PinResetRequestConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
+		Require.that(remainingAttempts > 0, () -> PinResetRequestConfirmationException.tooManyAttempts(user.getMobileNumber()));
 
 		if (!userProvidedConfirmationCode.equals(confirmationCode.getCode()))
 		{
-			userService.registerFailedAttempt(userEntity, confirmationCode);
-			throw PinResetRequestConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
+			confirmationCode.incrementAttempts();
+			throw PinResetRequestConfirmationException.confirmationCodeMismatch(user.getMobileNumber(),
 					userProvidedConfirmationCode, remainingAttempts - 1);
 		}
 	}
@@ -99,12 +107,17 @@ public class PinResetRequestService
 	@Transactional
 	public void resendPinResetConfirmationCode(UUID userId)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		User user = userService.lockUserForUpdate(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to resend the pin reset confirmation code",
-				userEntity.getMobileNumber(), userEntity.getId());
+				user.getMobileNumber(), userId);
+		ConfirmationCode currentConfirmationCode = user.getPinResetConfirmationCode();
+		Require.that(
+				(currentConfirmationCode != null) && !isExpired(currentConfirmationCode)
+						&& currentConfirmationCode.getCode() != null,
+				() -> PinResetRequestConfirmationException.confirmationCodeNotSet(user.getMobileNumber()));
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.IMMEDIATELY);
 		setConfirmationCode(userId, confirmationCode);
-		sendConfirmationCodeTextMessage(userEntity, confirmationCode);
+		sendConfirmationCodeTextMessage(user, confirmationCode);
 	}
 
 	@Transactional

@@ -85,6 +85,7 @@ import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.HibernateHelperService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
 
@@ -157,6 +158,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	@MockBean
 	private LockPool<UUID> mockUserSynchronizer;
+
+	@MockBean
+	private HibernateHelperService hibernateHelperService;
 
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;

@@ -171,4 +171,28 @@ public class UserAnonymized extends EntityWithUuid
 			isGoalPreloadDone = true;
 		}
 	}
+
+	public Set<Goal> getGoalsIncludingHistoryItems()
+	{
+		preloadGoals();
+		Set<Goal> activeGoals = getGoals();
+		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);
+		Set<Goal> allGoals = new HashSet<>(activeGoals);
+		allGoals.addAll(historyItems);
+		return allGoals;
+	}
+
+	private static Set<Goal> getGoalHistoryItems(Set<Goal> activeGoals)
+	{
+		Set<Goal> historyItems = new HashSet<>();
+		activeGoals.stream().forEach(g -> {
+			Optional<Goal> historyItem = g.getPreviousVersionOfThisGoal();
+			while (historyItem.isPresent())
+			{
+				historyItems.add(historyItem.get());
+				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
+			}
+		});
+		return historyItems;
+	}
 }
