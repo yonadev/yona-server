@@ -64,6 +64,8 @@ import nu.yona.server.util.TimeUtil;
 @Service
 public class ActivityService
 {
+	private static final int MAX_MESSAGE_LENGTH = 200;
+
 	@Autowired
 	private UserService userService;
 
@@ -758,6 +760,9 @@ public class ActivityService
 	public MessageDto addMessageToActivity(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			ActivitySupplier activitySupplier, PostPutActivityCommentMessageDto message)
 	{
+		Require.that(message.getMessage().length() <= MAX_MESSAGE_LENGTH,
+				() -> InvalidDataException.stringTooLong("message", message.getMessage().length(), MAX_MESSAGE_LENGTH));
+
 		User sendingUser = userService.getUserEntityById(userId);
 		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		IntervalActivity dayActivityEntity = activitySupplier.get(buddy, date, goalId);

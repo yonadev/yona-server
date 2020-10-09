@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -7,6 +7,8 @@
 package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.*
+
+import org.apache.commons.lang.StringUtils
 
 import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
@@ -91,8 +93,8 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
 
 		when:
-		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
-		def messageBea1 = appService.yonaServer.createResourceWithPassword(beaResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi Richard! Everything alright?"}""", bea.password)
+		def messageBob1 = addComment(bobResponseDetailsRichardAsBuddy, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBea1 = addComment(beaResponseDetailsRichardAsBuddy, """{"message": "Hi Richard! Everything alright?"}""", bea.password)
 
 		def expectedDataRichard = [[nickname: "BD", message: "Hi buddy! How ya doing?"], [nickname: "BDD", message: "Hi Richard! Everything alright?"]]
 		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, expectedDataRichard).responseData._embedded."yona:messages"
@@ -141,8 +143,8 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
 
 		when:
-		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
-		def messageBea1 = appService.yonaServer.createResourceWithPassword(beaResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi Richard! Everything alright?"}""", bea.password)
+		def messageBob1 = addComment(bobResponseDetailsRichardAsBuddy, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBea1 = addComment(beaResponseDetailsRichardAsBuddy, """{"message": "Hi Richard! Everything alright?"}""", bea.password)
 
 		def expectedDataRichard2 = [[nickname: "BD", message: "Hi buddy! How ya doing?"], [nickname: "BDD", message: "Hi Richard! Everything alright?"]]
 		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, expectedDataRichard2).responseData._embedded."yona:messages"
@@ -193,7 +195,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def message = """{"message": "You're quiet!"}"""
-		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
+		def responseAddMessage = addComment(responseDetailsBobAsBuddy, message, richard.password)
 
 		then:
 		assertResponseStatusOk(responseAddMessage)
@@ -221,7 +223,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def message = """{"message": "You're quiet!"}"""
-		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
+		def responseAddMessage = addComment(responseDetailsBobAsBuddy, message, richard.password)
 
 		then:
 		assertResponseStatusOk(responseAddMessage)
@@ -248,7 +250,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
 		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
 
-		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBob1 = addComment(bobResponseDetailsRichardAsBuddy, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
 
 		def expectedData1 = [[nickname: "BD", message: "Hi buddy! How ya doing?"]]
 		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, expectedData1).responseData._embedded."yona:messages"
@@ -298,7 +300,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
 		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
 
-		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBob1 = addComment(bobResponseDetailsRichardAsBuddy, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
 
 		def expectedData1 = [[nickname: "BD", message: "Hi buddy! How ya doing?"]]
 		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, expectedData1).responseData._embedded."yona:messages"
@@ -348,7 +350,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
 		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
 
-		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBob1 = addComment(bobResponseDetailsRichardAsBuddy, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
 
 		def expectedData1 = [[nickname: "BD", message: "Hi buddy! How ya doing?"]]
 		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, expectedData1).responseData._embedded."yona:messages"
@@ -399,7 +401,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
 		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
 
-		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBob1 = addComment(bobResponseDetailsRichardAsBuddy, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
 
 		def expectedData1 = [[nickname: "BD", message: "Hi buddy! How ya doing?"]]
 		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, expectedData1).responseData._embedded."yona:messages"
@@ -430,6 +432,55 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Comment using (too) long messages'(messageLength, expectedStatus)
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		when:
+		setCreationTime(richard, "W-1 Mon 02:18")
+		setCreationTime(bob, "W-1 Mon 02:18")
+		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
+
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		assert budgetGoalNewsBuddyBob
+		def responseOverviewsBobAsBuddyAll = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
+		assertResponseStatusOk(responseOverviewsBobAsBuddyAll)
+		def responseDetailsBobAsBuddy = appService.getDayDetailsFromOverview(responseOverviewsBobAsBuddyAll, richard, budgetGoalNewsBuddyBob, 1, "Tue")
+		assertResponseStatusOk(responseDetailsBobAsBuddy)
+		def messageText = StringUtils.repeat("*", messageLength)
+		def messageJson = """{"message": "$messageText"}"""
+
+		then:
+		def response = addComment(responseDetailsBobAsBuddy, messageJson, richard.password)
+		assertResponseStatus(response, expectedStatus)
+		expectedStatus == 200 || response.responseData.message == "The string 'message' is too long. It contains $messageLength characters while only 200 are allowed"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+
+		where:
+		messageLength | expectedStatus
+		200 | 200
+		201 | 400
+	}
+
+	public addComment(response, message, password)
+	{
+		addComment(appService, response, message, password)
+	}
+
+	public static addComment(appService,response, message, password)
+	{
+		appService.yonaServer.createResourceWithPassword(response.responseData._links."yona:addComment".href, message, password)
+	}
+
 	public void assertCommentingWorks(User richard, User bob, boolean isWeek, Closure userOverviewRetriever, Closure buddyOverviewRetriever, Closure detailsRetriever)
 	{
 		assertCommentingWorks(appService, richard, bob, NEWS_ACT_CAT_URL, isWeek, userOverviewRetriever, buddyOverviewRetriever, detailsRetriever, { user, message -> assertMarkReadUnread(user, message)})
@@ -458,7 +509,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		appService.clearLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
 		appService.clearLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
 		def message = """{"message": "You're quiet!"}"""
-		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
+		def responseAddMessage = addComment(appService, responseDetailsBobAsBuddy, message, richard.password)
 
 		assertResponseStatusOk(responseAddMessage)
 		def addedMessage = responseAddMessage.responseData
