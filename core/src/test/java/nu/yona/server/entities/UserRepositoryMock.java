@@ -6,6 +6,7 @@ package nu.yona.server.entities;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,9 +19,9 @@ public class UserRepositoryMock extends MockJpaRepositoryEntityWithUuid<User> im
 {
 
 	@Override
-	public User findByIdForUpdate(UUID id)
+	public Optional<User> findByIdForUpdate(UUID id)
 	{
-		return findById(id).get();
+		return findById(id);
 	}
 
 	@Override

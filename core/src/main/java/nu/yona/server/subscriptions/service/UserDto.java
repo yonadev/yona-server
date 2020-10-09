@@ -53,12 +53,12 @@ public class UserDto
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed,
-			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
+			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goalsIncludingHistoryItems,
 			Set<BuddyDto> buddies, UUID userAnonymizedId, Set<UserDeviceDto> devices)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest,
 				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, firstName, lastName, nickname, userPhotoId,
-						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, devices));
+						namedMessageSourceId, anonymousMessageSourceId, goalsIncludingHistoryItems, buddies, userAnonymizedId, devices));
 	}
 
 	private UserDto(UUID id, Optional<LocalDate> appLastOpenedDate, String mobileNumber, boolean isConfirmed,
@@ -197,7 +197,7 @@ public class UserDto
 				userAnonymizedDto.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
-				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(), userAnonymizedDto.getGoals(),
+				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(), userAnonymizedDto.getGoalsIncludingHistoryItems(),
 				buddies, userEntity.getUserAnonymizedId(),
 				userEntity.getDevices().stream().map(d -> UserDeviceDto.createInstance(userAnonymizedDto, d,
 						userAnonymizedDto.getDeviceAnonymized(d.getDeviceAnonymizedId()))).collect(Collectors.toSet()));

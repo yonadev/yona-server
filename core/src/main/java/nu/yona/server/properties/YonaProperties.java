@@ -46,6 +46,8 @@ public class YonaProperties
 
 	private final Set<Locale> supportedLocales = new HashSet<>();
 
+	private Set<Integer> supportedCountryCodes = new HashSet<>();
+
 	private Locale defaultLocale;
 
 	private String appleAppId;
@@ -123,6 +125,17 @@ public class YonaProperties
 	public Set<Locale> getSupportedLocales()
 	{
 		return Collections.unmodifiableSet(supportedLocales);
+	}
+
+	public void setSupportedCountryCodes(String supportedCountryCodes)
+	{
+		this.supportedCountryCodes.addAll(
+				Arrays.asList(supportedCountryCodes.split(",")).stream().map(Integer::parseInt).collect(Collectors.toSet()));
+	}
+
+	public Set<Integer> getSupportedCountryCodes()
+	{
+		return supportedCountryCodes;
 	}
 
 	public void setAppleAppId(String appleAppId)

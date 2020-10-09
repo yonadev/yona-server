@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.HibernateHelperService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,12 +71,16 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	@Autowired
 	private YonaProperties yonaProperties;
 
+	@MockBean
+	private HibernateHelperService hibernateHelperService;
+
 	@Autowired
 	private UserService service;
 
 	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
+		yonaProperties.setSupportedCountryCodes("31");
 		try (CryptoSession cryptoSession = CryptoSession.start(BuddyDeviceChangeMessageDtoTestConfiguration.PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();

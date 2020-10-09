@@ -53,4 +53,9 @@ public class BuddyAnonymizedDto implements Serializable
 	{
 		return receivingStatus;
 	}
+
+	public boolean isAccepted()
+	{
+		return (getReceivingStatus() == Status.ACCEPTED) || (getSendingStatus() == Status.ACCEPTED);
+	}
 }

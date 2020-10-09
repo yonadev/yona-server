@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -31,6 +31,7 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DtoManager;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.rest.PolymorphicDto;
+import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDto;
@@ -175,7 +176,7 @@ public abstract class MessageDto extends PolymorphicDto
 
 		@Override
 		@Transactional
-		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
+		public MessageActionDto handleAction(User actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
 			switch (action)
@@ -189,7 +190,7 @@ public abstract class MessageDto extends PolymorphicDto
 			}
 		}
 
-		private MessageActionDto handleAction_markReadUnread(UserDto actingUser, Message messageEntity, boolean isRead,
+		private MessageActionDto handleAction_markReadUnread(User actingUser, Message messageEntity, boolean isRead,
 				MessageActionDto requestPayload)
 		{
 			messageEntity.setRead(isRead);
@@ -198,18 +199,17 @@ public abstract class MessageDto extends PolymorphicDto
 			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, savedMessageEntity));
 		}
 
-		protected final SenderInfo getSenderInfo(UserDto actingUser, Message messageEntity)
+		protected final SenderInfo getSenderInfo(User actingUser, Message messageEntity)
 		{
 			Optional<UUID> senderUserAnonymizedId = getSenderUserAnonymizedId(actingUser, messageEntity);
 			if (senderUserAnonymizedId.isPresent())
 			{
-				if (actingUser.getOwnPrivateData().getUserAnonymizedId().equals(senderUserAnonymizedId.get()))
+				if (actingUser.getUserAnonymizedId().equals(senderUserAnonymizedId.get()))
 				{
 					return createSenderInfoForSelf(actingUser);
 				}
 
-				Optional<BuddyDto> buddy = buddyService.getBuddyOfUserByUserAnonymizedId(actingUser.getOwnPrivateData(),
-						senderUserAnonymizedId.get());
+				Optional<Buddy> buddy = buddyService.getBuddyOfUserByUserAnonymizedId(actingUser, senderUserAnonymizedId.get());
 				if (buddy.isPresent())
 				{
 					return createSenderInfoForBuddy(buddy.get(), messageEntity);
@@ -219,7 +219,7 @@ public abstract class MessageDto extends PolymorphicDto
 			return getSenderInfoExtensionPoint(messageEntity);
 		}
 
-		protected Optional<UUID> getSenderUserAnonymizedId(UserDto actingUser, Message messageEntity)
+		protected Optional<UUID> getSenderUserAnonymizedId(User actingUser, Message messageEntity)
 		{
 			return messageEntity.getRelatedUserAnonymizedId();
 		}
@@ -231,16 +231,15 @@ public abstract class MessageDto extends PolymorphicDto
 					+ messageEntity.getRelatedUserAnonymizedId().map(UUID::toString).orElse("UNKNOWN") + "'");
 		}
 
-		private SenderInfo createSenderInfoForSelf(UserDto actingUser)
+		private SenderInfo createSenderInfoForSelf(User actingUser)
 		{
-			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getOwnPrivateData().getNickname(),
-					actingUser.getOwnPrivateData().getUserPhotoId());
+			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getNickname(),
+					actingUser.getUserPhotoId());
 		}
 
-		protected SenderInfo createSenderInfoForBuddy(BuddyDto buddy, Message messageEntity)
+		protected SenderInfo createSenderInfoForBuddy(Buddy buddy, Message messageEntity)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(),
-					buddy.getUser().getPrivateData().getNickname(), buddy.getUser().getPrivateData().getUserPhotoId(),
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getUserPhotoId(),
 					buddy.getId());
 		}
 

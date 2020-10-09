@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -343,6 +343,41 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		assert response.responseData.code == "error.invalid.uuid"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try get nonexisting user'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		def url = richard.url.replaceFirst(/users\/........-/, "users/00000000-")
+		url = url.replaceFirst(/requestingUserId=........-/, "requestingUserId=00000000-")
+		def response = appService.getResourceWithPassword(url, richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.user.not.found.id"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try delete nonexisting user'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		def url = richard.editUrl.replaceFirst(/users\/........-/, "users/00000000-")
+		def response = appService.deleteResourceWithPassword(url, richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.user.not.found.id"
 
 		cleanup:
 		appService.deleteUser(richard)

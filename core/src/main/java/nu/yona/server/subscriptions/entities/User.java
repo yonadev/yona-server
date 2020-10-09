@@ -252,6 +252,11 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getUserAnonymized().getGoals();
 	}
 
+	public Set<Goal> getGoalsIncludingHistoryItems()
+	{
+		return getUserPrivate().getUserAnonymized().getGoalsIncludingHistoryItems();
+	}
+
 	public UUID getUserAnonymizedId()
 	{
 		return getUserPrivate().getUserAnonymizedId();

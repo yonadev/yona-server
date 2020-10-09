@@ -22,6 +22,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserPhoto;
 
 @Service
 public class UserService
@@ -173,10 +174,29 @@ public class UserService
 		return userUpdateService.updateUser(id, updateAction);
 	}
 
-	@Transactional
-	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
+	/**
+	 * Performs the given update action on the user with the specified ID (if the user exists), while holding a write-lock on the
+	 * user. After the update, the entity is saved to the repository.<br/>
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing the user
+	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
+	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
+	 * would cause the GETs to fail rather than to wait for the other one to complete.
+	 *
+	 * @param id The ID of the user to update
+	 * @param updateAction The update action to perform
+	 * @return an {@code Optional} describing the updated and saved user, or an empty {@code Optional} if a user with this ID
+	 *         cannot be found
+	 */
+	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
+	public Optional<User> updateUserIfExisting(UUID id, Consumer<User> updateAction)
 	{
-		return userUpdateService.updateUserPhoto(id, userPhotoId);
+		return userUpdateService.updateUserIfExisting(id, updateAction);
+	}
+
+	@Transactional
+	public UserDto updateUserPhoto(User userEntity, Optional<UserPhoto> userPhoto)
+	{
+		return userUpdateService.updateUserPhoto(userEntity, userPhoto);
 	}
 
 	@Transactional
@@ -198,7 +218,7 @@ public class UserService
 	}
 
 	@Transactional
-	public void addBuddy(UserDto user, BuddyDto buddy)
+	public void addBuddy(User user, BuddyDto buddy)
 	{
 		userUpdateService.addBuddy(user, buddy);
 	}
@@ -229,6 +249,11 @@ public class UserService
 	public User getUserEntityById(UUID id)
 	{
 		return userLookupService.getUserEntityById(id);
+	}
+
+	public Optional<User> getUserEntityByIdIfExisting(UUID id)
+	{
+		return userLookupService.getUserEntityByIdIfExisting(id);
 	}
 
 	public UserDto getUserByMobileNumber(String mobileNumber)
@@ -271,21 +296,32 @@ public class UserService
 
 	void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
 	{
-		UserAssertionService.assertValidUserFields(user, purpose);
-	}
-
-	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
-	{
-		userAddService.registerFailedAttempt(userEntity, confirmationCode);
+		userAssertionService.assertValidUserFields(user, purpose);
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		UserAssertionService.assertValidMobileNumber(mobileNumber);
+		userAssertionService.assertValidMobileNumber(mobileNumber);
 	}
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		UserAssertionService.assertValidEmailAddress(emailAddress);
+		userAssertionService.assertValidEmailAddress(emailAddress);
+	}
+
+	/**
+	 * Locks the user entity with the given ID for update, thus preventing concurrent updates on that user. To prevent from using
+	 * stale data that was retrieved before any previous update completed, the Hibernate session is cleared. This operation fails
+	 * if the session is dirty. Callers should obtain the lock on the user entity prior to any checks or updates. Note that this
+	 * operation is idempotent: if the user was already locked during this session, that user will be returned. The session won't
+	 * be cleared.
+	 *
+	 * @param userId The ID of the user to lock
+	 * @return The locked user entity
+	 */
+	@Transactional
+	public User lockUserForUpdate(UUID userId)
+	{
+		return userLookupService.lockUserForUpdate(userId);
 	}
 }
