@@ -38,7 +38,6 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
-import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
@@ -140,7 +139,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 		ConfirmationCode confirmationCode = ConfirmationCode.createInstance("9876");
 		richard.setOverwriteUserConfirmationCode(confirmationCode);
 		Optional<ConfirmationCode> initialOverwriteUserConfirmationCode = richard.getOverwriteUserConfirmationCode();
-		JUnitUtil.mockCurrentTime(startTime.plus(yonaProperties.getOverwriteUserConfirmationCodeValidityTime()).plusSeconds(1));
+		JUnitUtil.mockCurrentTime(startTime.plus(yonaProperties.getOverwriteUserConfirmationCodeNonResendInterval()).plusSeconds(1));
 
 		service.requestOverwriteUserConfirmationCode(richard.getMobileNumber());
 

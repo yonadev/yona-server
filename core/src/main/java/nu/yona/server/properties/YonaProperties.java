@@ -64,7 +64,7 @@ public class YonaProperties
 
 	private boolean isTestServer;
 
-	private Duration overwriteUserConfirmationCodeValidityTime = Duration.ofSeconds(30);
+	private Duration overwriteUserConfirmationCodeNonResendInterval = Duration.ofSeconds(30);
 
 	public AnalysisServiceProperties getAnalysisService()
 	{
@@ -208,13 +208,13 @@ public class YonaProperties
 		this.isTestServer = isTestServer;
 	}
 
-	public Duration getOverwriteUserConfirmationCodeValidityTime()
+	public Duration getOverwriteUserConfirmationCodeNonResendInterval()
 	{
-		return overwriteUserConfirmationCodeValidityTime;
+		return overwriteUserConfirmationCodeNonResendInterval;
 	}
 
-	public void setOverwriteUserConfirmationCodeValidityTime(Duration overwriteUserConfirmationCodeValidityTime)
+	public void setOverwriteUserConfirmationCodeNonResendInterval(Duration overwriteUserConfirmationCodeNonResendInterval)
 	{
-		this.overwriteUserConfirmationCodeValidityTime = overwriteUserConfirmationCodeValidityTime;
+		this.overwriteUserConfirmationCodeNonResendInterval = overwriteUserConfirmationCodeNonResendInterval;
 	}
 }

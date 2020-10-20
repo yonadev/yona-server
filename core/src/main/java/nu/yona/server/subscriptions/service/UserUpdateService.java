@@ -131,7 +131,7 @@ public class UserUpdateService
 	private boolean isOverwriteUserConfirmationCodeStillValid(ConfirmationCode overwriteUserConfirmationCode)
 	{
 		return overwriteUserConfirmationCode.getCreationTime()
-				.isAfter(TimeUtil.utcNow().minus(yonaProperties.getOverwriteUserConfirmationCodeValidityTime()));
+				.isAfter(TimeUtil.utcNow().minus(yonaProperties.getOverwriteUserConfirmationCodeNonResendInterval()));
 	}
 
 	@Transactional
