@@ -232,7 +232,7 @@ public class UserAddService
 	{
 		User existingUserEntity = userLookupService
 				.lockUserForUpdate(UserLookupService.findUserByMobileNumber(mobileNumber).getId());
-		ConfirmationCode confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
+		Optional<ConfirmationCode> confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
 
 		assertValidConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> UserOverwriteConfirmationException.confirmationCodeNotSet(existingUserEntity.getMobileNumber()),
@@ -263,14 +263,20 @@ public class UserAddService
 	}
 
 	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
-	void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode, String userProvidedConfirmationCode,
-			Supplier<YonaException> noConfirmationCodeExceptionSupplier,
+	void assertValidConfirmationCode(User userEntity, Optional<ConfirmationCode> confirmationCode,
+			String userProvidedConfirmationCode, Supplier<YonaException> noConfirmationCodeExceptionSupplier,
 			IntFunction<YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
-		Require.isNonNull(confirmationCode, noConfirmationCodeExceptionSupplier);
-		userAssertionService.assertUserEntityLockedForUpdate(userEntity);
+		assertValidConfirmationCode(userEntity, confirmationCode.orElseThrow(noConfirmationCodeExceptionSupplier),
+				userProvidedConfirmationCode, invalidConfirmationCodeExceptionSupplier, tooManyAttemptsExceptionSupplier);
+	}
 
+	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode,
+			String userProvidedConfirmationCode, IntFunction<YonaException> invalidConfirmationCodeExceptionSupplier,
+			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
+	{
+		userAssertionService.assertUserEntityLockedForUpdate(userEntity);
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
 		if (remainingAttempts <= 0)
 		{

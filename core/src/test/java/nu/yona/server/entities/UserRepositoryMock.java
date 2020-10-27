@@ -27,7 +27,7 @@ public class UserRepositoryMock extends MockJpaRepositoryEntityWithUuid<User> im
 	@Override
 	public User findByMobileNumber(String mobileNumber)
 	{
-		throw new NotImplementedException();
+		return findOne(u -> u.getMobileNumber().equals(mobileNumber)).orElse(null);
 	}
 
 	@Override

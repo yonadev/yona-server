@@ -231,9 +231,9 @@ public class User extends EntityWithUuid
 		this.mobileNumberConfirmationCode = mobileNumberConfirmationCode;
 	}
 
-	public ConfirmationCode getMobileNumberConfirmationCode()
+	public Optional<ConfirmationCode> getMobileNumberConfirmationCode()
 	{
-		return mobileNumberConfirmationCode;
+		return Optional.ofNullable(mobileNumberConfirmationCode);
 	}
 
 	private UserPrivate getUserPrivate()
@@ -354,14 +354,14 @@ public class User extends EntityWithUuid
 		this.overwriteUserConfirmationCode = overwriteUserConfirmationCode;
 	}
 
-	public ConfirmationCode getOverwriteUserConfirmationCode()
+	public Optional<ConfirmationCode> getOverwriteUserConfirmationCode()
 	{
-		return overwriteUserConfirmationCode;
+		return Optional.ofNullable(overwriteUserConfirmationCode);
 	}
 
-	public ConfirmationCode getPinResetConfirmationCode()
+	public Optional<ConfirmationCode> getPinResetConfirmationCode()
 	{
-		return pinResetConfirmationCode;
+		return Optional.ofNullable(pinResetConfirmationCode);
 	}
 
 	public void setPinResetConfirmationCode(ConfirmationCode pinResetConfirmationCode)

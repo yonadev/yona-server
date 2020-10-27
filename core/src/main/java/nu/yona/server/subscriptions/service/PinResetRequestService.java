@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
@@ -78,7 +79,8 @@ public class PinResetRequestService
 	{
 		logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'", user.getMobileNumber(),
 				user.getId());
-		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
+		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode()
+				.orElseThrow(() -> PinResetRequestConfirmationException.confirmationCodeNotSet(user.getMobileNumber()));
 		pinResetConfirmationCode.setCode(userService.generateConfirmationCode());
 		sendConfirmationCodeTextMessage(user, pinResetConfirmationCode);
 	}
@@ -89,9 +91,10 @@ public class PinResetRequestService
 		User user = userService.lockUserForUpdate(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to verify the pin reset confirmation code",
 				user.getMobileNumber(), userId);
-		ConfirmationCode confirmationCode = user.getPinResetConfirmationCode();
-		Require.that((confirmationCode != null) && !isExpired(confirmationCode),
+		Optional<ConfirmationCode> confirmationCodeOpt = user.getPinResetConfirmationCode();
+		Require.that(isValidConfirmationCode(confirmationCodeOpt),
 				() -> PinResetRequestConfirmationException.confirmationCodeNotSet(user.getMobileNumber()));
+		ConfirmationCode confirmationCode = confirmationCodeOpt.get();
 
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
 		Require.that(remainingAttempts > 0, () -> PinResetRequestConfirmationException.tooManyAttempts(user.getMobileNumber()));
@@ -104,16 +107,20 @@ public class PinResetRequestService
 		}
 	}
 
+	public boolean isValidConfirmationCode(Optional<ConfirmationCode> confirmationCode)
+	{
+		return confirmationCode.map(cc -> !isExpired(cc)).orElse(false);
+	}
+
 	@Transactional
 	public void resendPinResetConfirmationCode(UUID userId)
 	{
 		User user = userService.lockUserForUpdate(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to resend the pin reset confirmation code",
 				user.getMobileNumber(), userId);
-		ConfirmationCode currentConfirmationCode = user.getPinResetConfirmationCode();
-		Require.that(
-				(currentConfirmationCode != null) && !isExpired(currentConfirmationCode)
-						&& currentConfirmationCode.getCode() != null,
+		ConfirmationCode currentConfirmationCode = user.getPinResetConfirmationCode()
+				.orElseThrow(() -> PinResetRequestConfirmationException.confirmationCodeNotSet(user.getMobileNumber()));
+		Require.that(!isExpired(currentConfirmationCode) && currentConfirmationCode.getCode() != null,
 				() -> PinResetRequestConfirmationException.confirmationCodeNotSet(user.getMobileNumber()));
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.IMMEDIATELY);
 		setConfirmationCode(userId, confirmationCode);
@@ -149,7 +156,7 @@ public class PinResetRequestService
 		userService.updateUser(userId, user -> user.setPinResetConfirmationCode(confirmationCode));
 	}
 
-	public boolean isExpired(ConfirmationCode confirmationCode)
+	private boolean isExpired(ConfirmationCode confirmationCode)
 	{
 		LocalDateTime creationTime = confirmationCode.getCreationTime();
 		return creationTime.plus(yonaProperties.getSecurity().getPinResetRequestExpirationTime()).isBefore(TimeUtil.utcNow());

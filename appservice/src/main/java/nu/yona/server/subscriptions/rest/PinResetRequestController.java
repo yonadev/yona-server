@@ -132,13 +132,13 @@ public class PinResetRequestController extends ControllerBase
 
 	public void addLinks(UserResource userResource)
 	{
-		ConfirmationCode confirmationCode = userService.getUserEntityById(userResource.getContent().getId())
+		Optional<ConfirmationCode> confirmationCode = userService.getUserEntityById(userResource.getContent().getId())
 				.getPinResetConfirmationCode();
-		if (confirmationCode == null || pinResetRequestService.isExpired(confirmationCode))
+		if (!pinResetRequestService.isValidConfirmationCode(confirmationCode))
 		{
 			addPinResetRequestLink(userResource);
 		}
-		else if (confirmationCode.getCode() != null)
+		else if (confirmationCode.get().getCode() != null)
 		{
 			addVerifyPinResetLink(userResource);
 			addResendPinResetConfirmationCodeLink(userResource);

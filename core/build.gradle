@@ -52,6 +52,7 @@ dependencies {
 		exclude group: 'junit', module: 'junit' 
 	}
 	testCompile "org.mockito:mockito-junit-jupiter"
+	testCompile "org.jmockit:jmockit:1.49"
 	testCompile "org.junit.jupiter:junit-jupiter:5.4.0"
 	testCompile "com.spencerwi:hamcrest-jdk8-time:0.7.1"
 	testCompile "nl.jqno.equalsverifier:equalsverifier:3.1.10"
@@ -64,8 +65,8 @@ dependencies {
 }
 
 test {
-	// Enable assertions
-	jvmArgs '-ea'
+	enableAssertions = true
+	jvmArgs "-javaagent:${classpath.find { it.name.contains('jmockit') }.absolutePath}"
 	useJUnitPlatform()
 }
 

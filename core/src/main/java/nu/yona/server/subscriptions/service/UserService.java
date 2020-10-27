@@ -89,9 +89,9 @@ public class UserService
 	}
 
 	@Transactional
-	public void setOverwriteUserConfirmationCode(String mobileNumber)
+	public void requestOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		userUpdateService.setOverwriteUserConfirmationCode(mobileNumber);
+		userUpdateService.requestOverwriteUserConfirmationCode(mobileNumber);
 	}
 
 	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
@@ -109,7 +109,7 @@ public class UserService
 	public UserDto confirmMobileNumber(UUID userId, String userProvidedConfirmationCode)
 	{
 		User updatedUserEntity = updateUser(userId, userEntity -> {
-			ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
+			Optional<ConfirmationCode> confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
 			userAddService.assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 					() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),

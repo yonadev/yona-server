@@ -12,7 +12,9 @@ import static org.mockito.Mockito.when;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +30,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.support.Repositories;
 
+import mockit.MockUp;
+import mockit.Mock;
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.RepositoryProvider;
@@ -265,5 +269,25 @@ public class JUnitUtil
 	public static void skipAfter(String description, ZonedDateTime now, int hour, int minute)
 	{
 		assumeTrue(now.isBefore(now.withHour(hour).withMinute(minute).withSecond(0)), description);
+	}
+
+	public static LocalDateTime mockCurrentTime(String dateTimeUtc)
+	{
+		return mockCurrentTime(LocalDateTime.parse(dateTimeUtc));
+	}
+
+	public static LocalDateTime mockCurrentTime(LocalDateTime dateTime)
+	{
+		Clock clock = Clock.fixed(dateTime.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+
+		new MockUp<TimeUtil>() {
+			@Mock
+			public LocalDateTime utcNow()
+			{
+				return LocalDateTime.now(clock);
+			}
+		};
+
+		return dateTime;
 	}
 }

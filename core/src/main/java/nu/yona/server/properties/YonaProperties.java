@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.properties;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -62,6 +63,8 @@ public class YonaProperties
 	private boolean isEnableHibernateStatsAllowed;
 
 	private boolean isTestServer;
+
+	private Duration overwriteUserConfirmationCodeNonResendInterval = Duration.ofSeconds(30);
 
 	public AnalysisServiceProperties getAnalysisService()
 	{
@@ -205,4 +208,13 @@ public class YonaProperties
 		this.isTestServer = isTestServer;
 	}
 
+	public Duration getOverwriteUserConfirmationCodeNonResendInterval()
+	{
+		return overwriteUserConfirmationCodeNonResendInterval;
+	}
+
+	public void setOverwriteUserConfirmationCodeNonResendInterval(Duration overwriteUserConfirmationCodeNonResendInterval)
+	{
+		this.overwriteUserConfirmationCodeNonResendInterval = overwriteUserConfirmationCodeNonResendInterval;
+	}
 }

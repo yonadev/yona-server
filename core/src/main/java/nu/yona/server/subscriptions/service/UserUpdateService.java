@@ -26,6 +26,7 @@ import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.messaging.service.MessageService;
@@ -40,6 +41,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserPhoto;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.util.Require;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class UserUpdateService
@@ -99,15 +101,37 @@ public class UserUpdateService
 	}
 
 	@Transactional
-	public void setOverwriteUserConfirmationCode(String mobileNumber)
+	public void requestOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(), existingUserEntity -> {
-			ConfirmationCode confirmationCode = createConfirmationCode();
-			existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
-			sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
-			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
-					existingUserEntity.getMobileNumber(), existingUserEntity.getId());
-		});
+		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(),
+				user -> setOverwriteUserConfirmationCodeIfNotDoneRecently(mobileNumber, user));
+	}
+
+	private void setOverwriteUserConfirmationCodeIfNotDoneRecently(String mobileNumber, User user)
+	{
+		if (isOverwriteUserConfirmationCodeStillValid(user.getOverwriteUserConfirmationCode()))
+		{
+			logger.info(
+					"User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code, but the current one is still valid, so no new code is sent",
+					user.getMobileNumber(), user.getId());
+			return;
+		}
+		ConfirmationCode confirmationCode = createConfirmationCode();
+		user.setOverwriteUserConfirmationCode(confirmationCode);
+		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
+		logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
+				user.getMobileNumber(), user.getId());
+	}
+
+	private boolean isOverwriteUserConfirmationCodeStillValid(Optional<ConfirmationCode> overwriteUserConfirmationCode)
+	{
+		return overwriteUserConfirmationCode.map(this::isOverwriteUserConfirmationCodeStillValid).orElse(false);
+	}
+
+	private boolean isOverwriteUserConfirmationCodeStillValid(ConfirmationCode overwriteUserConfirmationCode)
+	{
+		return overwriteUserConfirmationCode.getCreationTime()
+				.isAfter(TimeUtil.utcNow().minus(yonaProperties.getOverwriteUserConfirmationCodeNonResendInterval()));
 	}
 
 	@Transactional
@@ -304,7 +328,9 @@ public class UserUpdateService
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
-		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
+		ConfirmationCode mobileNumberConfirmationCode = savedUserEntity.getMobileNumberConfirmationCode()
+				.orElseThrow(() -> YonaException.illegalState("Mobile number confirmation code must exist in this state"));
+		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), mobileNumberConfirmationCode,
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		UserDto userDto = userLookupService.createUserDto(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),

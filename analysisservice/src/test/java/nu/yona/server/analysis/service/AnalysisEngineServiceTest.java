@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.text.MessageFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -276,6 +277,7 @@ public class AnalysisEngineServiceTest
 	@Test
 	public void analyze_secondConflictAfterConflictInterval_addActivity()
 	{
+		LocalDateTime startTime = JUnitUtil.mockCurrentTime("2020-03-18T20:31:00.000");
 		// Normally there is one conflict message sent.
 		// Set a short conflict interval such that the conflict messages are not aggregated.
 		AnalysisServiceProperties p = new AnalysisServiceProperties();
@@ -285,16 +287,10 @@ public class AnalysisEngineServiceTest
 
 		mockExistingActivity(gamblingGoal, now());
 
-		// Execute the analysis engine service after a period of inactivity longer than the conflict interval.
-
-		try
-		{
-			Thread.sleep(11L);
-		}
-		catch (InterruptedException e)
-		{
-
-		}
+		// Advance clock just enough to pass a period Execute the analysis engine service after a period of inactivity longer than
+		// the conflict interval.
+		// Mock advance of time by 11 ms
+		JUnitUtil.mockCurrentTime(startTime.plus(Duration.parse("PT0.011S")));
 
 		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
