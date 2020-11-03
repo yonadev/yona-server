@@ -31,7 +31,7 @@ public class WeekActivity extends IntervalActivity
 {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "weekActivity", orphanRemoval = true)
 	@BatchSize(size = 25) // When e.g. fetching a week overview with 3 weeks * 4 goals you already get 12 day collections to be
-							// joined
+	// joined
 	private final List<DayActivity> dayActivities = new ArrayList<>();
 
 	// Default constructor is required for JPA
@@ -91,9 +91,10 @@ public class WeekActivity extends IntervalActivity
 	{
 		if (dayActivities.size() >= 7)
 		{
-			throw new IllegalStateException("Week starting at " + getStartDate() + " for goal with ID " + getGoal().getId()
-					+ " is already full (" + dayActivities.size() + " days present) while trying to add day activity for "
-					+ dayActivity.getStartDate());
+			throw new IllegalStateException(
+					"Week starting at " + getStartDate() + " for goal with ID " + getGoal().getId() + " is already full ("
+							+ dayActivities.size() + " days present) while trying to add day activity for " + dayActivity
+							.getStartDate());
 		}
 
 		dayActivity.setWeekActivity(this);

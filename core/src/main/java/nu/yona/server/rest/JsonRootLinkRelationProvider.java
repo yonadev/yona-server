@@ -35,8 +35,9 @@ public class JsonRootLinkRelationProvider implements LinkRelationProvider
 	{
 		Class<?> baseType = determineBaseType(type);
 		JsonRootName rootName = getAnnotationByType(baseType, JsonRootName.class);
-		return (rootName == null) ? defaultLinkRelationProvider.getItemResourceRelFor(baseType)
-				: LinkRelation.of(rootName.value());
+		return (rootName == null) ?
+				defaultLinkRelationProvider.getItemResourceRelFor(baseType) :
+				LinkRelation.of(rootName.value());
 	}
 
 	@Override
@@ -73,7 +74,7 @@ public class JsonRootLinkRelationProvider implements LinkRelationProvider
 
 	private boolean containsType(JsonSubTypes subtypesAnnotation, Class<?> type)
 	{
-		return (subtypesAnnotation != null)
-				&& (Arrays.asList(subtypesAnnotation.value()).stream().anyMatch(t -> t.value() == type));
+		return (subtypesAnnotation != null) && (Arrays.asList(subtypesAnnotation.value()).stream()
+				.anyMatch(t -> t.value() == type));
 	}
 }

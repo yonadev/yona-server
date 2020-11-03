@@ -4,8 +4,9 @@ apply plugin: "application"
 
 mainClassName = "nu.yona.server.AnalysisServiceApplication"
 
-import com.bmuschko.gradle.docker.tasks.container.*
-import com.bmuschko.gradle.docker.tasks.image.*
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 def dockerImageName = "${project.group}/${jar.baseName}"
 
@@ -48,27 +49,26 @@ test {
 bootRun {
 	enableAssertions = true
 
-	if ( project.hasProperty("analysisservice.debug") || project.hasProperty("debug.all")) {
+	if (project.hasProperty("analysisservice.debug") || project.hasProperty("debug.all"))
+	{
 		jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_analysisservice_debug_port + ",server=y,suspend=n"
 	}
 
-	systemProperties = [
-		"server.port": System.getProperty("server.port", project.ext.yona_analysisservice_port),
-		"management.port": System.getProperty("management.port", project.ext.yona_analysisservice_mgmt_port)
-	]
+	systemProperties = ["server.port"    : System.getProperty("server.port", project.ext.yona_analysisservice_port),
+						"management.port": System.getProperty("management.port", project.ext.yona_analysisservice_mgmt_port)]
 }
 
 docker {
 	registryCredentials {
-		username = project.hasProperty("dockerHubUserName")? project.dockerHubUserName : null
-		password = project.hasProperty("dockerHubPassword")? project.dockerHubPassword : null
+		username = project.hasProperty("dockerHubUserName") ? project.dockerHubUserName : null
+		password = project.hasProperty("dockerHubPassword") ? project.dockerHubPassword : null
 	}
-	url = project.hasProperty("dockerUrl")? project.dockerUrl : "http://localhost:2375"
+	url = project.hasProperty("dockerUrl") ? project.dockerUrl : "http://localhost:2375"
 }
 
 task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 	inputDir = mkdir("build/docker")
-	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
+	images = ["${dockerImageName}:${project.ext.docker_tag}"]
 	doFirst {
 		copy {
 			from bootJar
@@ -83,7 +83,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 }
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
+	images = ["${dockerImageName}:${project.ext.docker_tag}"]
 }
 
 sourceSets {
@@ -95,18 +95,16 @@ sourceSets {
 	}
 }
 
-task intTest(type:Test){
+task intTest(type: Test) {
 	description = "Run integration tests (located in src/intTest/...)."
 	testClassesDirs = project.sourceSets.intTest.output.classesDirs
 	classpath = project.sourceSets.intTest.runtimeClasspath
 
-	systemProperties = [
-		"java.util.logging.config.file": "../core/src/testUtils/logging.properties",
-		"yona.adminservice.url": project.ext.yona_adminservice_url,
-		"yona.analysisservice.url": project.ext.yona_analysisservice_url,
-		"yona.appservice.url": project.ext.yona_appservice_url,
-		"yona.batchservice.url": project.ext.yona_batchservice_url
-	]
+	systemProperties = ["java.util.logging.config.file": "../core/src/testUtils/logging.properties",
+						"yona.adminservice.url"        : project.ext.yona_adminservice_url,
+						"yona.analysisservice.url"     : project.ext.yona_analysisservice_url,
+						"yona.appservice.url"          : project.ext.yona_appservice_url,
+						"yona.batchservice.url"        : project.ext.yona_batchservice_url]
 }
 
 bootJar {
@@ -116,7 +114,7 @@ bootJar {
 
 eclipse {
 	classpath {
-		plusConfigurations += [ configurations.intTestCompile ]
+		plusConfigurations += [configurations.intTestCompile]
 	}
 }
 

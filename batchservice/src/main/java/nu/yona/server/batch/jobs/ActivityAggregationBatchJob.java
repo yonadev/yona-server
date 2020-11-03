@@ -85,13 +85,13 @@ public class ActivityAggregationBatchJob
 
 	private Step aggregateDayActivities()
 	{
-		return stepBuilderFactory.get("aggregateDayActivities").<Long, DayActivity> chunk(DAY_ACTIVITY_CHUNK_SIZE)
+		return stepBuilderFactory.get("aggregateDayActivities").<Long, DayActivity>chunk(DAY_ACTIVITY_CHUNK_SIZE)
 				.reader(dayActivityReader).processor(dayActivityProcessor()).writer(dayActivityWriter()).build();
 	}
 
 	private Step aggregateWeekActivities()
 	{
-		return stepBuilderFactory.get("aggregateWeekActivities").<Long, WeekActivity> chunk(WEEK_ACTIVITY_CHUNK_SIZE)
+		return stepBuilderFactory.get("aggregateWeekActivities").<Long, WeekActivity>chunk(WEEK_ACTIVITY_CHUNK_SIZE)
 				.reader(weekActivityReader).processor(weekActivityProcessor()).writer(weekActivityWriter()).build();
 	}
 
@@ -106,7 +106,8 @@ public class ActivityAggregationBatchJob
 
 	private ItemProcessor<Long, DayActivity> dayActivityProcessor()
 	{
-		return new ItemProcessor<Long, DayActivity>() {
+		return new ItemProcessor<Long, DayActivity>()
+		{
 			@Override
 			public DayActivity process(Long dayActivityId) throws Exception
 			{
@@ -139,7 +140,8 @@ public class ActivityAggregationBatchJob
 
 	private ItemProcessor<Long, WeekActivity> weekActivityProcessor()
 	{
-		return new ItemProcessor<Long, WeekActivity>() {
+		return new ItemProcessor<Long, WeekActivity>()
+		{
 			@Override
 			public WeekActivity process(Long weekActivityId) throws Exception
 			{

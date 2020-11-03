@@ -108,10 +108,9 @@ public class WeekActivityDto extends IntervalActivityDto
 		return new WeekActivityDto(goal.getId(), weekActivity.getStartTime(), includeDetail,
 				includeDetail ? weekActivity.getSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
-				weekActivity.getDayActivities().stream()
-						.collect(Collectors.toMap(dayActivity -> dayActivity.getStartDate().getDayOfWeek(),
-								dayActivity -> DayActivityDto.createInstance(earliestPossibleDate, dayActivity, levelOfDetail,
-										userAnonymized))),
+				weekActivity.getDayActivities().stream().collect(Collectors
+						.toMap(dayActivity -> dayActivity.getStartDate().getDayOfWeek(), dayActivity -> DayActivityDto
+								.createInstance(earliestPossibleDate, dayActivity, levelOfDetail, userAnonymized))),
 				weekActivity.hasPrevious(earliestPossibleDate, goal), weekActivity.hasNext());
 	}
 
@@ -145,7 +144,7 @@ public class WeekActivityDto extends IntervalActivityDto
 		// so for consistency it is important that the batch script adding inactivity does so
 		IntStream.range(0, 7).mapToObj(startTime::plusDays).filter(t -> !t.isBefore(earliestPossibleDateTime))
 				.filter(t -> !isInFuture(t, zone)).forEach(t -> determineApplicableGoalForDay(goals, t)
-						.ifPresent(g -> addInactiveDayIfNoActivity(userAnonymized, g, t, levelOfDetail, missingInactivities)));
+				.ifPresent(g -> addInactiveDayIfNoActivity(userAnonymized, g, t, levelOfDetail, missingInactivities)));
 	}
 
 	private static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)

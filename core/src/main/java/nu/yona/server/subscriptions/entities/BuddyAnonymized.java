@@ -100,7 +100,7 @@ public class BuddyAnonymized extends EntityWithUuid
 
 	/**
 	 * Do not call this method directly, it should be called from the Buddy entity to update the last status change time.
-	 * 
+	 *
 	 * @param sendingStatus
 	 */
 	public void setSendingStatus(Status sendingStatus)
@@ -115,7 +115,7 @@ public class BuddyAnonymized extends EntityWithUuid
 
 	/**
 	 * Do not call this method directly, it should be called from the Buddy entity to update the last status change time.
-	 * 
+	 *
 	 * @param sendingStatus
 	 */
 	public void setReceivingStatus(Status receivingStatus)

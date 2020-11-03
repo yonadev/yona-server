@@ -24,13 +24,13 @@ public class ActivityCommentMessageDecorator implements MessageResourceDecorator
 		assertGoalNotNull(goal, activity);
 		if (assembler.getGoalIdMapping().isUserGoal(goal.getId()))
 		{
-			assembler.getMessageController().getUserActivityController().addLinks(assembler.getGoalIdMapping(), activity,
-					activityCommentMessage);
+			assembler.getMessageController().getUserActivityController()
+					.addLinks(assembler.getGoalIdMapping(), activity, activityCommentMessage);
 		}
 		else
 		{
-			assembler.getMessageController().getBuddyActivityController().addLinks(assembler.getGoalIdMapping(), activity,
-					activityCommentMessage);
+			assembler.getMessageController().getBuddyActivityController()
+					.addLinks(assembler.getGoalIdMapping(), activity, activityCommentMessage);
 		}
 	}
 

@@ -82,7 +82,7 @@ class UserAssertionServiceTest
 	private static Stream<Arguments> invalidNumbersSource()
 	{
 		return Stream.of(
-		// @formatter:off
+				// @formatter:off
 			Arguments.of("+31 318 123456", InvalidDataException.invalidMobileNumber("+31 318 123456")),
 			Arguments.of("0318123456", InvalidDataException.invalidMobileNumber("0318123456")),
 			Arguments.of("+31318123456", InvalidDataException.notAMobileNumber("+31318123456", "FIXED_LINE")),

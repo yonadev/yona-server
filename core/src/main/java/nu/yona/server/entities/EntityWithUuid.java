@@ -21,7 +21,7 @@ public abstract class EntityWithUuid
 
 	/**
 	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
-	 * 
+	 *
 	 * @param id The ID of the entity
 	 */
 	protected EntityWithUuid(UUID id)

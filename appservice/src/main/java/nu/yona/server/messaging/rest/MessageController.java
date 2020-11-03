@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,6 +58,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -93,8 +93,8 @@ public class MessageController extends ControllerBase
 			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
 			@PathVariable UUID userId, Pageable pageable, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
 
@@ -115,8 +115,8 @@ public class MessageController extends ControllerBase
 	public HttpEntity<MessageDto> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable long messageId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
 			return createOkResponse(user, messageService.getMessage(user, messageId));
@@ -145,8 +145,8 @@ public class MessageController extends ControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable long id,
 			@PathVariable String action, @RequestBody MessageActionDto requestPayload)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
 
@@ -161,8 +161,8 @@ public class MessageController extends ControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable long messageId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
 			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(user, messageId),

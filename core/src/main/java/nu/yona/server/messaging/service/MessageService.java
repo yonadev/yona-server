@@ -362,8 +362,9 @@ public class MessageService
 
 	private void sendFirebaseNotification(DeviceAnonymizedDto deviceAnonymized, Message message)
 	{
-		LocaleContextHelper.inLocaleContext(() -> firebaseService.sendMessage(deviceAnonymized.getId(),
-				deviceAnonymized.getFirebaseInstanceId().get(), message), deviceAnonymized.getLocale());
+		LocaleContextHelper.inLocaleContext(() -> firebaseService
+						.sendMessage(deviceAnonymized.getId(), deviceAnonymized.getFirebaseInstanceId().get(), message),
+				deviceAnonymized.getLocale());
 	}
 
 	@Transactional

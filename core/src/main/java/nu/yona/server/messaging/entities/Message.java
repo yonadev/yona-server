@@ -83,7 +83,7 @@ public abstract class Message extends EntityWithId
 
 	/**
 	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
-	 * 
+	 *
 	 * @param original Message to copy.
 	 */
 	protected Message(Message original)
@@ -193,9 +193,9 @@ public abstract class Message extends EntityWithId
 	 * <li>In case of a system-originated message (e.g. a goal conflict message), it is the user for which this message is
 	 * sent</li>
 	 * </ul>
-	 * 
+	 *
 	 * @return The ID of the related anonymized user. Might be null if that user was already deleted at the time this message was
-	 *         sent on behalf of that user.
+	 * sent on behalf of that user.
 	 */
 	public Optional<UUID> getRelatedUserAnonymizedId()
 	{
@@ -212,8 +212,8 @@ public abstract class Message extends EntityWithId
 	{
 		Set<Message> messagesToBeCascadinglyDeleted = new HashSet<>();
 		messagesToBeCascadinglyDeleted.addAll(replies);
-		messagesToBeCascadinglyDeleted.addAll(
-				replies.stream().flatMap(m -> m.getMessagesToBeCascadinglyDeleted().stream()).collect(Collectors.toSet()));
+		messagesToBeCascadinglyDeleted.addAll(replies.stream().flatMap(m -> m.getMessagesToBeCascadinglyDeleted().stream())
+				.collect(Collectors.toSet()));
 		return messagesToBeCascadinglyDeleted;
 	}
 
@@ -232,7 +232,7 @@ public abstract class Message extends EntityWithId
 	 * </ul>
 	 * For this to work, the message class needs to have a public copy constructor. Currently, it is only implemented for message
 	 * sent to the direct message destination of a user.
-	 * 
+	 *
 	 * @return The duplicate message
 	 */
 	public Message duplicate()
@@ -246,8 +246,7 @@ public abstract class Message extends EntityWithId
 		{
 			return message.getClass().getConstructor(message.getClass()).newInstance(message);
 		}
-		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException e)
+		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e)
 		{
 			throw YonaException.unexpected(e);
 		}

@@ -1,11 +1,11 @@
 databaseChangeLog:
-- changeSet:
-    id: 1502222484608-1
-    author: avdijk (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: app
-            type: varchar(255)
-        tableName: activities
+  - changeSet:
+      id: 1502222484608-1
+      author: avdijk (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: app
+                  type: varchar(255)
+            tableName: activities

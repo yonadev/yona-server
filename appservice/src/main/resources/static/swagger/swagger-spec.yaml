@@ -39,7 +39,7 @@ parameters:
   requestingDeviceId:
     name: requestingDeviceId
     in: query
-    description: The ID of the device from which the request originates. Several operations take this query parameter to enable returning a device-specific URL for the open-app event and to post the app activities 
+    description: The ID of the device from which the request originates. Several operations take this query parameter to enable returning a device-specific URL for the open-app event and to post the app activities
     required: false
     type: string
   tempPassword:
@@ -79,17 +79,17 @@ parameters:
     required: true
     type: string
   messageID:
-      name: messageID
-      in: path
-      description: The ID of the message
-      required: true
-      type: string
+    name: messageID
+    in: path
+    description: The ID of the message
+    required: true
+    type: string
   mobileNumber:
-      name: mobileNumber
-      in: path
-      description: The mobile number of the user
-      required: true
-      type: string
+    name: mobileNumber
+    in: path
+    description: The mobile number of the user
+    required: true
+    type: string
 paths:
   /users/:
     post:
@@ -229,7 +229,7 @@ paths:
     put:
       summary: Upload a user photo
       description: Adds or replaces the user photo for this user. A multipart/form-data request is expected with a "file" field containing an image. The image is expected to be resized already.
-      consumes: 
+      consumes:
         - multipart/form-data
       parameters:
         - $ref: "#/parameters/userID"
@@ -263,7 +263,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'               
+            $ref: '#/definitions/Error'
   '/userPhotos/{userPhotoID}':
     get:
       summary: Get the user photo
@@ -1529,7 +1529,7 @@ definitions:
         properties:
           href:
             type: string
-            description: Refers to the URL to upload/delete an image          
+            description: Refers to the URL to upload/delete an image
   MessagesLink:
     type: object
     properties:
@@ -1836,9 +1836,9 @@ definitions:
     type: string
     description: The operating system of the device running the Yona app
     enum:
-    - ANDROID
-    - IOS
-    - UNKNOWN
+      - ANDROID
+      - IOS
+      - UNKNOWN
     example: ANDROID
   DeviceAppVersion:
     type: string
@@ -1982,10 +1982,10 @@ definitions:
         description: Nickname known among buddies.
         example: RQ
     required:
-    - firstName
-    - lastName
-    - mobileNumber
-    - nickname
+      - firstName
+      - lastName
+      - mobileNumber
+      - nickname
   PrivateUserData:
     type: object
     properties:
@@ -2190,8 +2190,8 @@ definitions:
       "@type":
         type: string
         enum:
-        - BudgetGoal
-        - TimeZoneGoal
+          - BudgetGoal
+          - TimeZoneGoal
         description: The type of goal
       _links:
         allOf:
@@ -2225,7 +2225,7 @@ definitions:
             type: array
             items:
               type: integer
-            description: This property cannot be passed in PUT/POST. An array with indexes of the spread that are within the goal boundaries, used to interpret the spread as defined in the day and week activity. 
+            description: This property cannot be passed in PUT/POST. An array with indexes of the spread that are within the goal boundaries, used to interpret the spread as defined in the day and week activity.
         required:
           - zones
   Goal:
@@ -2235,8 +2235,8 @@ definitions:
       "@type":
         type: string
         enum:
-        - BudgetGoal
-        - TimeZoneGoal
+          - BudgetGoal
+          - TimeZoneGoal
         description: The type of goal
       _links:
         allOf:
@@ -2279,10 +2279,10 @@ definitions:
     type: string
     description: The status of this buddy or buddy connect request
     enum:
-    - NOT_REQUESTED
-    - REQUESTED
-    - ACCEPTED
-    - REJECTED
+      - NOT_REQUESTED
+      - REQUESTED
+      - ACCEPTED
+      - REJECTED
   PostPutBuddyUser:
     allOf:
       - $ref: '#/definitions/BaseUser'
@@ -2318,7 +2318,7 @@ definitions:
             type: object
             properties:
               "yona:user":
-                  $ref: "#/definitions/PostPutBuddyUser"
+                $ref: "#/definitions/PostPutBuddyUser"
             required:
               - "yona:user"
         required:
@@ -2342,7 +2342,7 @@ definitions:
             type: object
             properties:
               "yona:user":
-                  $ref: "#/definitions/UserWithOnlyPublicData"
+                $ref: "#/definitions/UserWithOnlyPublicData"
             required:
               - "yona:user"
           _links:
@@ -2416,23 +2416,23 @@ definitions:
       "@type":
         type: string
         enum:
-        - BuddyConnectRequestMessage
-        - BuddyConnectResponseMessage
-        - BuddyDisconnectMessage
-        - BuddyInfoChangeMessage
-        - BuddyDeviceChangeMessage
-        - GoalConflictMessage
-        - GoalChangeMessage
-        - DisclosureRequestMessage
-        - DisclosureResponseMessage
-        - ActivityCommentMessage
-        - SystemMessage
-        - BuddyVpnConnectionStatusChangeMessage
+          - BuddyConnectRequestMessage
+          - BuddyConnectResponseMessage
+          - BuddyDisconnectMessage
+          - BuddyInfoChangeMessage
+          - BuddyDeviceChangeMessage
+          - GoalConflictMessage
+          - GoalChangeMessage
+          - DisclosureRequestMessage
+          - DisclosureResponseMessage
+          - ActivityCommentMessage
+          - SystemMessage
+          - BuddyVpnConnectionStatusChangeMessage
       _links:
-         allOf:
-           - $ref: '#/definitions/Curies'
-           - $ref: '#/definitions/SelfLink'
-           - $ref: '#/definitions/UserPhotoLink'
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/UserPhotoLink'
       messageId:
         type: integer
         format: long
@@ -2475,7 +2475,7 @@ definitions:
             example: On Monday, 7th of November from 12am-6am UTC we will restart our servers. You will not be able to use the Yona app in this window.
         required:
           - _links
-          - message      
+          - message
   BuddyMessage:
     allOf:
       - $ref: '#/definitions/Message'
@@ -2496,7 +2496,7 @@ definitions:
             type: object
             properties:
               "yona:user":
-                  $ref: "#/definitions/UserWithOnlyPublicData"
+                $ref: "#/definitions/UserWithOnlyPublicData"
             required:
               - "yona:user"
   BuddyConnectRequestMessage:
@@ -2599,17 +2599,17 @@ definitions:
     type: string
     description: The status of this goal conflict message or disclosure request
     enum:
-    - ANNOUNCED
-    - DISCLOSURE_REQUESTED
-    - DISCLOSURE_ACCEPTED
-    - DISCLOSURE_REJECTED
+      - ANNOUNCED
+      - DISCLOSURE_REQUESTED
+      - DISCLOSURE_ACCEPTED
+      - DISCLOSURE_REJECTED
   GoalChange:
     type: string
     description: The change applied to a goal
     enum:
-    - GOAL_ADDED
-    - GOAL_CHANGED
-    - GOAL_DELETED
+      - GOAL_ADDED
+      - GOAL_CHANGED
+      - GOAL_DELETED
   GoalConflictMessage:
     allOf:
       - $ref: '#/definitions/Message'
@@ -2818,19 +2818,19 @@ definitions:
       dayActivities:
         properties:
           SUNDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           MONDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           TUESDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           WEDNESDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           THURSDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           FRIDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           SATURDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
       _links:
         allOf:
           - $ref: '#/definitions/GoalLink'
@@ -2860,19 +2860,19 @@ definitions:
       dayActivities:
         properties:
           SUNDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           MONDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           TUESDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           WEDNESDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           THURSDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           FRIDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
           SATURDAY:
-              $ref: '#/definitions/DayGoalActivityInWeek'
+            $ref: '#/definitions/DayGoalActivityInWeek'
       _links:
         allOf:
           - $ref: '#/definitions/Curies'

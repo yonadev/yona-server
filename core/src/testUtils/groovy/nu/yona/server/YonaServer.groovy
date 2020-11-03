@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 
-import groovy.json.*
+import groovy.json.JsonSlurper
 import groovyx.net.http.RESTClient
 import groovyx.net.http.URIBuilder
 
@@ -24,7 +24,7 @@ class YonaServer
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
 
-	YonaServer (baseUrl)
+	YonaServer(baseUrl)
 	{
 		restClient = new RESTClient(baseUrl)
 
@@ -84,10 +84,10 @@ class YonaServer
 
 	def deleteResource(path, parameters = [:], headers = [:])
 	{
-		restClient.delete(path: stripQueryString(path), query:parameters + getQueryParams(path), headers: headers)
+		restClient.delete(path: stripQueryString(path), query: parameters + getQueryParams(path), headers: headers)
 	}
 
-	def getResourceWithPassword(path, password, parameters = [:], headers =[:])
+	def getResourceWithPassword(path, password, parameters = [:], headers = [:])
 	{
 		getResource(path, parameters, addPasswordToHeaders(headers, password))
 	}
@@ -95,9 +95,9 @@ class YonaServer
 	def getResource(path, parameters = [:], headers = [:])
 	{
 		restClient.get(path: stripQueryString(path),
-		contentType:'application/json',
-		query: parameters + getQueryParams(path),
-		headers: headers)
+				contentType: 'application/json',
+				query: parameters + getQueryParams(path),
+				headers: headers)
 	}
 
 	def postJson(path, jsonString, parameters = [:], headers = [:])
@@ -113,10 +113,10 @@ class YonaServer
 		}
 
 		restClient.post(path: stripQueryString(path),
-		body: object,
-		contentType:'application/json',
-		query: parameters + getQueryParams(path),
-		headers: headers)
+				body: object,
+				contentType: 'application/json',
+				query: parameters + getQueryParams(path),
+				headers: headers)
 	}
 
 	def putJson(path, jsonString, parameters = [:], headers = [:])
@@ -132,22 +132,22 @@ class YonaServer
 		}
 
 		restClient.put(path: stripQueryString(path),
-		body: object,
-		contentType:'application/json',
-		headers: headers,
-		query: parameters + getQueryParams(path))
+				body: object,
+				contentType: 'application/json',
+				headers: headers,
+				query: parameters + getQueryParams(path))
 	}
 
 	static def getQueryParams(url)
 	{
 		def uriBuilder = new URIBuilder(url)
-		if(uriBuilder.query)
+		if (uriBuilder.query)
 		{
 			return uriBuilder.query
 		}
 		else
 		{
-			return [ : ]
+			return [:]
 		}
 	}
 
@@ -155,32 +155,32 @@ class YonaServer
 	{
 		def file = new File("build/reports/tests/intTest/" + heading + ".md")
 		file << "# $heading\n\n"
-		def statNames = (statistics[statistics.keySet().first()].keySet().findAll{ it != "startTime" && it != "sqlStatements"} as List).sort()
-		storeRow(file, ["Operation"]+ statNamesToHeadingNames(statNames))
-		storeRow(file, ["---"]* (statNames.size() + 1))
-		statistics.each{ k, v -> storeRow(file, [k]+ statNames.collect{v[it]}) }
+		def statNames = (statistics[statistics.keySet().first()].keySet().findAll { it != "startTime" && it != "sqlStatements" } as List).sort()
+		storeRow(file, ["Operation"] + statNamesToHeadingNames(statNames))
+		storeRow(file, ["---"] * (statNames.size() + 1))
+		statistics.each { k, v -> storeRow(file, [k] + statNames.collect { v[it] }) }
 
 		file << "\n# SQL statements\n\n"
-		statistics.each{ k, v -> storeSqlStatements(file, k, v["sqlStatements"]) }
+		statistics.each { k, v -> storeSqlStatements(file, k, v["sqlStatements"]) }
 	}
 
 	private static def statNamesToHeadingNames(def statNames)
 	{
 		statNames = statNames*.minus("Count")
 		statNames*.uncapitalize()
-		statNames.collect{ it.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")*.uncapitalize().join(" ")}*.capitalize()
+		statNames.collect { it.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")*.uncapitalize().join(" ") }*.capitalize()
 	}
 
 	private static storeRow(def file, def cells)
 	{
-		cells.each{ file << "| $it"}
+		cells.each { file << "| $it" }
 		file << "\n"
 	}
 
 	private static storeSqlStatements(file, testName, sqlStatements)
 	{
 		file << "\n## $testName\n"
-		sqlStatements.each{ file << "1. ``$it``\n"}
+		sqlStatements.each { file << "1. ``$it``\n" }
 	}
 
 	static def stripQueryString(url)
@@ -204,33 +204,30 @@ class YonaServer
 	static String makeStringList(def strings)
 	{
 		def stringList = ""
-		strings.each(
-				{
-					stringList += (stringList) ? ", " : ""
-					stringList += '\"' + it + '\"'
-				})
+		strings.each({
+			stringList += (stringList) ? ", " : ""
+			stringList += '\"' + it + '\"'
+		})
 		return stringList
 	}
 
 	static String makeList(def itemsJson)
 	{
 		def list = ""
-		itemsJson.each(
-				{
-					list += (list) ? ", " : ""
-					list += it
-				})
+		itemsJson.each({
+			list += (list) ? ", " : ""
+			list += it
+		})
 		return list
 	}
 
 	static String makeStringMap(def strings)
 	{
 		def stringList = ""
-		strings.keySet().each(
-				{
-					stringList += (stringList) ? ", " : ""
-					stringList += '\"' + it + '\" : \"' + strings[it] + '\"'
-				})
+		strings.keySet().each({
+			stringList += (stringList) ? ", " : ""
+			stringList += '\"' + it + '\" : \"' + strings[it] + '\"'
+		})
 		return stringList
 	}
 
@@ -276,15 +273,14 @@ class YonaServer
 				assert fields[0].startsWith("W")
 				weekOffset = Integer.parseInt(fields[0].substring(1))
 				parsedFields++
-			// Fall through
+		// Fall through
 			case 2:
 				int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee")
-				.withLocale(Locale.forLanguageTag("en-US"))
-				.parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK)
-				)
+						.withLocale(Locale.forLanguageTag("en-US"))
+						.parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK))
 				dayOffset = weekDay - getDayOfWeek(now)
 				parsedFields++
-			// Fall through
+		// Fall through
 			case 1:
 				ZonedDateTime dateTime = parseTimeForDay(fields[parsedFields], now.plusDays(dayOffset).plusWeeks(weekOffset).getLong(ChronoField.EPOCH_DAY))
 				assert dateTime.compareTo(now) <= 0 // Must be in the past
@@ -296,27 +292,26 @@ class YonaServer
 	{
 		DateTimeFormatter formatter =
 				new DateTimeFormatterBuilder().appendPattern("HH:mm[:ss][.SSS]")
-				.parseDefaulting(ChronoField.EPOCH_DAY, epochDay)
-				.toFormatter()
-				.withZone(EUROPE_AMSTERDAM_ZONE)
+						.parseDefaulting(ChronoField.EPOCH_DAY, epochDay)
+						.toFormatter()
+						.withZone(EUROPE_AMSTERDAM_ZONE)
 		ZonedDateTime.parse(timeString, formatter)
 	}
 
 	/**
 	 * Given a number of weeks back and a short day (e.g. Mon), calculates the number of days since today.
 	 * This allows to use it in an array of days, where [0] is today.
-	 * 
+	 *
 	 * @param weeksBack The number of weeks back in time
 	 * @param shortDay Short day, e.g. Sun or Mon
-	 *  
+	 *
 	 * @return The number of days since today.
 	 */
 	static def relativeDateStringToDaysOffset(int weeksBack, String shortDay)
 	{
 		int targetWeekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee")
 				.withLocale(Locale.forLanguageTag("en-US"))
-				.parse(shortDay).get(ChronoField.DAY_OF_WEEK)
-				)
+				.parse(shortDay).get(ChronoField.DAY_OF_WEEK))
 		int currentWeekDay = now.dayOfWeek.value
 		int dayOffset = currentWeekDay - targetWeekDay
 		return weeksBack * 7 + dayOffset

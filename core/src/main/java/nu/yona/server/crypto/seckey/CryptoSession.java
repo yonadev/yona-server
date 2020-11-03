@@ -145,7 +145,7 @@ public class CryptoSession implements AutoCloseable
 
 	/**
 	 * Encrypts the given plaintext bytes.
-	 * 
+	 *
 	 * @param plaintext the bytes to be encrypted
 	 * @return the encrypted bytes, with the crypto variant number prepended to it.
 	 */
@@ -156,7 +156,7 @@ public class CryptoSession implements AutoCloseable
 
 	/**
 	 * Decrypts the given ciphertext bytes.
-	 * 
+	 *
 	 * @param ciphertext the bytes to be decrypted, with a leading crypto variant number
 	 * @return the decrypted bytes
 	 */
@@ -242,8 +242,8 @@ public class CryptoSession implements AutoCloseable
 		}
 		if (initializationVector.length != SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH)
 		{
-			throw CryptoException.initializationVectorWrongSize(initializationVector.length,
-					SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
+			throw CryptoException
+					.initializationVectorWrongSize(initializationVector.length, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{

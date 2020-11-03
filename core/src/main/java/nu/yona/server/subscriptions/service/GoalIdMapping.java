@@ -62,10 +62,12 @@ public class GoalIdMapping
 
 	public static GoalIdMapping createInstance(UserAnonymizedService userAnonymizedService, User user)
 	{
-		Set<UUID> userGoalIds = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId()).getGoalsIncludingHistoryItems().stream().map(GoalDto::getGoalId).collect(Collectors.toSet());
+		Set<UUID> userGoalIds = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId())
+				.getGoalsIncludingHistoryItems().stream().map(GoalDto::getGoalId).collect(Collectors.toSet());
 		Map<UUID, UUID> goalIdToBuddyIdmapping = new HashMap<>();
-		user.getBuddies().stream().filter(Buddy::isAccepted).forEach(b -> userAnonymizedService.getUserAnonymized(b.getUserAnonymizedId().get()).getGoalsIncludingHistoryItems()
-				.forEach(g -> goalIdToBuddyIdmapping.put(g.getGoalId(), b.getId())));
+		user.getBuddies().stream().filter(Buddy::isAccepted).forEach(
+				b -> userAnonymizedService.getUserAnonymized(b.getUserAnonymizedId().get()).getGoalsIncludingHistoryItems()
+						.forEach(g -> goalIdToBuddyIdmapping.put(g.getGoalId(), b.getId())));
 		Map<UUID, UUID> buddyIdToUserIdmapping = new HashMap<>();
 		user.getBuddies().forEach(b -> buddyIdToUserIdmapping.put(b.getId(), b.getUser().getId()));
 		return new GoalIdMapping(user.getId(), userGoalIds, goalIdToBuddyIdmapping, buddyIdToUserIdmapping);

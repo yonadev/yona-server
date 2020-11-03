@@ -6,7 +6,10 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertEquals
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import java.time.Duration
 import java.time.ZonedDateTime
@@ -62,10 +65,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
-		{
-			it."@type" == "GoalConflictMessage"
-		}
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
@@ -73,10 +73,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll
-		{
-			it."@type" == "GoalConflictMessage"
-		}
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
 		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
@@ -97,7 +94,8 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 		setCreationTime(richard, "W-1 Mon 02:18")
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
-		Duration offset = Duration.ofMinutes(45) // Off by 45 minutes
+		Duration offset = Duration.ofMinutes(45)
+		// Off by 45 minutes
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 11:00")
 		ZonedDateTime endTime = startTime.plusHours(1)
 
@@ -112,7 +110,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
@@ -120,7 +118,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
 		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
@@ -154,12 +152,12 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 
 		cleanup:
@@ -189,7 +187,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
@@ -197,7 +195,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
@@ -227,7 +225,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
-		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll{ it."@type" == "GoalConflictMessage"} == null
+		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" } == null
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -350,7 +348,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll{ it."@type" == "GoalConflictMessage"}?.size()
+		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" }?.size()
 		// Don't poke into the messages. The app activity spans many days and we only support activities spanning at most two days
 
 		cleanup:
@@ -398,7 +396,8 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def appActOne = new AppActivity.Activity("Poker App", appActOneStartTime, appActOneEndTime)
 		def appActTwo = new AppActivity.Activity("Poker App", appActTwoStartTime, appActTwoEndTime)
 		ZonedDateTime netActStartTime = goalCreationTime.plusHours(2)
-		int netActDuration = 1 // Default duration for a network activity
+		int netActDuration = 1
+		// Default duration for a network activity
 
 		when:
 		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com", netActStartTime)

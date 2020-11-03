@@ -65,8 +65,8 @@ import nu.yona.server.test.util.BaseSpringIntegrationTest;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.messaging.service",
 		"nu.yona.server.subscriptions.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.MessageService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.MessageService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
 class MessageServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 	@Bean
@@ -136,8 +136,9 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>();
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 5,
-				Optional.of(FIREBASE_REGISTRATION_TOKEN), Translator.EN_US_LOCALE);
+		deviceAnonEntity = DeviceAnonymized
+				.createInstance(0, OperatingSystem.ANDROID, "Unknown", 5, Optional.of(FIREBASE_REGISTRATION_TOKEN),
+						Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonEntity);
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);

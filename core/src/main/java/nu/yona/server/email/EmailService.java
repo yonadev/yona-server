@@ -52,7 +52,8 @@ public class EmailService
 			try
 			{
 				logger.info("About to call mailSender.send");
-				mailSender.send(preparator);}
+				mailSender.send(preparator);
+			}
 			finally
 			{
 				logger.info("mailSender.send completed, possibly with an exception");
@@ -89,7 +90,7 @@ public class EmailService
 	/**
 	 * Returns the last sent email, provided the service was configured for testing. In the production configuration, the last
 	 * email is not retained.
-	 * 
+	 *
 	 * @return the last sent email, provided the service was configured for testing. Null otherwise.
 	 */
 	public EmailDto getLastEmail()

@@ -88,8 +88,8 @@ public class GoalChangeMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return GoalChangeMessageDto.createInstance((GoalChangeMessage) messageEntity,
-					getSenderInfo(actingUser, messageEntity));
+			return GoalChangeMessageDto
+					.createInstance((GoalChangeMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

@@ -6,9 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 {
@@ -24,7 +23,7 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def rejectMessage = "Sorry, not you"
-		def rejectResponse = appService.postMessageActionWithPassword(rejectUrl, ["message" : rejectMessage], bob.password)
+		def rejectResponse = appService.postMessageActionWithPassword(rejectUrl, ["message": rejectMessage], bob.password)
 
 		then:
 		assertResponseStatusOk(rejectResponse)

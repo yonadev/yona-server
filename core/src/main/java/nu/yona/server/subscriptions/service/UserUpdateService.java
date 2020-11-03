@@ -90,9 +90,9 @@ public class UserUpdateService
 
 	public String generateConfirmationCode()
 	{
-		return (yonaProperties.getSms().isEnabled())
-				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits())
-				: "1234";
+		return (yonaProperties.getSms().isEnabled()) ?
+				CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) :
+				"1234";
 	}
 
 	ConfirmationCode createConfirmationCode()
@@ -185,12 +185,11 @@ public class UserUpdateService
 	{
 		OwnUserPrivateDataDto existingPrivateData = existingUser.getOwnPrivateData();
 		OwnUserPrivateDataDto newPrivateData = newUser.getOwnPrivateData();
-		return !newUser.getMobileNumber().equals(existingUser.getMobileNumber())
-				|| !existingPrivateData.getFirstName().equals(newPrivateData.getFirstName())
-				|| !existingPrivateData.getLastName().equals(newPrivateData.getLastName())
+		return !newUser.getMobileNumber().equals(existingUser.getMobileNumber()) || !existingPrivateData.getFirstName()
+				.equals(newPrivateData.getFirstName()) || !existingPrivateData.getLastName().equals(newPrivateData.getLastName())
 				|| !existingPrivateData.getNickname().equals(newPrivateData.getNickname())
-				|| newPrivateData.getYonaPassword() != null
-						&& !existingPrivateData.getYonaPassword().equals(newPrivateData.getYonaPassword());
+				|| newPrivateData.getYonaPassword() != null && !existingPrivateData.getYonaPassword()
+				.equals(newPrivateData.getYonaPassword());
 
 	}
 
@@ -201,8 +200,8 @@ public class UserUpdateService
 	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
 	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
 	 * would cause the GETs to fail rather than to wait for the other one to complete.
-	 * 
-	 * @param id The ID of the user to update
+	 *
+	 * @param id           The ID of the user to update
 	 * @param updateAction The update action to perform
 	 * @return The updated and saved user
 	 */
@@ -222,10 +221,10 @@ public class UserUpdateService
 	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
 	 * would cause the GETs to fail rather than to wait for the other one to complete.
 	 *
-	 * @param id The ID of the user to update
+	 * @param id           The ID of the user to update
 	 * @param updateAction The update action to perform
 	 * @return an {@code Optional} describing the updated and saved user, or an empty {@code Optional} if a user with this ID
-	 *         cannot be found
+	 * cannot be found
 	 */
 	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
 	public Optional<User> updateUserIfExisting(UUID id, Consumer<User> updateAction)
@@ -239,7 +238,7 @@ public class UserUpdateService
 	 * Applies the given udpate action on the user and saves the user to the repository.<br/>
 	 * NOTE: This method is intended to be called while holding a pessimistic lock on the user entity.
 	 *
-	 * @param user The user to update
+	 * @param user         The user to update
 	 * @param updateAction The update action to perform
 	 * @return the updated and saved user
 	 */

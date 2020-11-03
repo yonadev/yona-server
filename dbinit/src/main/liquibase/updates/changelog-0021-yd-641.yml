@@ -1,557 +1,557 @@
 databaseChangeLog:
-- changeSet:
-    id: 1567747746730-1
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: activity_category_id
-        tableName: activities
-- changeSet:
-    id: 1567747746730-2
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: activity_category_id
-        tableName: goals
-- changeSet:
-    id: 1567747746730-4
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: anonymous_destination_id
-        tableName: users_anonymized
-- changeSet:
-    id: 1567747746730-5
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: anonymous_message_source_id
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-6
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: app
-        tableName: activities
-- changeSet:
-    id: 1567747746730-7
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: app_last_opened_date
-        tableName: user_devices
-- changeSet:
-    id: 1567747746730-8
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: date
-        columnName: app_last_opened_date
-        tableName: users
-- changeSet:
-    id: 1567747746730-9
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: app_version
-        tableName: devices_anonymized
-- changeSet:
-    id: 1567747746730-10
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: int
-        columnName: app_version_code
-        tableName: devices_anonymized
-- changeSet:
-    id: 1567747746730-11
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: applications
-        tableName: activity_category_applications
-- changeSet:
-    id: 1567747746730-12
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: buddy_anonymized_id
-        tableName: buddies
-- changeSet:
-    id: 1567747746730-13
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: confirmation_code
-        tableName: confirmation_codes
-- changeSet:
-    id: 1567747746730-14
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: decryption_check
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-15
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: decryption_check_cipher_text
-        tableName: new_device_requests
-- changeSet:
-    id: 1567747746730-16
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: device_anonymized_id
-        tableName: activities
-- changeSet:
-    id: 1567747746730-17
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: device_anonymized_id
-        tableName: buddy_devices
-- changeSet:
-    id: 1567747746730-18
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: device_anonymized_id
-        tableName: user_devices
-- changeSet:
-    id: 1567747746730-19
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: device_anonymized_id
-        tableName: vpn_status_change_events
-- changeSet:
-    id: 1567747746730-20
-    author: bert (generated)
-    changes:
-    - addNotNullConstraint:
-        columnDataType: int
-        columnName: device_index
-        tableName: devices_anonymized
-- changeSet:
-    id: 1567747746730-21
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: firebase_instance_id
-        tableName: devices_anonymized
-- changeSet:
-    id: 1567747746730-22
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: first_name
-        tableName: buddies
-- changeSet:
-    id: 1567747746730-23
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: first_name
-        tableName: users
-- changeSet:
-    id: 1567747746730-24
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: first_name
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-26
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: goal_id
-        tableName: interval_activities
-- changeSet:
-    id: 1567747746730-28
-    author: bert (generated)
-    changes:
-    - addNotNullConstraint:
-        columnDataType: boolean
-        columnName: is_legacy_vpn_account
-        tableName: user_devices
-    - dropDefaultValue:
-        columnDataType: boolean
-        columnName: is_legacy_vpn_account
-        tableName: user_devices
-- changeSet:
-    id: 1567747746730-33
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: last_name
-        tableName: buddies
-- changeSet:
-    id: 1567747746730-34
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: last_name
-        tableName: users
-- changeSet:
-    id: 1567747746730-35
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: last_name
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-36
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: last_status_change_time
-        tableName: buddies
-- changeSet:
-    id: 1567747746730-37
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: localizable_description
-        tableName: activity_category_localizable_description
-- changeSet:
-    id: 1567747746730-38
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: localizable_name
-        tableName: activity_category_localizable_name
-- changeSet:
-    id: 1567747746730-40
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: message_destination_id
-        tableName: message_sources
-- changeSet:
-    id: 1567747746730-41
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: message_destination_id
-        tableName: messages
-- changeSet:
-    id: 1567747746730-42
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: message_destination_id
-        tableName: users
-- changeSet:
-    id: 1567747746730-43
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: mobile_number
-        tableName: users
-- changeSet:
-    id: 1567747746730-44
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: mobile_number
-        tableName: white_listed_number
-- changeSet:
-    id: 1567747746730-45
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: mobile_number_confirmation_code_id
-        tableName: users
-- changeSet:
-    id: 1567747746730-46
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: name
-        tableName: buddy_devices
-- changeSet:
-    id: 1567747746730-47
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: name
-        tableName: user_devices
-- changeSet:
-    id: 1567747746730-48
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: named_message_source_id
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-49
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: new_device_request_id
-        tableName: users
-- changeSet:
-    id: 1567747746730-50
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: nickname
-        tableName: buddies
-- changeSet:
-    id: 1567747746730-51
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: nickname
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-52
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: overwrite_user_confirmation_code_id
-        tableName: users
-- changeSet:
-    id: 1567747746730-53
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: owning_buddy_id
-        tableName: buddy_devices
-- changeSet:
-    id: 1567747746730-54
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: owning_user_anonymized_id
-        tableName: buddies_anonymized
-- changeSet:
-    id: 1567747746730-55
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: owning_user_private_id
-        tableName: buddies
-- changeSet:
-    id: 1567747746730-56
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: pin_reset_confirmation_code_id
-        tableName: users
-- changeSet:
-    id: 1567747746730-57
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: previous_instance_of_this_goal_id
-        tableName: goals
-- changeSet:
-    id: 1567747746730-58
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: int
-        columnName: private_data_migration_version
-        tableName: users
-- changeSet:
-    id: 1567747746730-59
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(1024)
-        columnName: private_key_bytes
-        tableName: message_sources
-- changeSet:
-    id: 1567747746730-60
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: registration_time
-        tableName: user_devices
-- changeSet:
-    id: 1567747746730-61
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: related_user_anonymized_id
-        tableName: messages
-- changeSet:
-    id: 1567747746730-62
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: smoothwall_categories
-        tableName: activity_category_smoothwall_categories
-- changeSet:
-    id: 1567747746730-63
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: time_zone
-        tableName: activities
-- changeSet:
-    id: 1567747746730-64
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: time_zone
-        tableName: interval_activities
-- changeSet:
-    id: 1567747746730-65
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_anonymized_id
-        tableName: buddies_anonymized
-- changeSet:
-    id: 1567747746730-66
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_anonymized_id
-        tableName: devices_anonymized
-- changeSet:
-    id: 1567747746730-67
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_anonymized_id
-        tableName: goals
-- changeSet:
-    id: 1567747746730-68
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_anonymized_id
-        tableName: interval_activities
-- changeSet:
-    id: 1567747746730-69
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_anonymized_id
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-70
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_id
-        tableName: buddies
-- changeSet:
-    id: 1567747746730-71
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_photo_id
-        tableName: buddies
-- changeSet:
-    id: 1567747746730-72
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_photo_id
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-73
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_private_id
-        tableName: user_devices
-- changeSet:
-    id: 1567747746730-74
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: user_private_id
-        tableName: users
-- changeSet:
-    id: 1567747746730-75
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: vpn_password
-        tableName: user_devices
-- changeSet:
-    id: 1567747746730-76
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: vpn_password
-        tableName: users_private
-- changeSet:
-    id: 1567747746730-77
-    author: bert (generated)
-    changes:
-    - dropDefaultValue:
-        columnDataType: varchar(255)
-        columnName: yona_password_cipher_text
-        tableName: new_device_requests
+  - changeSet:
+      id: 1567747746730-1
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: activity_category_id
+            tableName: activities
+  - changeSet:
+      id: 1567747746730-2
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: activity_category_id
+            tableName: goals
+  - changeSet:
+      id: 1567747746730-4
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: anonymous_destination_id
+            tableName: users_anonymized
+  - changeSet:
+      id: 1567747746730-5
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: anonymous_message_source_id
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-6
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: app
+            tableName: activities
+  - changeSet:
+      id: 1567747746730-7
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: app_last_opened_date
+            tableName: user_devices
+  - changeSet:
+      id: 1567747746730-8
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: date
+            columnName: app_last_opened_date
+            tableName: users
+  - changeSet:
+      id: 1567747746730-9
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: app_version
+            tableName: devices_anonymized
+  - changeSet:
+      id: 1567747746730-10
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: int
+            columnName: app_version_code
+            tableName: devices_anonymized
+  - changeSet:
+      id: 1567747746730-11
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: applications
+            tableName: activity_category_applications
+  - changeSet:
+      id: 1567747746730-12
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: buddy_anonymized_id
+            tableName: buddies
+  - changeSet:
+      id: 1567747746730-13
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: confirmation_code
+            tableName: confirmation_codes
+  - changeSet:
+      id: 1567747746730-14
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: decryption_check
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-15
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: decryption_check_cipher_text
+            tableName: new_device_requests
+  - changeSet:
+      id: 1567747746730-16
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: device_anonymized_id
+            tableName: activities
+  - changeSet:
+      id: 1567747746730-17
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: device_anonymized_id
+            tableName: buddy_devices
+  - changeSet:
+      id: 1567747746730-18
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: device_anonymized_id
+            tableName: user_devices
+  - changeSet:
+      id: 1567747746730-19
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: device_anonymized_id
+            tableName: vpn_status_change_events
+  - changeSet:
+      id: 1567747746730-20
+      author: bert (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: int
+            columnName: device_index
+            tableName: devices_anonymized
+  - changeSet:
+      id: 1567747746730-21
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: firebase_instance_id
+            tableName: devices_anonymized
+  - changeSet:
+      id: 1567747746730-22
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: first_name
+            tableName: buddies
+  - changeSet:
+      id: 1567747746730-23
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: first_name
+            tableName: users
+  - changeSet:
+      id: 1567747746730-24
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: first_name
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-26
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: goal_id
+            tableName: interval_activities
+  - changeSet:
+      id: 1567747746730-28
+      author: bert (generated)
+      changes:
+        - addNotNullConstraint:
+            columnDataType: boolean
+            columnName: is_legacy_vpn_account
+            tableName: user_devices
+        - dropDefaultValue:
+            columnDataType: boolean
+            columnName: is_legacy_vpn_account
+            tableName: user_devices
+  - changeSet:
+      id: 1567747746730-33
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: last_name
+            tableName: buddies
+  - changeSet:
+      id: 1567747746730-34
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: last_name
+            tableName: users
+  - changeSet:
+      id: 1567747746730-35
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: last_name
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-36
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: last_status_change_time
+            tableName: buddies
+  - changeSet:
+      id: 1567747746730-37
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: localizable_description
+            tableName: activity_category_localizable_description
+  - changeSet:
+      id: 1567747746730-38
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: localizable_name
+            tableName: activity_category_localizable_name
+  - changeSet:
+      id: 1567747746730-40
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: message_destination_id
+            tableName: message_sources
+  - changeSet:
+      id: 1567747746730-41
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: message_destination_id
+            tableName: messages
+  - changeSet:
+      id: 1567747746730-42
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: message_destination_id
+            tableName: users
+  - changeSet:
+      id: 1567747746730-43
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: mobile_number
+            tableName: users
+  - changeSet:
+      id: 1567747746730-44
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: mobile_number
+            tableName: white_listed_number
+  - changeSet:
+      id: 1567747746730-45
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: mobile_number_confirmation_code_id
+            tableName: users
+  - changeSet:
+      id: 1567747746730-46
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: name
+            tableName: buddy_devices
+  - changeSet:
+      id: 1567747746730-47
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: name
+            tableName: user_devices
+  - changeSet:
+      id: 1567747746730-48
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: named_message_source_id
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-49
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: new_device_request_id
+            tableName: users
+  - changeSet:
+      id: 1567747746730-50
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: nickname
+            tableName: buddies
+  - changeSet:
+      id: 1567747746730-51
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: nickname
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-52
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: overwrite_user_confirmation_code_id
+            tableName: users
+  - changeSet:
+      id: 1567747746730-53
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: owning_buddy_id
+            tableName: buddy_devices
+  - changeSet:
+      id: 1567747746730-54
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: owning_user_anonymized_id
+            tableName: buddies_anonymized
+  - changeSet:
+      id: 1567747746730-55
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: owning_user_private_id
+            tableName: buddies
+  - changeSet:
+      id: 1567747746730-56
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: pin_reset_confirmation_code_id
+            tableName: users
+  - changeSet:
+      id: 1567747746730-57
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: previous_instance_of_this_goal_id
+            tableName: goals
+  - changeSet:
+      id: 1567747746730-58
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: int
+            columnName: private_data_migration_version
+            tableName: users
+  - changeSet:
+      id: 1567747746730-59
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(1024)
+            columnName: private_key_bytes
+            tableName: message_sources
+  - changeSet:
+      id: 1567747746730-60
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: registration_time
+            tableName: user_devices
+  - changeSet:
+      id: 1567747746730-61
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: related_user_anonymized_id
+            tableName: messages
+  - changeSet:
+      id: 1567747746730-62
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: smoothwall_categories
+            tableName: activity_category_smoothwall_categories
+  - changeSet:
+      id: 1567747746730-63
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: time_zone
+            tableName: activities
+  - changeSet:
+      id: 1567747746730-64
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: time_zone
+            tableName: interval_activities
+  - changeSet:
+      id: 1567747746730-65
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_anonymized_id
+            tableName: buddies_anonymized
+  - changeSet:
+      id: 1567747746730-66
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_anonymized_id
+            tableName: devices_anonymized
+  - changeSet:
+      id: 1567747746730-67
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_anonymized_id
+            tableName: goals
+  - changeSet:
+      id: 1567747746730-68
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_anonymized_id
+            tableName: interval_activities
+  - changeSet:
+      id: 1567747746730-69
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_anonymized_id
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-70
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_id
+            tableName: buddies
+  - changeSet:
+      id: 1567747746730-71
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_photo_id
+            tableName: buddies
+  - changeSet:
+      id: 1567747746730-72
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_photo_id
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-73
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_private_id
+            tableName: user_devices
+  - changeSet:
+      id: 1567747746730-74
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: user_private_id
+            tableName: users
+  - changeSet:
+      id: 1567747746730-75
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: vpn_password
+            tableName: user_devices
+  - changeSet:
+      id: 1567747746730-76
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: vpn_password
+            tableName: users_private
+  - changeSet:
+      id: 1567747746730-77
+      author: bert (generated)
+      changes:
+        - dropDefaultValue:
+            columnDataType: varchar(255)
+            columnName: yona_password_cipher_text
+            tableName: new_device_requests

@@ -53,9 +53,8 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 			UserAnonymizedDto buddyUserAnonymizedDto = buddyUserAnonymizedDtoOptional.orElseThrow(
 					() -> new IllegalStateException("Should have user anonymized when buddy relationship is established"));
 			Set<GoalDto> goals = buddyUserAnonymizedDto.getGoalsIncludingHistoryItems();
-			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream()
-					.map(bd -> BuddyDeviceDto.createInstance(bd,
-							getDeviceAnonymizedIfExisting(buddyUserAnonymizedDto, bd.getDeviceAnonymizedId())))
+			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream().map(bd -> BuddyDeviceDto
+					.createInstance(bd, getDeviceAnonymizedIfExisting(buddyUserAnonymizedDto, bd.getDeviceAnonymizedId())))
 					.collect(Collectors.toSet());
 			Optional<User> user = Optional.ofNullable(buddyEntity.getUser());
 			String firstName = buddyEntity.determineFirstName(user);
@@ -90,7 +89,7 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 
 	public static boolean canIncludePrivateData(BuddyAnonymizedDto buddyAnonymizedDto)
 	{
-		return (buddyAnonymizedDto.getReceivingStatus() == Status.ACCEPTED)
-				|| (buddyAnonymizedDto.getSendingStatus() == Status.ACCEPTED);
+		return (buddyAnonymizedDto.getReceivingStatus() == Status.ACCEPTED) || (buddyAnonymizedDto.getSendingStatus()
+				== Status.ACCEPTED);
 	}
 }

@@ -6,7 +6,12 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertEquals
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusCreated
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
+import static nu.yona.server.test.CommonAssertions.assertUser
 
 import nu.yona.server.test.User
 
@@ -75,7 +80,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded?."yona:messages"?.size() == 1
-		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
+		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyDisconnectMessage" }
 		buddyDisconnectMessages.size() == 1
 		def disconnectMessage = buddyDisconnectMessages[0]
 		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
@@ -113,17 +118,17 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
 		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 1
-		def buddyConnectRequestMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}
+		def buddyConnectRequestMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
 
 		def acceptUrl = buddyConnectRequestMessages[0]._links?."yona:accept"?.href
-		def acceptBuddyRequestResponse = appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
+		def acceptBuddyRequestResponse = appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
 		assertResponseStatus(acceptBuddyRequestResponse, 400)
 		acceptBuddyRequestResponse.responseData.code == "error.user.not.found.id"
 
 		def rejectUrl = buddyConnectRequestMessages[0]._links?."yona:reject"?.href
-		def rejectBuddyRequestResponse = appService.postMessageActionWithPassword(rejectUrl, ["message" : "Too bad!"], bob.password)
+		def rejectBuddyRequestResponse = appService.postMessageActionWithPassword(rejectUrl, ["message": "Too bad!"], bob.password)
 		assertResponseStatusOk(rejectBuddyRequestResponse)
 
 		def buddiesRichard = appService.getBuddies(richardChanged)
@@ -168,7 +173,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
 		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 1
-		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		buddyConnectResponseMessages.size() == 1
 		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
 		buddyConnectResponseMessage.message == "User account was deleted"
@@ -218,7 +223,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
 		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 2
-		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		buddyConnectResponseMessages.size() == 1
 		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
 		buddyConnectResponseMessage.message == "User account was deleted"
@@ -226,8 +231,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyConnectResponseMessage._links?."yona:process" == null // Processing happens automatically these days
 
-		def buddyConnectRequestMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll
-		{ it."@type" == "BuddyConnectRequestMessage" }
+		def buddyConnectRequestMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richardChanged.nickname
 		assertEquals(buddyConnectRequestMessages[0].creationTime, YonaServer.now)
@@ -251,7 +255,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richard.emailAddress = "richard@quinn.com"
 		appService.sendBuddyConnectRequest(bob, richard)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(richard).acceptUrl
-		def acceptResponse = appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], richard.password)
+		def acceptResponse = appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], richard.password)
 		assertResponseStatusOk(acceptResponse)
 		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
 		appService.requestOverwriteUser(richard.mobileNumber)
@@ -278,7 +282,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
 		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 1
-		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		buddyConnectResponseMessages.size() == 1
 		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
 		buddyConnectResponseMessage.message == "User account was deleted"
@@ -319,13 +323,13 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(getMessagesBobResponse)
 		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 2
 
-		def goalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessages.size == 1
 		goalConflictMessages[0].nickname == "BD (me)"
 		goalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		goalConflictMessages[0].url =~ /poker/
 
-		def buddyDisconnectMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
+		def buddyDisconnectMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyDisconnectMessage" }
 		buddyDisconnectMessages.size() == 1
 		def disconnectMessage = buddyDisconnectMessages[0]
 		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
@@ -461,7 +465,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		then:
 		def responseGetMessagesBob = appService.getMessages(bob)
 		assertResponseStatusOk(responseGetMessagesBob)
-		assert responseGetMessagesBob.responseData._embedded?."yona:messages"?.find{ it."@type" == "GoalConflictMessage"} == null
+		assert responseGetMessagesBob.responseData._embedded?."yona:messages"?.find { it."@type" == "GoalConflictMessage" } == null
 
 		cleanup:
 		appService.deleteUser(richardAfterOverwrite)

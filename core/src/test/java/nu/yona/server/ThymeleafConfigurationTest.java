@@ -4,9 +4,9 @@
  *******************************************************************************/
 package nu.yona.server;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -142,9 +142,9 @@ public class ThymeleafConfigurationTest
 				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber, requestingUserNickname);
 
 		assertThat(result, containsString(MessageFormat.format("<a href=\"{0}\"", inviteUrl)));
-		assertThat(result, containsString(MessageFormat.format(
-				"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
-				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
+		assertThat(result, containsString(MessageFormat
+				.format("<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
 		assertThat(result, containsString("Return to this mail and click <a href=\"http"));
 		assertThat(result, containsString("https://app.prd.yona.nu/media/img/en_US/header.jpg"));
 	}
@@ -166,9 +166,9 @@ public class ThymeleafConfigurationTest
 				requestingUserNickname);
 
 		assertThat(result, containsString(MessageFormat.format("<a href=\"{0}\"", inviteUrl)));
-		assertThat(result, containsString(MessageFormat.format(
-				"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
-				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
+		assertThat(result, containsString(MessageFormat
+				.format("<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
 		assertThat(result, containsString("Ga terug naar deze mail en klik op <a href=\"http"));
 		assertThat(result, containsString("https://app.prd.yona.nu/media/img/nl_NL/header.jpg"));
 	}

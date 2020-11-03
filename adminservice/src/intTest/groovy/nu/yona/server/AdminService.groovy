@@ -6,7 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
-import groovy.json.*
+
+import groovy.json.JsonSlurper
 import nu.yona.server.test.Service
 
 class AdminService extends Service

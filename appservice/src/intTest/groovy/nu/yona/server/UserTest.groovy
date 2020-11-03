@@ -6,7 +6,12 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertDateTimeFormat
+import static nu.yona.server.test.CommonAssertions.assertEquals
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
+import static nu.yona.server.test.CommonAssertions.assertUser
 
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
@@ -131,7 +136,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def response1TimeWrong = confirmMobileNumber(john, "12341")
 
 		when:
-		def responseRequestResend = appService.yonaServer.postJson(john.resendMobileNumberConfirmationCodeUrl, "{}", [:], ["Yona-Password" : john.password])
+		def responseRequestResend = appService.yonaServer.postJson(john.resendMobileNumberConfirmationCodeUrl, "{}", [:], ["Yona-Password": john.password])
 
 		then:
 		assertResponseStatus(response1TimeWrong, 400)
@@ -457,23 +462,23 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatus(response, responseStatus)
 
 		where:
-		deviceName | operatingSystem | appVersion | appVersionCode | responseStatus
-		"some name" | "IOS" | "1.1" | 5000 | 201
-		"some name" | null | null | null | 400
-		"some name" | "IOS" | null | null | 400
-		"some name" | null | "1.1" | null | 400
-		"some name" | null | null | 5000 | 400
-		"some name" | null | "1.1" | 50 | 400
-		"some name" | "IOS" | "1.1" | null | 400
-		"some name" | "IOS" | null | 5000 | 400
-		null | "IOS" | "1.1" | 5000 | 400
-		null | null | null | null | 201
-		null | "IOS" | null | null | 400
-		null | null | "1.1" | null | 400
-		null | null | null | 5000 | 400
-		null | null | "1.1" | 5000 | 400
-		null | "IOS" | "1.1" | null | 400
-		null | "IOS" | null | 5000 | 400
+		deviceName  | operatingSystem | appVersion | appVersionCode | responseStatus
+		"some name" | "IOS"           | "1.1"      | 5000           | 201
+		"some name" | null            | null       | null           | 400
+		"some name" | "IOS"           | null       | null           | 400
+		"some name" | null            | "1.1"      | null           | 400
+		"some name" | null            | null       | 5000           | 400
+		"some name" | null            | "1.1"      | 50             | 400
+		"some name" | "IOS"           | "1.1"      | null           | 400
+		"some name" | "IOS"           | null       | 5000           | 400
+		null        | "IOS"           | "1.1"      | 5000           | 400
+		null        | null            | null       | null           | 201
+		null        | "IOS"           | null       | null           | 400
+		null        | null            | "1.1"      | null           | 400
+		null        | null            | null       | 5000           | 400
+		null        | null            | "1.1"      | 5000           | 400
+		null        | "IOS"           | "1.1"      | null           | 400
+		null        | "IOS"           | null       | 5000           | 400
 	}
 
 	private def confirmMobileNumber(User user, code)

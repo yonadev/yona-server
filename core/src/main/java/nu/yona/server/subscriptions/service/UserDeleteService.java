@@ -84,8 +84,8 @@ class UserDeleteService
 
 		handleBuddyUsersRemovedWhileOffline(userEntity);
 
-		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
-				DropBuddyReason.USER_ACCOUNT_DELETED));
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService
+				.removeBuddyInfoForBuddy(userEntity, buddyEntity, message, DropBuddyReason.USER_ACCOUNT_DELETED));
 	}
 
 	private void deleteDevices(User userEntity)

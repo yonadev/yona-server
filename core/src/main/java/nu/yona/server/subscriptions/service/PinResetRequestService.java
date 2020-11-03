@@ -102,8 +102,8 @@ public class PinResetRequestService
 		if (!userProvidedConfirmationCode.equals(confirmationCode.getCode()))
 		{
 			confirmationCode.incrementAttempts();
-			throw PinResetRequestConfirmationException.confirmationCodeMismatch(user.getMobileNumber(),
-					userProvidedConfirmationCode, remainingAttempts - 1);
+			throw PinResetRequestConfirmationException
+					.confirmationCodeMismatch(user.getMobileNumber(), userProvidedConfirmationCode, remainingAttempts - 1);
 		}
 	}
 
@@ -144,10 +144,9 @@ public class PinResetRequestService
 
 	private ConfirmationCode createConfirmationCode(Moment moment)
 	{
-		String confirmationCode = (moment == Moment.IMMEDIATELY)
-				|| yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay().equals(Duration.ZERO)
-						? userService.generateConfirmationCode()
-						: null;
+		String confirmationCode =
+				(moment == Moment.IMMEDIATELY) || yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()
+						.equals(Duration.ZERO) ? userService.generateConfirmationCode() : null;
 		return ConfirmationCode.createInstance(confirmationCode);
 	}
 

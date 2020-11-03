@@ -55,8 +55,9 @@ public class LockPoolTest
 		AtomicBoolean failureIndicator = new AtomicBoolean(false);
 		for (int i = 0; (i < numThreads); i++)
 		{
-			threadPool.execute(() -> tryAccess(iterations, startSignal, lockPool, concurrencyIndicator, failureIndicator,
-					doneSignal, accessAttempt));
+			threadPool.execute(
+					() -> tryAccess(iterations, startSignal, lockPool, concurrencyIndicator, failureIndicator, doneSignal,
+							accessAttempt));
 		}
 		startSignal.countDown();
 		awaitWithoutInterrupt(doneSignal);

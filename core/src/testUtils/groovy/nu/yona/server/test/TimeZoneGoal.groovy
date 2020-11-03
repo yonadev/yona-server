@@ -8,15 +8,15 @@ package nu.yona.server.test
 
 import java.time.ZonedDateTime
 
-import groovy.json.*
 import groovy.transform.ToString
 import nu.yona.server.YonaServer
 
-@ToString(includeSuper=true, includeNames=true)
+@ToString(includeSuper = true, includeNames = true)
 class TimeZoneGoal extends Goal
 {
 	final String[] zones
 	final int[] spreadCells
+
 	TimeZoneGoal(def json)
 	{
 		super(json)
@@ -54,7 +54,7 @@ class TimeZoneGoal extends Goal
 
 	public static TimeZoneGoal createInstance(ZonedDateTime creationTime, activityCategoryUrl, zones)
 	{
-		new TimeZoneGoal([creationTime:creationTime, activityCategoryUrl: activityCategoryUrl, zones: zones])
+		new TimeZoneGoal([creationTime: creationTime, activityCategoryUrl: activityCategoryUrl, zones: zones])
 	}
 
 	public static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, ZonedDateTime creationTime, zones)

@@ -19,8 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.util.HibernateHelperService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,19 +36,21 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.HibernateHelperService;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.properties" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) }, excludeFilters = {
-						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) }, excludeFilters = {
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class UserServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 }
@@ -111,8 +111,8 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 		assertTrue(overwriteUserConfirmationCode.isPresent(), "Overwrite user confirmation code not set");
 
 		ArgumentCaptor<Map<String, Object>> messageParamCaptor = ArgumentCaptor.forClass(Map.class);
-		verify(smsService, times(1)).send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION),
-				messageParamCaptor.capture());
+		verify(smsService, times(1))
+				.send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION), messageParamCaptor.capture());
 		assertThat("Correct confirmation code in message", messageParamCaptor.getValue().get("confirmationCode"),
 				equalTo(overwriteUserConfirmationCode.get().getCode()));
 	}
@@ -139,7 +139,8 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 		ConfirmationCode confirmationCode = ConfirmationCode.createInstance("9876");
 		richard.setOverwriteUserConfirmationCode(confirmationCode);
 		Optional<ConfirmationCode> initialOverwriteUserConfirmationCode = richard.getOverwriteUserConfirmationCode();
-		JUnitUtil.mockCurrentTime(startTime.plus(yonaProperties.getOverwriteUserConfirmationCodeNonResendInterval()).plusSeconds(1));
+		JUnitUtil.mockCurrentTime(
+				startTime.plus(yonaProperties.getOverwriteUserConfirmationCodeNonResendInterval()).plusSeconds(1));
 
 		service.requestOverwriteUserConfirmationCode(richard.getMobileNumber());
 
@@ -148,8 +149,8 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 		assertThat(overwriteUserConfirmationCode, not(equalTo(initialOverwriteUserConfirmationCode)));
 
 		ArgumentCaptor<Map<String, Object>> messageParamCaptor = ArgumentCaptor.forClass(Map.class);
-		verify(smsService, times(1)).send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION),
-				messageParamCaptor.capture());
+		verify(smsService, times(1))
+				.send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION), messageParamCaptor.capture());
 		assertThat("Correct confirmation code in message", messageParamCaptor.getValue().get("confirmationCode"),
 				equalTo(overwriteUserConfirmationCode.get().getCode()));
 	}

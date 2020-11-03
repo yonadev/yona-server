@@ -133,7 +133,7 @@ public class User extends EntityWithUuid
 
 	/**
 	 * Don't call this, except from from UserDevice.
-	 * 
+	 *
 	 * @param appLastOpenedDate The date the app was opened last by this user. The date must be in the user's timezone.
 	 */
 	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
@@ -334,11 +334,9 @@ public class User extends EntityWithUuid
 
 	public Buddy getBuddyByUserAnonymizedId(UUID relatedUserAnonymizedId)
 	{
-		return getBuddies().stream()
-				.filter(buddy -> buddy.getUserAnonymizedId().isPresent()
-						&& relatedUserAnonymizedId.equals(buddy.getUserAnonymizedId().get()))
-				.findAny().orElseThrow(() -> new IllegalStateException(
-						"Buddy for user anonymized ID " + relatedUserAnonymizedId + " not found"));
+		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedId().isPresent() && relatedUserAnonymizedId
+				.equals(buddy.getUserAnonymizedId().get())).findAny().orElseThrow(
+				() -> new IllegalStateException("Buddy for user anonymized ID " + relatedUserAnonymizedId + " not found"));
 	}
 
 	public void assertMobileNumberConfirmed()

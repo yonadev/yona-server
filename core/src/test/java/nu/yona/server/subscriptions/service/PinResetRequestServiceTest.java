@@ -14,15 +14,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import nu.yona.server.analysis.entities.WeekActivity;
-import nu.yona.server.goals.entities.Goal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,8 +49,8 @@ import nu.yona.server.test.util.JUnitUtil;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.messaging.service", "nu.yona.server.properties" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.PinResetRequestService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.PinResetRequestService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
 class PinResetRequestServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 }
@@ -87,16 +84,16 @@ class PinResetRequestServiceTest extends BaseSpringIntegrationTest
 	{
 		String code = "9876";
 		when(userService.generateConfirmationCode()).thenReturn(code);
-		when(userService.updateUserIfExisting(any(UUID.class), any(Consumer.class)))
-			.thenAnswer(new Answer<Optional<User>>() {
-				@Override
-				public Optional<User> answer(InvocationOnMock invocation) throws Throwable
-				{
-					Consumer<User> updateAction = invocation.getArgument(1);
-					updateAction.accept(richard);
-					return Optional.of(richard);
-				}
-			});
+		when(userService.updateUserIfExisting(any(UUID.class), any(Consumer.class))).thenAnswer(new Answer<Optional<User>>()
+		{
+			@Override
+			public Optional<User> answer(InvocationOnMock invocation) throws Throwable
+			{
+				Consumer<User> updateAction = invocation.getArgument(1);
+				updateAction.accept(richard);
+				return Optional.of(richard);
+			}
+		});
 
 		ConfirmationCode confirmationCode = new ConfirmationCode();
 		richard.setPinResetConfirmationCode(confirmationCode);
@@ -104,8 +101,9 @@ class PinResetRequestServiceTest extends BaseSpringIntegrationTest
 		service.sendPinResetConfirmationCode(richard.getId());
 
 		ArgumentCaptor<ConfirmationCode> confirmationCodeCaptor = ArgumentCaptor.forClass(ConfirmationCode.class);
-		verify(userService, times(1)).sendConfirmationCodeTextMessage(eq(richard.getMobileNumber()),
-				confirmationCodeCaptor.capture(), eq(SmsTemplate.PIN_RESET_REQUEST_CONFIRMATION));
+		verify(userService, times(1))
+				.sendConfirmationCodeTextMessage(eq(richard.getMobileNumber()), confirmationCodeCaptor.capture(),
+						eq(SmsTemplate.PIN_RESET_REQUEST_CONFIRMATION));
 		assertThat("Expected right related user set to goal conflict message", confirmationCodeCaptor.getValue().getCode(),
 				equalTo(code));
 	}

@@ -35,9 +35,8 @@ public class GoalConflictMessageDecorator implements MessageResourceDecorator
 		String dateStr = DayActivityDto.formatDate(message.getActivityStartDate());
 		if (message.isSentFromBuddy())
 		{
-			message.add(BuddyActivityController
-					.getBuddyDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(),
-							assembler.getSenderBuddyId(message), dateStr, message.getGoalId())
+			message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(),
+					assembler.getSenderBuddyId(message), dateStr, message.getGoalId())
 					.withRel(BuddyActivityController.DAY_DETAIL_REL));
 		}
 		else

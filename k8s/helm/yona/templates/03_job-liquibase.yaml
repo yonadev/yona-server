@@ -7,7 +7,7 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
-  #annotations:
+    #annotations:
     #"helm.sh/hook": pre-install,pre-upgrade
 spec:
   template:
@@ -35,9 +35,9 @@ spec:
               value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
               {{- end }}
             - name: DBNAME
-              value: {{ .Values.mariadb.db.name | quote }}
-            - name: TIMEOUT
-              value: "10s"
+            value: {{ .Values.mariadb.db.name | quote }}
+              - name: TIMEOUT
+                value: "10s"
         - name: validateldap
           image: craftypenguins/k8s-init-ldap:latest
           env:
@@ -57,22 +57,22 @@ spec:
         - name: liquibase
           image: {{ .Values.global.imagebase | default "yonadev" }}/yona-mariadb-liquibase-update:build-{{ .Chart.AppVersion }}
           imagePullPolicy: IfNotPresent
-          env:       
+          env:
             - name: USER
               value: {{ .Values.mariadb.db.user | default "develop" | quote }}
             - name: PASSWORD
               value: {{ .Values.mariadb.db.password | default "develop" | quote }}
             - name: URL
             {{- if .Values.mariadb.url_override}}
-              value: {{ .Values.mariadb.url_override | quote }}
+            value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
+            value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
             {{- end }}
             - name: RELEASE
             {{- if .Values.mariadb.seed_release}}
-              value: {{ .Values.mariadb.seed_release | quote }}
+            value: {{ .Values.mariadb.seed_release | quote }}
             {{- else }}
-              value: {{ .Chart.AppVersion | quote }}
+            value: {{ .Chart.AppVersion | quote }}
             {{- end }}
             - name: MAX_TRIES
               value: {{ .Values.seed_max_tries | default "3" | quote }}

@@ -6,8 +6,15 @@
  *******************************************************************************/
 package nu.yona.server
 
-
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertDateFormat
+import static nu.yona.server.test.CommonAssertions.assertDateTimeFormat
+import static nu.yona.server.test.CommonAssertions.assertDefaultOwnDevice
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusCreated
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusSuccess
+import static nu.yona.server.test.CommonAssertions.assertUserGetResponseDetails
 
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
@@ -104,7 +111,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.keySet() == ["self", "edit", "yona:markRead", "yona:buddy", "yona:user"] as Set
@@ -119,7 +126,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	private static String extractDeviceId(String url) {
+	private static String extractDeviceId(String url)
+	{
 		return url - ~/.*\// - ~/\?.*/
 	}
 
@@ -151,7 +159,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		def registerUrl = YonaServer.stripQueryString(richard.url)+ "/devices/"
+		def registerUrl = YonaServer.stripQueryString(richard.url) + "/devices/"
 
 		when:
 		def newDeviceName = "My iPhone"
@@ -217,7 +225,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User user = addRichard()
-		if (withNewDeviceRequest) {
+		if (withNewDeviceRequest)
+		{
 			appService.setNewDeviceRequest(user.mobileNumber, user.password, "right")
 		}
 
@@ -232,13 +241,13 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(user)
 
 		where:
-		number | password | withNewDeviceRequest | expectedStatus | expectedCode
-		"<user>" | "wrong" | true | 400 | "error.device.request.invalid.password"
-		"+31610609189" | "wrong" | true | 400 | "error.no.device.request.present"
-		"+31318123456" | "wrong" | true | 400 | "error.user.mobile.number.not.mobile"
-		"+310610609189" | "wrong" | true | 400 | "error.user.mobile.number.invalid.leading.zero"
-		"<user>" | "wrong" | false | 400 | "error.no.device.request.present"
-		"<user>" | null | false | 400 | "error.no.device.request.present"
+		number          | password | withNewDeviceRequest | expectedStatus | expectedCode
+		"<user>"        | "wrong"  | true                 | 400            | "error.device.request.invalid.password"
+		"+31610609189"  | "wrong"  | true                 | 400            | "error.no.device.request.present"
+		"+31318123456"  | "wrong"  | true                 | 400            | "error.user.mobile.number.not.mobile"
+		"+310610609189" | "wrong"  | true                 | 400            | "error.user.mobile.number.invalid.leading.zero"
+		"<user>"        | "wrong"  | false                | 400            | "error.no.device.request.present"
+		"<user>"        | null     | false                | 400            | "error.no.device.request.present"
 	}
 
 	def 'Try set new device request with wrong information'()
@@ -358,7 +367,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage"}
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null
@@ -397,7 +406,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage"}
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 0
 
@@ -435,7 +444,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage"}
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null
@@ -521,16 +530,15 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		Device remainingDevice = richardOnFirstDevice.devices[0]
 		def deletedDeviceName = "Second device"
 		User richardOnSecondDevice = appService.addDevice(richardOnFirstDevice, deletedDeviceName, "ANDROID")
-		Device deviceToDelete = richardOnSecondDevice.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
+		Device deviceToDelete = richardOnSecondDevice.devices.find { YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
 		reportAppActivity(richardOnSecondDevice, deviceToDelete, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 		Goal budgetGoalNewsRichard = richardOnFirstDevice.findActiveGoal(NEWS_ACT_CAT_URL)
-		def expectedValuesRichardLastWeek = [
-			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
-			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesRichardLastWeek = ["Mon": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13: 15, 14: 5]]]],
+											 "Tue": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Wed": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Thu": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Fri": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Sat": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + currentDayOfWeek + 1
 		def expectedTotalWeeks = 2
@@ -574,7 +582,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		Device remainingDevice = richardOnFirstDevice.requestingDevice
 		def deletedDeviceName = "Second device"
 		User richardOnSecondDevice = appService.addDevice(richardOnFirstDevice, deletedDeviceName, "ANDROID")
-		Device deviceToDelete = richardOnSecondDevice.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
+		Device deviceToDelete = richardOnSecondDevice.devices.find { YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
 
 		when:
 		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richardOnSecondDevice.password)
@@ -589,7 +597,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage" && it.message ==~ /^User deleted.*/}
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" && it.message ==~ /^User deleted.*/ }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null

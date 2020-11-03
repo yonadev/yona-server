@@ -21,7 +21,8 @@ import org.springframework.stereotype.Component;
 public class PassThroughHeadersHolder
 {
 	private final ThreadLocal<Map<String, String>> threadLocal = new NamedThreadLocal<Map<String, String>>(
-			"PassThroughHeadersHolder") {
+			"PassThroughHeadersHolder")
+	{
 		@Override
 		protected Map<String, String> initialValue()
 		{

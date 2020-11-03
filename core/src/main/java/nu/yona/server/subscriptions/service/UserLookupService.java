@@ -210,7 +210,7 @@ public class UserLookupService
 	/**
 	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
 	 * value is always the user entity. If not an exception is thrown. The entity is fetched without lock.
-	 * 
+	 *
 	 * @param id the ID of the user
 	 * @return The user entity (never null)
 	 */
@@ -229,7 +229,7 @@ public class UserLookupService
 	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
 	 * value is always the user entity. If not an exception is thrown. A pessimistic database write lock is claimed when fetching
 	 * the entity.
-	 * 
+	 *
 	 * @param id the ID of the user
 	 * @return The user entity (never null)
 	 */
@@ -278,7 +278,7 @@ public class UserLookupService
 
 	/**
 	 * This method returns a validated user entity. A validated user means a user with a confirmed mobile number.
-	 * 
+	 *
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */

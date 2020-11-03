@@ -109,7 +109,7 @@ public class JobManagementService
 		try
 		{
 			scheduler.addJob(JobBuilder.newJob(job.getJobClass()).storeDurably().requestRecovery()
-					.withDescription(job.getDescription()).withIdentity(job.getName(), group).build(),
+							.withDescription(job.getDescription()).withIdentity(job.getName(), group).build(),
 					changeType == ChangeType.UPDATE);
 			return job;
 		}

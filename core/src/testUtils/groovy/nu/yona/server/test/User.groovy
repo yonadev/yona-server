@@ -13,7 +13,7 @@ import groovy.transform.ToString
 import net.sf.json.groovy.JsonSlurper
 import nu.yona.server.YonaServer
 
-@ToString(includeNames=true)
+@ToString(includeNames = true)
 class User
 {
 	final ZonedDateTime creationTime
@@ -69,10 +69,10 @@ class User
 			this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 			this.password = json.yonaPassword
 
-			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
+			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect { new Buddy(it) } : []
 		}
-		this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : null
-		this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect{new Device(this.password, it)} : null
+		this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect { Goal.fromJson(it) } : null
+		this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect { new Device(this.password, it) } : null
 		this.url = json._links.self.href
 		this.editUrl = json._links?.edit?.href
 		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href
@@ -97,7 +97,8 @@ class User
 
 	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null, boolean forceDeviceInfo = false)
 	{
-		if (deviceName && !firebaseInstanceId) {
+		if (deviceName && !firebaseInstanceId)
+		{
 			firebaseInstanceId = UUID.randomUUID().toString()
 		}
 		def firebaseInstanceIdString = (firebaseInstanceId) ? """"deviceFirebaseInstanceId":"$firebaseInstanceId",""" : ""
@@ -141,7 +142,7 @@ class User
 
 	Device getRequestingDevice()
 	{
-		devices.find{ it.isRequestingDevice() }
+		devices.find { it.isRequestingDevice() }
 	}
 
 	static def getIdFromUrl(def url)
@@ -151,12 +152,12 @@ class User
 		{
 			return url[-36..-1]
 		}
-		return url[queryStringStart-36..queryStringStart-1]
+		return url[queryStringStart - 36..queryStringStart - 1]
 	}
 
 	Goal findActiveGoal(def activityCategoryUrl)
 	{
-		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
+		goals.find { it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
 	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)

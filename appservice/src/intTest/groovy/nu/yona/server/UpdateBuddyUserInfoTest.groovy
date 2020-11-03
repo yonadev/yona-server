@@ -6,7 +6,7 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
@@ -26,7 +26,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		User bobAfterUpdate = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assertResponseStatusOk(richardMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
 
 		then:
 		bobAfterUpdate.nickname == "Bobby"
@@ -60,7 +60,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		User bobAfterUpdate = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assertResponseStatusOk(richardMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
 
 		then:
 		buddyInfoUpdateMessages.size() == 1
@@ -87,7 +87,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		User bobby = makeUserForBuddyRequest(bob, "bob@dunn.net", "Bobby", "Dun")
 		appService.sendBuddyConnectRequest(richard, bobby)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
+		appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
 
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.firstName = "Robert"
@@ -101,13 +101,11 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 
-		def buddyInfoUpdateMessages = response.responseData._embedded."yona:messages".findAll
-				{ it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = response.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0].nickname == updatedBobJson.nickname
 
-		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
-				{ it."@type" == "BuddyConnectResponseMessage" }
+		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		buddyConnectResponseMessages.size() == 1
 		buddyConnectResponseMessages[0].nickname == updatedBobJson.nickname
 		buddyConnectResponseMessages[0].status == "ACCEPTED"

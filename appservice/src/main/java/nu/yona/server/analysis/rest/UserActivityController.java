@@ -130,7 +130,7 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(password, userId, pagedResourcesAssembler, () -> activityService
-				.getUserWeekActivityDetailMessages(userId, WeekActivityDto.parseDate(dateStr), goalId, pageable),
+						.getUserWeekActivityDetailMessages(userId, WeekActivityDto.parseDate(dateStr), goalId, pageable),
 				new UserActivityLinkProvider(userId));
 	}
 
@@ -153,7 +153,7 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(password, userId, pagedResourcesAssembler, () -> activityService
-				.getUserDayActivityDetailMessages(userId, DayActivityDto.parseDate(dateStr), goalId, pageable),
+						.getUserDayActivityDetailMessages(userId, DayActivityDto.parseDate(dateStr), goalId, pageable),
 				new UserActivityLinkProvider(userId));
 	}
 
@@ -163,8 +163,8 @@ public class UserActivityController extends ActivityControllerBase
 			@PathVariable UUID userId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			Map<UUID, String> deviceAnonymizedIdToDeviceName = buildDeviceAnonymizedIdToDeviceNameMap(userId);
 			return createOkResponse(activityService.getRawActivities(userId, DayActivityDto.parseDate(dateStr), goalId),
@@ -201,8 +201,8 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return getDayActivityOverviewsWithBuddies(userId, requestingDeviceId, pagedResourcesAssembler, activitySupplier);
 		}
@@ -252,8 +252,8 @@ public class UserActivityController extends ActivityControllerBase
 			UUID userId, UUID requestingDeviceId, String dateStr,
 			Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return getDayActivityOverviewWithBuddies(userId, requestingDeviceId, dateStr, activitySupplier);
 		}
@@ -416,7 +416,7 @@ public class UserActivityController extends ActivityControllerBase
 		{
 			CollectionModel<DayActivityWithBuddiesResource> collectionModel = new DayActivityWithBuddiesResourceAssembler(
 					requestingUserId, requestingDeviceId, goalIdMapping, getContent().getDateStr())
-							.toCollectionModel(getContent().getDayActivities());
+					.toCollectionModel(getContent().getDayActivities());
 			return Lists.newArrayList(collectionModel);
 		}
 	}
@@ -481,7 +481,7 @@ public class UserActivityController extends ActivityControllerBase
 		{
 			CollectionModel<ActivityForOneUserResource> collectionModel = new ActivityForOneUserResourceAssembler(
 					requestingUserId, requestingDeviceId, goalIdMapping, dateStr)
-							.toCollectionModel(getContent().getDayActivitiesForUsers());
+					.toCollectionModel(getContent().getDayActivitiesForUsers());
 			return Lists.newArrayList(collectionModel);
 		}
 	}
@@ -589,8 +589,8 @@ public class UserActivityController extends ActivityControllerBase
 
 		private void addDayDetailsLinkForUser(UUID userId, UUID goalId, ActivityForOneUserResource dayActivityResource)
 		{
-			dayActivityResource.add(
-					UserActivityController.getUserDayActivityDetailLinkBuilder(userId, dateStr, goalId).withRel("dayDetails"));
+			dayActivityResource.add(UserActivityController.getUserDayActivityDetailLinkBuilder(userId, dateStr, goalId)
+					.withRel("dayDetails"));
 		}
 
 		private void addUserLink(UUID userId, UUID requestingDeviceId, ActivityForOneUserResource dayActivityResource)

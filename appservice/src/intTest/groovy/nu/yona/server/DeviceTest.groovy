@@ -6,9 +6,12 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertEquals
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
-import groovy.json.*
+import groovy.json.JsonOutput
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
@@ -97,7 +100,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		assert richard.requestingDevice.sslRootCertCn
-		def responseSslRootCertUrl = appService.yonaServer.restClient.get(path: richard.requestingDevice.sslRootCertUrl, headers: ["Yona-Password":richard.password])
+		def responseSslRootCertUrl = appService.yonaServer.restClient.get(path: richard.requestingDevice.sslRootCertUrl, headers: ["Yona-Password": richard.password])
 
 		then:
 		assertResponseStatusOk(responseSslRootCertUrl)
@@ -142,7 +145,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		}
 		else
 		{
-			assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId ==~/$CommonAssertions.UUID_PATTERN/
+			assert johnAfterNumberConfirmation.requestingDevice.firebaseInstanceId ==~ /$CommonAssertions.UUID_PATTERN/
 		}
 		assertEquals(johnAfterNumberConfirmation.requestingDevice.appLastOpenedDate, YonaServer.now.toLocalDate())
 
@@ -156,7 +159,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		responseOvpnProfile.contentType == "application/x-openvpn-profile"
 
 		assert johnAfterNumberConfirmation.requestingDevice.appleMobileConfig
-		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, headers: ["Yona-Password":johnAfterNumberConfirmation.password])
+		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, headers: ["Yona-Password": johnAfterNumberConfirmation.password])
 		assertResponseStatusOk(responseAppleMobileConfig)
 		assert responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
 		def appleMobileConfig = responseAppleMobileConfig.responseData.text
@@ -169,11 +172,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		User johnAsCreated = appService.addUser(
-				{
-					assertResponseStatus(it, 400)
-					assert it.responseData.code == "error.device.unknown.operating.system"
-				}, "John", "Doe", "JD",
+		User johnAsCreated = appService.addUser({
+			assertResponseStatus(it, 400)
+			assert it.responseData.code == "error.device.unknown.operating.system"
+		}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "My Raspberry", "RASPBIAN", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
@@ -186,11 +188,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		User johnAsCreated = appService.addUser(
-				{
-					assertResponseStatus(it, 400)
-					assert it.responseData.code == "error.device.unknown.operating.system"
-				}, "John", "Doe", "JD",
+		User johnAsCreated = appService.addUser({
+			assertResponseStatus(it, 400)
+			assert it.responseData.code == "error.device.unknown.operating.system"
+		}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "First device", "UNKNOWN", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
@@ -203,11 +204,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		User johnAsCreated = appService.addUser(
-				{
-					assertResponseStatus(it, 400)
-					assert it.responseData.code == "error.device.invalid.device.name"
-				}, "John", "Doe", "JD",
+		User johnAsCreated = appService.addUser({
+			assertResponseStatus(it, 400)
+			assert it.responseData.code == "error.device.invalid.device.name"
+		}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "012345678901234567891", "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
@@ -245,11 +245,10 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		User johnAsCreated = appService.addUser(
-				{
-					assertResponseStatus(it, 400)
-					assert it.responseData.code == "error.device.invalid.device.name"
-				}, "John", "Doe", "JD",
+		User johnAsCreated = appService.addUser({
+			assertResponseStatus(it, 400)
+			assert it.responseData.code == "error.device.invalid.device.name"
+		}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "some:thing", "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
@@ -329,7 +328,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
 
 		when:
-		def values = [ : ]
+		def values = [:]
 		if (operatingSystem)
 		{
 			values["operatingSystem"] = operatingSystem
@@ -353,14 +352,14 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		where:
 		operatingSystem | appVersion | appVersionCode | responseStatus
-		"IOS" | "1.1" | 5000 | 204
-		null | null | null | 204
-		"IOS" | null | null | 400
-		null | "1.1" | null | 400
-		null | null | 5000 | 400
-		null | "1.1" | 5000 | 400
-		"IOS" | "1.1" | null | 400
-		"IOS" | null | 5000 | 400
+		"IOS"           | "1.1"      | 5000           | 204
+		null            | null       | null           | 204
+		"IOS"           | null       | null           | 400
+		null            | "1.1"      | null           | 400
+		null            | null       | 5000           | 400
+		null            | "1.1"      | 5000           | 400
+		"IOS"           | "1.1"      | null           | 400
+		"IOS"           | null       | 5000           | 400
 	}
 
 	def 'Use different app version headers'(appVersionHeader, expectedStatus, expectedMessagePattern)
@@ -371,27 +370,27 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
 
 		when:
-		def response = appService.getResourceWithPassword(john.url, john.password, [:], ["Yona-App-Version" : appVersionHeader])
+		def response = appService.getResourceWithPassword(john.url, john.password, [:], ["Yona-App-Version": appVersionHeader])
 
 		then:
 		assertResponseStatus(response, expectedStatus)
-		expectedStatus == 200 || response.responseData.message ==~/$expectedMessagePattern/
+		expectedStatus == 200 || response.responseData.message ==~ /$expectedMessagePattern/
 
 
 		cleanup:
 		appService.deleteUser(john)
 
 		where:
-		appVersionHeader | expectedStatus | expectedMessagePattern
-		"ANDROID/123/1.2 build 360" | 200 | "n/a"
-		"IOS/123/1.2 build 360" | 200 | "n/a"
-		"IOS/123/1.2" | 200 | "n/a"
-		"ANDROID/abc/1.2 build 360" | 400 | ".*contains an invalid version code: 'abc'.*. Must be an integer value > 0"
-		"ANDROID/-1/1.2 build 360" | 400 | ".*contains an invalid version code: '-1'.*. Must be an integer value > 0"
-		"ANDROID/0/1.2 build 360" | 400 | ".*contains an invalid version code: '0'.*. Must be an integer value > 0"
-		"ANDROID/123" | 400 | ".*is invalid: 'ANDROID/123'. Should follow the format.*"
-		"ANDROID/123/a/b" | 400 | ".*is invalid: 'ANDROID/123/a/b'. Should follow the format.*"
-		"" | 400 | ".*is invalid: ''. Should follow the format.*"
+		appVersionHeader            | expectedStatus | expectedMessagePattern
+		"ANDROID/123/1.2 build 360" | 200            | "n/a"
+		"IOS/123/1.2 build 360"     | 200            | "n/a"
+		"IOS/123/1.2"               | 200            | "n/a"
+		"ANDROID/abc/1.2 build 360" | 400            | ".*contains an invalid version code: 'abc'.*. Must be an integer value > 0"
+		"ANDROID/-1/1.2 build 360"  | 400            | ".*contains an invalid version code: '-1'.*. Must be an integer value > 0"
+		"ANDROID/0/1.2 build 360"   | 400            | ".*contains an invalid version code: '0'.*. Must be an integer value > 0"
+		"ANDROID/123"               | 400            | ".*is invalid: 'ANDROID/123'. Should follow the format.*"
+		"ANDROID/123/a/b"           | 400            | ".*is invalid: 'ANDROID/123/a/b'. Should follow the format.*"
+		""                          | 400            | ".*is invalid: ''. Should follow the format.*"
 	}
 
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem, firebaseInstanceId = null)

@@ -131,8 +131,8 @@ public class MessageSource extends EntityWithUuid
 
 	public List<Message> getMessagesFromRelatedUserAnonymizedId(UUID relatedUserAnonymizedId)
 	{
-		List<Message> messages = Message.getRepository().findByRelatedUserAnonymizedId(messageDestination,
-				relatedUserAnonymizedId);
+		List<Message> messages = Message.getRepository()
+				.findByRelatedUserAnonymizedId(messageDestination, relatedUserAnonymizedId);
 		messages.forEach(m -> m.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey())));
 
 		return messages;

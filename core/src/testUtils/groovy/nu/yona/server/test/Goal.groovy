@@ -8,7 +8,7 @@ package nu.yona.server.test
 
 import java.time.ZonedDateTime
 
-import groovy.json.*
+import groovy.json.JsonSlurper
 import nu.yona.server.YonaServer
 
 abstract class Goal
@@ -18,9 +18,11 @@ abstract class Goal
 	final String editUrl
 	ZonedDateTime creationTime
 	final boolean historyItem
+
 	Goal(def json)
 	{
-		this.creationTime = (json.creationTime instanceof ZonedDateTime) ? json.creationTime : null // Only set the creation time when explicitly provided
+		this.creationTime = (json.creationTime instanceof ZonedDateTime) ? json.creationTime : null
+		// Only set the creation time when explicitly provided
 		this.activityCategoryUrl = (json.activityCategoryUrl) ?: json._links."yona:activityCategory".href
 		this.url = json._links ? json._links.self.href : null
 		this.editUrl = json._links?.edit?.href
@@ -36,15 +38,16 @@ abstract class Goal
 
 	static def fromJson(def json)
 	{
-		if(json["@type"] == "BudgetGoal")
+		if (json["@type"] == "BudgetGoal")
 		{
 			return new BudgetGoal(json)
 		}
-		else if(json["@type"] == "TimeZoneGoal")
+		else if (json["@type"] == "TimeZoneGoal")
 		{
 			return new TimeZoneGoal(json)
 		}
-		else throw new RuntimeException("Unknown goal type: " + json["@type"])
+		else
+			throw new RuntimeException("Unknown goal type: " + json["@type"])
 	}
 
 	def convertToJson()

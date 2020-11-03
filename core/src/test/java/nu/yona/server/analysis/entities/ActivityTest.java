@@ -34,8 +34,8 @@ public class ActivityTest
 	@BeforeEach
 	public void setUp()
 	{
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty(),
-				Translator.EN_US_LOCALE);
+		deviceAnonEntity = DeviceAnonymized
+				.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty(), Translator.EN_US_LOCALE);
 	}
 
 	@Test
@@ -75,8 +75,9 @@ public class ActivityTest
 
 	private Activity createActivity(String startTimeString, String endTimeString)
 	{
-		return Activity.createInstance(deviceAnonEntity, ZoneId.of("Europe/Amsterdam"),
-				getTimeOnDay(startTimeString).toLocalDateTime(), getTimeOnDay(endTimeString).toLocalDateTime(), Optional.empty());
+		return Activity
+				.createInstance(deviceAnonEntity, ZoneId.of("Europe/Amsterdam"), getTimeOnDay(startTimeString).toLocalDateTime(),
+						getTimeOnDay(endTimeString).toLocalDateTime(), Optional.empty());
 	}
 
 	protected ZonedDateTime getTimeOnDay(String timeString)

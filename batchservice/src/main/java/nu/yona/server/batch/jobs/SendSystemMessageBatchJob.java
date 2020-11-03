@@ -80,7 +80,7 @@ public class SendSystemMessageBatchJob
 
 	private Step sendSystemMessages()
 	{
-		return stepBuilderFactory.get("sendSystemMessages").<UUID, Void> chunk(USERS_CHUNK_SIZE).reader(userAnonymizedReader)
+		return stepBuilderFactory.get("sendSystemMessages").<UUID, Void>chunk(USERS_CHUNK_SIZE).reader(userAnonymizedReader)
 				.processor(userAnonymizedProcessor).build();
 	}
 
@@ -95,7 +95,8 @@ public class SendSystemMessageBatchJob
 	@StepScope
 	private ItemProcessor<UUID, Void> userAnonymizedProcessor()
 	{
-		return new ItemProcessor<UUID, Void>() {
+		return new ItemProcessor<UUID, Void>()
+		{
 			@Value("#{jobParameters['messageText']}")
 			private String messageText;
 
@@ -152,7 +153,8 @@ public class SendSystemMessageBatchJob
 
 	private RowMapper<UUID> singleUUIDColumnRowMapper()
 	{
-		return new RowMapper<UUID>() {
+		return new RowMapper<UUID>()
+		{
 
 			@Override
 			public UUID mapRow(ResultSet rs, int rowNum) throws SQLException

@@ -48,18 +48,18 @@ dependencies {
 	compile "com.googlecode.libphonenumber:libphonenumber:8.9.1"
 	compile "com.google.firebase:firebase-admin:6.4.0"
 
-	testCompile ("org.springframework.boot:spring-boot-starter-test") {
-		exclude group: 'junit', module: 'junit' 
+	testCompile("org.springframework.boot:spring-boot-starter-test") {
+		exclude group: 'junit', module: 'junit'
 	}
 	testCompile "org.mockito:mockito-junit-jupiter"
 	testCompile "org.jmockit:jmockit:1.49"
 	testCompile "org.junit.jupiter:junit-jupiter:5.4.0"
 	testCompile "com.spencerwi:hamcrest-jdk8-time:0.7.1"
 	testCompile "nl.jqno.equalsverifier:equalsverifier:3.1.10"
-	
+
 	testUtilsCompile "org.codehaus.groovy:groovy-all:2.5.5"
 	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-	
+
 	// mandatory dependencies for using Spock
 	testUtilsCompile "org.spockframework:spock-core:1.2-groovy-2.5"
 }
@@ -80,6 +80,6 @@ jar {
 
 eclipse {
 	classpath {
-		plusConfigurations += [ configurations.testUtilsCompile ]
+		plusConfigurations += [configurations.testUtilsCompile]
 	}
 }

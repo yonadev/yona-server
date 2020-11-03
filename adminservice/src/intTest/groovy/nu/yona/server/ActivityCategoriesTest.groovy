@@ -7,7 +7,9 @@
 
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import nu.yona.server.test.AppService
 import spock.lang.Shared
@@ -28,14 +30,14 @@ class ActivityCategoriesTest extends Specification
 	def 'App service should sync activity categories cache with admin service'()
 	{
 		given:
-		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US" : "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US" : "Programming computers"])
+		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US": "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US": "Programming computers"])
 		def createProgrammingResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 		assertResponseStatusOk(createProgrammingResponse)
-		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Schaken", "en-US" : "Chess"], false, ["chess"], ["Chess Free", "Analyze This", "Chess Opening Blunders"], ["nl-NL": "Schaken tegen mensen", "en-US" : "Chess against humans"])
-		String cookingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Koken", "en-US" : "Cooking"], false, ["cooking"], [], ["nl-NL": "Raadplegen van websites over koken", "en-US" : "Reading about cooking"])
+		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Schaken", "en-US": "Chess"], false, ["chess"], ["Chess Free", "Analyze This", "Chess Opening Blunders"], ["nl-NL": "Schaken tegen mensen", "en-US": "Chess against humans"])
+		String cookingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Koken", "en-US": "Cooking"], false, ["cooking"], [], ["nl-NL": "Raadplegen van websites over koken", "en-US": "Reading about cooking"])
 		def createCookingResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, cookingActivityCategoryJson)
 		assertResponseStatusOk(createCookingResponse)
-		String gardeningActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Tuinieren", "en-US" : "Gardening"], false, ["gardening"], [], ["nl-NL": "Raadplegen van websites over tuinieren", "en-US" : "Reading about gardening"])
+		String gardeningActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Tuinieren", "en-US": "Gardening"], false, ["gardening"], [], ["nl-NL": "Raadplegen van websites over tuinieren", "en-US": "Reading about gardening"])
 
 		when:
 		def updateResponse = adminService.yonaServer.updateResource(createProgrammingResponse.responseData._links.self.href, chessActivityCategoryJson)
@@ -84,8 +86,7 @@ class ActivityCategoriesTest extends Specification
 		response.responseData._links.self.href == adminService.url + AdminService.ACTIVITY_CATEGORIES_PATH
 		response.responseData._embedded?."yona:activityCategories" != null
 		response.responseData._embedded."yona:activityCategories".size() > 0
-		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find
-		{
+		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find {
 			it._links.self.href ==~ /.*192d69f4-8d3e-499b-983c-36ca97340ba9.*/
 		}
 		gamblingCategory._links.self.href.startsWith(adminService.url)
@@ -98,7 +99,7 @@ class ActivityCategoriesTest extends Specification
 		gamblingCategory.localizableDescription["nl-NL"] == "Deze challenge bevat apps en sites zoals Poker en Blackjack"
 	}
 
-	def 'Add programming activity category' ()
+	def 'Add programming activity category'()
 	{
 		given:
 		String englishName = "Programming"
@@ -108,7 +109,7 @@ class ActivityCategoriesTest extends Specification
 		def apps = ["Eclipse", "Visual Studio"] as Set
 		String englishDescription = "Programming computers"
 		String dutchDescription = "Programmeren van computers"
-		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US" : englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US" : englishDescription])
+		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US": englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US": englishDescription])
 		def numActivityCategoriesBeforeAdd = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
 
 		when:
@@ -150,10 +151,10 @@ class ActivityCategoriesTest extends Specification
 		}
 	}
 
-	def 'Update activity category' ()
+	def 'Update activity category'()
 	{
 		given:
-		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US" : "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US" : "Programming computers"])
+		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US": "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US": "Programming computers"])
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 		assertResponseStatusOk(createResponse)
 		String englishName = "Chess"
@@ -163,7 +164,7 @@ class ActivityCategoriesTest extends Specification
 		def apps = ["Chess Free", "Analyze This", "Chess Opening Blunders"] as Set
 		String englishDescription = "Chess against humans"
 		String dutchDescription = "Schaken tegen mensen"
-		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US" : englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US" : englishDescription])
+		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US": englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US": englishDescription])
 		def programmingCategory = findActivityCategoryByName(adminService.getAllActivityCategories(), "Programming")
 
 		when:
@@ -192,7 +193,7 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
 
 		def getAllResponse = adminService.getAllActivityCategories()
-		def chessCategory = getAllResponse.responseData._embedded."yona:activityCategories".find{ it.localizableName["en-US"] == englishName }
+		def chessCategory = getAllResponse.responseData._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
 		chessCategory != null
 		chessCategory._links.self.href == programmingCategory._links.self.href
 		chessCategory.applications as Set == apps
@@ -205,10 +206,10 @@ class ActivityCategoriesTest extends Specification
 		}
 	}
 
-	def 'Delete programming activity category' ()
+	def 'Delete programming activity category'()
 	{
 		given:
-		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US" : "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US" : "Programming computers"])
+		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US": "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US": "Programming computers"])
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 		assertResponseStatusOk(createResponse)
 		def numActivityCategoriesBeforeDelete = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
@@ -224,10 +225,10 @@ class ActivityCategoriesTest extends Specification
 		findActivityCategoryByName(getAllResponse, "Programming") == null
 	}
 
-	def 'Try add duplicate English name' ()
+	def 'Try add duplicate English name'()
 	{
 		given:
-		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Zomaar wat", "en-US" : "Gambling"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US" : "Programming computers"])
+		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Zomaar wat", "en-US": "Gambling"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US": "Programming computers"])
 		when:
 		def response = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 
@@ -236,9 +237,9 @@ class ActivityCategoriesTest extends Specification
 		response.responseData.code == "error.activitycategory.duplicate.name"
 	}
 
-	def 'Try update to duplicate Dutch name' ()
+	def 'Try update to duplicate Dutch name'()
 	{
-		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US" : "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US" : "Programming computers"])
+		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US": "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US": "Programming computers"])
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 		assertResponseStatusOk(createResponse)
 		String englishName = "Just something"
@@ -248,7 +249,7 @@ class ActivityCategoriesTest extends Specification
 		def apps = ["Chess Free", "Analyze This", "Chess Opening Blunders"]
 		String englishDescription = "Programming computers"
 		String dutchDescription = "Programmeren van computers"
-		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US" : englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US" : englishDescription])
+		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US": englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US": englishDescription])
 		when:
 		def response = adminService.yonaServer.updateResource(createResponse.responseData._links.self.href, chessActivityCategoryJson)
 
@@ -281,12 +282,12 @@ class ActivityCategoriesTest extends Specification
 
 	private findActivityCategoryByName(getAllResponse, englishName)
 	{
-		getAllResponse.responseData._embedded."yona:activityCategories".find{ it.localizableName["en-US"] == englishName }
+		getAllResponse.responseData._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
 	}
 
 	private appServicefindActivityCategoryByName(getAllResponse, englishName)
 	{
-		getAllResponse.responseData._embedded."yona:activityCategories".find{ it.name == englishName }
+		getAllResponse.responseData._embedded."yona:activityCategories".find { it.name == englishName }
 	}
 
 	private void waitForCachePropagation(originalCount)

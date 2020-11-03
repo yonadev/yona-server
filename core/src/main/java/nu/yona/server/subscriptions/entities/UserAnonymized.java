@@ -42,7 +42,7 @@ public class UserAnonymized extends EntityWithUuid
 
 	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Where(clause = "end_time is null") // The history items have the user anonymized ID set, so they would appear in this
-										// collection if not explicitly excluded
+	// collection if not explicitly excluded
 	@BatchSize(size = 20)
 	private Set<Goal> goals;
 
