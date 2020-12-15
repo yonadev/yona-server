@@ -11,7 +11,7 @@ metadata:
     build: "{{ .Chart.AppVersion }}"
 spec:
   replicas: 1
-  strategy:
+  strategy: 
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 2
@@ -48,34 +48,34 @@ spec:
               value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
               {{- end }}
             - name: DBNAME
-            value: {{ .Values.mariadb.db.name | quote }}
-              - name: TIMEOUT
-                value: "10s"
+              value: {{ .Values.mariadb.db.name | quote }}
+            - name: TIMEOUT
+              value: "10s"
       containers:
         - name: app
           image: '{{ .Values.global.imagebase | default "yonadev" }}/appservice:build-{{ .Chart.AppVersion }}'
-          env:
+          env:       
             - name: YONA_DB_USER_NAME
               value: {{ .Values.mariadb.db.user | default "develop" | quote }}
             - name: YONA_DB_PASSWORD
               value: {{ .Values.mariadb.db.password | default "develop" | quote }}
             - name: YONA_DB_URL
             {{- if .Values.mariadb.url_override}}
-            value: {{ .Values.mariadb.url_override | quote }}
+              value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-            value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
             {{- end }}
             - name: YONA_ANALYSIS_SERVICE_SERVICE_URL
             {{- if hasKey .Values.analysis "url_override" }}
-            value: {{ .Values.analysis.url_override | quote }}
+              value: {{ .Values.analysis.url_override | quote }}
             {{- else }}
-            value: "http://analysis.{{ .Release.Namespace }}.svc.cluster.local:8080"
+              value: "http://analysis.{{ .Release.Namespace }}.svc.cluster.local:8080"
             {{- end }}
             - name: YONA_BATCH_SERVICE_SERVICE_URL
             {{- if hasKey .Values.batch "url_override" }}
-            value: {{ .Values.batch.url_override | quote }}
+              value: {{ .Values.batch.url_override | quote }}
             {{- else }}
-            value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local:8080"
+              value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local:8080"
             {{- end }}
           ports:
             - containerPort: 8080
@@ -101,11 +101,11 @@ spec:
           configMap:
             name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-springboot
         - name: profile-resources
-        configMap:
-          name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-resources
+          configMap:
+            name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-resources
         - name: apple-resources
-        secret:
-          secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-apple-bundle
+          secret:
+            secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-apple-bundle
         - name: firebase-resources
-        secret:
-          secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle
+          secret:
+            secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle

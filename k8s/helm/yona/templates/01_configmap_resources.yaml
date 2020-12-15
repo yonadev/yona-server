@@ -18,200 +18,200 @@ data:
     persist-key
     persist-tun
     <ca>
-  {{ .Values.vpn.ca | indent 4 -}}
-  </ca>
-  auth-user-pass
-  cipher AES-256-CBC
-  auth SHA1
-  comp-lzo
-  verb 3
-  nobind
-  remote {{ .Values.vpn.remote }}
-  proto tcp-client
-  verify-x509-name '{{ .Values.vpn.tls_remote }}' subject
-  <tls-auth>
-  {{ .Values.vpn.tls_auth | indent 4 -}}
-  </tls-auth>
-  key-direction 1
-rootcert.cer: |
-  -----BEGIN CERTIFICATE-----
-  {{ .Values.certs.root | indent 4 -}}
-  -----END CERTIFICATE-----
-apple.mobileconfig.xml: |
-  <?xml version="1.0" encoding="UTF-8"?>
-  <!--
-      Copyright (c) 2017 Stichting Yona Foundation
+{{ .Values.vpn.ca | indent 4 -}}
+    </ca>
+    auth-user-pass
+    cipher AES-256-CBC
+    auth SHA1
+    comp-lzo
+    verb 3
+    nobind
+    remote {{ .Values.vpn.remote }}
+    proto tcp-client
+    verify-x509-name '{{ .Values.vpn.tls_remote }}' subject
+    <tls-auth>
+{{ .Values.vpn.tls_auth | indent 4 -}}
+    </tls-auth>
+    key-direction 1
+  rootcert.cer: |
+    -----BEGIN CERTIFICATE-----
+{{ .Values.certs.root | indent 4 -}}
+    -----END CERTIFICATE-----
+  apple.mobileconfig.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!--
+        Copyright (c) 2017 Stichting Yona Foundation
+       
+        This Source Code Form is subject to the terms of the Mozilla Public
+        License, v. 2.0. If a copy of the MPL was not distributed with this
+        file, You can obtain one at https://mozilla.org/MPL/2.0/.
+     -->
 
-      This Source Code Form is subject to the terms of the Mozilla Public
-      License, v. 2.0. If a copy of the MPL was not distributed with this
-      file, You can obtain one at https://mozilla.org/MPL/2.0/.
-   -->
-
-  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-  <plist version="1.0">
-  <dict>
-    <key>ConsentText</key>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
     <dict>
-      <key>default</key>
-      <string>Please Allow me</string>
-    </dict>
-    <key>PayloadContent</key>
-    <array>
+      <key>ConsentText</key>
       <dict>
-        <key>PayloadCertificateFileName</key>
-        <string>Guardian CA Cert (4) (1).crt</string>
-        <key>PayloadContent</key>
-        <data>
-  {{ .Values.certs.root | indent 10 -}}
-  </data>
-  <key>PayloadDescription</key>
-  <string>Adds a CA root certificate</string>
-  <key>PayloadDisplayName</key>
-  <string>Smoothwall-HTTPS-Interception-Certificate-Authority</string>
-  <key>PayloadIdentifier</key>
-  <string>com.apple.security.root.FE67BAE8-B81C-4764-92E4-61F42AE23505</string>
-  <key>PayloadType</key>
-  <string>com.apple.security.root</string>
-  <key>PayloadUUID</key>
-  <string>FE67BAE8-B81C-4764-92E4-61F42AE23505</string>
-  <key>PayloadVersion</key>
-  <integer>1</integer>
-  </dict>
-  <dict>
-  <key>Password</key>
-  <string>{{ .Values.vpn.cert_password }}</string>
-  <key>PayloadCertificateFileName</key>
-  <string>yonauser.p12</string>
-  <key>PayloadContent</key>
-  <data>
-  {{ .Values.vpn.cert | indent 10 -}}
-  </data>
-  <key>PayloadDescription</key>
-  <string>Adds a PKCS#12-formatted certificate</string>
-  <key>PayloadDisplayName</key>
-  <string>YonaVPNCertificate</string>
-  <key>PayloadIdentifier</key>
-  <string>com.apple.security.pkcs12.768377CF-8C95-44DA-8C9F-45DAA86997C2</string>
-  <key>PayloadType</key>
-  <string>com.apple.security.pkcs12</string>
-  <key>PayloadUUID</key>
-  <string>768377CF-8C95-44DA-8C9F-45DAA86997C2</string>
-  <key>PayloadVersion</key>
-  <integer>1</integer>
-  </dict>
-  <dict>
-  <key>IPv4</key>
-  <dict>
-  <key>OverridePrimary</key>
-  <integer>1</integer>
-  </dict>
-  <key>PayloadDescription</key>
-  <string>Configures VPN settings</string>
-  <key>PayloadDisplayName</key>
-  <string>VPN</string>
-  <key>PayloadIdentifier</key>
-  <string>com.apple.vpn.managed.2EE0702C-5E6B-4C9D-818B-32E40E86D9A1</string>
-  <key>PayloadType</key>
-  <string>com.apple.vpn.managed</string>
-  <key>PayloadUUID</key>
-  <string>38780483-114E-4685-87C1-344D394EA493</string>
-  <key>PayloadVersion</key>
-  <real>1</real>
-  <key>Proxies</key>
-  <dict>
-  <key>HTTPEnable</key>
-  <integer>0</integer>
-  <key>HTTPSEnable</key>
-  <integer>0</integer>
-  <key>ProxyAutoConfigEnable</key>
-  <true/>
-  <key>ProxyAutoDiscoveryEnable</key>
-  <integer>1</integer>
-  </dict>
-  <key>UserDefinedName</key>
-  <string>YONA-VPN-PROFILE-20150419-2109</string>
-  <key>VPN</key>
-  <dict>
-  <key>AuthName</key>
-  <string th:text="${ldapUsername}">To be replaced</string>
-  <key>AuthenticationMethod</key>
-  <string>Certificate</string>
-  <key>DisconnectOnIdle</key>
-  <integer>0</integer>
-  <key>OnDemandEnabled</key>
-  <integer>1</integer>
-  <key>OnDemandRules</key>
-  <array>
-  <dict>
-  <key>Action</key>
-  <string>Connect</string>
-  <key>URLStringProbe</key>
-  <string>http://www.yona.nl</string>
-  </dict>
-  </array>
-  <key>PayloadCertificateUUID</key>
-  <string>768377CF-8C95-44DA-8C9F-45DAA86997C2</string>
-  <key>RemoteAddress</key>
-  <string>DEFAULT</string>
-  </dict>
-  <key>VPNSubType</key>
-  <string>net.openvpn.connect.app</string>
-  <key>VPNType</key>
-  <string>VPN</string>
-  <key>VendorConfig</key>
-  <dict>
-  <key>auth</key>
-  <string>SHA1</string>
-  <key>auth-user-pass</key>
-  <string th:text="${ldapUsername} +'\n' + ${ldapPassword}">To be replaced</string>
-  <key>ca</key>
-  <string>{{ .Values.vpn.ca | replace "\n" "\\n" -}}</string>
-  <key>cipher</key>
-  <string>AES-256-CBC</string>
-  <key>client</key>
-  <string>NOARGS</string>
-  <key>comp-lzo</key>
-  <string>NOARGS</string>
-  <key>dev</key>
-  <string>tun</string>
-  <key>key-direction</key>
-  <string>1</string>
-  <key>nobind</key>
-  <string>NOARGS</string>
-  <key>persist-key</key>
-  <string>NOARGS</string>
-  <key>persist-tun</key>
-  <string>NOARGS</string>
-  <key>proto</key>
-  <string>tcp-client</string>
-  <key>remote</key>
-  <string>{{ .Values.vpn.remote }}</string>
-  <key>resolv-retry</key>
-  <string>infinite</string>
-  <key>tls-auth</key>
-  <string>{{ .Values.vpn.tls_auth | replace "\n" "\\n" -}}</string>
-  <key>verify-x509-name</key>
-  <string>{{ .Values.vpn.tls_remote }} subject</string>
-  <key>verb</key>
-  <string>3</string>
-  <key>vpn-on-demand</key>
-  <string>1</string>
-  </dict>
-  </dict>
-  </array>
-  <key>PayloadDisplayName</key>
-  <string>YONA-VPN-20150415-2108</string>
-  <key>PayloadIdentifier</key>
-  <string>uk4-craggda.yona.nu.0BAC1CEF-D206-4526-998D-0BA8D7608E37</string>
-  <key>PayloadOrganization</key>
-  <string>YONA</string>
-  <key>PayloadRemovalDisallowed</key>
-  <false/>
-  <key>PayloadType</key>
-  <string>Configuration</string>
-  <key>PayloadUUID</key>
-  <string>D9233B7A-F711-46BB-AA17-347EE365EDBF</string>
-  <key>PayloadVersion</key>
-  <integer>1</integer>
-  </dict>
-  </plist>
+        <key>default</key>
+        <string>Please Allow me</string>
+      </dict>
+      <key>PayloadContent</key>
+      <array>
+        <dict>
+          <key>PayloadCertificateFileName</key>
+          <string>Guardian CA Cert (4) (1).crt</string>
+          <key>PayloadContent</key>
+          <data>
+{{ .Values.certs.root | indent 10 -}}
+          </data>
+          <key>PayloadDescription</key>
+          <string>Adds a CA root certificate</string>
+          <key>PayloadDisplayName</key>
+          <string>Smoothwall-HTTPS-Interception-Certificate-Authority</string>
+          <key>PayloadIdentifier</key>
+          <string>com.apple.security.root.FE67BAE8-B81C-4764-92E4-61F42AE23505</string>
+          <key>PayloadType</key>
+          <string>com.apple.security.root</string>
+          <key>PayloadUUID</key>
+          <string>FE67BAE8-B81C-4764-92E4-61F42AE23505</string>
+          <key>PayloadVersion</key>
+          <integer>1</integer>
+        </dict>
+        <dict>
+          <key>Password</key>
+          <string>{{ .Values.vpn.cert_password }}</string>
+          <key>PayloadCertificateFileName</key>
+          <string>yonauser.p12</string>
+          <key>PayloadContent</key>
+          <data>
+{{ .Values.vpn.cert | indent 10 -}}
+          </data>
+          <key>PayloadDescription</key>
+          <string>Adds a PKCS#12-formatted certificate</string>
+          <key>PayloadDisplayName</key>
+          <string>YonaVPNCertificate</string>
+          <key>PayloadIdentifier</key>
+          <string>com.apple.security.pkcs12.768377CF-8C95-44DA-8C9F-45DAA86997C2</string>
+          <key>PayloadType</key>
+          <string>com.apple.security.pkcs12</string>
+          <key>PayloadUUID</key>
+          <string>768377CF-8C95-44DA-8C9F-45DAA86997C2</string>
+          <key>PayloadVersion</key>
+          <integer>1</integer>
+        </dict>
+        <dict>
+          <key>IPv4</key>
+          <dict>
+            <key>OverridePrimary</key>
+            <integer>1</integer>
+          </dict>
+          <key>PayloadDescription</key>
+          <string>Configures VPN settings</string>
+          <key>PayloadDisplayName</key>
+          <string>VPN</string>
+          <key>PayloadIdentifier</key>
+          <string>com.apple.vpn.managed.2EE0702C-5E6B-4C9D-818B-32E40E86D9A1</string>
+          <key>PayloadType</key>
+          <string>com.apple.vpn.managed</string>
+          <key>PayloadUUID</key>
+          <string>38780483-114E-4685-87C1-344D394EA493</string>
+          <key>PayloadVersion</key>
+          <real>1</real>
+          <key>Proxies</key>
+          <dict>
+            <key>HTTPEnable</key>
+            <integer>0</integer>
+            <key>HTTPSEnable</key>
+            <integer>0</integer>
+            <key>ProxyAutoConfigEnable</key>
+            <true/>
+            <key>ProxyAutoDiscoveryEnable</key>
+            <integer>1</integer>
+          </dict>
+          <key>UserDefinedName</key>
+          <string>YONA-VPN-PROFILE-20150419-2109</string>
+          <key>VPN</key>
+          <dict>
+            <key>AuthName</key>
+            <string th:text="${ldapUsername}">To be replaced</string>
+            <key>AuthenticationMethod</key>
+            <string>Certificate</string>
+            <key>DisconnectOnIdle</key>
+            <integer>0</integer>
+            <key>OnDemandEnabled</key>
+            <integer>1</integer>
+            <key>OnDemandRules</key>
+            <array>
+              <dict>
+                <key>Action</key>
+                <string>Connect</string>
+                <key>URLStringProbe</key>
+                <string>http://www.yona.nl</string>
+              </dict>
+            </array>
+            <key>PayloadCertificateUUID</key>
+            <string>768377CF-8C95-44DA-8C9F-45DAA86997C2</string>
+            <key>RemoteAddress</key>
+            <string>DEFAULT</string>
+          </dict>
+          <key>VPNSubType</key>
+          <string>net.openvpn.connect.app</string>
+          <key>VPNType</key>
+          <string>VPN</string>
+          <key>VendorConfig</key>
+          <dict>
+            <key>auth</key>
+            <string>SHA1</string>
+            <key>auth-user-pass</key>
+            <string th:text="${ldapUsername} +'\n' + ${ldapPassword}">To be replaced</string>
+            <key>ca</key>
+            <string>{{ .Values.vpn.ca | replace "\n" "\\n" -}}</string>
+            <key>cipher</key>
+            <string>AES-256-CBC</string>
+            <key>client</key>
+            <string>NOARGS</string>
+            <key>comp-lzo</key>
+            <string>NOARGS</string>
+            <key>dev</key>
+            <string>tun</string>
+            <key>key-direction</key>
+            <string>1</string>
+            <key>nobind</key>
+            <string>NOARGS</string>
+            <key>persist-key</key>
+            <string>NOARGS</string>
+            <key>persist-tun</key>
+            <string>NOARGS</string>
+            <key>proto</key>
+            <string>tcp-client</string>
+            <key>remote</key>
+            <string>{{ .Values.vpn.remote }}</string>
+            <key>resolv-retry</key>
+            <string>infinite</string>
+            <key>tls-auth</key>
+            <string>{{ .Values.vpn.tls_auth | replace "\n" "\\n" -}}</string>
+            <key>verify-x509-name</key>
+            <string>{{ .Values.vpn.tls_remote }} subject</string>
+            <key>verb</key>
+            <string>3</string>
+            <key>vpn-on-demand</key>
+            <string>1</string>
+          </dict>
+        </dict>
+      </array>
+      <key>PayloadDisplayName</key>
+      <string>YONA-VPN-20150415-2108</string>
+      <key>PayloadIdentifier</key>
+      <string>uk4-craggda.yona.nu.0BAC1CEF-D206-4526-998D-0BA8D7608E37</string>
+      <key>PayloadOrganization</key>
+      <string>YONA</string>
+      <key>PayloadRemovalDisallowed</key>
+      <false/>
+      <key>PayloadType</key>
+      <string>Configuration</string>
+      <key>PayloadUUID</key>
+      <string>D9233B7A-F711-46BB-AA17-347EE365EDBF</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+    </dict>
+    </plist>

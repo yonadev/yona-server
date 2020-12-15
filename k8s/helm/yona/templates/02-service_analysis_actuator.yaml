@@ -8,10 +8,10 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - name: "actuator"
-      port: 9080
-      protocol: TCP
-      nodePort: {{ .Values.nodePorts.analysis_actuator | default "31011" }}
+  - name: "actuator"
+    port: 9080
+    protocol: TCP
+    nodePort: {{ .Values.nodePorts.analysis_actuator | default "31011" }}
   selector:
     app: analysis
     stage: {{ .Values.global.stage | default "develop" }}

@@ -11,7 +11,7 @@ metadata:
     build: "{{ .Chart.AppVersion }}"
 spec:
   replicas: 1
-  strategy:
+  strategy: 
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 2
@@ -48,9 +48,9 @@ spec:
               value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
               {{- end }}
             - name: DBNAME
-            value: {{ .Values.mariadb.db.name | quote }}
-              - name: TIMEOUT
-                value: "10s"
+              value: {{ .Values.mariadb.db.name | quote }}
+            - name: TIMEOUT
+              value: "10s"
       containers:
         - name: analysis
           image: '{{ .Values.global.imagebase | default "yonadev" }}/analysisservice:build-{{ .Chart.AppVersion }}'
@@ -62,9 +62,9 @@ spec:
               value: {{ .Values.mariadb.db.password | default "develop" | quote }}
             - name: YONA_DB_URL
             {{- if .Values.mariadb.url_override}}
-            value: {{ .Values.mariadb.url_override | quote }}
+              value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-            value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
             {{- end }}
           ports:
             - containerPort: 8080
@@ -86,5 +86,5 @@ spec:
           configMap:
             name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-springboot
         - name: firebase-resources
-        secret:
-          secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle
+          secret:
+            secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle

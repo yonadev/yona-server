@@ -8,10 +8,10 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - name: "http"
-      port: 8080
-      protocol: TCP
-      nodePort: {{ .Values.nodePorts.app | default "31002" }}
+  - name: "http"
+    port: 8080
+    protocol: TCP
+    nodePort: {{ .Values.nodePorts.app | default "31002" }}
   selector:
     app: app
     stage: {{ .Values.global.stage | default "develop" }}
