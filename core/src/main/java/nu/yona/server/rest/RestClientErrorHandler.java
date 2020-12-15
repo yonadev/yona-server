@@ -84,7 +84,7 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 	private static String convertStreamToString(InputStream is)
 	{
 		@SuppressWarnings("resource") // It's not on us to close this stream
-		java.util.Scanner s = new Scanner(is).useDelimiter("\\A");
+				java.util.Scanner s = new Scanner(is).useDelimiter("\\A");
 		return s.hasNext() ? s.next() : "";
 	}
 }

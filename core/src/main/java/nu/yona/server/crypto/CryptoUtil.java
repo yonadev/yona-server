@@ -61,7 +61,7 @@ public class CryptoUtil
 
 	/**
 	 * Encrypts the given plaintext bytes.
-	 * 
+	 *
 	 * @param plaintext the bytes to be encrypted
 	 * @return the encrypted bytes, with the crypto variant number prepended to it.
 	 */
@@ -91,7 +91,7 @@ public class CryptoUtil
 
 	/**
 	 * Decrypts the given ciphertext bytes.
-	 * 
+	 *
 	 * @param ciphertext the bytes to be decrypted, with a leading crypto variant number
 	 * @return the decrypted bytes
 	 */
@@ -101,8 +101,9 @@ public class CryptoUtil
 		{
 			assertValidCryptoVariantNumber(cryptoVariantNumber, ciphertext);
 			byte[] plaintext = new byte[cipher.getOutputSize(ciphertext.length)];
-			int bytesStored = cipher.doFinal(ciphertext, CRYPTO_VARIANT_NUMBER_LENGTH,
-					ciphertext.length - CRYPTO_VARIANT_NUMBER_LENGTH, plaintext, 0);
+			int bytesStored = cipher
+					.doFinal(ciphertext, CRYPTO_VARIANT_NUMBER_LENGTH, ciphertext.length - CRYPTO_VARIANT_NUMBER_LENGTH,
+							plaintext, 0);
 			if (bytesStored != plaintext.length)
 			{
 				plaintext = Arrays.copyOf(plaintext, bytesStored);

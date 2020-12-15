@@ -34,8 +34,7 @@ import nu.yona.server.properties.YonaProperties;
  * intercepts the getLocale operation. If the locale of the request does not match a supported locale, the default locale is
  * returned. The Content-Language header simply added added to response headers before passing the request and response to the
  * next filter.
- */
-public class LocalizationFilter implements Filter
+ */ public class LocalizationFilter implements Filter
 {
 	public static class LocalizationRequestWrapper extends HttpServletRequestWrapper
 	{

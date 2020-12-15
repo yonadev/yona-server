@@ -8,7 +8,7 @@ package nu.yona.server.test
 
 import java.time.ZonedDateTime
 
-import groovy.json.*
+import groovy.json.JsonSlurper
 import nu.yona.server.YonaServer
 
 class AnalysisService extends Service
@@ -18,7 +18,7 @@ class AnalysisService extends Service
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
-	AnalysisService ()
+	AnalysisService()
 	{
 		super("yona.analysisservice.url", "http://localhost:8080")
 	}
@@ -33,9 +33,9 @@ class AnalysisService extends Service
 		def categoriesString = YonaServer.makeStringList(categories)
 		def eventTimeString = (eventTime) ? YonaServer.toIsoDateTimeString(eventTime) : null
 		def eventTimeProperty = (eventTimeString) ? """"eventTime" : "$eventTimeString",""" : ""
-		def dollarIndex =  device.vpnProfile.vpnLoginId.indexOf("\$")
-		def userAnonymizedId = device.vpnProfile.vpnLoginId[0..dollarIndex-1]
-		def deviceIndex = device.vpnProfile.vpnLoginId[dollarIndex+1..-1]
+		def dollarIndex = device.vpnProfile.vpnLoginId.indexOf("\$")
+		def userAnonymizedId = device.vpnProfile.vpnLoginId[0..dollarIndex - 1]
+		def deviceIndex = device.vpnProfile.vpnLoginId[dollarIndex + 1..-1]
 		postToAnalysisEngine(userAnonymizedId, """{
 					"deviceIndex": $deviceIndex,
 					$eventTimeProperty

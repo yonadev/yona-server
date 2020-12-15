@@ -2,8 +2,9 @@ description = "Database initializer"
 
 apply from: "liquibase.gradle"
 
-import com.bmuschko.gradle.docker.tasks.container.*
-import com.bmuschko.gradle.docker.tasks.image.*
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 def dockerImageName = "${project.group}/yona-mariadb-liquibase-update"
 
@@ -24,15 +25,15 @@ dependencies {
 
 docker {
 	registryCredentials {
-		username = project.hasProperty("dockerHubUserName")? project.dockerHubUserName : null
-		password = project.hasProperty("dockerHubPassword")? project.dockerHubPassword : null
+		username = project.hasProperty("dockerHubUserName") ? project.dockerHubUserName : null
+		password = project.hasProperty("dockerHubPassword") ? project.dockerHubPassword : null
 	}
-	url = project.hasProperty("dockerUrl")? project.dockerUrl : "http://localhost:2375"
+	url = project.hasProperty("dockerUrl") ? project.dockerUrl : "http://localhost:2375"
 }
 
 task buildDockerImage(type: DockerBuildImage) {
 	inputDir = mkdir("build/docker")
-	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
+	images = ["${dockerImageName}:${project.ext.docker_tag}"]
 	doFirst {
 		copy {
 			from "src/main/liquibase"
@@ -48,29 +49,29 @@ task buildDockerImage(type: DockerBuildImage) {
 }
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	images = [ "${dockerImageName}:${project.ext.docker_tag}" ]
+	images = ["${dockerImageName}:${project.ext.docker_tag}"]
 }
 
 task pathingJar(type: Jar) {
-	dependsOn configurations.runtime	
-	appendix = 'pathing'	
-	doFirst {	
-		manifest {	
-			attributes "Class-Path": configurations.runtime.files.collect {	
-				it.toURL().toString().replaceFirst(/file:\/+/, '/')	
-			}.join(' ')	
-		}	
-	}	
-}	
+	dependsOn configurations.runtime
+	appendix = 'pathing'
+	doFirst {
+		manifest {
+			attributes "Class-Path": configurations.runtime.files.collect {
+				it.toURL().toString().replaceFirst(/file:\/+/, '/')
+			}.join(' ')
+		}
+	}
+}
 
-bootRun {	
-	dependsOn pathingJar	
-	doFirst {	
-		classpath = files(sourceSets.main.output.files, pathingJar.archivePath)	
-	}	
-	enableAssertions = true	
-}	
+bootRun {
+	dependsOn pathingJar
+	doFirst {
+		classpath = files(sourceSets.main.output.files, pathingJar.archivePath)
+	}
+	enableAssertions = true
+}
 
-bootJar {	
-	classifier = "full"	
+bootJar {
+	classifier = "full"
 }

@@ -39,7 +39,7 @@ class CommonAssertions extends Service
 	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED = USER_LINKS_NUM_CONFIRMED + ["yona:requestPinReset"] as Set
 	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED = USER_LINKS_NUM_CONFIRMED
 	static final USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED = USER_LINKS_NUM_CONFIRMED + ["yona:verifyPinReset", "yona:resendPinResetConfirmationCode", "yona:clearPinReset"] as Set
-	static final BUDDY_USER_LINKS =  ["self"] as Set
+	static final BUDDY_USER_LINKS = ["self"] as Set
 	static final USER_EMBEDDED = ["yona:devices", "yona:goals", "yona:buddies"] as Set
 	static final BUDDY_USER_EMBEDDED = ["yona:goals", "yona:devices"] as Set
 	static final USER_LINKS_VARYING = ["yona:userPhoto"]
@@ -110,7 +110,7 @@ class CommonAssertions extends Service
 		}
 		assert user.creationTime != null
 		assert userCreatedOnBuddyRequest || user.appLastOpenedDate != null
-		assert user.mobileNumber ==~/^\+[0-9]+$/
+		assert user.mobileNumber ==~ /^\+[0-9]+$/
 
 		assert userCreatedOnBuddyRequest || user.nickname != null
 		assert user.firstName != null
@@ -149,7 +149,7 @@ class CommonAssertions extends Service
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user.keySet() == USER_PROPERTIES_NUM_TO_BE_CONFIRMED : (user.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY || user.keySet() == USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY))
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() - USER_LINKS_VARYING == USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() - USER_LINKS_VARYING == USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._embedded == null : user._embedded.keySet() == USER_EMBEDDED)
-			assert skipPropertySetAssertion || user._links.self.href ==~/(?i)^.*\/$UUID_PATTERN\?requestingUserId=$UUID_PATTERN\&requestingDeviceId=$UUID_PATTERN$/
+			assert skipPropertySetAssertion || user._links.self.href ==~ /(?i)^.*\/$UUID_PATTERN\?requestingUserId=$UUID_PATTERN\&requestingDeviceId=$UUID_PATTERN$/
 			if (!mobileNumberToBeConfirmed && assertDefaultDevice)
 			{
 				assert user._embedded."yona:devices"._embedded."yona:devices".size == 1
@@ -285,7 +285,7 @@ class CommonAssertions extends Service
 
 	private static assertBuddyUsers(response)
 	{
-		response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies".each{assertBuddyUser(it._embedded."yona:user", it.sendingStatus == "ACCEPTED")}
+		response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies".each { assertBuddyUser(it._embedded."yona:user", it.sendingStatus == "ACCEPTED") }
 	}
 
 	static void assertBuddyUser(def buddyUser, boolean isBuddyRelationshipEstablished)

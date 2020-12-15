@@ -24,7 +24,8 @@ public interface ActivityRepository extends CrudRepository<Activity, Long>
 			+ " a.activityCategory.id = :activityCategoryId and a.app = :app and"
 			+ " ((:startTime >= a.startTime and :startTime <= a.endTime) or" // New activity started during existing activity
 			+ " (:endTime >= a.startTime and :endTime <= a.endTime) or" // New activity ended during existing activity
-			+ " (a.startTime >= :startTime and a.endTime <= :endTime))") // Existing activity occurred during new activity
+			+ " (a.startTime >= :startTime and a.endTime <= :endTime))")
+		// Existing activity occurred during new activity
 	List<Activity> findOverlappingOfSameApp(@Param("dayActivity") DayActivity dayActivity,
 			@Param("deviceAnonymizedId") UUID deviceAnonymizedId, @Param("activityCategoryId") UUID activityCategoryId,
 			@Param("app") String app, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);

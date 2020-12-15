@@ -15,8 +15,8 @@ applicationProps.load(new FileInputStream("core/src/main/resources/application.p
 
 String databaseUrl = "$System.env.YONA_DB_URL"
 String hibernateUrl = "hibernate:spring:" + liquibaseProps.getProperty("liquibase.domain.package") \
-	+ "?dialect=" + applicationProps.getProperty("spring.jpa.database-platform") \
-	+ "&hibernate.physical_naming_strategy=" + liquibaseProps.getProperty("liquibase.physical_naming_strategy")
+	   + "?dialect=" + applicationProps.getProperty("spring.jpa.database-platform") \
+	   + "&hibernate.physical_naming_strategy=" + liquibaseProps.getProperty("liquibase.physical_naming_strategy")
 String userName = "$System.env.YONA_DB_USER_NAME"
 String password = "$System.env.YONA_DB_PASSWORD"
 String jdbcDriver = liquibaseProps.getProperty("liquibase.jdbc.driver")

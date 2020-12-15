@@ -21,8 +21,8 @@ public class DecryptionInfo
 
 	public DecryptionInfo(SecretKey secretKey, byte[] initializationVector)
 	{
-		Require.that(initializationVector.length == SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH,
-				() -> YonaException.illegalState("Initialization vector is " + initializationVector.length + " rather than "
+		Require.that(initializationVector.length == SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH, () -> YonaException.illegalState(
+				"Initialization vector is " + initializationVector.length + " rather than "
 						+ SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH));
 		this.secretKey = secretKey;
 		this.initializationVector = initializationVector;

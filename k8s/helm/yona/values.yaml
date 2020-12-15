@@ -166,7 +166,7 @@ sms:
   plivo_url: "https://api.plivo.com/v1/Account/{0}/Message/"
   plivo_auth_id: M1234123412341234123
   plivo_auth_token: N123412341234123412341234123412341234123
-  
+
 firebase:
   enabled: false
   admin_service_account_key_filename: serviceAccountKey.json
@@ -207,7 +207,7 @@ spring:
     config: /opt/app/config/hazelcast-client.xml
 
 admin:
-  act_categories_json_file : productionActivityCategories.json
+  act_categories_json_file: productionActivityCategories.json
 
 analysis:
   #url_override: "http://analysis.default.svc.cluster.local"
@@ -252,4 +252,4 @@ certs:
     MCuIv7V26zjwX1P91NOo0s/htoxxxxDiv86nUuYW8A==
 
 nodePorts: {}
-  # Placeholder. Normally, we use the defaults configured in the services yamls
+# Placeholder. Normally, we use the defaults configured in the services yamls

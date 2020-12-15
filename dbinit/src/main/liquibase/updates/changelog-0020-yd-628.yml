@@ -1,13 +1,13 @@
 databaseChangeLog:
-- changeSet:
-    id: 1556985544837-1
-    author: Bert (Manually created)
-    changes:
-    - modifyDataType:
-        tableName: goals
-        columnName: zones
-        newDataType: varchar(1152)
-    - modifyDataType:
-        tableName: message_sources
-        columnName: private_key_bytes
-        newDataType: varchar(1024)
+  - changeSet:
+      id: 1556985544837-1
+      author: Bert (Manually created)
+      changes:
+        - modifyDataType:
+            tableName: goals
+            columnName: zones
+            newDataType: varchar(1152)
+        - modifyDataType:
+            tableName: message_sources
+            columnName: private_key_bytes
+            newDataType: varchar(1024)

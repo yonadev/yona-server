@@ -18,16 +18,15 @@ public class BuddyMessageEmbeddedUserDecorator implements MessageResourceDecorat
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)
 	{
 		BuddyMessageEmbeddedUserDto buddyMessage = (BuddyMessageEmbeddedUserDto) message;
-		message.getSenderUser()
-				.ifPresent(user -> buddyMessage.setEmbeddedUser(
-						assembler.getCurieProvider().getNamespacedRelFor(BuddyDto.USER_REL),
+		message.getSenderUser().ifPresent(user -> buddyMessage
+				.setEmbeddedUser(assembler.getCurieProvider().getNamespacedRelFor(BuddyDto.USER_REL),
 						createUserResourceAssembler(assembler).toModel(user)));
 
 	}
 
 	private UserResourceAssembler createUserResourceAssembler(MessageResourceAssembler assembler)
 	{
-		return UserController.UserResourceAssembler.createMinimalInstance(assembler.getCurieProvider(),
-				assembler.getGoalIdMapping().getUserId());
+		return UserController.UserResourceAssembler
+				.createMinimalInstance(assembler.getCurieProvider(), assembler.getGoalIdMapping().getUserId());
 	}
 }

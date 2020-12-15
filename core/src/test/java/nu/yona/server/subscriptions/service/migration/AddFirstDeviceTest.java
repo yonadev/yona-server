@@ -79,10 +79,10 @@ import nu.yona.server.test.util.JUnitUtil;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.device.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.migration.AddFirstDevice", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.migration.AddFirstDevice", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
 class AddFirstDeviceIntegrationTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";
@@ -187,8 +187,9 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		// Add device
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, SOME_APP_VERSION,
-				SUPPORTED_APP_VERSION_CODE, Optional.empty(), Translator.EN_US_LOCALE);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized
+				.createInstance(0, operatingSystem, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE, Optional.empty(),
+						Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice device = UserDevice.createInstance(richard, deviceName, deviceAnonymized.getId(), "topSecret");
 		richard.addDevice(device);
@@ -226,7 +227,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		UserAnonymizedDto userAnonDto = UserAnonymizedDto.createInstance(richard.getAnonymized());
 		when(mockUserAnonymizedService.getUserAnonymized(richard.getUserAnonymizedId())).thenReturn(userAnonDto);
 		when(mockUserAnonymizedService.updateUserAnonymized(richard.getUserAnonymizedId()))
-				.thenAnswer(new Answer<UserAnonymizedDto>() {
+				.thenAnswer(new Answer<UserAnonymizedDto>()
+				{
 					@Override
 					public UserAnonymizedDto answer(InvocationOnMock invocation)
 					{
@@ -248,8 +250,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		assertThat(device.getDeviceAnonymized().getOperatingSystem(), equalTo(OperatingSystem.UNKNOWN));
 		assertThat(richard.getAnonymized().getDevicesAnonymized().size(), equalTo(1));
 
-		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(),
-				messageSupplierCaptor.capture());
+		verify(mockMessageService, times(1))
+				.broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), messageSupplierCaptor.capture());
 
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));

@@ -11,7 +11,7 @@ import java.time.LocalDate
 import groovy.transform.ToString
 import nu.yona.server.YonaServer
 
-@ToString(includeNames=true)
+@ToString(includeNames = true)
 class Device
 {
 	private static final String SOME_APP_VERSION = "9.9.9"
@@ -34,6 +34,7 @@ class Device
 	final String sslRootCertUrl
 	final String firebaseInstanceId
 	final String appleMobileConfig
+
 	Device(password, json)
 	{
 		this.password = password
@@ -57,7 +58,7 @@ class Device
 
 	def postOpenAppEvent(AppService appService, operatingSystem = this.operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE, locale = "en-US")
 	{
-		appService.createResourceWithPassword(postOpenAppEventUrl, """{"operatingSystem":"$operatingSystem", "appVersion":"$appVersion", "appVersionCode":"$appVersionCode"}""", password, [:], ["Accept-Language" : locale])
+		appService.createResourceWithPassword(postOpenAppEventUrl, """{"operatingSystem":"$operatingSystem", "appVersion":"$appVersion", "appVersionCode":"$appVersionCode"}""", password, [:], ["Accept-Language": locale])
 	}
 
 	def postVpnStatus(AppService appService, boolean vpnConnected)

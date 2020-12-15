@@ -6,7 +6,13 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertEquals
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusCreated
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusSuccess
+import static nu.yona.server.test.CommonAssertions.assertUser
 
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
@@ -89,10 +95,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def newFirstName = "Bob"
-		def newLastName= "Dunn"
+		def newLastName = "Dunn"
 		def newNickname = "BD"
 		def updatedBobJson = bob.convertToJson()
-		updatedBobJson.firstName= newFirstName
+		updatedBobJson.firstName = newFirstName
 		updatedBobJson.lastName = newLastName
 		updatedBobJson.nickname = newNickname
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
@@ -149,7 +155,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		updatedBob.devices == null // Mobile number not confirmed yet
 
-		def bobWithConfirmedNumber = appService.confirmMobileNumber({ assertResponseStatusSuccess(it)}, updatedBob)
+		def bobWithConfirmedNumber = appService.confirmMobileNumber({ assertResponseStatusSuccess(it) }, updatedBob)
 		bobWithConfirmedNumber.devices.size() == 1
 		bobWithConfirmedNumber.requestingDevice.name == "My S8"
 		bobWithConfirmedNumber.requestingDevice.operatingSystem == "ANDROID"
@@ -230,7 +236,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def inviteUrl = getInviteUrl()
 		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newFirstName = "Bob"
-		def newLastName= "Dunn"
+		def newLastName = "Dunn"
 		def newNickname = "BD"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
@@ -243,7 +249,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptUrl
 
 		when:
-		def response = appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], updatedBob.password)
+		def response = appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], updatedBob.password)
 
 		then:
 		assertResponseStatusOk(response)
@@ -268,7 +274,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def inviteUrl = getInviteUrl()
 		User bob = appService.getUser(CommonAssertions.&assertUserGetResponseDetailsCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newFirstName = "Bob"
-		def newLastName= "Dunn"
+		def newLastName = "Dunn"
 		def newNickname = "BD"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
@@ -279,15 +285,14 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
 		updatedBob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, updatedBob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], updatedBob.password)
+		appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], updatedBob.password)
 
 		when:
 		def response = appService.getMessages(richard)
 
 		then:
 		assertResponseStatusOk(response)
-		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
-		{ it."@type" == "BuddyConnectResponseMessage" }
+		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		buddyConnectResponseMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(bob.url))
 		buddyConnectResponseMessages[0]._embedded?."yona:user" == null
 		buddyConnectResponseMessages[0].nickname == newNickname
@@ -327,7 +332,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
 		updatedBob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, updatedBob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], updatedBob.password)
+		appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], updatedBob.password)
 		assert appService.fetchBuddyConnectResponseMessage(richard).processUrl == null // Processing happens automatically these days
 
 		when:
@@ -336,7 +341,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
@@ -344,7 +349,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(updatedBob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
@@ -510,7 +515,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		getMessagesResponse.responseData._embedded
 		getMessagesResponse.responseData._embedded."yona:messages".size() == 1
 
-		def buddyConnectResponseMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		def buddyConnectResponseMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
 		buddyConnectResponseMessage.message == "User account was deleted"
 		buddyConnectResponseMessage.nickname == "Bobby Dun"
@@ -553,7 +558,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
@@ -561,7 +566,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
@@ -604,11 +609,11 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		// TODO: How to delete the invited user?
 
 		where:
-		propertyToRemove | expectedStatus
-		"deviceOperatingSystem" | 400
-		"deviceAppVersion" | 400
-		"deviceOperatingSystem" | 400
-		"deviceAppVersionCode" | 400
+		propertyToRemove           | expectedStatus
+		"deviceOperatingSystem"    | 400
+		"deviceAppVersion"         | 400
+		"deviceOperatingSystem"    | 400
+		"deviceAppVersionCode"     | 400
 		"deviceFirebaseInstanceId" | 200
 	}
 
@@ -683,7 +688,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		getInviteUrl(response)
 	}
 
-	String getInviteUrl(response) {
+	String getInviteUrl(response)
+	{
 		def matcher = response.responseData.body =~ /(?s).*Return to this mail and click <a href=\"([^\"]*)\".*/
 		assert matcher.matches()
 		matcher[0][1]

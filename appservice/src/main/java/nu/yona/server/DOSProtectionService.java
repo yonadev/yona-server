@@ -39,7 +39,8 @@ public class DOSProtectionService
 	{
 		attemptsCache = CacheBuilder.newBuilder()
 				.expireAfterWrite(yonaProperties.getSecurity().getDosProtectionWindow().getSeconds(), TimeUnit.SECONDS)
-				.build(new CacheLoader<String, Integer>() {
+				.build(new CacheLoader<String, Integer>()
+				{
 					@Override
 					public Integer load(String key)
 					{

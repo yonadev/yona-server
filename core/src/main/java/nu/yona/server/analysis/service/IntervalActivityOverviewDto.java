@@ -37,7 +37,7 @@ public abstract class IntervalActivityOverviewDto
 
 	/**
 	 * Format the date in compliance with ISO-8601
-	 * 
+	 *
 	 * @param localDate The date to be formatted
 	 * @return The formatted date
 	 */

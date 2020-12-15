@@ -6,13 +6,11 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 class AdminService extends Service
 {
 	final SYSTEM_MESSAGES_PATH = "/systemMessages/"
 
-	AdminService ()
+	AdminService()
 	{
 		super("yona.adminservice.url", "http://localhost:8080")
 	}
@@ -20,9 +18,9 @@ class AdminService extends Service
 	def postSystemMessage(messageText)
 	{
 		yonaServer.restClient.post(path: SYSTEM_MESSAGES_PATH,
-		body: "message=" + java.net.URLEncoder.encode(messageText, "UTF-8"),
-		contentType:'application/x-www-form-urlencoded',
-		headers: [:],
-		query: [:])
+				body: "message=" + java.net.URLEncoder.encode(messageText, "UTF-8"),
+				contentType: 'application/x-www-form-urlencoded',
+				headers: [:],
+				query: [:])
 	}
 }

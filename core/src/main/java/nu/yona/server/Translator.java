@@ -20,10 +20,14 @@ public class Translator
 {
 	public static final Locale EN_US_LOCALE = Locale.forLanguageTag("en-US");
 
-	/** The translator is set upon initialization of the context */
+	/**
+	 * The translator is set upon initialization of the context
+	 */
 	private static Translator staticReference;
 
-	/** The source for the messages to use */
+	/**
+	 * The source for the messages to use
+	 */
 	@Autowired
 	@Qualifier("messageSource")
 	private MessageSource msgSource;
@@ -36,7 +40,7 @@ public class Translator
 
 	/**
 	 * This method returns the translated and formatted message for the passed message ID and parameters based on the given locale
-	 * 
+	 *
 	 * @return The actual message based on the default locale.
 	 */
 	public String getLocalizedMessage(String messageId, Object... parameters)
@@ -46,7 +50,7 @@ public class Translator
 
 	/**
 	 * This method returns the translated and formatted message for the passed message ID and parameters based on the given locale
-	 * 
+	 *
 	 * @param locale The locale to use for getting the message.
 	 * @return The actual message based on the given locale.
 	 */

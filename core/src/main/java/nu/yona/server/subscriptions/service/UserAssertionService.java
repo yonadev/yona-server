@@ -36,8 +36,8 @@ class UserAssertionService
 	/**
 	 * Holds the regex to validate a valid email address. Match the pattern a@b.c
 	 */
-	private static final Pattern REGEX_EMAIL = Pattern.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$",
-			Pattern.CASE_INSENSITIVE);
+	private static final Pattern REGEX_EMAIL = Pattern
+			.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$", Pattern.CASE_INSENSITIVE);
 
 	@Autowired(required = false)
 	private UserRepository userRepository;

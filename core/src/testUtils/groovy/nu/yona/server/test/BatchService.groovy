@@ -6,13 +6,11 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 class BatchService extends Service
 {
 	final ACTIVITY_AGGREGATION_TRIGGER_PATH = "/batch/aggregateActivities/"
 
-	BatchService ()
+	BatchService()
 	{
 		super("yona.batchservice.url", "http://localhost:8083")
 	}

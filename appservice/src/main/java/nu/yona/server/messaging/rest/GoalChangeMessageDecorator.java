@@ -16,7 +16,8 @@ public class GoalChangeMessageDecorator implements MessageResourceDecorator
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)
 	{
 		GoalChangeMessageDto goalChangeMessage = (GoalChangeMessageDto) message;
-		message.add(ActivityCategoryController
-				.getActivityCategoryLinkBuilder(goalChangeMessage.getActivityCategoryIdOfChangedGoal()).withRel("related"));
+		message.add(
+				ActivityCategoryController.getActivityCategoryLinkBuilder(goalChangeMessage.getActivityCategoryIdOfChangedGoal())
+						.withRel("related"));
 	}
 }

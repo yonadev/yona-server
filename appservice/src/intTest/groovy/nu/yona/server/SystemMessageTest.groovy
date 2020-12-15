@@ -6,7 +6,9 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 class SystemMessageTest extends AbstractAppServiceIntegrationTest
 {
@@ -29,14 +31,14 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(messagesRichardResponse)
 		assertResponseStatusOk(messagesBobResponse)
-		def systemMessagesRichard = messagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
+		def systemMessagesRichard = messagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
 		systemMessagesRichard.size() == 1
 		systemMessagesRichard[0].message == "Hi there!"
 		systemMessagesRichard[0].nickname == "Yona"
 		systemMessagesRichard[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesRichard[0]._links?.self?.href?.startsWith(richard.messagesUrl)
 		def messageUrlRichard = systemMessagesRichard[0]._links?.self?.href
-		def systemMessagesBob = messagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
+		def systemMessagesBob = messagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
 		systemMessagesBob.size() == 1
 		systemMessagesBob[0].message == "Hi there!"
 		systemMessagesBob[0].nickname == "Yona"
@@ -72,7 +74,7 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		sleepTillSystemMessagesAreSent(bob)
 		def getMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesResponse)
-		def systemMessagesBob = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
+		def systemMessagesBob = getMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
 		assert systemMessagesBob.size() == 1
 		def messageDeleteUrl = systemMessagesBob[0]._links?.edit?.href
 
@@ -81,7 +83,7 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}.size() == 1
+		appService.getMessages(richard).responseData._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }.size() == 1
 		appService.getMessages(bob).responseData._embedded == null
 
 		cleanup:
@@ -91,11 +93,11 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 
 	private void sleepTillSystemMessagesAreSent(user)
 	{
-		for (def i = 0; i <10; i++)
+		for (def i = 0; i < 10; i++)
 		{
-			def getUnreadMessagesResponse = appService.getMessages(user, [ "onlyUnreadMessages" : true,
-				"page": 0,
-				"size": 1])
+			def getUnreadMessagesResponse = appService.getMessages(user, ["onlyUnreadMessages": true,
+																		  "page"              : 0,
+																		  "size"              : 1])
 			assertResponseStatusOk(getUnreadMessagesResponse)
 			if (getUnreadMessagesResponse.responseData.page.totalElements > 0)
 			{

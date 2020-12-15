@@ -12,12 +12,11 @@ import spock.lang.Shared
 /**
  * This test guards the database access statistics of the analysis engine service. This service is very performance critical,
  * so it is important that the database access is very limited.
- * 
+ *
  * Changes in the Yona server implementation might lead to different statistics. If the new values are less than before,
  * updating the test is perfectly fine. If they are more than before, the first attempt should be to decrease it to the
  * original level. Only when it's strictly necessary to create/read/update/delete more entities, the test should be updated
- * with higher expected values.
- */
+ * with higher expected values.*/
 class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 {
 	@Shared
@@ -32,7 +31,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 
 		def richardAndBob = addRichardAndBobAsBuddies()
 		richard = richardAndBob.richard
-		addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, 23*60)
+		addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, 23 * 60)
 
 		analysisService.setEnableStatistics(true)
 	}
@@ -43,7 +42,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Post of first network activity on nongoal causes limited reads and no writes' ()
+	def 'Post of first network activity on nongoal causes limited reads and no writes'()
 	{
 		given:
 		analysisService.resetStatistics()
@@ -63,7 +62,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.transactionCount == 2
 	}
 
-	def 'Post of second network activity on nongoal causes no reads and no writes' ()
+	def 'Post of second network activity on nongoal causes no reads and no writes'()
 	{
 		given:
 		analysisService.clearCaches()
@@ -84,7 +83,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.transactionCount == 1
 	}
 
-	def 'Post of first network activity on budget goal causes limited reads and writes' ()
+	def 'Post of first network activity on budget goal causes limited reads and writes'()
 	{
 		given:
 		analysisService.resetStatistics()
@@ -104,7 +103,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.transactionCount == 2
 	}
 
-	def 'Post of second network activity on budget goal causes no reads and no writes' ()
+	def 'Post of second network activity on budget goal causes no reads and no writes'()
 	{
 		given:
 		analysisService.clearCaches()
@@ -125,7 +124,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.transactionCount == 1
 	}
 
-	def 'Post of first network activity on no-go goal causes limited reads and writes' ()
+	def 'Post of first network activity on no-go goal causes limited reads and writes'()
 	{
 		given:
 		analysisService.resetStatistics()
@@ -145,7 +144,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.transactionCount == 2
 	}
 
-	def 'Post of second network activity on no-go goal causes no reads and no writes' ()
+	def 'Post of second network activity on no-go goal causes no reads and no writes'()
 	{
 		given:
 		analysisService.clearCaches()

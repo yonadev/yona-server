@@ -31,12 +31,11 @@ public class DashboardController
 {
 	private static final LocalDate LONG_AGO = LocalDate.of(2000, 1, 1);
 
-	private static final List<Integer> DAYS_APP_OPENED_SCALE = Arrays.asList(0, 1, 2, 3, 4, 30, 90, 180, 365,
-			Integer.MAX_VALUE);
+	private static final List<Integer> DAYS_APP_OPENED_SCALE = Arrays.asList(0, 1, 2, 3, 4, 30, 90, 180, 365, Integer.MAX_VALUE);
 
-	private static final List<String> DAYS_APP_OPENED_LABELS = Arrays.asList("Never opened",
-			"On day of installation", "1 day", "2 days", "3 days", "4 to 30 days", "31 to 90 days", "91 to 180 days",
-			"181 to 365 days", "More than 365 days");
+	private static final List<String> DAYS_APP_OPENED_LABELS = Arrays
+			.asList("Never opened", "On day of installation", "1 day", "2 days", "3 days", "4 to 30 days", "31 to 90 days",
+					"91 to 180 days", "181 to 365 days", "More than 365 days");
 
 	private static final List<Integer> HISTORY_SCALE = Arrays.asList(1, 2, 7, 14, 30, 60);
 
@@ -80,8 +79,7 @@ public class DashboardController
 		model.addAttribute("buildNumber", buildProperties.get("buildNumber"));
 		model.addAttribute("daysAppOpenedLabels", DAYS_APP_OPENED_LABELS);
 		model.addAttribute("daysAppOpenedCounts", daysAppOpenedCounts);
-		model.addAttribute("daysAppOpenedPercentages",
-				absoluteValuesToPercentages(daysAppOpenedCounts));
+		model.addAttribute("daysAppOpenedPercentages", absoluteValuesToPercentages(daysAppOpenedCounts));
 		model.addAttribute("daysAppOpenedCumulativePercentages",
 				cumulativeValues(absoluteValuesToPercentages(daysAppOpenedCounts)));
 
@@ -111,9 +109,8 @@ public class DashboardController
 
 	private List<Integer> calculateDaysAppOpenedCounts()
 	{
-		List<Integer> counts = IntStream.range(0, DAYS_APP_OPENED_SCALE.size() - 1)
-				.mapToObj(i -> userRepository.countByNumberOfDaysAppOpenedAfterInstallation(
-						DAYS_APP_OPENED_SCALE.get(i), DAYS_APP_OPENED_SCALE.get(i + 1)))
+		List<Integer> counts = IntStream.range(0, DAYS_APP_OPENED_SCALE.size() - 1).mapToObj(i -> userRepository
+				.countByNumberOfDaysAppOpenedAfterInstallation(DAYS_APP_OPENED_SCALE.get(i), DAYS_APP_OPENED_SCALE.get(i + 1)))
 				.collect(Collectors.toList());
 		int neverOpenedCount = userRepository.countByAppLastOpenedDateIsNull();
 		counts.add(0, neverOpenedCount);

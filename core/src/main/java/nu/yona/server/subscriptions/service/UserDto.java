@@ -53,12 +53,13 @@ public class UserDto
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed,
-			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goalsIncludingHistoryItems,
-			Set<BuddyDto> buddies, UUID userAnonymizedId, Set<UserDeviceDto> devices)
+			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
+			Set<GoalDto> goalsIncludingHistoryItems, Set<BuddyDto> buddies, UUID userAnonymizedId, Set<UserDeviceDto> devices)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest,
 				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, firstName, lastName, nickname, userPhotoId,
-						namedMessageSourceId, anonymousMessageSourceId, goalsIncludingHistoryItems, buddies, userAnonymizedId, devices));
+						namedMessageSourceId, anonymousMessageSourceId, goalsIncludingHistoryItems, buddies, userAnonymizedId,
+						devices));
 	}
 
 	private UserDto(UUID id, Optional<LocalDate> appLastOpenedDate, String mobileNumber, boolean isConfirmed,
@@ -160,8 +161,9 @@ public class UserDto
 		{
 			return (OwnUserPrivateDataDto) privateData;
 		}
-		throw new IllegalStateException("Cannot fetch own user private data. Private data "
-				+ ((privateData == null) ? "is null" : "is of type " + privateData.getClass().getName()));
+		throw new IllegalStateException("Cannot fetch own user private data. Private data " + ((privateData == null) ?
+				"is null" :
+				"is of type " + privateData.getClass().getName()));
 	}
 
 	@JsonIgnore
@@ -171,8 +173,9 @@ public class UserDto
 		{
 			return privateData;
 		}
-		throw new IllegalStateException("Cannot fetch buddy user private data. Private data "
-				+ ((privateData == null) ? "is null" : " is of type " + privateData.getClass().getName()));
+		throw new IllegalStateException("Cannot fetch buddy user private data. Private data " + ((privateData == null) ?
+				"is null" :
+				" is of type " + privateData.getClass().getName()));
 	}
 
 	void updateUser(User originalUserEntity)
@@ -197,10 +200,11 @@ public class UserDto
 				userAnonymizedDto.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
-				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(), userAnonymizedDto.getGoalsIncludingHistoryItems(),
-				buddies, userEntity.getUserAnonymizedId(),
-				userEntity.getDevices().stream().map(d -> UserDeviceDto.createInstance(userAnonymizedDto, d,
-						userAnonymizedDto.getDeviceAnonymized(d.getDeviceAnonymizedId()))).collect(Collectors.toSet()));
+				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(),
+				userAnonymizedDto.getGoalsIncludingHistoryItems(), buddies, userEntity.getUserAnonymizedId(),
+				userEntity.getDevices().stream().map(d -> UserDeviceDto
+						.createInstance(userAnonymizedDto, d, userAnonymizedDto.getDeviceAnonymized(d.getDeviceAnonymizedId())))
+						.collect(Collectors.toSet()));
 	}
 
 	public static UserDto createInstance(User userEntity, BuddyUserPrivateDataDto buddyData)

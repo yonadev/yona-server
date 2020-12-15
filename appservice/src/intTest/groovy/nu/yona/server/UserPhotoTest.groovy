@@ -6,7 +6,9 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import org.apache.http.HttpEntity
 import org.apache.http.entity.mime.MultipartEntityBuilder
@@ -36,7 +38,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 				.build()
 
 		when:
-		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
+		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType: "multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
 		assertResponseStatusOk(response)
@@ -60,7 +62,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 				.build()
 
 		when:
-		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
+		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType: "multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
 		assertResponseStatusOk(response)
@@ -85,7 +87,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 				.build()
 
 		when:
-		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
+		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType: "multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
 		assertResponseStatusOk(response)
@@ -110,7 +112,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 				.build()
 
 		when:
-		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
+		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType: "multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
 		assertResponseStatus(response, 413)
@@ -220,9 +222,8 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
-		bobMessagesFromRichard.each
-		{
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll { it."nickname" == "RQ" }
+		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
 
@@ -245,9 +246,8 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
-		bobMessagesFromRichard.each
-		{
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll { it."nickname" == "RQ" }
+		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
 		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
@@ -273,9 +273,8 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
-		bobMessagesFromRichard.each
-		{
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll { it."nickname" == "RQ" }
+		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
 		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
@@ -300,9 +299,8 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
-		bobMessagesFromRichard.each
-		{
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll { it."nickname" == "RQ" }
+		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
 		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
@@ -325,7 +323,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -360,7 +358,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -394,7 +392,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -421,7 +419,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def multipartEntity = MultipartEntityBuilder.create()
 				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode(EXAMPLE_PNG_DATA_BASE64)), "image/png", "MyPhoto.png"))
 				.build()
-		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": "Wrong password"], body: multipartEntity)
+		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType: "multipart/form-data", headers: ["Yona-Password": "Wrong password"], body: multipartEntity)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -486,7 +484,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def multipartEntity = MultipartEntityBuilder.create()
 				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode(EXAMPLE_PNG_DATA_BASE64)), "image/png", "MyPhoto.png"))
 				.build()
-		def response = appService.yonaServer.restClient.put(path: user.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": user.password], body: multipartEntity)
+		def response = appService.yonaServer.restClient.put(path: user.editUserPhotoUrl, requestContentType: "multipart/form-data", headers: ["Yona-Password": user.password], body: multipartEntity)
 		assertResponseStatusOk(response)
 		response.responseData?._links?."yona:userPhoto"?.href
 	}

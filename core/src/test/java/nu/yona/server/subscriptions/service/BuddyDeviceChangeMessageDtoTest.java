@@ -63,12 +63,12 @@ import nu.yona.server.util.TransactionHelper;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.messaging.service", "nu.yona.server.properties" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyDeviceChangeMessageDto.Manager", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.SenderInfo.Factory", type = FilterType.REGEX) }, excludeFilters = {
-						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyDeviceChangeMessageDto.Manager", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.SenderInfo.Factory", type = FilterType.REGEX) }, excludeFilters = {
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class BuddyDeviceChangeMessageDtoTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";
@@ -177,8 +177,9 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 		// Create the message
 		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(richard);
-		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage.createInstance(buddyInfoParameters, MESSAGE_TEXT,
-				DeviceChange.ADD, device.getDeviceAnonymizedId(), Optional.empty(), Optional.of(deviceName));
+		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage
+				.createInstance(buddyInfoParameters, MESSAGE_TEXT, DeviceChange.ADD, device.getDeviceAnonymizedId(),
+						Optional.empty(), Optional.of(deviceName));
 
 		// Process the message
 		manager.handleAction(bob, messageEntity, "process", null);
@@ -209,8 +210,9 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 		// Create the message
 		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(richard);
 		String newDeviceName = "Renamed";
-		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage.createInstance(buddyInfoParameters, MESSAGE_TEXT,
-				DeviceChange.RENAME, device.getDeviceAnonymizedId(), Optional.of(orgDeviceName), Optional.of(newDeviceName));
+		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage
+				.createInstance(buddyInfoParameters, MESSAGE_TEXT, DeviceChange.RENAME, device.getDeviceAnonymizedId(),
+						Optional.of(orgDeviceName), Optional.of(newDeviceName));
 
 		// Process the message
 		manager.handleAction(bob, messageEntity, "process", null);
@@ -246,8 +248,9 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 		// Create the message
 		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(richard);
-		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage.createInstance(buddyInfoParameters, MESSAGE_TEXT,
-				DeviceChange.DELETE, device2.getDeviceAnonymizedId(), Optional.of(deviceName2), Optional.empty());
+		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage
+				.createInstance(buddyInfoParameters, MESSAGE_TEXT, DeviceChange.DELETE, device2.getDeviceAnonymizedId(),
+						Optional.of(deviceName2), Optional.empty());
 
 		// Process the message
 		manager.handleAction(bob, messageEntity, "process", null);
@@ -277,8 +280,9 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 		// Create the message
 		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(richard);
-		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage.createInstance(buddyInfoParameters, MESSAGE_TEXT,
-				DeviceChange.DELETE, device1.getDeviceAnonymizedId(), Optional.of(deviceName1), Optional.empty());
+		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage
+				.createInstance(buddyInfoParameters, MESSAGE_TEXT, DeviceChange.DELETE, device1.getDeviceAnonymizedId(),
+						Optional.of(deviceName1), Optional.empty());
 
 		// Process the message
 		manager.handleAction(bob, messageEntity, "process", null);
@@ -297,8 +301,8 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 	private UserDevice addDevice(User user, String deviceName, OperatingSystem operatingSystem)
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, "Unknown", 0, Optional.empty(),
-				Translator.EN_US_LOCALE);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized
+				.createInstance(0, operatingSystem, "Unknown", 0, Optional.empty(), Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice device = UserDevice.createInstance(user, deviceName, deviceAnonymized.getId(), "topSecret");
 		user.addDevice(device);

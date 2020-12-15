@@ -107,8 +107,8 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return BuddyDisconnectMessageDto.createInstance((BuddyDisconnectMessage) messageEntity,
-					getSenderInfo(actingUser, messageEntity));
+			return BuddyDisconnectMessageDto
+					.createInstance((BuddyDisconnectMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

@@ -28,7 +28,8 @@ public class AppOpenEventDto
 
 	public Optional<OperatingSystem> getOperatingSystem()
 	{
-		return operatingSystemStr == null ? Optional.empty()
-				: Optional.of(UserDeviceDto.parseOperatingSystemOfRegistrationRequest(operatingSystemStr));
+		return operatingSystemStr == null ?
+				Optional.empty() :
+				Optional.of(UserDeviceDto.parseOperatingSystemOfRegistrationRequest(operatingSystemStr));
 	}
 }

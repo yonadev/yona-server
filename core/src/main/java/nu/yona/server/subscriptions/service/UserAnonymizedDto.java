@@ -38,9 +38,9 @@ public class UserAnonymizedDto implements Serializable
 	private final Set<BuddyAnonymizedDto> buddiesAnonymized;
 	private final Set<DeviceAnonymizedDto> devicesAnonymized;
 
-	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, ZoneId timeZone, Set<GoalDto> goalsIncludingHistoryItems,
-			MessageDestinationDto anonymousMessageDestination, Set<BuddyAnonymizedDto> buddiesAnonymized,
-			Set<DeviceAnonymizedDto> devicesAnonymized)
+	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, ZoneId timeZone,
+			Set<GoalDto> goalsIncludingHistoryItems, MessageDestinationDto anonymousMessageDestination,
+			Set<BuddyAnonymizedDto> buddiesAnonymized, Set<DeviceAnonymizedDto> devicesAnonymized)
 	{
 		this.id = id;
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate.orElse(null);
@@ -54,9 +54,9 @@ public class UserAnonymizedDto implements Serializable
 	public static UserAnonymizedDto createInstance(UserAnonymized entity)
 	{
 		return new UserAnonymizedDto(entity.getId(), entity.getLastMonitoredActivityDate(), entity.getTimeZone(),
-				getGoalsIncludingHistoryItems(entity),
-				(entity.getAnonymousDestination() == null) ? null
-						: MessageDestinationDto.createInstance(entity.getAnonymousDestination()),
+				getGoalsIncludingHistoryItems(entity), (entity.getAnonymousDestination() == null) ?
+				null :
+				MessageDestinationDto.createInstance(entity.getAnonymousDestination()),
 				entity.getBuddiesAnonymized().stream().map(BuddyAnonymizedDto::createInstance).collect(Collectors.toSet()),
 				entity.getDevicesAnonymized().stream().map(DeviceAnonymizedDto::createInstance).collect(Collectors.toSet()));
 	}

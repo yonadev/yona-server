@@ -1,81 +1,81 @@
 databaseChangeLog:
-- changeSet:
-    id: 1522820581110-1
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: first_name
-            type: varchar(255)
-        tableName: buddies
-- changeSet:
-    id: 1522820581110-2
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: first_name
-            type: varchar(255)
-        tableName: users_private
-- changeSet:
-    id: 1522820581110-3
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: first_name_ciphertext
-            type: tinyblob
-        tableName: messages
-- changeSet:
-    id: 1522820581110-4
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: last_name
-            type: varchar(255)
-        tableName: buddies
-- changeSet:
-    id: 1522820581110-5
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: last_name
-            type: varchar(255)
-        tableName: users_private
-- changeSet:
-    id: 1522820581110-6
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: last_name_ciphertext
-            type: tinyblob
-        tableName: messages
-- changeSet:
-    id: 1522820581110-7
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: new_first_name_ciphertext
-            type: tinyblob
-        tableName: messages
-- changeSet:
-    id: 1522820581110-8
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: new_last_name_ciphertext
-            type: tinyblob
-        tableName: messages
+  - changeSet:
+      id: 1522820581110-1
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: first_name
+                  type: varchar(255)
+            tableName: buddies
+  - changeSet:
+      id: 1522820581110-2
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: first_name
+                  type: varchar(255)
+            tableName: users_private
+  - changeSet:
+      id: 1522820581110-3
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: first_name_ciphertext
+                  type: tinyblob
+            tableName: messages
+  - changeSet:
+      id: 1522820581110-4
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: last_name
+                  type: varchar(255)
+            tableName: buddies
+  - changeSet:
+      id: 1522820581110-5
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: last_name
+                  type: varchar(255)
+            tableName: users_private
+  - changeSet:
+      id: 1522820581110-6
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: last_name_ciphertext
+                  type: tinyblob
+            tableName: messages
+  - changeSet:
+      id: 1522820581110-7
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: new_first_name_ciphertext
+                  type: tinyblob
+            tableName: messages
+  - changeSet:
+      id: 1522820581110-8
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: new_last_name_ciphertext
+                  type: tinyblob
+            tableName: messages

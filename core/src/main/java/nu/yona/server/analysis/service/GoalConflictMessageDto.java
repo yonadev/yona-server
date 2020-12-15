@@ -171,8 +171,8 @@ public class GoalConflictMessageDto extends MessageDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return GoalConflictMessageDto.createInstance((GoalConflictMessage) messageEntity,
-					getSenderInfo(actingUser, messageEntity));
+			return GoalConflictMessageDto
+					.createInstance((GoalConflictMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -194,10 +194,9 @@ public class GoalConflictMessageDto extends MessageDto
 			messageEntity = updateMessageStatusAsDisclosureRequested(messageEntity);
 
 			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get());
-			messageService.sendMessage(
-					DisclosureRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(actingUser),
-							requestPayload.getProperty("message"), messageEntity),
-					toUser);
+			messageService.sendMessage(DisclosureRequestMessage
+					.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(actingUser),
+							requestPayload.getProperty("message"), messageEntity), toUser);
 
 			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
 		}

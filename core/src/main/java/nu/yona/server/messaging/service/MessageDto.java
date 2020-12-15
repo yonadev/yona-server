@@ -226,21 +226,22 @@ public abstract class MessageDto extends PolymorphicDto
 
 		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
 		{
-			throw new IllegalStateException("Cannot find buddy for message with ID " + messageEntity.getId() + " of type '"
-					+ messageEntity.getClass().getName() + "' with user anonymized ID '"
-					+ messageEntity.getRelatedUserAnonymizedId().map(UUID::toString).orElse("UNKNOWN") + "'");
+			throw new IllegalStateException(
+					"Cannot find buddy for message with ID " + messageEntity.getId() + " of type '" + messageEntity.getClass()
+							.getName() + "' with user anonymized ID '" + messageEntity.getRelatedUserAnonymizedId()
+							.map(UUID::toString).orElse("UNKNOWN") + "'");
 		}
 
 		private SenderInfo createSenderInfoForSelf(User actingUser)
 		{
-			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getNickname(),
-					actingUser.getUserPhotoId());
+			return senderInfoFactory
+					.createInstanceForSelf(actingUser.getId(), actingUser.getNickname(), actingUser.getUserPhotoId());
 		}
 
 		protected SenderInfo createSenderInfoForBuddy(Buddy buddy, Message messageEntity)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getUserPhotoId(),
-					buddy.getId());
+			return senderInfoFactory
+					.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getUserPhotoId(), buddy.getId());
 		}
 
 		protected SenderInfo createSenderInfoForBuddyConnectionChangeMessage(Optional<User> senderUser,
@@ -249,11 +250,12 @@ public abstract class MessageDto extends PolymorphicDto
 			String firstName = buddyMessageEntity.determineFirstName(senderUser);
 			String lastName = buddyMessageEntity.determineLastName(senderUser);
 
-			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto.createInstance(firstName, lastName,
-					buddyMessageEntity.getSenderNickname(), buddyMessageEntity.getSenderUserPhotoId(),
-					buddyMessageEntity.isUserFetchable());
-			return senderInfoFactory.createInstanceForDetachedBuddy(
-					senderUser.map(u -> UserDto.createInstance(u, buddyUserPrivateData)), buddyUserPrivateData);
+			BuddyUserPrivateDataDto buddyUserPrivateData = BuddyUserPrivateDataDto
+					.createInstance(firstName, lastName, buddyMessageEntity.getSenderNickname(),
+							buddyMessageEntity.getSenderUserPhotoId(), buddyMessageEntity.isUserFetchable());
+			return senderInfoFactory
+					.createInstanceForDetachedBuddy(senderUser.map(u -> UserDto.createInstance(u, buddyUserPrivateData)),
+							buddyUserPrivateData);
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

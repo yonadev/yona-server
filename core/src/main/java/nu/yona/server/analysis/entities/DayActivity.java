@@ -44,7 +44,7 @@ public class DayActivity extends IntervalActivity
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dayActivity", fetch = FetchType.LAZY)
 	@BatchSize(size = 25) // When e.g. fetching a day or week overview, it is expected that only the last day is not aggregated,
-							// so you get 4 goals * 1 day = 4 activity collections to be joined
+	// so you get 4 goals * 1 day = 4 activity collections to be joined
 	private List<Activity> activities;
 
 	@Column(columnDefinition = "bit default false")
@@ -96,9 +96,9 @@ public class DayActivity extends IntervalActivity
 
 	public Optional<Activity> getLastActivity(UUID deviceAnonymizedId)
 	{
-		return this.activities.stream().filter(
-				a -> a.getDeviceAnonymized().map(DeviceAnonymized::getId).map(id -> id.equals(deviceAnonymizedId)).orElse(false))
-				.max((a, b) -> a.getEndTime().compareTo(b.getEndTime()));
+		return this.activities.stream()
+				.filter(a -> a.getDeviceAnonymized().map(DeviceAnonymized::getId).map(id -> id.equals(deviceAnonymizedId))
+						.orElse(false)).max((a, b) -> a.getEndTime().compareTo(b.getEndTime()));
 	}
 
 	public void addActivity(Activity activity)

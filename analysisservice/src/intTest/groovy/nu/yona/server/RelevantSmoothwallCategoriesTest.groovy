@@ -6,9 +6,9 @@
  *******************************************************************************/
 package nu.yona.server
 
-import groovy.json.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
+
 import nu.yona.server.test.AnalysisService
-import static nu.yona.server.test.CommonAssertions.*
 import spock.lang.Shared
 import spock.lang.Specification
 

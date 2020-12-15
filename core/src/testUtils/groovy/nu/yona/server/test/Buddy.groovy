@@ -8,11 +8,10 @@ package nu.yona.server.test
 
 import java.time.LocalDate
 
-import groovy.json.*
 import groovy.transform.ToString
 import nu.yona.server.YonaServer
 
-@ToString(includeNames=true)
+@ToString(includeNames = true)
 class Buddy
 {
 	final String receivingStatus
@@ -25,6 +24,7 @@ class Buddy
 	final String dailyActivityReportsUrl
 	final String weeklyActivityReportsUrl
 	final String editUrl
+
 	Buddy(def json)
 	{
 		this.receivingStatus = json.receivingStatus
@@ -44,16 +44,15 @@ class Buddy
 
 	def findActiveGoal(def activityCategoryUrl)
 	{
-		user.goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
+		user.goals.find { it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
 	/**
-	 * Finds a goal in the buddy context given the goal from the user context
-	 */
+	 * Finds a goal in the buddy context given the goal from the user context	*/
 	Goal findGoal(Goal goal)
 	{
 		def goalId = goal.url.substring(goal.url.lastIndexOf('/') + 1)
-		Goal matchingGoal = user.goals.find{it.url.endsWith(goalId)}
+		Goal matchingGoal = user.goals.find { it.url.endsWith(goalId) }
 		assert matchingGoal
 		return matchingGoal
 	}

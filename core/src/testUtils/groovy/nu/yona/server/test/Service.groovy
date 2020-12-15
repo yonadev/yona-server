@@ -6,7 +6,8 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import nu.yona.server.YonaServer
 
@@ -26,7 +27,7 @@ abstract class Service
 	/**
 	 * This method returns the requested property if it is available. If it is not available and no default value is provided,
 	 * it throws an exception.
-	 * 
+	 *
 	 * @param propertyName The name of the system property to retrieve.
 	 * @param defaultValue The default property value
 	 * @return The value.
@@ -45,13 +46,13 @@ abstract class Service
 
 	void setEnableStatistics(def enable)
 	{
-		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", ["enable" : enable])
-		assert response.status == 204 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
+		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", ["enable": enable])
+		assert response.status == 204: "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
 	}
 
 	void resetStatistics()
 	{
-		def response = getResource("/hibernateStatistics/", ["reset" : "true"])
+		def response = getResource("/hibernateStatistics/", ["reset": "true"])
 		assertResponseStatusOk(response)
 	}
 
@@ -63,7 +64,7 @@ abstract class Service
 
 	def getStatistics()
 	{
-		def response = getResource("/hibernateStatistics/", ["reset" : "false"])
+		def response = getResource("/hibernateStatistics/", ["reset": "false"])
 		assertResponseStatusOk(response)
 		response.responseData
 	}

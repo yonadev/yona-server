@@ -22,24 +22,24 @@ public class TimeUtilTest
 	@Test
 	public void getEndOfDay_anyTime_returnsTwelveOClockInGivenZone()
 	{
-		ZonedDateTime result = TimeUtil.getEndOfDay(ZoneId.of("Europe/Amsterdam"),
-				ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
+		ZonedDateTime result = TimeUtil
+				.getEndOfDay(ZoneId.of("Europe/Amsterdam"), ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
 		assertThat(result, equalTo(ZonedDateTime.parse("2017-08-23T00:00:00+02:00[Europe/Amsterdam]")));
 	}
 
 	@Test
 	public void getStartOfDay_anyTime_returnsZeroOClockInGivenZone()
 	{
-		ZonedDateTime result = TimeUtil.getStartOfDay(ZoneId.of("Europe/Amsterdam"),
-				ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
+		ZonedDateTime result = TimeUtil
+				.getStartOfDay(ZoneId.of("Europe/Amsterdam"), ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
 		assertThat(result, equalTo(ZonedDateTime.parse("2017-08-22T00:00:00+02:00[Europe/Amsterdam]")));
 	}
 
 	@Test
 	public void getStartOfWeek_anyTime_returnsSundayZeroOClockInGivenZone()
 	{
-		ZonedDateTime result = TimeUtil.getStartOfWeek(ZoneId.of("Europe/Amsterdam"),
-				ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
+		ZonedDateTime result = TimeUtil
+				.getStartOfWeek(ZoneId.of("Europe/Amsterdam"), ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
 		assertThat(result, equalTo(ZonedDateTime.parse("2017-08-20T00:00:00+02:00[Europe/Amsterdam]")));
 	}
 

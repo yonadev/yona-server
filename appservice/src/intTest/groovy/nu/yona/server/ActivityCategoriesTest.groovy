@@ -6,9 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
 
-import groovy.json.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
 {
@@ -23,10 +22,7 @@ class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(response)
 		response.responseData._links.self.href == appService.url + appService.ACTIVITY_CATEGORIES_PATH
 		response.responseData._embedded."yona:activityCategories".size() > 0
-		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find
-		{
-			it._links.self.href == GAMBLING_ACT_CAT_URL
-		}
+		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find { it._links.self.href == GAMBLING_ACT_CAT_URL }
 		gamblingCategory.keySet() == ["_links", "name", "description"] as Set
 		gamblingCategory.name == "Gambling"
 		gamblingCategory.description == "This challenge includes apps and sites like Poker and Blackjack"

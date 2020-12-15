@@ -113,8 +113,8 @@ public class UserService
 
 			userAddService.assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 					() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
-					r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
-							userProvidedConfirmationCode, r),
+					r -> MobileNumberConfirmationException
+							.confirmationCodeMismatch(userEntity.getMobileNumber(), userProvidedConfirmationCode, r),
 					() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
 			if (userEntity.isMobileNumberConfirmed())
@@ -163,8 +163,8 @@ public class UserService
 	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
 	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
 	 * would cause the GETs to fail rather than to wait for the other one to complete.
-	 * 
-	 * @param id The ID of the user to update
+	 *
+	 * @param id           The ID of the user to update
 	 * @param updateAction The update action to perform
 	 * @return The updated and saved user
 	 */
@@ -182,10 +182,10 @@ public class UserService
 	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
 	 * would cause the GETs to fail rather than to wait for the other one to complete.
 	 *
-	 * @param id The ID of the user to update
+	 * @param id           The ID of the user to update
 	 * @param updateAction The update action to perform
 	 * @return an {@code Optional} describing the updated and saved user, or an empty {@code Optional} if a user with this ID
-	 *         cannot be found
+	 * cannot be found
 	 */
 	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
 	public Optional<User> updateUserIfExisting(UUID id, Consumer<User> updateAction)
@@ -207,8 +207,8 @@ public class UserService
 
 	/**
 	 * Deletes the specified user, while holding a write-lock on the user.
-	 * 
-	 * @param id The ID of the user to delete
+	 *
+	 * @param id      The ID of the user to delete
 	 * @param message the message to communicate to buddies
 	 */
 	@Transactional
@@ -241,7 +241,7 @@ public class UserService
 	/**
 	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
 	 * value is always the user entity. If not an exception is thrown. The entity is fetched without lock.
-	 * 
+	 *
 	 * @param id the ID of the user
 	 * @return The user entity (never null)
 	 */
@@ -263,7 +263,7 @@ public class UserService
 
 	/**
 	 * This method returns a validated user entity. A validated user means a user with a confirmed mobile number.
-	 * 
+	 *
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */

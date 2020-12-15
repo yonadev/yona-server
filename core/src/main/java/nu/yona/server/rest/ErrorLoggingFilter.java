@@ -48,8 +48,9 @@ public class ErrorLoggingFilter implements Filter
 	{
 		private static final String TRACE_ID_HEADER = "x-b3-traceid";
 		private static final String CORRELATION_ID_MDC_KEY = "yona.correlation.id";
-		private static final List<String> MDC_KEYS = Arrays.asList(CORRELATION_ID_MDC_KEY, RestConstants.APP_OS_MDC_KEY,
-				RestConstants.APP_VERSION_CODE_MDC_KEY, RestConstants.APP_VERSION_NAME_MDC_KEY);
+		private static final List<String> MDC_KEYS = Arrays
+				.asList(CORRELATION_ID_MDC_KEY, RestConstants.APP_OS_MDC_KEY, RestConstants.APP_VERSION_CODE_MDC_KEY,
+						RestConstants.APP_VERSION_NAME_MDC_KEY);
 
 		private LoggingContext()
 		{
@@ -135,6 +136,7 @@ public class ErrorLoggingFilter implements Filter
 
 	private static final Logger logger = LoggerFactory.getLogger(ErrorLoggingFilter.class);
 	private static final Map<Series, LogMethod> seriesToLoggerMap;
+
 	static
 	{
 		Map<Series, LogMethod> map = new EnumMap<>(Series.class);
@@ -144,7 +146,9 @@ public class ErrorLoggingFilter implements Filter
 		map.put(Series.SERVER_ERROR, logger::error);
 		seriesToLoggerMap = Collections.unmodifiableMap(map);
 	}
+
 	private static final Map<Series, Marker> seriesToMarkerMap;
+
 	static
 	{
 		Map<Series, Marker> map = new EnumMap<>(Series.class);

@@ -13,5 +13,6 @@ import org.springframework.data.repository.query.Param;
 public interface BuddyAnonymizedRepository extends CrudRepository<BuddyAnonymized, UUID>
 {
 	@Query("select count(b) > 0 from BuddyAnonymized b where b.owningUserAnonymized.id = :owningUserAnonymizedId and (userAnonymizedId = :userAnonymizedId or receiving_status = 1)")
-	boolean existsPendingOrEstablishedBuddyRelationship(@Param("owningUserAnonymizedId") UUID owningUserAnonymizedId, @Param("userAnonymizedId") UUID userAnonymizedId);
+	boolean existsPendingOrEstablishedBuddyRelationship(@Param("owningUserAnonymizedId") UUID owningUserAnonymizedId,
+			@Param("userAnonymizedId") UUID userAnonymizedId);
 }

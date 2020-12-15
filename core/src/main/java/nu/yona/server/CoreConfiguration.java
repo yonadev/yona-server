@@ -67,7 +67,7 @@ public class CoreConfiguration
 
 	/**
 	 * This bean tells the application which message bundle to use.
-	 * 
+	 *
 	 * @return The message bundle source
 	 */
 	@Bean(name = "messageSource")

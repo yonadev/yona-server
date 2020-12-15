@@ -26,7 +26,8 @@ public class ApplicationStatusLogger extends AbstractFailureAnalyzer<Throwable>
 
 	public static void addLoggerForContextClosedEvent(ConfigurableApplicationContext context)
 	{
-		context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
+		context.addApplicationListener(new ApplicationListener<ContextClosedEvent>()
+		{
 			@Override
 			public void onApplicationEvent(ContextClosedEvent event)
 			{

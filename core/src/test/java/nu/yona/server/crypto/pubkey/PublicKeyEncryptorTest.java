@@ -5,8 +5,8 @@
 package nu.yona.server.crypto.pubkey;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.lessThan;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;

@@ -104,8 +104,7 @@ public final class SenderInfo
 		public SenderInfo createInstanceForSelf(UUID userId, String nickname, Optional<UUID> userPhoto)
 		{
 			String selfNickname = translator.getLocalizedMessage("message.self.nickname", nickname);
-			return new SenderInfo(Optional.of(userService.getUser(userId)), selfNickname, userPhoto, false,
-					Optional.empty());
+			return new SenderInfo(Optional.of(userService.getUser(userId)), selfNickname, userPhoto, false, Optional.empty());
 		}
 
 		public SenderInfo createInstanceForSystem()

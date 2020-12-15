@@ -141,8 +141,8 @@ public class DeviceController extends ControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			Optional<UUID> requestingDeviceId = nullableStringToOptionalUuid(requestingDeviceIdStr);
 			return createOkResponse(deviceService.getDevicesOfUser(userId), createResourceAssembler(userId, requestingDeviceId),
@@ -156,8 +156,8 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.getDevice(userId, deviceId),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
@@ -171,13 +171,13 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId, @RequestBody DeviceRegistrationRequestDto request)
 	{
 		assertValidDeviceDataForRegister(request);
-		NewDeviceRequestDto newDeviceRequest = newDeviceRequestService.getNewDeviceRequestForUser(userId,
-				Optional.of(newDeviceRequestPassword));
-		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequest.getYonaPassword(),
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		NewDeviceRequestDto newDeviceRequest = newDeviceRequestService
+				.getNewDeviceRequestForUser(userId, Optional.of(newDeviceRequestPassword));
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(newDeviceRequest.getYonaPassword(), () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDeviceDto newDevice = deviceService.addDeviceToUser(userId,
-					UserDeviceDto.createDeviceRegistrationInstance(request));
+			UserDeviceDto newDevice = deviceService
+					.addDeviceToUser(userId, UserDeviceDto.createDeviceRegistrationInstance(request));
 			return createResponse(userService.getUser(userId, false), HttpStatus.CREATED,
 					userController.createResourceAssemblerForOwnUser(userId, Optional.of(newDevice.getId())));
 		}
@@ -198,12 +198,13 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = RestConstants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppOpenEventDto request)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			assertValidOpenAppEvent(request);
-			deviceService.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(),
-					Optional.ofNullable(request.appVersion), request.appVersionCode);
+			deviceService
+					.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(), Optional.ofNullable(request.appVersion),
+							request.appVersionCode);
 			return createNoContentResponse();
 		}
 	}
@@ -234,8 +235,8 @@ public class DeviceController extends ControllerBase
 	{
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(getDeviceSpecificAppleMobileConfig(deviceService.getDevice(userId, deviceId)), headers,
 					HttpStatus.OK);
@@ -268,8 +269,8 @@ public class DeviceController extends ControllerBase
 			@RequestBody DeviceUpdateRequestDto request)
 	{
 		assertValidDeviceDataForUpdate(request);
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.updateDevice(userId, deviceId, request),
 					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
@@ -289,8 +290,8 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.deleteDevice(userId, deviceId);
 		}
@@ -312,8 +313,8 @@ public class DeviceController extends ControllerBase
 			logTooLongAppActivityBatch(userId, appActivities);
 			return createOkResponse();
 		}
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDto userDto = userService.getUser(userId);
 			autoregisterAndroid(userDto, deviceId);
@@ -328,8 +329,8 @@ public class DeviceController extends ControllerBase
 	 * Autoregisters the given device as running Android. As of today, only the Android app is capable of sending app activities,
 	 * so if the operating system of the requesting device is marked as UNKNOWN, we can improve the registration and mark it as
 	 * ANDROID.
-	 * 
-	 * @param userDto The user sending the app activities
+	 *
+	 * @param userDto  The user sending the app activities
 	 * @param deviceId The ID of the device for which the app activities are being sent
 	 */
 	private void autoregisterAndroid(UserDto userDto, UUID deviceId)
@@ -361,8 +362,8 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postVpnStatusChangeEvent(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody VpnStatusDto vpnStatus)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.registerVpnStatusChangeEvent(userId, deviceId, vpnStatus.vpnConnected);
 			return createNoContentResponse();
@@ -524,9 +525,9 @@ public class DeviceController extends ControllerBase
 
 		private static void addOvpnProfileLink(EntityModel<VPNProfileDto> vpnProfileResource)
 		{
-			vpnProfileResource.add(
-					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
-							"ovpnProfile"));
+			vpnProfileResource.add(new Link(
+					ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
+					"ovpnProfile"));
 		}
 	}
 
@@ -608,8 +609,9 @@ public class DeviceController extends ControllerBase
 
 		private void addAppleMobileConfigLink(DeviceResource deviceResource)
 		{
-			deviceResource.add(linkTo(methodOn(DeviceController.class).getAppleMobileConfig(Optional.empty(), userId,
-					deviceResource.getContent().getId())).withRel("appleMobileConfig"));
+			deviceResource.add(linkTo(methodOn(DeviceController.class)
+					.getAppleMobileConfig(Optional.empty(), userId, deviceResource.getContent().getId()))
+					.withRel("appleMobileConfig"));
 		}
 	}
 }

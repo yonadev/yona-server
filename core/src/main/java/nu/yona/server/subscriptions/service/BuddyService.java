@@ -427,8 +427,8 @@ public class BuddyService
 
 	private void removeUnprocessedBuddyAcceptanceMessages(User user, Buddy buddy)
 	{
-		List<Message> responseMessages = messageService.getUnprocessedMessages(user,
-				m -> isBuddyConnectResponseFromBuddy(m, buddy));
+		List<Message> responseMessages = messageService
+				.getUnprocessedMessages(user, m -> isBuddyConnectResponseFromBuddy(m, buddy));
 		if (responseMessages.isEmpty())
 		{
 			return;
@@ -439,9 +439,9 @@ public class BuddyService
 					+ ") unprocessed buddy connect response messages exist for buddy with ID " + buddy.getId());
 		}
 		Message responseMessage = responseMessages.get(0);
-		UUID buddyUserAnonymizedId = responseMessage.getRelatedUserAnonymizedId()
-				.orElseThrow(() -> new IllegalStateException("No user anonymized ID on buddy connect response with ID "
-						+ responseMessage.getId() + " for buddy with ID " + buddy.getId()));
+		UUID buddyUserAnonymizedId = responseMessage.getRelatedUserAnonymizedId().orElseThrow(() -> new IllegalStateException(
+				"No user anonymized ID on buddy connect response with ID " + responseMessage.getId() + " for buddy with ID "
+						+ buddy.getId()));
 		List<Message> messagesToDelete = messageService.getMessagesFromRelatedUserAnonymizedId(user, buddyUserAnonymizedId);
 		messagesToDelete.add(responseMessage);
 		messageService.deleteMessages(messagesToDelete);
@@ -523,7 +523,8 @@ public class BuddyService
 		// VPN account after overwriting their user account, the analysis engine might still create goal conflict messages for
 		// buddies, though the buddies do not know the user anymore. To prevent that, we should filter out the buddy anonymized
 		// entities that do not have a corresponding buddy anonymized entity at the receiving end.
-		return buddyAnonymizedRepository.existsPendingOrEstablishedBuddyRelationship(buddyUserAnonymizedId, userAnonymized.getId());
+		return buddyAnonymizedRepository
+				.existsPendingOrEstablishedBuddyRelationship(buddyUserAnonymizedId, userAnonymized.getId());
 	}
 
 	public Set<MessageDestination> getBuddyDestinations(UserAnonymized userAnonymized)
@@ -604,8 +605,8 @@ public class BuddyService
 	private void removeNamedMessagesSentByUser(User receivingUser, UUID sentByUserAnonymizedId)
 	{
 		MessageDestination namedMessageDestination = receivingUser.getNamedMessageDestination();
-		messageService.removeMessagesFromUser(MessageDestinationDto.createInstance(namedMessageDestination),
-				sentByUserAnonymizedId);
+		messageService
+				.removeMessagesFromUser(MessageDestinationDto.createInstance(namedMessageDestination), sentByUserAnonymizedId);
 	}
 
 	private void removeAnonymousMessagesSentByUser(UserAnonymizedDto receivingUserAnonymized, UUID sentByUserAnonymizedId)
@@ -693,11 +694,10 @@ public class BuddyService
 
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
-		messageService.sendDirectMessageAndFlushToDatabase(
-				BuddyConnectRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUserEntity),
+		messageService.sendDirectMessageAndFlushToDatabase(BuddyConnectRequestMessage
+				.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUserEntity),
 						buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), requestingUserEntity.getDevices(),
-						isRequestingSending, isRequestingReceiving),
-				buddyUserEntity);
+						isRequestingSending, isRequestingReceiving), buddyUserEntity);
 
 		return savedBuddy;
 	}

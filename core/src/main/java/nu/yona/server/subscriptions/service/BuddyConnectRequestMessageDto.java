@@ -116,8 +116,8 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return BuddyConnectRequestMessageDto.createInstance((BuddyConnectRequestMessage) messageEntity,
-					getSenderInfo(actingUser, messageEntity));
+			return BuddyConnectRequestMessageDto
+					.createInstance((BuddyConnectRequestMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

@@ -6,8 +6,6 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 import java.time.ZonedDateTime
 
 import nu.yona.server.YonaServer
@@ -66,11 +64,10 @@ class AppActivity
 	{
 		def activitiesString = ""
 		def first = true
-		activities.each(
-				{
-					activitiesString += (activitiesString) ? ", " : ""
-					activitiesString += it.getJson()
-				})
+		activities.each({
+			activitiesString += (activitiesString) ? ", " : ""
+			activitiesString += it.getJson()
+		})
 		return "[" + activitiesString + "]"
 	}
 

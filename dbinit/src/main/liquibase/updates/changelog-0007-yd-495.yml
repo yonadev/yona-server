@@ -1,133 +1,133 @@
 databaseChangeLog:
-- changeSet:
-    id: 1509784980923-1
-    author: Bert (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: id
-            type: VARCHAR(255)
-        - column:
-            name: touch_version
-            type: INT
-        - column:
-            name: device_anonymized_id
-            type: VARCHAR(255)
-        - column:
-            constraints:
-              nullable: false
-            name: is_vpn_connected
-            type: BIT
-        - column:
-            name: name
-            type: VARCHAR(255)
-        tableName: buddy_devices
-- changeSet:
-    id: 1509784980923-2
-    author: Bert (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: id
-            type: VARCHAR(255)
-        - column:
-            constraints:
-              nullable: false
-            name: device_id
-            type: INT
-        - column:
-            name: last_monitored_activity_date
-            type: date
-        - column:
-            name: user_anonymized_id
-            type: VARCHAR(255)
-        tableName: devices_anonymized
-- changeSet:
-    id: 1509784980923-3
-    author: Bert (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: id
-            type: VARCHAR(255)
-        - column:
-            name: user_private_id
-            type: varchar(255)
-        - column:
-            name: touch_version
-            type: INT
-        - column:
-            name: device_anonymized_id
-            type: VARCHAR(255)
-        - column:
-            constraints:
-              nullable: false
-            name: is_vpn_connected
-            type: BIT
-        - column:
-            name: name
-            type: VARCHAR(255)
-        - column:
-            name: app_last_opened_date
-            type: VARCHAR(255)
-        - column:
-            name: registration_time
-            type: VARCHAR(255)
-        tableName: user_devices
-- changeSet:
-    id: 1509784980923-4
-    author: Bert (generated)
-    changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: devicesPK
-        tableName: buddy_devices
-- changeSet:
-    id: 1509784980923-5
-    author: Bert (generated)
-    changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: devicesPK
-        tableName: user_devices
-- changeSet:
-    id: 1509784980923-6
-    author: Bert (generated)
-    changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: devices_anonymizedPK
-        tableName: devices_anonymized
-- changeSet:
-    id: 1509784980923-7
-    author: Bert (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: user_anonymized_id
-        baseTableName: devices_anonymized
-        constraintName: FK1uuw0bpvp264yaasbb8i1et48
-        deferrable: false
-        initiallyDeferred: false
-        referencedColumnNames: id
-        referencedTableName: users_anonymized
-- changeSet:
-    id: 1509784980923-8
-    author: Bert (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: user_private_id
-        baseTableName: user_devices
-        constraintName: FK396p3k1wh84ywuihnx0yyq3le
-        deferrable: false
-        initiallyDeferred: false
-        referencedColumnNames: id
-        referencedTableName: users_private
+  - changeSet:
+      id: 1509784980923-1
+      author: Bert (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: id
+                  type: VARCHAR(255)
+              - column:
+                  name: touch_version
+                  type: INT
+              - column:
+                  name: device_anonymized_id
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: is_vpn_connected
+                  type: BIT
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+            tableName: buddy_devices
+  - changeSet:
+      id: 1509784980923-2
+      author: Bert (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: id
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: device_id
+                  type: INT
+              - column:
+                  name: last_monitored_activity_date
+                  type: date
+              - column:
+                  name: user_anonymized_id
+                  type: VARCHAR(255)
+            tableName: devices_anonymized
+  - changeSet:
+      id: 1509784980923-3
+      author: Bert (generated)
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: id
+                  type: VARCHAR(255)
+              - column:
+                  name: user_private_id
+                  type: varchar(255)
+              - column:
+                  name: touch_version
+                  type: INT
+              - column:
+                  name: device_anonymized_id
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: is_vpn_connected
+                  type: BIT
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: app_last_opened_date
+                  type: VARCHAR(255)
+              - column:
+                  name: registration_time
+                  type: VARCHAR(255)
+            tableName: user_devices
+  - changeSet:
+      id: 1509784980923-4
+      author: Bert (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: devicesPK
+            tableName: buddy_devices
+  - changeSet:
+      id: 1509784980923-5
+      author: Bert (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: devicesPK
+            tableName: user_devices
+  - changeSet:
+      id: 1509784980923-6
+      author: Bert (generated)
+      changes:
+        - addPrimaryKey:
+            columnNames: id
+            constraintName: devices_anonymizedPK
+            tableName: devices_anonymized
+  - changeSet:
+      id: 1509784980923-7
+      author: Bert (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_anonymized_id
+            baseTableName: devices_anonymized
+            constraintName: FK1uuw0bpvp264yaasbb8i1et48
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: id
+            referencedTableName: users_anonymized
+  - changeSet:
+      id: 1509784980923-8
+      author: Bert (generated)
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_private_id
+            baseTableName: user_devices
+            constraintName: FK396p3k1wh84ywuihnx0yyq3le
+            deferrable: false
+            initiallyDeferred: false
+            referencedColumnNames: id
+            referencedTableName: users_private

@@ -108,8 +108,9 @@ public class GoalService
 				.findFirst();
 		if (conflictingExistingGoal.isPresent())
 		{
-			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(conflictingExistingGoal.get().getActivityCategory()
-					.getLocalizableName().get(LocaleContextHolder.getLocale()));
+			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(
+					conflictingExistingGoal.get().getActivityCategory().getLocalizableName()
+							.get(LocaleContextHolder.getLocale()));
 		}
 
 		Goal goalEntity = goal.createGoalEntity();
@@ -222,18 +223,18 @@ public class GoalService
 	{
 		if (!newGoalDto.getClass().equals(existingGoalDto.getClass()))
 		{
-			throw GoalServiceException.cannotChangeTypeOfGoal(existingGoalDto.getClass().getSimpleName(),
-					newGoalDto.getClass().getSimpleName());
+			throw GoalServiceException
+					.cannotChangeTypeOfGoal(existingGoalDto.getClass().getSimpleName(), newGoalDto.getClass().getSimpleName());
 		}
 	}
 
 	private void assertNoUpdateToThePast(GoalDto newGoalDto, Goal existingGoal)
 	{
-		if (newGoalDto.getCreationTime().isPresent()
-				&& newGoalDto.getCreationTime().get().isBefore(existingGoal.getCreationTime()))
+		if (newGoalDto.getCreationTime().isPresent() && newGoalDto.getCreationTime().get()
+				.isBefore(existingGoal.getCreationTime()))
 		{
-			throw GoalServiceException.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDto.getCreationTime().get(),
-					existingGoal.getCreationTime());
+			throw GoalServiceException
+					.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDto.getCreationTime().get(), existingGoal.getCreationTime());
 		}
 	}
 
@@ -286,7 +287,8 @@ public class GoalService
 			GoalChangeMessage.Change change, Optional<String> message)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> GoalChangeMessage.createInstance(BuddyInfoParameters.createInstance(userEntity),
-						activityCategoryOfChangedGoal, change, message.orElse(null)));
+				() -> GoalChangeMessage
+						.createInstance(BuddyInfoParameters.createInstance(userEntity), activityCategoryOfChangedGoal, change,
+								message.orElse(null)));
 	}
 }
