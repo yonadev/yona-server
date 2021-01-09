@@ -261,9 +261,25 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(userUpdateResponse)
-		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href != null
-		userUpdateResponse.responseData.mobileNumber == newMobileNumber
-		assertDateTimeFormat(userUpdateResponse.responseData.creationTime)
+		User johnAfterUpdate = new User(userUpdateResponse.responseData)
+		johnAfterUpdate.mobileNumberConfirmationUrl != null
+		johnAfterUpdate.mobileNumber == newMobileNumber
+
+		when:
+		def baseUserUrl = YonaServer.stripQueryString(johnAfterUpdate.url)
+		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(baseUserUrl + "/messages/", johnAfterUpdate.password)
+
+		then:
+		assertResponseStatus(getMessagesResponse, 400)
+		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+
+		when:
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertUserGetResponseDetails, johnAfterUpdate)
+		baseUserUrl = YonaServer.stripQueryString(johnAfterNumberConfirmation.url)
+		getMessagesResponse = appService.yonaServer.getResourceWithPassword(baseUserUrl + "/messages/", johnAfterNumberConfirmation.password)
+
+		then:
+		assertResponseStatusOk(getMessagesResponse)
 
 		cleanup:
 		appService.deleteUser(john)
