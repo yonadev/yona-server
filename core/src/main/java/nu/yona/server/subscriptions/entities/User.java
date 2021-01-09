@@ -18,6 +18,9 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.entities.EntityWithUuid;
@@ -25,12 +28,14 @@ import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.subscriptions.service.UserAddService;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USERS")
 public class User extends EntityWithUuid
 {
+	private static final Logger logger = LoggerFactory.getLogger(User.class);
 	private int privateDataMigrationVersion;
 
 	private String firstName;
@@ -349,6 +354,11 @@ public class User extends EntityWithUuid
 
 	public void setOverwriteUserConfirmationCode(ConfirmationCode overwriteUserConfirmationCode)
 	{
+		Objects.requireNonNull(overwriteUserConfirmationCode);
+		if (this.overwriteUserConfirmationCode != null)
+		{
+			logger.info("DEBUG: mobile number {} replace overwrite confirmation code with ID {} with a new one with ID {}", this.getMobileNumber(), this.overwriteUserConfirmationCode.getId(), overwriteUserConfirmationCode.getId());
+		}
 		this.overwriteUserConfirmationCode = overwriteUserConfirmationCode;
 	}
 

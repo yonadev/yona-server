@@ -49,19 +49,27 @@ public class AdminController extends ControllerBase
 	{
 		try
 		{
-			// Use DOS protection to prevent spamming numbers with confirmation code text messages
-			// Do not include the mobile number in the URI. DOS protection should be number-independent
-			URI uri = getRequestOverwriteUserConfirmationCodeLinkBuilder(null).toUri();
-			dosProtectionService.executeAttempt(uri, request,
-					yonaProperties.getSecurity().getMaxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow(),
-					() -> userService.requestOverwriteUserConfirmationCode(mobileNumber));
+			logger.info("DEBUG: begin AdminController.requestOverwriteUserConfirmationCode for {}", mobileNumber);
+			try
+			{
+				// Use DOS protection to prevent spamming numbers with confirmation code text messages
+				// Do not include the mobile number in the URI. DOS protection should be number-independent
+				URI uri = getRequestOverwriteUserConfirmationCodeLinkBuilder(null).toUri();
+				dosProtectionService.executeAttempt(uri, request,
+						yonaProperties.getSecurity().getMaxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow(),
+						() -> userService.requestOverwriteUserConfirmationCode(mobileNumber));
+			}
+			catch (UserServiceException e)
+			{
+				// prevent detecting whether a mobile number exists
+				logger.error("Caught UserServiceException. Ignoring it", e);
+			}
+			return createNoContentResponse();
 		}
-		catch (UserServiceException e)
+		finally
 		{
-			// prevent detecting whether a mobile number exists
-			logger.error("Caught UserServiceException. Ignoring it", e);
+			logger.info("DEBUG: end  AdminController.requestOverwriteUserConfirmationCode for {}", mobileNumber);
 		}
-		return createNoContentResponse();
 	}
 
 	static WebMvcLinkBuilder getRequestOverwriteUserConfirmationCodeLinkBuilder(String mobileNumber)

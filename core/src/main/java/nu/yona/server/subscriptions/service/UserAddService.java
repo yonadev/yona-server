@@ -243,6 +243,7 @@ public class UserAddService
 		// notice we can't delete the associated anonymized data
 		// because the anonymized data cannot be retrieved
 		// (the relation is encrypted, the password is not available)
+		logger.info("DEBUG: mobile number {} delete/overwrite user with confirmation code ID {}", mobileNumber, confirmationCode.get().getId());
 		userRepository.delete(existingUserEntity);
 		userRepository.flush(); // So we can insert another one
 		logger.info("User with mobile number '{}' and ID '{}' removed, to overwrite the account",
