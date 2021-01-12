@@ -1,17 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation
+ * Copyright (c) 2015, 2021 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server
 
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
+import java.time.format.SignStyle
 import java.time.temporal.ChronoField
+import java.time.temporal.IsoFields
+import java.time.temporal.WeekFields
 
 import groovy.json.JsonSlurper
 import groovyx.net.http.RESTClient
@@ -21,6 +25,10 @@ class YonaServer
 {
 	static final ZoneId EUROPE_AMSTERDAM_ZONE = ZoneId.of("Europe/Amsterdam")
 	static final Locale EN_US_LOCALE = Locale.forLanguageTag("en-US")
+	private static final DateTimeFormatter ISO8601_WEEK_FORMATTER = new DateTimeFormatterBuilder().parseCaseInsensitive()
+			.appendValue(IsoFields.WEEK_BASED_YEAR, 4, 10, SignStyle.EXCEEDS_PAD).appendLiteral("-W")
+			.appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
+			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue()).toFormatter(Locale.forLanguageTag("en-US"));
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
 
@@ -255,7 +263,7 @@ class YonaServer
 
 	static String toIsoWeekDateString(ZonedDateTime dateTime)
 	{
-		DateTimeFormatter.ofPattern("YYYY-'W'ww").format(dateTime)
+		ISO8601_WEEK_FORMATTER.format(dateTime)
 	}
 
 	static def relativeDateTimeStringToZonedDateTime(relativeDateTimeString)
