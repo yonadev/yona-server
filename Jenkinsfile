@@ -36,7 +36,7 @@ pipeline {
 				success {
 					step([$class: 'hudson.plugins.jira.JiraIssueUpdater', 
 						issueSelector: [$class: 'hudson.plugins.jira.selector.DefaultIssueSelector'], 
-						scm: scm])
+						scm: [$class: 'hudson.plugins.git.GitSCM']])
 						publishHTML target: [
 							allowMissing: false,
 							alwaysLinkToLastBuild: false,
