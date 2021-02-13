@@ -2,12 +2,6 @@ import java.nio.charset.StandardCharsets
 
 import org.gradle.internal.util.PropertiesUtils
 
-buildscript {
-	repositories {
-		jcenter()
-	}
-}
-
 plugins {
 	id "java"
 	id "eclipse"
@@ -75,7 +69,7 @@ subprojects {
 	}
 
 	repositories {
-		jcenter()
+		mavenCentral()
 		maven { url "https://repo.spring.io/snapshot" }
 	}
 
