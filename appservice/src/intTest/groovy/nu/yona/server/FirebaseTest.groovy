@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 Stichting Yona Foundation
+ * Copyright (c) 2019, 2021 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -16,10 +16,17 @@ import groovyx.net.http.AsyncHTTPBuilder
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
+import spock.lang.Shared
 
 class FirebaseTest extends AbstractAppServiceIntegrationTest
 {
+	@Shared
 	def asyncHttpClient = new AsyncHTTPBuilder(poolSize: 5, uri: appService.yonaServer.restClient.uri)
+
+	def cleanupSpec()
+	{
+		asyncHttpClient.shutdown()
+	}
 
 	def 'Richard and Bob both have a notification for the buddy request/acceptance'()
 	{

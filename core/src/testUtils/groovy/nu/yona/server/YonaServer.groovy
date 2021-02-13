@@ -110,25 +110,25 @@ class YonaServer
 				headers: headers)
 	}
 
-	def postJson(String path, Object jsonString, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	def postJson(String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
-		def body = null
-		if (jsonString instanceof Map)
+		postThroughHttpBuilder(restClient, path, body, parameters, headers)
+	}
+
+	private def postThroughHttpBuilder(HTTPBuilder httpBuilder, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	{
+		def parsedBody = null
+		if (body instanceof Map)
 		{
-			body = jsonString
+			parsedBody = body
 		}
 		else
 		{
-			body = jsonSlurper.parseText(jsonString)
+			parsedBody = jsonSlurper.parseText(body)
 		}
 
-		postThrougHttpBuilder(restClient, path, body, parameters, headers)
-	}
-
-	private static def postThrougHttpBuilder(HTTPBuilder httpBuilder, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
-	{
 		httpBuilder.post(path: stripQueryString(path),
-				body: body,
+				body: parsedBody,
 				contentType: 'application/json',
 				query: parameters + getQueryParams(path),
 				headers: headers)
@@ -348,14 +348,21 @@ class YonaServer
 		(javaDayOfWeek == 7) ? 0 : javaDayOfWeek
 	}
 
-	public def postNTimesConcurrently(int numberOfTimes, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	public def postJsonConcurrently(int numberOfTimes, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
 		def asyncHttpClient = new AsyncHTTPBuilder(poolSize: numberOfTimes, uri: restClient.uri)
-		asyncHttpClient.handler.success = { resp -> resp.status }
-		asyncHttpClient.handler.failure = asyncHttpClient.handler.success
-		def futures = (1..numberOfTimes).collect {
-			postThrougHttpBuilder(asyncHttpClient, path, body, parameters, headers)
+		try
+		{
+			asyncHttpClient.handler.success = { resp -> resp.status }
+			asyncHttpClient.handler.failure = asyncHttpClient.handler.success
+			def futures = (1..numberOfTimes).collect {
+				postThroughHttpBuilder(asyncHttpClient, path, body, parameters, headers)
+			}
+			futures.collect { it.get() }
+		} finally
+		{
+			asyncHttpClient.shutdown()
 		}
-		futures.collect { it.get() }
 	}
+
 }

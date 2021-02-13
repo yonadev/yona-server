@@ -485,7 +485,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def numberOfTimes = 5
 
 		when:
-		def responses = appService.yonaServer.postNTimesConcurrently(numberOfTimes, appService.OVERWRITE_USER_REQUEST_PATH, [:], ["mobileNumber": richard.mobileNumber])
+		def responses = appService.yonaServer.postJsonConcurrently(numberOfTimes, appService.OVERWRITE_USER_REQUEST_PATH, [:], ["mobileNumber": richard.mobileNumber])
 
 		then:
 		responses.size() == numberOfTimes

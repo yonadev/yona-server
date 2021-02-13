@@ -315,7 +315,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		def numberOfTimes = 5
 
 		when:
-		def responses = appService.yonaServer.postNTimesConcurrently(numberOfTimes, richard.resendPinResetConfirmationCodeUrl, [:], [:], ["Yona-Password": richard.password])
+		def responses = appService.yonaServer.postJsonConcurrently(numberOfTimes, richard.resendPinResetConfirmationCodeUrl, [:], [:], ["Yona-Password": richard.password])
 
 		then:
 		responses.size() == numberOfTimes
