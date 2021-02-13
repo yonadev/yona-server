@@ -18,6 +18,8 @@ import java.time.temporal.IsoFields
 import java.time.temporal.WeekFields
 
 import groovy.json.JsonSlurper
+import groovyx.net.http.AsyncHTTPBuilder
+import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.RESTClient
 import groovyx.net.http.URIBuilder
 
@@ -108,20 +110,25 @@ class YonaServer
 				headers: headers)
 	}
 
-	def postJson(path, jsonString, parameters = [:], headers = [:])
+	def postJson(String path, Object jsonString, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
-		def object = null
+		def body = null
 		if (jsonString instanceof Map)
 		{
-			object = jsonString
+			body = jsonString
 		}
 		else
 		{
-			object = jsonSlurper.parseText(jsonString)
+			body = jsonSlurper.parseText(jsonString)
 		}
 
-		restClient.post(path: stripQueryString(path),
-				body: object,
+		postThrougHttpBuilder(restClient, path, body, parameters, headers)
+	}
+
+	private static def postThrougHttpBuilder(HTTPBuilder httpBuilder, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	{
+		httpBuilder.post(path: stripQueryString(path),
+				body: body,
 				contentType: 'application/json',
 				query: parameters + getQueryParams(path),
 				headers: headers)
@@ -339,5 +346,16 @@ class YonaServer
 	{
 		// In Java, Sunday is the last day of the week, but in Yona the first one
 		(javaDayOfWeek == 7) ? 0 : javaDayOfWeek
+	}
+
+	public def postNTimesConcurrently(int numberOfTimes, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	{
+		def asyncHttpClient = new AsyncHTTPBuilder(poolSize: numberOfTimes, uri: restClient.uri)
+		asyncHttpClient.handler.success = { resp -> resp.status }
+		asyncHttpClient.handler.failure = asyncHttpClient.handler.success
+		def futures = (1..numberOfTimes).collect {
+			postThrougHttpBuilder(asyncHttpClient, path, body, parameters, headers)
+		}
+		futures.collect { it.get() }
 	}
 }

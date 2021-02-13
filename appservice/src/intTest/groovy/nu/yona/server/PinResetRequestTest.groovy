@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation
+ * Copyright (c) 2015, 2021 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -12,7 +12,6 @@ import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import java.time.Duration
 
-import groovyx.net.http.AsyncHTTPBuilder
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
 
@@ -316,7 +315,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		def numberOfTimes = 5
 
 		when:
-		def responses = postNTimes(numberOfTimes, richard.resendPinResetConfirmationCodeUrl, [:], ["Yona-Password": richard.password])
+		def responses = appService.yonaServer.postNTimesConcurrently(numberOfTimes, richard.resendPinResetConfirmationCodeUrl, [:], [:], ["Yona-Password": richard.password])
 
 		then:
 		responses.size() == numberOfTimes
@@ -324,19 +323,5 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richard)
-	}
-
-	private def postNTimes(numberOfTimes, path, body, headers)
-	{
-		def asyncHttpClient = new AsyncHTTPBuilder(poolSize: numberOfTimes, uri: appService.yonaServer.restClient.uri)
-		asyncHttpClient.handler.success = { resp -> resp.status }
-		asyncHttpClient.handler.failure = asyncHttpClient.handler.success
-		def futures = (1..numberOfTimes).collect {
-			asyncHttpClient.post([path       : YonaServer.stripQueryString(path),
-								  body       : body,
-								  contentType: 'application/json',
-								  headers    : headers])
-		}
-		futures.collect { it.get() }
 	}
 }
