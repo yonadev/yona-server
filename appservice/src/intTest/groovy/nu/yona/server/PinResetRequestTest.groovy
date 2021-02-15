@@ -17,6 +17,11 @@ import nu.yona.server.test.User
 
 class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 {
+	def setupSpec()
+	{
+		enableConcurrentRequests(5)
+	}
+
 	def 'Cannot verify or clear pin reset request before requesting a pin reset'()
 	{
 		given:

@@ -70,6 +70,20 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	private def fullDay = [Sun: "SUNDAY", Mon: "MONDAY", Tue: "TUESDAY", Wed: "WEDNESDAY", Thu: "THURSDAY", Fri: "FRIDAY", Sat: "SATURDAY"]
 
+	def setupSpec()
+	{
+	}
+
+	def cleanupSpec()
+	{
+		appService.shutdown()
+	}
+
+	void enableConcurrentRequests(int maxConcurrentRequests)
+	{
+		appService.enableConcurrentRequests(maxConcurrentRequests)
+	}
+
 	User addRichard(boolean reload = true, def operatingSystem = "IOS", def language = "en-US")
 	{
 		def deviceName = makeDeviceName("Richard", operatingSystem)

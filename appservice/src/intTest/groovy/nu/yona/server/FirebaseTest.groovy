@@ -12,20 +12,15 @@ import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 import java.time.ZonedDateTime
 import java.util.concurrent.Future
 
-import groovyx.net.http.AsyncHTTPBuilder
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
-import spock.lang.Shared
 
 class FirebaseTest extends AbstractAppServiceIntegrationTest
 {
-	@Shared
-	def asyncHttpClient = new AsyncHTTPBuilder(poolSize: 5, uri: appService.yonaServer.restClient.uri)
-
-	def cleanupSpec()
+	def setupSpec()
 	{
-		asyncHttpClient.shutdown()
+		enableConcurrentRequests(5)
 	}
 
 	def 'Richard and Bob both have a notification for the buddy request/acceptance'()
@@ -251,7 +246,7 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		Map<String, ?> args = [path       : YonaServer.stripQueryString(path),
 							   contentType: 'application/json',
 							   headers    : headers]
-		def retVal = asyncHttpClient.get(args)
+		def retVal = appService.yonaServer.asyncHttpClient.get(args)
 		return retVal
 	}
 }

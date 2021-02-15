@@ -17,6 +17,11 @@ import nu.yona.server.test.User
 
 class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 {
+	def setupSpec()
+	{
+		enableConcurrentRequests(5)
+	}
+
 	def 'Attempt to add another user with the same mobile number'()
 	{
 		given:

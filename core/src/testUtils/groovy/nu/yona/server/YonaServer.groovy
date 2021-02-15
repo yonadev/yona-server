@@ -33,12 +33,28 @@ class YonaServer
 			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue()).toFormatter(Locale.forLanguageTag("en-US"));
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
+	AsyncHTTPBuilder asyncHttpClient
+	int maxConcurrentRequests
 
 	YonaServer(baseUrl)
 	{
 		restClient = new RESTClient(baseUrl)
 
 		restClient.handler.failure = restClient.handler.success
+	}
+
+	void enableConcurrentRequests(int maxConcurrentRequests)
+	{
+		this.maxConcurrentRequests = maxConcurrentRequests
+		asyncHttpClient = new AsyncHTTPBuilder(poolSize: maxConcurrentRequests, uri: restClient.uri)
+	}
+
+	void shutdown()
+	{
+		if (asyncHttpClient)
+		{
+			asyncHttpClient.shutdown()
+		}
 	}
 
 	static ZonedDateTime getNow()
@@ -350,19 +366,12 @@ class YonaServer
 
 	public def postJsonConcurrently(int numberOfTimes, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
-		def asyncHttpClient = new AsyncHTTPBuilder(poolSize: numberOfTimes, uri: restClient.uri)
-		try
-		{
-			asyncHttpClient.handler.success = { resp -> resp.status }
-			asyncHttpClient.handler.failure = asyncHttpClient.handler.success
-			def futures = (1..numberOfTimes).collect {
-				postThroughHttpBuilder(asyncHttpClient, path, body, parameters, headers)
-			}
-			futures.collect { it.get() }
-		} finally
-		{
-			asyncHttpClient.shutdown()
+		assert numberOfTimes <= maxConcurrentRequests, "numberOfTimes ($numberOfTimes) must be <= maxConcurrentRequests ($maxConcurrentRequests)"
+		asyncHttpClient.handler.success = { resp -> resp.status }
+		asyncHttpClient.handler.failure = asyncHttpClient.handler.success
+		def futures = (1..numberOfTimes).collect {
+			postThroughHttpBuilder(asyncHttpClient, path, body, parameters, headers)
 		}
+		futures.collect { it.get() }
 	}
-
 }
