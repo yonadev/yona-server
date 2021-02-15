@@ -28,13 +28,13 @@ import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
 import nu.yona.server.device.entities.VpnStatusChangeEvent;
+import nu.yona.server.device.entities.VpnStatusChangeEventRepository;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.BuddyVpnConnectionStatusChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.LDAPUserService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
@@ -71,6 +71,9 @@ public class DeviceService
 	@Autowired(required = false)
 	private DeviceAnonymizedRepository deviceAnonymizedRepository;
 
+	@Autowired(required = false)
+	private VpnStatusChangeEventRepository vpnStatusChangeEventRepository;
+
 	@Autowired
 	private Translator translator;
 
@@ -80,14 +83,24 @@ public class DeviceService
 	@Transactional
 	public Set<DeviceBaseDto> getDevicesOfUser(UUID userId)
 	{
-		return userService.getUserEntityById(userId).getDevices().stream().map(UserDeviceDto::createInstance)
-				.collect(Collectors.toSet());
+		User userEntity = userService.getUserEntityById(userId);
+		UserAnonymizedDto userAnonymizedDto = userAnonymizedService.getUserAnonymized(userEntity.getUserAnonymizedId());
+		return userEntity.getDevices().stream().map(d -> getDevice(d, userAnonymizedDto)).collect(Collectors.toSet());
+	}
+
+	private UserDeviceDto getDevice(UserDevice deviceEntity, UserAnonymizedDto userAnonymized)
+	{
+		return UserDeviceDto.createInstance(userAnonymized, deviceEntity,
+				userAnonymized.getDeviceAnonymized(deviceEntity.getDeviceAnonymizedId()));
 	}
 
 	@Transactional
-	public UserDeviceDto getDevice(UUID deviceId)
+	public UserDeviceDto getDevice(UUID userId, UUID deviceId)
 	{
-		return UserDeviceDto.createInstance(getDeviceEntity(deviceId));
+		User userEntity = userService.getUserEntityById(userId);
+		UserAnonymizedDto userAnonymizedDto = userAnonymizedService.getUserAnonymized(userEntity.getUserAnonymizedId());
+		UserDevice deviceEntity = getDeviceEntity(deviceId);
+		return getDevice(deviceEntity, userAnonymizedDto);
 	}
 
 	private UserDevice getDeviceEntity(UUID deviceId)
@@ -112,39 +125,40 @@ public class DeviceService
 	{
 		assertAcceptableDeviceName(userEntity, deviceDto.getName());
 		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode());
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
-				deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode(),
-				deviceDto.getFirebaseInstanceId(), LocaleContextHolder.getLocale());
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized
+				.createInstance(findFirstFreeDeviceIndex(userEntity), deviceDto.getOperatingSystem(), deviceDto.getAppVersion(),
+						deviceDto.getAppVersionCode(), deviceDto.getFirebaseInstanceId(), LocaleContextHolder.getLocale());
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice deviceEntity = userDeviceRepository.save(UserDevice.createInstance(userEntity, deviceDto.getName(),
-				deviceAnonymized.getId(), userService.generatePassword()));
+		UserDevice deviceEntity = userDeviceRepository.save(UserDevice
+				.createInstance(userEntity, deviceDto.getName(), deviceAnonymized.getId(), userService.generatePassword()));
 		userEntity.addDevice(deviceEntity);
-		userAnonymizedService.updateUserAnonymized(userEntity.getAnonymized().getId());
+		UserAnonymizedDto userAnonymizedDto = evictUserAnonymizedFromCache(userEntity);
 
-		ldapUserService.createVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), deviceEntity),
-				deviceEntity.getVpnPassword());
+		ldapUserService.createVpnAccount(buildVpnLoginId(userAnonymizedDto, deviceEntity), deviceEntity.getVpnPassword());
 		sendDeviceChangeMessageToBuddies(DeviceChange.ADD, userEntity, Optional.empty(), Optional.of(deviceDto.getName()),
 				deviceAnonymized.getId());
-		return UserDeviceDto.createInstance(deviceEntity);
+		return getDevice(deviceEntity, userAnonymizedDto);
 	}
 
-	public static String buildVpnLoginId(UserAnonymized userAnonymizedEntity, UserDevice deviceEntity)
+	public static String buildVpnLoginId(UserAnonymizedDto userAnonymizedDto, UserDevice deviceEntity)
 	{
-		String legacyVpnLoginId = userAnonymizedEntity.getId().toString();
+		String legacyVpnLoginId = userAnonymizedDto.getId().toString();
 		if (deviceEntity.isLegacyVpnAccount())
 		{
 			return legacyVpnLoginId;
 		}
-		return legacyVpnLoginId + "$" + deviceEntity.getDeviceAnonymized().getDeviceIndex();
+		return legacyVpnLoginId + "$" + userAnonymizedDto.getDeviceAnonymized(deviceEntity.getDeviceAnonymizedId())
+				.getDeviceIndex();
 	}
 
 	private void sendDeviceChangeMessageToBuddies(DeviceChange change, User userEntity, Optional<String> oldName,
 			Optional<String> newName, UUID deviceAnonymizedId)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> BuddyDeviceChangeMessage.createInstance(
-						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
-						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymizedId, oldName, newName));
+				() -> BuddyDeviceChangeMessage
+						.createInstance(BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
+								getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymizedId, oldName,
+								newName));
 	}
 
 	@Transactional
@@ -204,7 +218,7 @@ public class DeviceService
 
 			saveFirebaseInstanceIdIfUpdated(changeRequest, deviceEntity);
 		});
-		return getDevice(deviceId);
+		return getDevice(userId, deviceId);
 	}
 
 	private void updateDeviceName(DeviceUpdateRequestDto changeRequest, User userEntity, UserDevice deviceEntity, String oldName)
@@ -264,11 +278,16 @@ public class DeviceService
 			UUID deviceAnonymizedId = deviceEntity.getDeviceAnonymized().getId();
 
 			deleteDeviceWithoutBuddyNotification(userEntity, deviceEntity);
-			userAnonymizedService.updateUserAnonymized(userEntity.getAnonymized().getId());
+			evictUserAnonymizedFromCache(userEntity);
 
 			sendDeviceChangeMessageToBuddies(DeviceChange.DELETE, userEntity, Optional.of(oldName), Optional.empty(),
 					deviceAnonymizedId);
 		});
+	}
+
+	private UserAnonymizedDto evictUserAnonymizedFromCache(User userEntity)
+	{
+		return userAnonymizedService.updateUserAnonymized(userEntity.getAnonymized().getId());
 	}
 
 	@Transactional
@@ -279,7 +298,8 @@ public class DeviceService
 		{
 			throw DeviceServiceException.notFoundById(device.getId());
 		}
-		ldapUserService.deleteVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), device));
+		ldapUserService.deleteVpnAccount(
+				buildVpnLoginId(userAnonymizedService.getUserAnonymized(userEntity.getUserAnonymizedId()), device));
 		activityRepository.disconnectAllActivitiesFromDevice(device.getDeviceAnonymizedId());
 
 		deviceAnonymizedRepository.delete(device.getDeviceAnonymized());
@@ -313,8 +333,9 @@ public class DeviceService
 
 	public DeviceAnonymizedDto getDeviceAnonymized(UserAnonymizedDto userAnonymized, int deviceIndex)
 	{
-		return deviceIndex < 0 ? getDefaultDeviceAnonymized(userAnonymized)
-				: userAnonymized.getDevicesAnonymized().stream().filter(d -> d.getDeviceIndex() == deviceIndex).findAny()
+		return deviceIndex < 0 ?
+				getDefaultDeviceAnonymized(userAnonymized) :
+				userAnonymized.getDevicesAnonymized().stream().filter(d -> d.getDeviceIndex() == deviceIndex).findAny()
 						.orElseThrow(() -> DeviceServiceException.notFoundByIndex(userAnonymized.getId(), deviceIndex));
 	}
 
@@ -343,7 +364,7 @@ public class DeviceService
 					.findFirst().orElseThrow(() -> DeviceServiceException.notFoundById(requestingDeviceId));
 			defaultDevices.stream().filter(d -> d != requestingDevice)
 					.forEach(d -> removeDuplicateDefaultDevice(userEntity, requestingDevice, d));
-			userAnonymizedService.updateUserAnonymized(userEntity.getAnonymized().getId());
+			evictUserAnonymizedFromCache(userEntity);
 		});
 	}
 
@@ -395,8 +416,8 @@ public class DeviceService
 	private void roundUserCreationDateIfLoyalUser(User userEntity)
 	{
 		LocalDate roundedCreationDate = userEntity.getRoundedCreationDate();
-		if (roundedCreationDate.getDayOfMonth() != 1
-				&& TimeUtil.utcNow().toLocalDate().minusDays(30).isAfter(roundedCreationDate))
+		if (roundedCreationDate.getDayOfMonth() != 1 && TimeUtil.utcNow().toLocalDate().minusDays(30)
+				.isAfter(roundedCreationDate))
 		{
 			// User is active for more than 30 days. Set the date to the first of the month, to reduce identification risk
 			userEntity.setRoundedCreationDate(roundedCreationDate.withDayOfMonth(1));
@@ -409,8 +430,8 @@ public class DeviceService
 		OperatingSystem registeredOperatingSystem = deviceAnonymized.getOperatingSystem();
 		if (registeredOperatingSystem != currentOperatingSystem && registeredOperatingSystem != OperatingSystem.UNKNOWN)
 		{
-			throw DeviceServiceException.cannotSwitchDeviceOperatingSystem(registeredOperatingSystem, currentOperatingSystem,
-					deviceEntity.getId());
+			throw DeviceServiceException
+					.cannotSwitchDeviceOperatingSystem(registeredOperatingSystem, currentOperatingSystem, deviceEntity.getId());
 		}
 		deviceAnonymized.setOperatingSystem(currentOperatingSystem);
 	}
@@ -482,6 +503,8 @@ public class DeviceService
 			userService.updateUser(userId, userEntity -> {
 				VpnStatusChangeEvent event = VpnStatusChangeEvent.createInstance(isVpnConnected);
 				deviceEntity.getDeviceAnonymized().addVpnStatusChangeEvent(event);
+				vpnStatusChangeEventRepository.save(event);
+				evictUserAnonymizedFromCache(userEntity);
 				sendVpnStatusChangeMessageToBuddies(isVpnConnected, userEntity, deviceEntity);
 			});
 		}
@@ -490,16 +513,17 @@ public class DeviceService
 	private void sendVpnStatusChangeMessageToBuddies(boolean isVpnConnected, User userEntity, UserDevice deviceEntity)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> BuddyVpnConnectionStatusChangeMessage.createInstance(
-						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
-						getVpnStatusChangeMessageText(isVpnConnected, deviceEntity.getName()), isVpnConnected,
-						deviceEntity.getDeviceAnonymizedId()));
+				() -> BuddyVpnConnectionStatusChangeMessage
+						.createInstance(BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
+								getVpnStatusChangeMessageText(isVpnConnected, deviceEntity.getName()), isVpnConnected,
+								deviceEntity.getDeviceAnonymizedId()));
 	}
 
 	private String getVpnStatusChangeMessageText(boolean isVpnConnected, String deviceName)
 	{
-		return (isVpnConnected) ? translator.getLocalizedMessage("message.buddy.device.vpn.connect", deviceName)
-				: translator.getLocalizedMessage("message.buddy.device.vpn.disconnect", deviceName);
+		return (isVpnConnected) ?
+				translator.getLocalizedMessage("message.buddy.device.vpn.connect", deviceName) :
+				translator.getLocalizedMessage("message.buddy.device.vpn.disconnect", deviceName);
 	}
 
 	@Transactional

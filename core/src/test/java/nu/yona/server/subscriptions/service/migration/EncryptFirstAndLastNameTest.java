@@ -60,13 +60,13 @@ import nu.yona.server.util.LockPool;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.device.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.util.TransactionHelper", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) }, excludeFilters = {
-						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.migration.EncryptFirstAndLastName", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.util.TransactionHelper", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) }, excludeFilters = {
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class EncryptFirstAndLastNameTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";
@@ -149,8 +149,8 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 		assertThat(firstNameUserField.get(richard), is(nullValue()));
 		assertThat(lastNameUserField.get(richard), is(nullValue()));
 
-		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(),
-				messageSupplierCaptor.capture());
+		verify(mockMessageService, times(1))
+				.broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyInfoChangeMessage.class));
 		BuddyInfoChangeMessage buddyInfoChangeMessage = (BuddyInfoChangeMessage) message;

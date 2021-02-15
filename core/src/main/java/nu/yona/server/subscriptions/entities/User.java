@@ -18,6 +18,9 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.entities.EntityWithUuid;
@@ -25,12 +28,14 @@ import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.subscriptions.service.UserAddService;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USERS")
 public class User extends EntityWithUuid
 {
+	private static final Logger logger = LoggerFactory.getLogger(User.class);
 	private int privateDataMigrationVersion;
 
 	private String firstName;
@@ -133,7 +138,7 @@ public class User extends EntityWithUuid
 
 	/**
 	 * Don't call this, except from from UserDevice.
-	 * 
+	 *
 	 * @param appLastOpenedDate The date the app was opened last by this user. The date must be in the user's timezone.
 	 */
 	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
@@ -231,9 +236,9 @@ public class User extends EntityWithUuid
 		this.mobileNumberConfirmationCode = mobileNumberConfirmationCode;
 	}
 
-	public ConfirmationCode getMobileNumberConfirmationCode()
+	public Optional<ConfirmationCode> getMobileNumberConfirmationCode()
 	{
-		return mobileNumberConfirmationCode;
+		return Optional.ofNullable(mobileNumberConfirmationCode);
 	}
 
 	private UserPrivate getUserPrivate()
@@ -250,6 +255,11 @@ public class User extends EntityWithUuid
 	public Set<Goal> getGoals()
 	{
 		return getUserPrivate().getUserAnonymized().getGoals();
+	}
+
+	public Set<Goal> getGoalsIncludingHistoryItems()
+	{
+		return getUserPrivate().getUserAnonymized().getGoalsIncludingHistoryItems();
 	}
 
 	public UUID getUserAnonymizedId()
@@ -329,11 +339,9 @@ public class User extends EntityWithUuid
 
 	public Buddy getBuddyByUserAnonymizedId(UUID relatedUserAnonymizedId)
 	{
-		return getBuddies().stream()
-				.filter(buddy -> buddy.getUserAnonymizedId().isPresent()
-						&& relatedUserAnonymizedId.equals(buddy.getUserAnonymizedId().get()))
-				.findAny().orElseThrow(() -> new IllegalStateException(
-						"Buddy for user anonymized ID " + relatedUserAnonymizedId + " not found"));
+		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedId().isPresent() && relatedUserAnonymizedId
+				.equals(buddy.getUserAnonymizedId().get())).findAny().orElseThrow(
+				() -> new IllegalStateException("Buddy for user anonymized ID " + relatedUserAnonymizedId + " not found"));
 	}
 
 	public void assertMobileNumberConfirmed()
@@ -346,17 +354,22 @@ public class User extends EntityWithUuid
 
 	public void setOverwriteUserConfirmationCode(ConfirmationCode overwriteUserConfirmationCode)
 	{
+		Objects.requireNonNull(overwriteUserConfirmationCode);
+		if (this.overwriteUserConfirmationCode != null)
+		{
+			logger.info("DEBUG: mobile number {} replace overwrite confirmation code with ID {} with a new one with ID {}", this.getMobileNumber(), this.overwriteUserConfirmationCode.getId(), overwriteUserConfirmationCode.getId());
+		}
 		this.overwriteUserConfirmationCode = overwriteUserConfirmationCode;
 	}
 
-	public ConfirmationCode getOverwriteUserConfirmationCode()
+	public Optional<ConfirmationCode> getOverwriteUserConfirmationCode()
 	{
-		return overwriteUserConfirmationCode;
+		return Optional.ofNullable(overwriteUserConfirmationCode);
 	}
 
-	public ConfirmationCode getPinResetConfirmationCode()
+	public Optional<ConfirmationCode> getPinResetConfirmationCode()
 	{
-		return pinResetConfirmationCode;
+		return Optional.ofNullable(pinResetConfirmationCode);
 	}
 
 	public void setPinResetConfirmationCode(ConfirmationCode pinResetConfirmationCode)

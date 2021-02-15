@@ -42,7 +42,7 @@ public class GlobalExceptionMapping
 	/**
 	 * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
 	 * the response data is properly organized and JSON parseable.
-	 * 
+	 *
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
@@ -57,7 +57,7 @@ public class GlobalExceptionMapping
 	/**
 	 * This method generically handles the Yona exceptions. They are translated into nice ResponseMessage objects so the response
 	 * data is properly organized and JSON parseable.
-	 * 
+	 *
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
@@ -75,7 +75,7 @@ public class GlobalExceptionMapping
 	 * The request is wrong. Examples: The caller passed a wrong parameter (e.g. an invalid UUID), the HTTP message cannot be read
 	 * (e.g. because the JSON string is wrong), etc.<br/>
 	 * Such requests result in a 400 (Bad Request).
-	 * 
+	 *
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
@@ -90,7 +90,7 @@ public class GlobalExceptionMapping
 
 	/**
 	 * Unsupported media type. Such requests result in a 415 (Unsupported Media Type).
-	 * 
+	 *
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
@@ -105,7 +105,7 @@ public class GlobalExceptionMapping
 
 	/**
 	 * Unsupported method (e.g. POST on a read-only path). Such requests result in a 405 (Method Not Allowed).
-	 * 
+	 *
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
@@ -120,7 +120,7 @@ public class GlobalExceptionMapping
 
 	/**
 	 * Unsupported media type. Such requests result in a 406 (Not Acceptable).
-	 * 
+	 *
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
@@ -135,7 +135,7 @@ public class GlobalExceptionMapping
 
 	/**
 	 * Maximum upload size exceeded. Such requests result in a 413 (Payload Too Large).
-	 * 
+	 *
 	 * @param exception The exception.
 	 * @return The response object to return.
 	 */

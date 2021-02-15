@@ -77,22 +77,21 @@ public abstract class AnalysisEngineService_determineRelevantGoalsTest
 
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		LocalDateTime dayBeforeYesterday = yesterday.minusDays(1);
-		gamblingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday,
-				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
-						new HashSet<>(Arrays.asList("poker", "lotto")), new HashSet<>(Arrays.asList("Poker App", "Lotto App")),
-						usString("Descr")));
-		newsGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday,
-				ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
-						new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
-		gamingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("gaming"), false, new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
-		socialGoal = TimeZoneGoal.createInstance(dayBeforeYesterday,
-				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
-						new HashSet<>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
-				Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(dayBeforeYesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("shopping"), false, new HashSet<>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
-				1);
+		gamblingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("gambling"), false, new HashSet<>(Arrays.asList("poker", "lotto")),
+						new HashSet<>(Arrays.asList("Poker App", "Lotto App")), usString("Descr")));
+		newsGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("news"), false, new HashSet<>(Arrays.asList("refdag", "bbc")),
+						Collections.emptySet(), usString("Descr")));
+		gamingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("gaming"), false, new HashSet<>(Arrays.asList("games")),
+						Collections.emptySet(), usString("Descr")));
+		socialGoal = TimeZoneGoal.createInstance(dayBeforeYesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("social"), false, new HashSet<>(Arrays.asList("social")),
+						Collections.emptySet(), usString("Descr")), Collections.emptyList());
+		shoppingGoal = BudgetGoal.createInstance(dayBeforeYesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("shopping"), false, new HashSet<>(Arrays.asList("webshop")),
+						Collections.emptySet(), usString("Descr")), 1);
 		shoppingGoalHistoryItem = shoppingGoal.cloneAsHistoryItem(yesterday);
 
 		// Set up UserAnonymized instance.
@@ -100,8 +99,8 @@ public abstract class AnalysisEngineService_determineRelevantGoalsTest
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(
 				Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal, shoppingGoalHistoryItem));
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, getOperatingSystem(), "Unknown", 0, Optional.empty(),
-				Translator.EN_US_LOCALE);
+		deviceAnonEntity = DeviceAnonymized
+				.createInstance(0, getOperatingSystem(), "Unknown", 0, Optional.empty(), Translator.EN_US_LOCALE);
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -114,14 +114,14 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return BuddyConnectRequestMessageDto.createInstance((BuddyConnectRequestMessage) messageEntity,
-					getSenderInfo(actingUser, messageEntity));
+			return BuddyConnectRequestMessageDto
+					.createInstance((BuddyConnectRequestMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
-		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
+		public MessageActionDto handleAction(User actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
 			actingUser.assertMobileNumberConfirmed();
@@ -137,29 +137,29 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 			}
 		}
 
-		private MessageActionDto handleAction_Accept(UserDto actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
-				MessageActionDto payload)
+		private MessageActionDto handleAction_Accept(User actingUserEntity,
+				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDto payload)
 		{
-			buddyService.addBuddyToAcceptingUser(actingUser, connectRequestMessageEntity);
+			buddyService.addBuddyToAcceptingUser(actingUserEntity, connectRequestMessageEntity);
 
 			connectRequestMessageEntity = updateMessageStatusAsAccepted(connectRequestMessageEntity);
 
-			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
+			sendResponseMessageToRequestingUser(actingUserEntity, connectRequestMessageEntity, payload.getProperty("message"));
 
-			logHandledAction_Accept(actingUser, connectRequestMessageEntity.getSenderUser().get());
+			logHandledAction_Accept(actingUserEntity, connectRequestMessageEntity.getSenderUser().get());
 
 			return MessageActionDto
-					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
+					.createInstanceActionDone(theDtoFactory.createInstance(actingUserEntity, connectRequestMessageEntity));
 		}
 
-		private void logHandledAction_Accept(UserDto actingUser, User senderUser)
+		private void logHandledAction_Accept(User actingUser, User senderUser)
 		{
 			logger.info(
 					"User with mobile number '{}' and ID '{}' accepted buddy connect request from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getId(), senderUser.getMobileNumber(), senderUser.getId());
 		}
 
-		private MessageActionDto handleAction_Reject(UserDto actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
+		private MessageActionDto handleAction_Reject(User actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
 				MessageActionDto payload)
 		{
 			connectRequestMessageEntity = updateMessageStatusAsRejected(connectRequestMessageEntity);
@@ -172,7 +172,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
 		}
 
-		private void logHandledAction_Reject(UserDto actingUser, BuddyConnectRequestMessage connectRequestMessageEntity)
+		private void logHandledAction_Reject(User actingUser, BuddyConnectRequestMessage connectRequestMessageEntity)
 		{
 			String mobileNumber = connectRequestMessageEntity.getSenderUser().map(User::getMobileNumber)
 					.orElse("already deleted");
@@ -194,11 +194,10 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 			return Message.getRepository().save(connectRequestMessageEntity);
 		}
 
-		private void sendResponseMessageToRequestingUser(UserDto respondingUser,
+		private void sendResponseMessageToRequestingUser(User respondingUserEntity,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			User respondingUserEntity = userService.getUserEntityById(respondingUser.getId());
-			buddyService.sendBuddyConnectResponseMessage(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
+			buddyService.sendBuddyConnectResponseMessage(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUserEntity),
 					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(), connectRequestMessageEntity.getBuddyId(),
 					respondingUserEntity.getDevices(), connectRequestMessageEntity.getStatus(), responseMessage);
 		}

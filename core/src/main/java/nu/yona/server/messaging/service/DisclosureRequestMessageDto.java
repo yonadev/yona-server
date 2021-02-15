@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -25,9 +25,9 @@ import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
-import nu.yona.server.subscriptions.service.UserDto;
 
 @JsonRootName("disclosureRequestMessage")
 public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
@@ -121,14 +121,14 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return DisclosureRequestMessageDto.createInstance((DisclosureRequestMessage) messageEntity,
-					getSenderInfo(actingUser, messageEntity));
+			return DisclosureRequestMessageDto
+					.createInstance((DisclosureRequestMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
-		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
+		public MessageActionDto handleAction(User actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
 			switch (action)
@@ -142,21 +142,21 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 			}
 		}
 
-		private MessageActionDto handleAction_Accept(UserDto actingUser, DisclosureRequestMessage disclosureRequestMessageEntity,
+		private MessageActionDto handleAction_Accept(User actingUser, DisclosureRequestMessage disclosureRequestMessageEntity,
 				MessageActionDto payload)
 		{
 			return updateGoalConflictMessageStatus(actingUser, disclosureRequestMessageEntity,
 					GoalConflictMessage.Status.DISCLOSURE_ACCEPTED, payload.getProperty("message"));
 		}
 
-		private MessageActionDto handleAction_Reject(UserDto actingUser, DisclosureRequestMessage disclosureRequestMessageEntity,
+		private MessageActionDto handleAction_Reject(User actingUser, DisclosureRequestMessage disclosureRequestMessageEntity,
 				MessageActionDto payload)
 		{
 			return updateGoalConflictMessageStatus(actingUser, disclosureRequestMessageEntity,
 					GoalConflictMessage.Status.DISCLOSURE_REJECTED, payload.getProperty("message"));
 		}
 
-		private MessageActionDto updateGoalConflictMessageStatus(UserDto actingUser,
+		private MessageActionDto updateGoalConflictMessageStatus(User actingUser,
 				DisclosureRequestMessage disclosureRequestMessageEntity, Status status, String message)
 		{
 			GoalConflictMessage targetGoalConflictMessage = disclosureRequestMessageEntity.getTargetGoalConflictMessage();
@@ -178,15 +178,15 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 			return Message.getRepository().save(disclosureRequestMessageEntity);
 		}
 
-		private void sendResponseMessageToRequestingUser(UserDto respondingUser, DisclosureRequestMessage requestMessageEntity,
+		private void sendResponseMessageToRequestingUser(User respondingUser, DisclosureRequestMessage requestMessageEntity,
 				String message)
 		{
-			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(
-					requestMessageEntity.getRelatedUserAnonymizedId().orElseThrow(() -> new IllegalStateException(
+			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedId()
+					.orElseThrow(() -> new IllegalStateException(
 							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")));
-			messageService.sendMessage(
-					DisclosureResponseMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
-							requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
+			messageService.sendMessage(DisclosureResponseMessage
+							.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
+									requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
 					toUser);
 		}
 	}

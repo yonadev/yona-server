@@ -1,12 +1,12 @@
 databaseChangeLog:
-- changeSet:
-    id: 1513764628324-1
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: app_version
-            type: varchar(255)
-            defaultValue: "Unknown"
-        tableName: devices_anonymized
+  - changeSet:
+      id: 1513764628324-1
+      author: Bert (generated)
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: app_version
+                  type: varchar(255)
+                  defaultValue: "Unknown"
+            tableName: devices_anonymized

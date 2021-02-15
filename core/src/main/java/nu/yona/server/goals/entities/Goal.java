@@ -1,14 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -37,11 +35,10 @@ import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "GOALS")
-public abstract class Goal extends EntityWithUuid implements Serializable
+public abstract class Goal extends EntityWithUuid implements IGoal, Serializable
 {
 	private static final long serialVersionUID = -3209852229834825712L;
 
@@ -127,6 +124,12 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		return creationTime;
 	}
 
+	@Override
+	public LocalDateTime getCreationTimeNonOptional()
+	{
+		return getCreationTime();
+	}
+
 	/**
 	 * For test purposes only.
 	 */
@@ -135,9 +138,10 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		this.creationTime = creationTime;
 	}
 
-	public LocalDateTime getEndTime()
+	@Override
+	public Optional<LocalDateTime> getEndTime()
 	{
-		return endTime;
+		return Optional.ofNullable(endTime);
 	}
 
 	public Optional<Goal> getPreviousVersionOfThisGoal()
@@ -208,21 +212,11 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		return getActivityCategory().isMandatoryNoGo();
 	}
 
+	@Override
 	public abstract boolean isGoalAccomplished(DayActivity dayActivity);
 
+	@Override
 	public abstract int computeTotalMinutesBeyondGoal(DayActivity dayActivity);
-
-	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
-	{
-		return wasActiveAtInterval(creationTime, Optional.ofNullable(endTime), dateAtStartOfInterval, timeUnit);
-	}
-
-	public static boolean wasActiveAtInterval(LocalDateTime creationTime, Optional<LocalDateTime> endTime,
-			ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
-	{
-		LocalDateTime startNextInterval = TimeUtil.toUtcLocalDateTime(dateAtStartOfInterval.plus(1, timeUnit));
-		return creationTime.isBefore(startNextInterval) && endTime.map(end -> end.isAfter(startNextInterval)).orElse(true);
-	}
 
 	public Set<UUID> getIdsIncludingHistoryItems()
 	{

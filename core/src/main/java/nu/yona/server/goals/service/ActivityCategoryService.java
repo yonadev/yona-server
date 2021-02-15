@@ -100,8 +100,8 @@ public class ActivityCategoryService
 	{
 		logger.info("Getting all activity categories (apparently not cached)");
 		// Sort the collection to make it simpler to compare the activity categories
-		return StreamSupport.stream(repository.findAll().spliterator(), false).map(ActivityCategoryDto::createInstance)
-				.collect(Collectors.toCollection(() -> new TreeSet<>(
+		return StreamSupport.stream(repository.findAll().spliterator(), false).map(ActivityCategoryDto::createInstance).collect(
+				Collectors.toCollection(() -> new TreeSet<>(
 						(Comparator<ActivityCategoryDto> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
 	}
 
@@ -227,11 +227,10 @@ public class ActivityCategoryService
 
 	private boolean isUpToDate(ActivityCategory entity, ActivityCategoryDto dto)
 	{
-		return entity.getLocalizableName().equals(dto.getLocalizableNameByLocale())
-				&& entity.isMandatoryNoGo() == dto.isMandatoryNoGo()
-				&& entity.getSmoothwallCategories().equals(dto.getSmoothwallCategories())
-				&& entity.getApplications().equals(dto.getApplications())
-				&& entity.getLocalizableDescription().equals(dto.getLocalizableDescriptionByLocale());
+		return entity.getLocalizableName().equals(dto.getLocalizableNameByLocale()) && entity.isMandatoryNoGo() == dto
+				.isMandatoryNoGo() && entity.getSmoothwallCategories().equals(dto.getSmoothwallCategories()) && entity
+				.getApplications().equals(dto.getApplications()) && entity.getLocalizableDescription()
+				.equals(dto.getLocalizableDescriptionByLocale());
 	}
 
 	private void deleteRemovedActivityCategories(Set<ActivityCategory> activityCategoriesInRepository,

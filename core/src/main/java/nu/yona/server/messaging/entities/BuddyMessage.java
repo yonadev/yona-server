@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
@@ -14,8 +14,6 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.service.OwnUserPrivateDataDto;
-import nu.yona.server.subscriptions.service.UserDto;
 
 @Entity
 public abstract class BuddyMessage extends Message
@@ -58,7 +56,7 @@ public abstract class BuddyMessage extends Message
 
 	/**
 	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
-	 * 
+	 *
 	 * @param original Message to copy.
 	 */
 	public BuddyMessage(BuddyMessage original)
@@ -72,7 +70,7 @@ public abstract class BuddyMessage extends Message
 
 	/**
 	 * Returns the user sending this message.
-	 * 
+	 *
 	 * @return The user sending this message. Might be null if that user is already deleted.
 	 */
 	public Optional<User> getSenderUser()
@@ -82,9 +80,9 @@ public abstract class BuddyMessage extends Message
 
 	/**
 	 * Returns the ID of the user sending this message.
-	 * 
+	 *
 	 * @return The ID of the user sending this message. Might be null if that user was already deleted at the time this message
-	 *         was sent on behalf of that user.
+	 * was sent on behalf of that user.
 	 */
 	public UUID getSenderUserId()
 	{
@@ -167,12 +165,10 @@ public abstract class BuddyMessage extends Message
 					buddy.determineLastName(Optional.empty()), buddy.getNickname(), buddy.getUserPhotoId());
 		}
 
-		public static BuddyInfoParameters createInstance(UserDto userWithPrivateData, UUID relatedUserAnonymizedId)
+		public static BuddyInfoParameters createInstance(User user, UUID relatedUserAnonymizedId)
 		{
-			OwnUserPrivateDataDto ownPrivateData = userWithPrivateData.getOwnPrivateData();
-			return new BuddyInfoParameters(Optional.of(relatedUserAnonymizedId), userWithPrivateData.getId(),
-					ownPrivateData.getFirstName(), ownPrivateData.getLastName(),
-					userWithPrivateData.getPrivateData().getNickname(), ownPrivateData.getUserPhotoId());
+			return new BuddyInfoParameters(Optional.of(relatedUserAnonymizedId), user.getId(), user.getFirstName(),
+					user.getLastName(), user.getNickname(), user.getUserPhotoId());
 		}
 	}
 }

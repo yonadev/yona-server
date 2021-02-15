@@ -98,20 +98,20 @@ public class AnalysisEngineService
 			return;
 		}
 
-		DeviceAnonymizedDto deviceAnonymized = deviceService.getDeviceAnonymized(userAnonymized,
-				networkActivity.getDeviceIndex());
+		DeviceAnonymizedDto deviceAnonymized = deviceService
+				.getDeviceAnonymized(userAnonymized, networkActivity.getDeviceIndex());
 		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
-		analyze(Arrays.asList(
-				ActivityPayload.createInstance(userAnonymized, deviceAnonymized, networkActivity, matchingActivityCategories)),
-				userAnonymized);
+		analyze(Arrays.asList(ActivityPayload
+				.createInstance(userAnonymized, deviceAnonymized, networkActivity, matchingActivityCategories)), userAnonymized);
 	}
 
 	private Duration determineDeviceTimeOffset(AppActivitiesDto appActivities)
 	{
 		Duration offset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
-		return (offset.abs().compareTo(DEVICE_TIME_INACCURACY_MARGIN) > 0) ? offset : Duration.ZERO; // Ignore if less than 10
-																										// seconds
+		return (offset.abs().compareTo(DEVICE_TIME_INACCURACY_MARGIN) > 0) ?
+				offset :
+				Duration.ZERO; // Ignore if less than 10 seconds
 	}
 
 	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivitiesDto.Activity appActivity,
@@ -132,8 +132,8 @@ public class AnalysisEngineService
 	{
 		if (correctedEndTime.isBefore(correctedStartTime))
 		{
-			throw AnalysisException.appActivityStartAfterEnd(userAnonymized.getId(), application, correctedStartTime,
-					correctedEndTime);
+			throw AnalysisException
+					.appActivityStartAfterEnd(userAnonymized.getId(), application, correctedStartTime, correctedEndTime);
 		}
 		if (correctedStartTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN)))
 		{
@@ -201,8 +201,8 @@ public class AnalysisEngineService
 		Optional<LocalDate> lastMonitoredActivityDate = userAnonymized.getLastMonitoredActivityDate();
 		if (lastMonitoredActivityDate.map(d -> d.isBefore(lastActivityEndTime)).orElse(true))
 		{
-			DeviceAnonymized deviceAnonymized = deviceService.getDeviceAnonymizedEntity(userAnonymized.getId(),
-					lastActivityPayload.deviceAnonymized.getId());
+			DeviceAnonymized deviceAnonymized = deviceService
+					.getDeviceAnonymizedEntity(userAnonymized.getId(), lastActivityPayload.deviceAnonymized.getId());
 			activityUpdateService.updateLastMonitoredActivityDate(userAnonymizedEntityHolder.getEntity(), deviceAnonymized,
 					lastActivityEndTime);
 		}
@@ -214,10 +214,10 @@ public class AnalysisEngineService
 		if (isCrossDayActivity(payload))
 		{
 			// assumption: activity never crosses 2 days
-			ActivityPayload truncatedPayload = ActivityPayload.copyTillEndTime(payload,
-					TimeUtil.getEndOfDay(payload.userAnonymized.getTimeZone(), payload.startTime));
-			ActivityPayload nextDayPayload = ActivityPayload.copyFromStartTime(payload,
-					TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime));
+			ActivityPayload truncatedPayload = ActivityPayload
+					.copyTillEndTime(payload, TimeUtil.getEndOfDay(payload.userAnonymized.getTimeZone(), payload.startTime));
+			ActivityPayload nextDayPayload = ActivityPayload
+					.copyFromStartTime(payload, TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime));
 
 			addOrUpdateDayTruncatedActivity(truncatedPayload, matchingGoal, userAnonymizedEntityHolder);
 			addOrUpdateDayTruncatedActivity(nextDayPayload, matchingGoal, userAnonymizedEntityHolder);
@@ -267,9 +267,10 @@ public class AnalysisEngineService
 			return Optional.empty();
 		}
 
-		List<Activity> overlappingOfSameApp = activityRepository.findOverlappingOfSameApp(dayActivity.get(),
-				payload.deviceAnonymized.getId(), matchingGoal.getActivityCategoryId(), payload.application.orElse(null),
-				payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime());
+		List<Activity> overlappingOfSameApp = activityRepository
+				.findOverlappingOfSameApp(dayActivity.get(), payload.deviceAnonymized.getId(),
+						matchingGoal.getActivityCategoryId(), payload.application.orElse(null),
+						payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime());
 
 		// The prognosis is that there is no or one overlapping activity of the same app, because we don't expect the mobile app
 		// to post app activity that spans other existing same app activity (that indicates that there is something wrong in the
@@ -296,9 +297,9 @@ public class AnalysisEngineService
 	private void logMultipleOverlappingActivities(ActivityPayload payload, GoalDto matchingGoal, DayActivity dayActivity,
 			List<Activity> overlappingOfSameApp)
 	{
-		String overlappingActivitiesKind = payload.application.isPresent()
-				? MessageFormat.format("app activities of ''{0}''", payload.application.get())
-				: "network activities";
+		String overlappingActivitiesKind = payload.application.isPresent() ?
+				MessageFormat.format("app activities of ''{0}''", payload.application.get()) :
+				"network activities";
 		String overlappingActivities = overlappingOfSameApp.stream().map(Activity::toString).collect(Collectors.joining(", "));
 		logger.warn(
 				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",
@@ -405,15 +406,14 @@ public class AnalysisEngineService
 
 	static Set<GoalDto> determineRelevantGoals(ActivityPayload payload)
 	{
-		boolean onlyNoGoGoals = payload.isNetworkActivity()
-				&& payload.deviceAnonymized.getOperatingSystem() == OperatingSystem.ANDROID;
+		boolean onlyNoGoGoals =
+				payload.isNetworkActivity() && payload.deviceAnonymized.getOperatingSystem() == OperatingSystem.ANDROID;
 		Set<UUID> matchingActivityCategoryIds = payload.activityCategories.stream().map(ActivityCategoryDto::getId)
 				.collect(Collectors.toSet());
-		Set<GoalDto> goalsOfUser = payload.userAnonymized.getGoals();
+		Set<GoalDto> goalsOfUser = payload.userAnonymized.getGoalsIncludingHistoryItems();
 		return goalsOfUser.stream().filter(g -> !g.isHistoryItem())
 				.filter(g -> matchingActivityCategoryIds.contains(g.getActivityCategoryId()))
-				.filter(g -> g.isNoGoGoal() || !onlyNoGoGoals)
-				.filter(g -> g.getCreationTime().get()
+				.filter(g -> g.isNoGoGoal() || !onlyNoGoGoals).filter(g -> g.getCreationTime().get()
 						.isBefore(TimeUtil.toUtcLocalDateTime(payload.startTime.plus(DEVICE_TIME_INACCURACY_MARGIN))))
 				.collect(Collectors.toSet());
 	}

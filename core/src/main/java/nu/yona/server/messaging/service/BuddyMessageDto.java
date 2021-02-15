@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.subscriptions.service.UserDto;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("buddyMessage")
 public abstract class BuddyMessageDto extends MessageDto
@@ -40,27 +40,26 @@ public abstract class BuddyMessageDto extends MessageDto
 		return message;
 	}
 
-	public static BuddyInfoParameters createBuddyInfoParametersInstance(UserDto userWithPrivateData)
+	public static BuddyInfoParameters createBuddyInfoParametersInstance(User user)
 	{
-		return createBuddyInfoParametersInstance(userWithPrivateData,
-				userWithPrivateData.getOwnPrivateData().getUserAnonymizedId());
+		return createBuddyInfoParametersInstance(user, user.getUserAnonymizedId());
 	}
 
-	public static BuddyInfoParameters createBuddyInfoParametersInstance(UserDto userWithPrivateData, UUID relatedUserAnonymizedId)
+	public static BuddyInfoParameters createBuddyInfoParametersInstance(User user, UUID relatedUserAnonymizedId)
 	{
-		return BuddyInfoParameters.createInstance(userWithPrivateData, relatedUserAnonymizedId);
+		return BuddyInfoParameters.createInstance(user, relatedUserAnonymizedId);
 	}
 
 	@Component
 	public abstract static class Manager extends MessageDto.Manager
 	{
 		@Override
-		protected Optional<UUID> getSenderUserAnonymizedId(UserDto actingUser, Message messageEntity)
+		protected Optional<UUID> getSenderUserAnonymizedId(User actingUser, Message messageEntity)
 		{
 			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
 			if (actingUser.getId().equals(buddyMessageEntity.getSenderUserId()))
 			{
-				return Optional.of(actingUser.getOwnPrivateData().getUserAnonymizedId());
+				return Optional.of(actingUser.getUserAnonymizedId());
 			}
 			return messageEntity.getRelatedUserAnonymizedId();
 		}

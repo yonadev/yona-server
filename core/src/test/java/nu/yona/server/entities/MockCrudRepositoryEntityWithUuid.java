@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.entities;
@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import org.springframework.data.repository.CrudRepository;
 
@@ -98,5 +99,10 @@ public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implemen
 	public void deleteAll()
 	{
 		entities.clear();
+	}
+
+	protected Optional<T> findOne(Predicate<T> predicate)
+	{
+		return entities.values().stream().filter(predicate).findFirst();
 	}
 }

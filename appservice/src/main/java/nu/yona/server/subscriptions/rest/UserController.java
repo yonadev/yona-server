@@ -93,6 +93,7 @@ public class UserController extends ControllerBase
 	private static final String INCLUDE_PRIVATE_DATA_PARAM = "includePrivateData";
 	private static final String TEMP_PASSWORD_PARAM = "tempPassword";
 	private static final Map<String, Object> OMITTED_PARAMS;
+
 	static
 	{
 		Map<String, Object> v = new HashMap<>();
@@ -144,8 +145,8 @@ public class UserController extends ControllerBase
 	private HttpEntity<UserResource> getUser(UUID requestingUserId, String requestingDeviceIdStr, UUID userId,
 			boolean isCreatedOnBuddyRequest, Optional<String> password)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
 			if (requestingUserId.equals(userId))
 			{
@@ -181,8 +182,9 @@ public class UserController extends ControllerBase
 		{
 			return Optional.empty();
 		}
-		return requestingDeviceIdStr == null ? Optional.of(deviceService.getDefaultDeviceId(user))
-				: Optional.of(RestUtil.parseUuid(requestingDeviceIdStr));
+		return requestingDeviceIdStr == null ?
+				Optional.of(deviceService.getDefaultDeviceId(user)) :
+				Optional.of(RestUtil.parseUuid(requestingDeviceIdStr));
 	}
 
 	@PostMapping(value = "/")
@@ -228,9 +230,9 @@ public class UserController extends ControllerBase
 	private UserDto convertToUser(PostPutUserDto postPutUser)
 	{
 		Optional<DeviceRegistrationRequestDto> deviceRegistration = createDeviceRequestDto(postPutUser);
-		return UserDto.createInstance(postPutUser.creationTime, postPutUser.firstName, postPutUser.lastName,
-				postPutUser.mobileNumber, postPutUser.nickname,
-				deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance));
+		return UserDto
+				.createInstance(postPutUser.creationTime, postPutUser.firstName, postPutUser.lastName, postPutUser.mobileNumber,
+						postPutUser.nickname, deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance));
 	}
 
 	private Optional<DeviceRegistrationRequestDto> createDeviceRequestDto(PostPutUserDto postPutUser)
@@ -266,8 +268,8 @@ public class UserController extends ControllerBase
 		}
 		else
 		{
-			Require.isNonNull(requestingDeviceIdStr,
-					() -> InvalidDataException.missingRequestParameter(REQUESTING_DEVICE_ID_PARAM,
+			Require.isNonNull(requestingDeviceIdStr, () -> InvalidDataException
+					.missingRequestParameter(REQUESTING_DEVICE_ID_PARAM,
 							"This parameter is mandatory when '" + TEMP_PASSWORD_PARAM + "' is not provided"));
 			return updateUser(password, userId, RestUtil.parseUuid(requestingDeviceIdStr), user, request);
 		}
@@ -276,16 +278,17 @@ public class UserController extends ControllerBase
 	private HttpEntity<UserResource> updateUser(Optional<String> password, UUID userId, UUID requestingDeviceId, UserDto user,
 			HttpServletRequest request)
 	{
-		Require.that(user.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).isEmpty(),
-				() -> InvalidDataException.extraProperty(PostPutUserDto.DEVICE_NAME_PROPERTY,
+		Require.that(user.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).isEmpty(), () -> InvalidDataException
+				.extraProperty(PostPutUserDto.DEVICE_NAME_PROPERTY,
 						"Embedding devices in an update request is only allowed when updating a user created on buddy request"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			// use DOS protection to prevent enumeration of all occupied mobile numbers
-			return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder(userId, Optional.of(requestingDeviceId)).toUri(),
-					request, yonaProperties.getSecurity().getMaxUpdateUserAttemptsPerTimeWindow(),
-					() -> updateUser(userId, requestingDeviceId, user));
+			return dosProtectionService
+					.executeAttempt(getUpdateUserLinkBuilder(userId, Optional.of(requestingDeviceId)).toUri(), request,
+							yonaProperties.getSecurity().getMaxUpdateUserAttemptsPerTimeWindow(),
+							() -> updateUser(userId, requestingDeviceId, user));
 		}
 	}
 
@@ -323,8 +326,8 @@ public class UserController extends ControllerBase
 	public void deleteUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userService.deleteUser(userId, Optional.ofNullable(messageStr));
 		}
@@ -337,8 +340,8 @@ public class UserController extends ControllerBase
 			@RequestParam(value = REQUESTING_DEVICE_ID_PARAM, required = false) UUID requestingDeviceId,
 			@RequestBody ConfirmationCodeDto mobileNumberConfirmation)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(userService.confirmMobileNumber(userId, mobileNumberConfirmation.getCode()),
 					createResourceAssemblerForOwnUser(userId, Optional.of(requestingDeviceId)));
@@ -350,8 +353,8 @@ public class UserController extends ControllerBase
 	public ResponseEntity<Void> resendMobileNumberConfirmationCode(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			userService.resendMobileNumberConfirmationCode(userId);
 			return createNoContentResponse();
@@ -379,8 +382,8 @@ public class UserController extends ControllerBase
 
 	static WebMvcLinkBuilder getUpdateUserLinkBuilder(UUID userId, Optional<UUID> requestingDeviceId)
 	{
-		return linkTo(methodOn(UserController.class).updateUser(Optional.empty(), null, userId,
-				requestingDeviceId.map(UUID::toString).orElse(null), null, null));
+		return linkTo(methodOn(UserController.class)
+				.updateUser(Optional.empty(), null, userId, requestingDeviceId.map(UUID::toString).orElse(null), null, null));
 	}
 
 	static WebMvcLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userId, UUID requestingDeviceId)
@@ -416,8 +419,8 @@ public class UserController extends ControllerBase
 
 	public UserResourceAssembler createResourceAssemblerForOwnUser(UUID requestingUserId, Optional<UUID> requestingDeviceId)
 	{
-		return UserResourceAssembler.createInstanceForOwnUser(curieProvider, requestingUserId, requestingDeviceId,
-				pinResetRequestController);
+		return UserResourceAssembler
+				.createInstanceForOwnUser(curieProvider, requestingUserId, requestingDeviceId, pinResetRequestController);
 	}
 
 	private UserResourceAssembler createResourceAssemblerForBuddy(UUID requestingUserId)
@@ -434,8 +437,8 @@ public class UserController extends ControllerBase
 
 	private static Link getConfirmMobileLink(UUID userId, Optional<UUID> requestingDeviceId)
 	{
-		WebMvcLinkBuilder linkBuilder = linkTo(methodOn(UserController.class).confirmMobileNumber(Optional.empty(), userId,
-				requestingDeviceId.orElse(null), null));
+		WebMvcLinkBuilder linkBuilder = linkTo(methodOn(UserController.class)
+				.confirmMobileNumber(Optional.empty(), userId, requestingDeviceId.orElse(null), null));
 		return linkBuilder.withRel("confirmMobileNumber");
 	}
 
@@ -450,8 +453,9 @@ public class UserController extends ControllerBase
 	{
 		String requestingUserIdStr = requestingUserId.toString();
 		String requestingDeviceIdStr = requestingDeviceId.map(UUID::toString).orElse(null);
-		return linkTo(methodOn(UserController.class).getUser(Optional.empty(), null, requestingUserIdStr, requestingDeviceIdStr,
-				userId)).withRel(rel).expand(OMITTED_PARAMS);
+		return linkTo(methodOn(UserController.class)
+				.getUser(Optional.empty(), null, requestingUserIdStr, requestingDeviceIdStr, userId)).withRel(rel)
+				.expand(OMITTED_PARAMS);
 	}
 
 	public static Link getUserLink(LinkRelation rel, UUID userId, Optional<UUID> requestingDeviceId)
@@ -510,7 +514,7 @@ public class UserController extends ControllerBase
 	enum UserResourceRepresentation
 	{
 		MINIMAL(u -> false, u -> false, u -> false), BUDDY_USER(u -> true, u -> false, u -> false), OWN_USER(
-				u -> u.isMobileNumberConfirmed(), u -> !u.isMobileNumberConfirmed(), u -> u.isMobileNumberConfirmed());
+			u -> u.isMobileNumberConfirmed(), u -> !u.isMobileNumberConfirmed(), u -> u.isMobileNumberConfirmed());
 
 		final Predicate<UserDto> includeGeneralContent;
 		final Predicate<UserDto> includeOwnUserNumNotConfirmedContent;
@@ -554,7 +558,7 @@ public class UserController extends ControllerBase
 				devices.ifPresent(d -> result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL).value(),
 						DeviceController.createAllDevicesCollectionResource(userId, d, requestingDeviceId)));
 
-				Optional<Set<GoalDto>> goals = getContent().getPrivateData().getGoals();
+				Optional<Set<GoalDto>> goals = getContent().getPrivateData().getGoalsIncludingHistoryItems();
 				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL).value(),
 						GoalController.createAllGoalsCollectionResource(requestingUserId, userId, g)));
 			}
@@ -666,8 +670,9 @@ public class UserController extends ControllerBase
 
 		private void addEditUserPhotoLink(UserResource userResource)
 		{
-			userResource.add(linkTo(methodOn(UserPhotoController.class).uploadUserPhoto(Optional.empty(), null,
-					userResource.getContent().getId())).withRel("editUserPhoto").expand());
+			userResource.add(linkTo(methodOn(UserPhotoController.class)
+					.uploadUserPhoto(Optional.empty(), null, userResource.getContent().getId())).withRel("editUserPhoto")
+					.expand());
 		}
 
 		private void addUserPhotoLinkIfPhotoPresent(UserResource userResource)
@@ -690,8 +695,9 @@ public class UserController extends ControllerBase
 				return;
 			}
 
-			userResource.add(UserController.getUserLink(IanaLinkRelations.SELF, userResource.getContent().getId(),
-					requestingUserId, requestingDeviceId));
+			userResource.add(UserController
+					.getUserLink(IanaLinkRelations.SELF, userResource.getContent().getId(), requestingUserId,
+							requestingDeviceId));
 		}
 
 		private void addEditLink(EntityModel<UserDto> userResource)
@@ -736,8 +742,9 @@ public class UserController extends ControllerBase
 
 		private void addNewDeviceRequestLink(UserResource userResource)
 		{
-			userResource.add(NewDeviceRequestController
-					.getNewDeviceRequestLinkBuilder(userResource.getContent().getMobileNumber()).withRel("newDeviceRequest"));
+			userResource
+					.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(userResource.getContent().getMobileNumber())
+							.withRel("newDeviceRequest"));
 		}
 	}
 }

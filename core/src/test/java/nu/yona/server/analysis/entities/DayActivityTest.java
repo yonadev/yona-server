@@ -13,6 +13,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.IGoal;
 
 public class DayActivityTest extends IntervalActivityTestBase
 {
@@ -51,8 +52,8 @@ public class DayActivityTest extends IntervalActivityTestBase
 
 	private DayActivity createDayActivity(WeekActivity w, int plusDays)
 	{
-		return DayActivity.createInstance(userAnonEntity, w.getGoal(), testZone,
-				w.getStartTime().plusDays(plusDays).toLocalDate());
+		return DayActivity
+				.createInstance(userAnonEntity, w.getGoal(), testZone, w.getStartTime().plusDays(plusDays).toLocalDate());
 	}
 
 	@Test
@@ -333,12 +334,13 @@ public class DayActivityTest extends IntervalActivityTestBase
 	private void assertGoalMinutesBeyondAndAccomplished(DayActivity d, int expectedTotalBeyondGoal,
 			boolean expectedGoalAccomplished)
 	{
+		IGoal goal = d.getGoal();
 		assertThat(d.areAggregatesComputed(), equalTo(false));
-		assertThat(d.isGoalAccomplished(), equalTo(expectedGoalAccomplished));
-		assertThat(d.getTotalMinutesBeyondGoal(), equalTo(expectedTotalBeyondGoal));
+		assertThat(d.isGoalAccomplished(goal), equalTo(expectedGoalAccomplished));
+		assertThat(d.getTotalMinutesBeyondGoal(goal), equalTo(expectedTotalBeyondGoal));
 
 		d.computeAggregates();
-		assertThat(d.isGoalAccomplished(), equalTo(expectedGoalAccomplished));
-		assertThat(d.getTotalMinutesBeyondGoal(), equalTo(expectedTotalBeyondGoal));
+		assertThat(d.isGoalAccomplished(goal), equalTo(expectedGoalAccomplished));
+		assertThat(d.getTotalMinutesBeyondGoal(goal), equalTo(expectedTotalBeyondGoal));
 	}
 }

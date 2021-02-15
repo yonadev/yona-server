@@ -116,7 +116,7 @@ public class UserAddService
 	{
 		Require.that(user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1,
 				() -> YonaException.illegalState("Number of devices must be 1"));
-		UserAssertionService.assertValidUserFields(user, UserService.UserPurpose.USER);
+		userAssertionService.assertValidUserFields(user, UserService.UserPurpose.USER);
 		Require.that(user.getCreationTime().isEmpty() || yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Cannot set user creation time"));
 	}
@@ -129,10 +129,10 @@ public class UserAddService
 		Set<Goal> goals = buildGoalsSet(user, signUp);
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		UserPrivate userPrivate = UserPrivate.createInstance(user.getCreationTime().orElse(TimeUtil.utcNow()),
-				user.getOwnPrivateData().getFirstName(), user.getOwnPrivateData().getLastName(),
-				user.getOwnPrivateData().getNickname(), userAnonymized.getId(), anonymousMessageSource.getId(),
-				namedMessageSource);
+		UserPrivate userPrivate = UserPrivate
+				.createInstance(user.getCreationTime().orElse(TimeUtil.utcNow()), user.getOwnPrivateData().getFirstName(),
+						user.getOwnPrivateData().getLastName(), user.getOwnPrivateData().getNickname(), userAnonymized.getId(),
+						anonymousMessageSource.getId(), namedMessageSource);
 		User userEntity = new User(UUID.randomUUID(), initializationVector,
 				user.getCreationTime().map(LocalDateTime::toLocalDate).orElse(TimeUtil.utcNow().toLocalDate()),
 				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
@@ -156,8 +156,8 @@ public class UserAddService
 		}
 		else
 		{
-			goals = user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).stream().map(GoalDto::createGoalEntity)
-					.collect(Collectors.toSet());
+			goals = user.getOwnPrivateData().getGoalsIncludingHistoryItems().orElse(Collections.emptySet()).stream()
+					.map(GoalDto::createGoalEntity).collect(Collectors.toSet());
 		}
 		return goals;
 	}
@@ -185,8 +185,8 @@ public class UserAddService
 
 	private void addNoGoGoal(User userEntity, ActivityCategoryDto category)
 	{
-		userEntity.getAnonymized().addGoal(BudgetGoal.createNoGoInstance(TimeUtil.utcNow(),
-				activityCategoryService.getActivityCategoryEntity(category.getId())));
+		userEntity.getAnonymized().addGoal(BudgetGoal
+				.createNoGoInstance(TimeUtil.utcNow(), activityCategoryService.getActivityCategoryEntity(category.getId())));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
@@ -221,8 +221,8 @@ public class UserAddService
 
 	private void assertWhiteList(String mobileNumber, UserSignUp origin)
 	{
-		if ((origin == UserSignUp.FREE && yonaProperties.isWhiteListActiveFreeSignUp())
-				|| (origin == UserSignUp.INVITED && yonaProperties.isWhiteListActiveInvitedUsers()))
+		if ((origin == UserSignUp.FREE && yonaProperties.isWhiteListActiveFreeSignUp()) || (origin == UserSignUp.INVITED
+				&& yonaProperties.isWhiteListActiveInvitedUsers()))
 		{
 			whiteListedNumberService.assertMobileNumberIsAllowed(mobileNumber);
 		}
@@ -230,18 +230,20 @@ public class UserAddService
 
 	private void deleteExistingUserToOverwriteIt(String mobileNumber, String userProvidedConfirmationCode)
 	{
-		User existingUserEntity = UserLookupService.findUserByMobileNumber(mobileNumber);
-		ConfirmationCode confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
+		User existingUserEntity = userLookupService
+				.lockUserForUpdate(UserLookupService.findUserByMobileNumber(mobileNumber).getId());
+		Optional<ConfirmationCode> confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
 
 		assertValidConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> UserOverwriteConfirmationException.confirmationCodeNotSet(existingUserEntity.getMobileNumber()),
-				r -> UserOverwriteConfirmationException.confirmationCodeMismatch(existingUserEntity.getMobileNumber(),
-						userProvidedConfirmationCode, r),
+				r -> UserOverwriteConfirmationException
+						.confirmationCodeMismatch(existingUserEntity.getMobileNumber(), userProvidedConfirmationCode, r),
 				() -> UserOverwriteConfirmationException.tooManyAttempts(existingUserEntity.getMobileNumber()));
 
 		// notice we can't delete the associated anonymized data
 		// because the anonymized data cannot be retrieved
 		// (the relation is encrypted, the password is not available)
+		logger.info("DEBUG: mobile number {} delete/overwrite user with confirmation code ID {}", mobileNumber, confirmationCode.get().getId());
 		userRepository.delete(existingUserEntity);
 		userRepository.flush(); // So we can insert another one
 		logger.info("User with mobile number '{}' and ID '{}' removed, to overwrite the account",
@@ -262,13 +264,20 @@ public class UserAddService
 	}
 
 	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
-	void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode, String userProvidedConfirmationCode,
-			Supplier<YonaException> noConfirmationCodeExceptionSupplier,
+	void assertValidConfirmationCode(User userEntity, Optional<ConfirmationCode> confirmationCode,
+			String userProvidedConfirmationCode, Supplier<YonaException> noConfirmationCodeExceptionSupplier,
 			IntFunction<YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
-		Require.isNonNull(confirmationCode, noConfirmationCodeExceptionSupplier);
+		assertValidConfirmationCode(userEntity, confirmationCode.orElseThrow(noConfirmationCodeExceptionSupplier),
+				userProvidedConfirmationCode, invalidConfirmationCodeExceptionSupplier, tooManyAttemptsExceptionSupplier);
+	}
 
+	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode,
+			String userProvidedConfirmationCode, IntFunction<YonaException> invalidConfirmationCodeExceptionSupplier,
+			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
+	{
+		userAssertionService.assertUserEntityLockedForUpdate(userEntity);
 		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
 		if (remainingAttempts <= 0)
 		{
@@ -277,14 +286,8 @@ public class UserAddService
 
 		if (!confirmationCode.getCode().equals(userProvidedConfirmationCode))
 		{
-			registerFailedAttempt(userEntity, confirmationCode);
+			confirmationCode.incrementAttempts();
 			throw invalidConfirmationCodeExceptionSupplier.apply(remainingAttempts - 1);
 		}
-	}
-
-	@Transactional
-	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
-	{
-		userUpdateService.updateUser(userEntity.getId(), u -> confirmationCode.incrementAttempts());
 	}
 }

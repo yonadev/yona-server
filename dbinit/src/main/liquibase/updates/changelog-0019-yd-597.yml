@@ -1,8 +1,8 @@
 databaseChangeLog:
-- changeSet:
-    id: 1540411444000-1
-    author: Bert (Manually created)
-    changes:
-    - dropColumn:
-        columnName: user_photo_id_ciphertext
-        tableName: messages
+  - changeSet:
+      id: 1540411444000-1
+      author: Bert (Manually created)
+      changes:
+        - dropColumn:
+            columnName: user_photo_id_ciphertext
+            tableName: messages

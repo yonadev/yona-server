@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.text.MessageFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -156,21 +157,21 @@ public class AnalysisEngineServiceTest
 		setUpRepositoryMocks();
 
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1).withHour(0).withMinute(1).withSecond(0);
-		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
-				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
-						new HashSet<>(Arrays.asList("poker", "lotto")), new HashSet<>(Arrays.asList("Poker App", "Lotto App")),
-						usString("Descr")));
-		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(), usString("news"),
-				false, new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
-		gamingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("gaming"), false, new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
-		socialGoal = TimeZoneGoal.createInstance(yesterday,
-				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
-						new HashSet<>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
-				Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("shopping"), false, new HashSet<>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
-				1);
+		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("gambling"), false, new HashSet<>(Arrays.asList("poker", "lotto")),
+						new HashSet<>(Arrays.asList("Poker App", "Lotto App")), usString("Descr")));
+		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("news"), false, new HashSet<>(Arrays.asList("refdag", "bbc")),
+						Collections.emptySet(), usString("Descr")));
+		gamingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("gaming"), false, new HashSet<>(Arrays.asList("games")),
+						Collections.emptySet(), usString("Descr")));
+		socialGoal = TimeZoneGoal.createInstance(yesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("social"), false, new HashSet<>(Arrays.asList("social")),
+						Collections.emptySet(), usString("Descr")), Collections.emptyList());
+		shoppingGoal = BudgetGoal.createInstance(yesterday, ActivityCategory
+				.createInstance(UUID.randomUUID(), usString("shopping"), false, new HashSet<>(Arrays.asList("webshop")),
+						Collections.emptySet(), usString("Descr")), 1);
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
@@ -182,21 +183,21 @@ public class AnalysisEngineServiceTest
 
 		lenient().when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
 		lenient().when(mockActivityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(anySet()))
-				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
+				.thenAnswer(new Answer<Set<ActivityCategoryDto>>()
+				{
 					@Override
 					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
 					{
 						Object[] args = invocation.getArguments();
-						@SuppressWarnings("unchecked")
-						Set<String> smoothwallCategories = (Set<String>) args[0];
-						return getAllActivityCategories()
-								.stream().filter(ac -> ac.getSmoothwallCategories().stream()
-										.filter(smoothwallCategories::contains).findAny().isPresent())
-								.collect(Collectors.toSet());
+						@SuppressWarnings("unchecked") Set<String> smoothwallCategories = (Set<String>) args[0];
+						return getAllActivityCategories().stream()
+								.filter(ac -> ac.getSmoothwallCategories().stream().filter(smoothwallCategories::contains)
+										.findAny().isPresent()).collect(Collectors.toSet());
 					}
 				});
 		lenient().when(mockActivityCategoryFilterService.getMatchingCategoriesForApp(any(String.class)))
-				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
+				.thenAnswer(new Answer<Set<ActivityCategoryDto>>()
+				{
 					@Override
 					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
 					{
@@ -211,8 +212,8 @@ public class AnalysisEngineServiceTest
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown", 0, Optional.empty(),
-				Translator.EN_US_LOCALE);
+		deviceAnonEntity = DeviceAnonymized
+				.createInstance(0, OperatingSystem.IOS, "Unknown", 0, Optional.empty(), Translator.EN_US_LOCALE);
 		deviceAnonId = deviceAnonEntity.getId();
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
@@ -226,7 +227,8 @@ public class AnalysisEngineServiceTest
 		lenient().when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(Optional.of(userAnonEntity));
 
 		// Mock the transaction helper
-		lenient().doAnswer(new Answer<Void>() {
+		lenient().doAnswer(new Answer<Void>()
+		{
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable
 			{
@@ -276,6 +278,7 @@ public class AnalysisEngineServiceTest
 	@Test
 	public void analyze_secondConflictAfterConflictInterval_addActivity()
 	{
+		LocalDateTime startTime = JUnitUtil.mockCurrentTime("2020-03-18T20:31:00.000");
 		// Normally there is one conflict message sent.
 		// Set a short conflict interval such that the conflict messages are not aggregated.
 		AnalysisServiceProperties p = new AnalysisServiceProperties();
@@ -285,16 +288,10 @@ public class AnalysisEngineServiceTest
 
 		mockExistingActivity(gamblingGoal, now());
 
-		// Execute the analysis engine service after a period of inactivity longer than the conflict interval.
-
-		try
-		{
-			Thread.sleep(11L);
-		}
-		catch (InterruptedException e)
-		{
-
-		}
+		// Advance clock just enough to pass a period Execute the analysis engine service after a period of inactivity longer than
+		// the conflict interval.
+		// Mock advance of time by 11 ms
+		JUnitUtil.mockCurrentTime(startTime.plus(Duration.parse("PT0.011S")));
 
 		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
@@ -405,12 +402,13 @@ public class AnalysisEngineServiceTest
 		ZonedDateTime t3 = t2.plusSeconds(1);
 		ZonedDateTime t4 = t3.plusMinutes(5);
 
-		service.analyze(userAnonId, deviceAnonId, new AppActivitiesDto(now(), new AppActivitiesDto.Activity[] {
-				new AppActivitiesDto.Activity(app, t3, t4), new AppActivitiesDto.Activity(app, t1, t2) }));
+		service.analyze(userAnonId, deviceAnonId, new AppActivitiesDto(now(),
+				new AppActivitiesDto.Activity[] { new AppActivitiesDto.Activity(app, t3, t4),
+						new AppActivitiesDto.Activity(app, t1, t2) }));
 
 		ArgumentCaptor<ActivityPayload> activityPayloadCaptor = ArgumentCaptor.forClass(ActivityPayload.class);
-		verify(mockActivityUpdater, times(2)).addActivity(any(), activityPayloadCaptor.capture(),
-				eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater, times(2))
+				.addActivity(any(), activityPayloadCaptor.capture(), eq(GoalDto.createInstance(gamblingGoal)), any());
 		List<ActivityPayload> payloads = activityPayloadCaptor.getAllValues();
 		assertThat(payloads.size(), equalTo(2));
 		assertThat(payloads.get(0).startTime, equalTo(t1));
@@ -453,14 +451,16 @@ public class AnalysisEngineServiceTest
 		Activity existingActivityTwo = createActivity(now, now, "Poker App");
 		mockExistingActivities(gamblingGoal, existingActivityOne, existingActivityTwo);
 
-		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class),
-				any(String.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
-					@Override
-					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
-					{
-						return Arrays.asList(existingActivityOne);
-					}
-				});
+		when(mockActivityRepository
+				.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class), any(String.class),
+						any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>()
+		{
+			@Override
+			public List<Activity> answer(InvocationOnMock invocation) throws Throwable
+			{
+				return Arrays.asList(existingActivityOne);
+			}
+		});
 
 		// Test an activity
 		ZonedDateTime startTime = existingActivityTimeStartTime.plusMinutes(5);
@@ -483,18 +483,19 @@ public class AnalysisEngineServiceTest
 		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
 				createActivity(now.minusMinutes(10), now.minusMinutes(8)), createActivity(now.minusMinutes(1), now));
 		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class), isNull(),
-				any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
-					@Override
-					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
-					{
-						return existingDayActivity.getActivities().stream().collect(Collectors.toList());
-					}
-				});
-		String expectedWarnMessage = MessageFormat.format(
-				"Multiple overlapping network activities found. The payload has start time {0} and end time {1}. The day activity ID is {2} and the activity category ID is {3}. The overlapping activities are: {4}, {5}.",
-				now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(9).toLocalDateTime(), existingDayActivity.getId(),
-				gamblingGoal.getActivityCategory().getId(), existingDayActivity.getActivities().get(0),
-				existingDayActivity.getActivities().get(1));
+				any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>()
+		{
+			@Override
+			public List<Activity> answer(InvocationOnMock invocation) throws Throwable
+			{
+				return existingDayActivity.getActivities().stream().collect(Collectors.toList());
+			}
+		});
+		String expectedWarnMessage = MessageFormat
+				.format("Multiple overlapping network activities found. The payload has start time {0} and end time {1}. The day activity ID is {2} and the activity category ID is {3}. The overlapping activities are: {4}, {5}.",
+						now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(9).toLocalDateTime(), existingDayActivity.getId(),
+						gamblingGoal.getActivityCategory().getId(), existingDayActivity.getActivities().get(0),
+						existingDayActivity.getActivities().get(1));
 
 		service.analyze(userAnonId, createNetworkActivityForCategories(now.minusMinutes(9), "poker"));
 
@@ -525,19 +526,21 @@ public class AnalysisEngineServiceTest
 		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
 				createActivity(now.minusMinutes(10), now.minusMinutes(8), "Lotto App"),
 				createActivity(now.minusMinutes(7), now.minusMinutes(5), "Lotto App"), createActivity(now, now, "Lotto App"));
-		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class),
-				any(String.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
-					@Override
-					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
-					{
-						return existingDayActivity.getActivities().stream().collect(Collectors.toList());
-					}
-				});
-		String expectedWarnMessage = MessageFormat.format(
-				"Multiple overlapping app activities of ''Lotto App'' found. The payload has start time {0} and end time {1}. The day activity ID is {2} and the activity category ID is {3}. The overlapping activities are: {4}, {5}, {6}.",
-				now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(2).toLocalDateTime(), existingDayActivity.getId(),
-				gamblingGoal.getActivityCategory().getId(), existingDayActivity.getActivities().get(0),
-				existingDayActivity.getActivities().get(1), existingDayActivity.getActivities().get(2));
+		when(mockActivityRepository
+				.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class), any(String.class),
+						any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>()
+		{
+			@Override
+			public List<Activity> answer(InvocationOnMock invocation) throws Throwable
+			{
+				return existingDayActivity.getActivities().stream().collect(Collectors.toList());
+			}
+		});
+		String expectedWarnMessage = MessageFormat
+				.format("Multiple overlapping app activities of ''Lotto App'' found. The payload has start time {0} and end time {1}. The day activity ID is {2} and the activity category ID is {3}. The overlapping activities are: {4}, {5}, {6}.",
+						now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(2).toLocalDateTime(), existingDayActivity.getId(),
+						gamblingGoal.getActivityCategory().getId(), existingDayActivity.getActivities().get(0),
+						existingDayActivity.getActivities().get(1), existingDayActivity.getActivities().get(2));
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(9), now.minusMinutes(2)));
 
@@ -622,8 +625,8 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		ArgumentCaptor<ActivityPayload> activityPayloadCaptor = ArgumentCaptor.forClass(ActivityPayload.class);
-		verify(mockActivityUpdater, times(2)).addActivity(any(), activityPayloadCaptor.capture(),
-				eq(GoalDto.createInstance(gamblingGoal)), any());
+		verify(mockActivityUpdater, times(2))
+				.addActivity(any(), activityPayloadCaptor.capture(), eq(GoalDto.createInstance(gamblingGoal)), any());
 		List<ActivityPayload> payloads = activityPayloadCaptor.getAllValues();
 		assertThat(payloads.size(), equalTo(2));
 		assertThat(payloads.get(0).startTime, equalTo(startTime));
@@ -753,8 +756,8 @@ public class AnalysisEngineServiceTest
 	private DayActivity mockExistingActivities(Goal forGoal, Activity... activities)
 	{
 		LocalDateTime startTime = activities[0].getStartTime();
-		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,
-				startTime.truncatedTo(ChronoUnit.DAYS).toLocalDate());
+		DayActivity dayActivity = DayActivity
+				.createInstance(userAnonEntity, forGoal, userAnonZoneId, startTime.truncatedTo(ChronoUnit.DAYS).toLocalDate());
 		Arrays.asList(activities).forEach(a -> dayActivity.addActivity(a));
 		ActivityDto existingActivity = ActivityDto.createInstance(activities[activities.length - 1]);
 		// The following mock is lenient because several tests are skipped around midnight
@@ -763,8 +766,8 @@ public class AnalysisEngineServiceTest
 				.thenReturn(dayActivity);
 		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, deviceAnonId, forGoal.getId()))
 				.thenReturn(Optional.of(existingActivity));
-		WeekActivity weekActivity = WeekActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,
-				TimeUtil.getStartOfWeek(startTime.toLocalDate()));
+		WeekActivity weekActivity = WeekActivity
+				.createInstance(userAnonEntity, forGoal, userAnonZoneId, TimeUtil.getStartOfWeek(startTime.toLocalDate()));
 		weekActivity.addDayActivity(dayActivity);
 		forGoal.addWeekActivity(weekActivity);
 		return dayActivity;

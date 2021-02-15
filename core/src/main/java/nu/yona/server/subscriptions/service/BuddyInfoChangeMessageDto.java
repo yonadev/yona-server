@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -24,6 +24,7 @@ import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("buddyInfoChangeMessage")
 public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
@@ -90,14 +91,14 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return BuddyInfoChangeMessageDto.createInstance((BuddyInfoChangeMessage) messageEntity,
-					getSenderInfo(actingUser, messageEntity));
+			return BuddyInfoChangeMessageDto
+					.createInstance((BuddyInfoChangeMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
-		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
+		public MessageActionDto handleAction(User actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
 			switch (action)
@@ -109,7 +110,7 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 			}
 		}
 
-		private MessageActionDto handleAction_Process(UserDto actingUser, BuddyInfoChangeMessage messageEntity,
+		private MessageActionDto handleAction_Process(User actingUser, BuddyInfoChangeMessage messageEntity,
 				MessageActionDto requestPayload)
 		{
 			if (messageEntity.getRelatedUserAnonymizedId().isPresent())

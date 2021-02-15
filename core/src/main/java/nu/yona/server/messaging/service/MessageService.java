@@ -77,9 +77,10 @@ public class MessageService
 	private SmsService smsService;
 
 	@Transactional
-	public Page<MessageDto> getReceivedMessages(UserDto user, boolean onlyUnreadMessages, Pageable pageable)
+	public Page<MessageDto> getReceivedMessages(User user, boolean onlyUnreadMessages, Pageable pageable)
 	{
-		return wrapMessagesAsDtos(user, getReceivedMessageEntities(user, onlyUnreadMessages, pageable), pageable);
+		return wrapMessagesAsDtos(user, getReceivedMessageEntities(userService.createUserDto(user), onlyUnreadMessages, pageable),
+				pageable);
 	}
 
 	@Transactional
@@ -125,7 +126,6 @@ public class MessageService
 		return getNamedMessageSource(user).getMessages(null).hasContent();
 	}
 
-	@Transactional
 	private void transferDirectMessagesToAnonymousDestination(User user)
 	{
 		MessageSource directMessageSource = getNamedMessageSource(user);
@@ -176,7 +176,6 @@ public class MessageService
 		return getAnonymousMessageSource(user).getMessagesFromRelatedUserAnonymizedId(relatedUserAnonymizedId);
 	}
 
-	@Transactional
 	private void processUnprocessedMessages(User user)
 	{
 		List<Long> idsOfUnprocessedMessages = getUnprocessedMessageIds(user);
@@ -184,27 +183,32 @@ public class MessageService
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
 		for (long id : idsOfUnprocessedMessages)
 		{
-			UserDto userDto = userService.getUser(user.getId()); // Inside loop, as message processing might change it
-			handleMessageAction(userDto, id, "process", emptyPayload);
+			handleMessageAction(user, id, "process", emptyPayload);
 		}
 	}
 
 	@Transactional
-	public MessageDto getMessage(UserDto user, long messageId)
+	public MessageDto getMessage(User user, long messageId)
 	{
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageId));
 	}
 
 	@Transactional
-	public MessageActionDto handleMessageAction(UserDto user, long id, String action, MessageActionDto requestPayload)
+	public MessageActionDto handleMessageAction(UUID userId, long messageId, String action, MessageActionDto requestPayload)
 	{
-		MessageSource messageSource = getAnonymousMessageSource(user);
-		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
+		User userEntity = userService.lockUserForUpdate(userId);
+		return handleMessageAction(userEntity, messageId, action, requestPayload);
+	}
+
+	public MessageActionDto handleMessageAction(User userEntity, long messageId, String action, MessageActionDto requestPayload)
+	{
+		MessageSource messageSource = getAnonymousMessageSource(userEntity);
+		return dtoManager.handleAction(userEntity, messageSource.getMessage(messageId), action, requestPayload);
 	}
 
 	@Transactional
-	public MessageActionDto deleteMessage(UserDto user, long id)
+	public MessageActionDto deleteMessage(User user, long id)
 	{
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
@@ -214,7 +218,7 @@ public class MessageService
 		return MessageActionDto.createInstanceActionDone();
 	}
 
-	private void deleteMessage(UserDto user, Message message)
+	private void deleteMessage(User user, Message message)
 	{
 		MessageDto messageDto = dtoManager.createInstance(user, message);
 		Require.that(messageDto.canBeDeleted(), InvalidMessageActionException::unprocessedMessageCannotBeDeleted);
@@ -266,27 +270,27 @@ public class MessageService
 				.orElseThrow(() -> InvalidDataException.missingEntity(MessageDestination.class, id));
 	}
 
-	private Page<MessageDto> wrapMessagesAsDtos(UserDto user, Page<? extends Message> messageEntities, Pageable pageable)
+	private Page<MessageDto> wrapMessagesAsDtos(User user, Page<? extends Message> messageEntities, Pageable pageable)
 	{
 		List<MessageDto> allMessagePayloads = wrapMessagesAsDtos(user, messageEntities.getContent());
 		return new PageImpl<>(allMessagePayloads, pageable, messageEntities.getTotalElements());
 	}
 
-	private List<MessageDto> wrapMessagesAsDtos(UserDto user, List<? extends Message> messageEntities)
+	private List<MessageDto> wrapMessagesAsDtos(User user, List<? extends Message> messageEntities)
 	{
 		return messageEntities.stream().map(m -> messageToDto(user, m)).collect(Collectors.toList());
 	}
 
-	public MessageDto messageToDto(UserDto user, Message message)
+	public MessageDto messageToDto(User user, Message message)
 	{
 		return dtoManager.createInstance(user, message);
 	}
 
 	public static interface DtoManager
 	{
-		MessageDto createInstance(UserDto actingUser, Message messageEntity);
+		MessageDto createInstance(User actingUser, Message messageEntity);
 
-		MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action, MessageActionDto requestPayload);
+		MessageActionDto handleAction(User actingUser, Message messageEntity, String action, MessageActionDto requestPayload);
 	}
 
 	@Component
@@ -294,14 +298,17 @@ public class MessageService
 	{
 		private final Map<Class<? extends Message>, DtoManager> managers = new HashMap<>();
 
+		@Autowired
+		private UserService userService;
+
 		@Override
-		public MessageDto createInstance(UserDto user, Message messageEntity)
+		public MessageDto createInstance(User user, Message messageEntity)
 		{
 			return getManager(messageEntity).createInstance(user, messageEntity);
 		}
 
 		@Override
-		public MessageActionDto handleAction(UserDto user, Message messageEntity, String action, MessageActionDto requestPayload)
+		public MessageActionDto handleAction(User user, Message messageEntity, String action, MessageActionDto requestPayload)
 		{
 			return getManager(messageEntity).handleAction(user, messageEntity, action, requestPayload);
 		}
@@ -355,8 +362,9 @@ public class MessageService
 
 	private void sendFirebaseNotification(DeviceAnonymizedDto deviceAnonymized, Message message)
 	{
-		LocaleContextHelper.inLocaleContext(() -> firebaseService.sendMessage(deviceAnonymized.getId(),
-				deviceAnonymized.getFirebaseInstanceId().get(), message), deviceAnonymized.getLocale());
+		LocaleContextHelper.inLocaleContext(() -> firebaseService
+						.sendMessage(deviceAnonymized.getId(), deviceAnonymized.getFirebaseInstanceId().get(), message),
+				deviceAnonymized.getLocale());
 	}
 
 	@Transactional
@@ -394,7 +402,7 @@ public class MessageService
 	@Transactional
 	public Page<MessageDto> getActivityRelatedMessages(UUID userId, IntervalActivity intervalActivityEntity, Pageable pageable)
 	{
-		UserDto user = userService.getValidatedUser(userId);
+		User user = userService.getValidatedUserEntity(userId);
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return wrapMessagesAsDtos(user, messageSource.getActivityRelatedMessages(intervalActivityEntity, pageable), pageable);
 	}

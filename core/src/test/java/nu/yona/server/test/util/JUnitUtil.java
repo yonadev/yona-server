@@ -12,7 +12,9 @@ import static org.mockito.Mockito.when;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +30,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.support.Repositories;
 
+import mockit.Mock;
+import mockit.MockUp;
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.RepositoryProvider;
@@ -56,7 +60,8 @@ public class JUnitUtil
 	public static <T, ID extends Serializable> void setUpRepositoryMock(CrudRepository<T, ID> mockRepository)
 	{
 		// save should not return null but the saved entity
-		Mockito.lenient().when(mockRepository.save(ArgumentMatchers.<T> any())).thenAnswer(new Answer<T>() {
+		Mockito.lenient().when(mockRepository.save(ArgumentMatchers.<T>any())).thenAnswer(new Answer<T>()
+		{
 			@Override
 			public T answer(InvocationOnMock invocation) throws Throwable
 			{
@@ -70,7 +75,8 @@ public class JUnitUtil
 	public static Repositories setUpRepositoryProviderMock(Map<Class<?>, Repository<?, ?>> repositoriesMap)
 	{
 		Repositories mockRepositories = Mockito.mock(Repositories.class);
-		when(mockRepositories.getRepositoryFor(any())).thenAnswer(new Answer<Object>() {
+		when(mockRepositories.getRepositoryFor(any())).thenAnswer(new Answer<Object>()
+		{
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable
 			{
@@ -100,15 +106,16 @@ public class JUnitUtil
 	public static User createUserEntity(String firstName, String lastName, String mobileNumber, String nickname)
 	{
 		MessageSource anonymousMessageSource = MessageSource.createInstance();
-		UserAnonymized johnAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(),
-				Collections.emptySet());
-		UserAnonymized.getRepository().save(johnAnonymized);
+		UserAnonymized userAnonymized = UserAnonymized
+				.createInstance(anonymousMessageSource.getDestination(), Collections.emptySet());
+		UserAnonymized.getRepository().save(userAnonymized);
 
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource namedMessageSource = MessageSource.createInstance();
 		MessageSource.getRepository().save(namedMessageSource);
-		UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname,
-				johnAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
+		UserPrivate userPrivate = UserPrivate
+				.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname, userAnonymized.getId(),
+						anonymousMessageSource.getId(), namedMessageSource);
 		User user = new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 		return User.getRepository().save(user);
@@ -122,8 +129,9 @@ public class JUnitUtil
 
 	private static void addAsBuddy(User user, User buddyToBe)
 	{
-		Buddy buddy = Buddy.createInstance(buddyToBe.getId(), buddyToBe.getFirstName(), buddyToBe.getLastName(),
-				buddyToBe.getNickname(), Optional.empty(), Status.ACCEPTED, Status.ACCEPTED);
+		Buddy buddy = Buddy
+				.createInstance(buddyToBe.getId(), buddyToBe.getFirstName(), buddyToBe.getLastName(), buddyToBe.getNickname(),
+						Optional.empty(), Status.ACCEPTED, Status.ACCEPTED);
 		buddy.setUserAnonymizedId(buddyToBe.getAnonymized().getId());
 		user.addBuddy(buddy);
 	}
@@ -233,7 +241,8 @@ public class JUnitUtil
 		{
 			translatorStaticField.set(null, translator);
 
-			lenient().when(translator.getLocalizedMessage(any(String.class), any())).thenAnswer(new Answer<String>() {
+			lenient().when(translator.getLocalizedMessage(any(String.class), any())).thenAnswer(new Answer<String>()
+			{
 				@Override
 				public String answer(InvocationOnMock invocation) throws Throwable
 				{
@@ -265,5 +274,26 @@ public class JUnitUtil
 	public static void skipAfter(String description, ZonedDateTime now, int hour, int minute)
 	{
 		assumeTrue(now.isBefore(now.withHour(hour).withMinute(minute).withSecond(0)), description);
+	}
+
+	public static LocalDateTime mockCurrentTime(String dateTimeUtc)
+	{
+		return mockCurrentTime(LocalDateTime.parse(dateTimeUtc));
+	}
+
+	public static LocalDateTime mockCurrentTime(LocalDateTime dateTime)
+	{
+		Clock clock = Clock.fixed(dateTime.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+
+		new MockUp<TimeUtil>()
+		{
+			@Mock
+			public LocalDateTime utcNow()
+			{
+				return LocalDateTime.now(clock);
+			}
+		};
+
+		return dateTime;
 	}
 }

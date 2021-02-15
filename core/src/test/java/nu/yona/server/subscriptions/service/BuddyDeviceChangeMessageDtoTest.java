@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -12,13 +12,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -66,12 +63,12 @@ import nu.yona.server.util.TransactionHelper;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.messaging.service", "nu.yona.server.properties" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyDeviceChangeMessageDto.Manager", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.SenderInfo.Factory", type = FilterType.REGEX) }, excludeFilters = {
-						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyDeviceChangeMessageDto.Manager", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.BuddyService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.SenderInfo.Factory", type = FilterType.REGEX) }, excludeFilters = {
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class BuddyDeviceChangeMessageDtoTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";
@@ -143,9 +140,6 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	@MockBean
 	private LockPool<UUID> mockUserSynchronizer;
 
-	@Captor
-	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
-
 	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
@@ -183,11 +177,12 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 		// Create the message
 		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(richard);
-		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage.createInstance(buddyInfoParameters, MESSAGE_TEXT,
-				DeviceChange.ADD, device.getDeviceAnonymizedId(), Optional.empty(), Optional.of(deviceName));
+		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage
+				.createInstance(buddyInfoParameters, MESSAGE_TEXT, DeviceChange.ADD, device.getDeviceAnonymizedId(),
+						Optional.empty(), Optional.of(deviceName));
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -215,11 +210,12 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 		// Create the message
 		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(richard);
 		String newDeviceName = "Renamed";
-		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage.createInstance(buddyInfoParameters, MESSAGE_TEXT,
-				DeviceChange.RENAME, device.getDeviceAnonymizedId(), Optional.of(orgDeviceName), Optional.of(newDeviceName));
+		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage
+				.createInstance(buddyInfoParameters, MESSAGE_TEXT, DeviceChange.RENAME, device.getDeviceAnonymizedId(),
+						Optional.of(orgDeviceName), Optional.of(newDeviceName));
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -252,11 +248,12 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 		// Create the message
 		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(richard);
-		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage.createInstance(buddyInfoParameters, MESSAGE_TEXT,
-				DeviceChange.DELETE, device2.getDeviceAnonymizedId(), Optional.of(deviceName2), Optional.empty());
+		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage
+				.createInstance(buddyInfoParameters, MESSAGE_TEXT, DeviceChange.DELETE, device2.getDeviceAnonymizedId(),
+						Optional.of(deviceName2), Optional.empty());
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -283,11 +280,12 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 		// Create the message
 		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(richard);
-		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage.createInstance(buddyInfoParameters, MESSAGE_TEXT,
-				DeviceChange.DELETE, device1.getDeviceAnonymizedId(), Optional.of(deviceName1), Optional.empty());
+		BuddyDeviceChangeMessage messageEntity = BuddyDeviceChangeMessage
+				.createInstance(buddyInfoParameters, MESSAGE_TEXT, DeviceChange.DELETE, device1.getDeviceAnonymizedId(),
+						Optional.of(deviceName1), Optional.empty());
 
 		// Process the message
-		manager.handleAction(UserDto.createInstanceWithoutPrivateData(bob), messageEntity, "process", null);
+		manager.handleAction(bob, messageEntity, "process", null);
 
 		// Assert success
 		assertThat("Message is not processed", messageEntity.isProcessed());
@@ -303,8 +301,8 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 	private UserDevice addDevice(User user, String deviceName, OperatingSystem operatingSystem)
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, "Unknown", 0, Optional.empty(),
-				Translator.EN_US_LOCALE);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized
+				.createInstance(0, operatingSystem, "Unknown", 0, Optional.empty(), Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice device = UserDevice.createInstance(user, deviceName, deviceAnonymized.getId(), "topSecret");
 		user.addDevice(device);

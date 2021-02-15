@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -92,6 +92,11 @@ public class Buddy extends PrivateUserProperties
 		return new Buddy(UUID.randomUUID(), buddyUserId, firstName, lastName, nickname, userPhotoId, buddyAnonymized.getId());
 	}
 
+	public UUID getOwningUserPrivateId()
+	{
+		return owningUserPrivateId;
+	}
+
 	public UUID getBuddyAnonymizedId()
 	{
 		return buddyAnonymizedId;
@@ -110,10 +115,10 @@ public class Buddy extends PrivateUserProperties
 
 	public User getUser()
 	{
-		return getUserIfExists().orElseThrow(() -> UserServiceException.notFoundById(userId));
+		return getUserIfExisting().orElseThrow(() -> UserServiceException.notFoundById(userId));
 	}
 
-	public Optional<User> getUserIfExists()
+	public Optional<User> getUserIfExisting()
 	{
 		return User.getRepository().findById(userId);
 	}
@@ -204,7 +209,7 @@ public class Buddy extends PrivateUserProperties
 
 	/**
 	 * Determines the first name (see {@link #determineName(Supplier, Optional, Function, String, String)}).
-	 * 
+	 *
 	 * @param user Optional user
 	 * @return The first name or a substitute for it (never null)
 	 */
@@ -215,7 +220,7 @@ public class Buddy extends PrivateUserProperties
 
 	/**
 	 * Determines the last name (see {@link #determineName(Supplier, Optional, Function, String, String)}).
-	 * 
+	 *
 	 * @param user Optional user
 	 * @return The last name or a substitute for it (never null)
 	 */
@@ -229,12 +234,12 @@ public class Buddy extends PrivateUserProperties
 	 * never null. It first tries calling the getter that is supposed to take it from the buddy entity or message. If that returns
 	 * null and a user is given and that user is not yet migrated (i.e. the name is not removed from it), it tries to get that. If
 	 * that doesn't return anything either, it builds a string based on the given nickname.
-	 * 
+	 *
 	 * @param buddyUserNameGetter Getter to fetch the name from the buddy entity or a message
-	 * @param user Optional user entity
-	 * @param userNameGetter Getter to fetch the name (first or last) from the user entity
-	 * @param fallbackMessageId The ID of the translatable message to build the fallback string
-	 * @param nickname The nickname to include in the fallback string
+	 * @param user                Optional user entity
+	 * @param userNameGetter      Getter to fetch the name (first or last) from the user entity
+	 * @param fallbackMessageId   The ID of the translatable message to build the fallback string
+	 * @param nickname            The nickname to include in the fallback string
 	 * @return The name or a substitute for it (never null)
 	 */
 	public static String determineName(Supplier<String> buddyUserNameGetter, Optional<User> user,
@@ -258,5 +263,10 @@ public class Buddy extends PrivateUserProperties
 		// The app will fetch the message, causing processing of all unprocessed messages. That'll fill in the first and last
 		// name in the buddy entity, so from then onward, the user will see the right data
 		return Translator.getInstance().getLocalizedMessage(fallbackMessageId, nickname);
+	}
+
+	public boolean isAccepted()
+	{
+		return (getReceivingStatus() == Status.ACCEPTED) || (getSendingStatus() == Status.ACCEPTED);
 	}
 }

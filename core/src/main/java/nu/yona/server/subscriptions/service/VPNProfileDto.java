@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.service.DeviceService;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @JsonRootName("vpnProfile")
 public class VPNProfileDto
@@ -50,10 +49,9 @@ public class VPNProfileDto
 		this.vpnPassword = vpnPassword;
 	}
 
-	public static VPNProfileDto createInstance(UserDevice device)
+	public static VPNProfileDto createInstance(UserDevice device, UserAnonymizedDto userAnonymizedDto)
 	{
-		UserAnonymized userAnonymized = device.getDeviceAnonymized().getUserAnonymized();
-		return new VPNProfileDto(userAnonymized.getId(), DeviceService.buildVpnLoginId(userAnonymized, device),
+		return new VPNProfileDto(userAnonymizedDto.getId(), DeviceService.buildVpnLoginId(userAnonymizedDto, device),
 				device.getVpnPassword());
 	}
 }

@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -45,6 +46,8 @@ public class YonaProperties
 
 	private final Set<Locale> supportedLocales = new HashSet<>();
 
+	private Set<Integer> supportedCountryCodes = new HashSet<>();
+
 	private Locale defaultLocale;
 
 	private String appleAppId;
@@ -60,6 +63,8 @@ public class YonaProperties
 	private boolean isEnableHibernateStatsAllowed;
 
 	private boolean isTestServer;
+
+	private Duration overwriteUserConfirmationCodeNonResendInterval = Duration.ofSeconds(30);
 
 	public AnalysisServiceProperties getAnalysisService()
 	{
@@ -113,13 +118,24 @@ public class YonaProperties
 
 	public void setSupportedLocales(String supportedLocales)
 	{
-		this.supportedLocales.addAll(
-				Arrays.asList(supportedLocales.split(",")).stream().map(Locale::forLanguageTag).collect(Collectors.toSet()));
+		this.supportedLocales.addAll(Arrays.asList(supportedLocales.split(",")).stream().map(Locale::forLanguageTag)
+				.collect(Collectors.toSet()));
 	}
 
 	public Set<Locale> getSupportedLocales()
 	{
 		return Collections.unmodifiableSet(supportedLocales);
+	}
+
+	public void setSupportedCountryCodes(String supportedCountryCodes)
+	{
+		this.supportedCountryCodes.addAll(Arrays.asList(supportedCountryCodes.split(",")).stream().map(Integer::parseInt)
+				.collect(Collectors.toSet()));
+	}
+
+	public Set<Integer> getSupportedCountryCodes()
+	{
+		return supportedCountryCodes;
 	}
 
 	public void setAppleAppId(String appleAppId)
@@ -190,5 +206,15 @@ public class YonaProperties
 	public void setTestServer(boolean isTestServer)
 	{
 		this.isTestServer = isTestServer;
+	}
+
+	public Duration getOverwriteUserConfirmationCodeNonResendInterval()
+	{
+		return overwriteUserConfirmationCodeNonResendInterval;
+	}
+
+	public void setOverwriteUserConfirmationCodeNonResendInterval(Duration overwriteUserConfirmationCodeNonResendInterval)
+	{
+		this.overwriteUserConfirmationCodeNonResendInterval = overwriteUserConfirmationCodeNonResendInterval;
 	}
 }

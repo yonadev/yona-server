@@ -154,8 +154,7 @@ public class TriggerManagementService
 		return newTrigger().forJob(triggerDto.getJobName(), group).withIdentity(triggerDto.getName(), group).startNow()
 				.withSchedule(
 						cronSchedule(triggerDto.getCronExpression()).inTimeZone(TimeZone.getTimeZone(triggerDto.getTimeZone()))
-								.withMisfireHandlingInstructionFireAndProceed())
-				.build();
+								.withMisfireHandlingInstructionFireAndProceed()).build();
 	}
 
 	private TriggerKey getTriggerKey(String group, CronTriggerDto trigger)

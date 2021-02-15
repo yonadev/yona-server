@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -22,6 +22,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserPhoto;
 
 @Service
 public class UserService
@@ -88,9 +89,9 @@ public class UserService
 	}
 
 	@Transactional
-	public void setOverwriteUserConfirmationCode(String mobileNumber)
+	public void requestOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		userUpdateService.setOverwriteUserConfirmationCode(mobileNumber);
+		userUpdateService.requestOverwriteUserConfirmationCode(mobileNumber);
 	}
 
 	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
@@ -108,12 +109,12 @@ public class UserService
 	public UserDto confirmMobileNumber(UUID userId, String userProvidedConfirmationCode)
 	{
 		User updatedUserEntity = updateUser(userId, userEntity -> {
-			ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
+			Optional<ConfirmationCode> confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
 			userAddService.assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 					() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
-					r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
-							userProvidedConfirmationCode, r),
+					r -> MobileNumberConfirmationException
+							.confirmationCodeMismatch(userEntity.getMobileNumber(), userProvidedConfirmationCode, r),
 					() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
 			if (userEntity.isMobileNumberConfirmed())
@@ -162,8 +163,8 @@ public class UserService
 	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
 	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
 	 * would cause the GETs to fail rather than to wait for the other one to complete.
-	 * 
-	 * @param id The ID of the user to update
+	 *
+	 * @param id           The ID of the user to update
 	 * @param updateAction The update action to perform
 	 * @return The updated and saved user
 	 */
@@ -173,10 +174,29 @@ public class UserService
 		return userUpdateService.updateUser(id, updateAction);
 	}
 
-	@Transactional
-	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
+	/**
+	 * Performs the given update action on the user with the specified ID (if the user exists), while holding a write-lock on the
+	 * user. After the update, the entity is saved to the repository.<br/>
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing the user
+	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
+	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
+	 * would cause the GETs to fail rather than to wait for the other one to complete.
+	 *
+	 * @param id           The ID of the user to update
+	 * @param updateAction The update action to perform
+	 * @return an {@code Optional} describing the updated and saved user, or an empty {@code Optional} if a user with this ID
+	 * cannot be found
+	 */
+	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
+	public Optional<User> updateUserIfExisting(UUID id, Consumer<User> updateAction)
 	{
-		return userUpdateService.updateUserPhoto(id, userPhotoId);
+		return userUpdateService.updateUserIfExisting(id, updateAction);
+	}
+
+	@Transactional
+	public UserDto updateUserPhoto(User userEntity, Optional<UserPhoto> userPhoto)
+	{
+		return userUpdateService.updateUserPhoto(userEntity, userPhoto);
 	}
 
 	@Transactional
@@ -187,8 +207,8 @@ public class UserService
 
 	/**
 	 * Deletes the specified user, while holding a write-lock on the user.
-	 * 
-	 * @param id The ID of the user to delete
+	 *
+	 * @param id      The ID of the user to delete
 	 * @param message the message to communicate to buddies
 	 */
 	@Transactional
@@ -198,7 +218,7 @@ public class UserService
 	}
 
 	@Transactional
-	public void addBuddy(UserDto user, BuddyDto buddy)
+	public void addBuddy(User user, BuddyDto buddy)
 	{
 		userUpdateService.addBuddy(user, buddy);
 	}
@@ -221,7 +241,7 @@ public class UserService
 	/**
 	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
 	 * value is always the user entity. If not an exception is thrown. The entity is fetched without lock.
-	 * 
+	 *
 	 * @param id the ID of the user
 	 * @return The user entity (never null)
 	 */
@@ -231,6 +251,11 @@ public class UserService
 		return userLookupService.getUserEntityById(id);
 	}
 
+	public Optional<User> getUserEntityByIdIfExisting(UUID id)
+	{
+		return userLookupService.getUserEntityByIdIfExisting(id);
+	}
+
 	public UserDto getUserByMobileNumber(String mobileNumber)
 	{
 		return userLookupService.getUserByMobileNumber(mobileNumber);
@@ -238,7 +263,7 @@ public class UserService
 
 	/**
 	 * This method returns a validated user entity. A validated user means a user with a confirmed mobile number.
-	 * 
+	 *
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */
@@ -271,21 +296,32 @@ public class UserService
 
 	void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
 	{
-		UserAssertionService.assertValidUserFields(user, purpose);
-	}
-
-	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
-	{
-		userAddService.registerFailedAttempt(userEntity, confirmationCode);
+		userAssertionService.assertValidUserFields(user, purpose);
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)
 	{
-		UserAssertionService.assertValidMobileNumber(mobileNumber);
+		userAssertionService.assertValidMobileNumber(mobileNumber);
 	}
 
 	public void assertValidEmailAddress(String emailAddress)
 	{
-		UserAssertionService.assertValidEmailAddress(emailAddress);
+		userAssertionService.assertValidEmailAddress(emailAddress);
+	}
+
+	/**
+	 * Locks the user entity with the given ID for update, thus preventing concurrent updates on that user. To prevent from using
+	 * stale data that was retrieved before any previous update completed, the Hibernate session is cleared. This operation fails
+	 * if the session is dirty. Callers should obtain the lock on the user entity prior to any checks or updates. Note that this
+	 * operation is idempotent: if the user was already locked during this session, that user will be returned. The session won't
+	 * be cleared.
+	 *
+	 * @param userId The ID of the user to lock
+	 * @return The locked user entity
+	 */
+	@Transactional
+	public User lockUserForUpdate(UUID userId)
+	{
+		return userLookupService.lockUserForUpdate(userId);
 	}
 }

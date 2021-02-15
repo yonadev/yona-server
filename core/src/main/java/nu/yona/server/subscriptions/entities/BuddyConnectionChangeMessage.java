@@ -13,7 +13,6 @@ import javax.persistence.Transient;
 
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.messaging.entities.BuddyMessage;
-import nu.yona.server.messaging.entities.Message;
 
 @Entity
 public abstract class BuddyConnectionChangeMessage extends BuddyMessage
@@ -41,7 +40,7 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 
 	/**
 	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
-	 * 
+	 *
 	 * @param original Message to copy.
 	 */
 	public BuddyConnectionChangeMessage(BuddyConnectionChangeMessage original)
@@ -81,7 +80,7 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 
 	/**
 	 * Determines the first name (see {@link Buddy#determineName(Supplier, Optional, Function, String, String)}).
-	 * 
+	 *
 	 * @param user Optional user
 	 * @return The first name or a substitute for it (never null)
 	 */
@@ -93,7 +92,7 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 
 	/**
 	 * Determines the last name (see {@link Buddy#determineName(Supplier, Optional, Function, String, String)}).
-	 * 
+	 *
 	 * @param user Optional user
 	 * @return The last name or a substitute for it (never null)
 	 */

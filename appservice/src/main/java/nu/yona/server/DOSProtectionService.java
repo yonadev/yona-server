@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
@@ -39,7 +39,8 @@ public class DOSProtectionService
 	{
 		attemptsCache = CacheBuilder.newBuilder()
 				.expireAfterWrite(yonaProperties.getSecurity().getDosProtectionWindow().getSeconds(), TimeUnit.SECONDS)
-				.build(new CacheLoader<String, Integer>() {
+				.build(new CacheLoader<String, Integer>()
+				{
 					@Override
 					public Integer load(String key)
 					{
@@ -50,13 +51,25 @@ public class DOSProtectionService
 
 	public <T> T executeAttempt(URI uri, HttpServletRequest request, int expectedAttempts, Supplier<T> attempt)
 	{
+		registerAttemptAndDelayIfNecessary(uri, request, expectedAttempts);
+
+		return attempt.get();
+	}
+
+	public void executeAttempt(URI uri, HttpServletRequest request, int expectedAttempts, Runnable attempt)
+	{
+		registerAttemptAndDelayIfNecessary(uri, request, expectedAttempts);
+
+		attempt.run();
+	}
+
+	private void registerAttemptAndDelayIfNecessary(URI uri, HttpServletRequest request, int expectedAttempts)
+	{
 		if (yonaProperties.getSecurity().isDosProtectionEnabled())
 		{
 			int attempts = increaseAttempts(uri, request);
 			delayIfBeyondExpectedAttempts(expectedAttempts, attempts, request);
 		}
-
-		return attempt.get();
 	}
 
 	private void delayIfBeyondExpectedAttempts(int expectedAttempts, int attempts, HttpServletRequest request)

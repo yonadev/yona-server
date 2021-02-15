@@ -41,9 +41,10 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.rest.ControllerBase;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
-import nu.yona.server.subscriptions.service.UserDto;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -61,6 +62,9 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	@Autowired
 	protected UserService userService;
+
+	@Autowired
+	protected UserAnonymizedService userAnonymizedService;
 
 	@Autowired
 	private MessageController messageController;
@@ -83,8 +87,8 @@ abstract class ActivityControllerBase extends ControllerBase
 			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
 			Supplier<Page<WeekActivityOverviewDto>> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
 					createWeekActivityOverviewResourceAssembler(linkProvider));
@@ -94,8 +98,8 @@ abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<WeekActivityOverviewResource> getWeekActivityOverview(Optional<String> password, UUID userId,
 			String dateStr, Function<LocalDate, WeekActivityOverviewDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = WeekActivityDto.parseDate(dateStr);
 			return createOkResponse(activitySupplier.apply(date), createWeekActivityOverviewResourceAssembler(linkProvider));
@@ -106,8 +110,8 @@ abstract class ActivityControllerBase extends ControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
 					createDayActivityOverviewResourceAssembler(linkProvider));
@@ -118,8 +122,8 @@ abstract class ActivityControllerBase extends ControllerBase
 			String dateStr, Function<LocalDate, DayActivityOverviewDto<DayActivityDto>> activitySupplier,
 			LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = DayActivityDto.parseDate(dateStr);
 			return createOkResponse(activitySupplier.apply(date), createDayActivityOverviewResourceAssembler(linkProvider));
@@ -129,8 +133,8 @@ abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<WeekActivityResource> getWeekActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, WeekActivityDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = WeekActivityDto.parseDate(dateStr);
 			return createOkResponse(activitySupplier.apply(date), createWeekActivityResourceAssembler(linkProvider));
@@ -140,8 +144,8 @@ abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<DayActivityResource> getDayActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, DayActivityDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = DayActivityDto.parseDate(dateStr);
 			return createOkResponse(activitySupplier.apply(date), createDayActivityResourceAssembler(linkProvider));
@@ -152,10 +156,10 @@ abstract class ActivityControllerBase extends ControllerBase
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, Supplier<Page<MessageDto>> messageSupplier,
 			LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			UserDto user = userService.getValidatedUser(userId);
+			User user = userService.getValidatedUserEntity(userId);
 			return messageController.createOkResponse(user, messageSupplier.get(), pagedResourcesAssembler);
 		}
 	}
@@ -182,7 +186,7 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	protected GoalIdMapping createGoalIdMapping(UUID userId)
 	{
-		return GoalIdMapping.createInstance(userService.getUser(userId));
+		return GoalIdMapping.createInstance(userAnonymizedService, userService.getUserEntityById(userId));
 	}
 
 	public abstract void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDto message);
@@ -393,15 +397,16 @@ abstract class ActivityControllerBase extends ControllerBase
 
 		private void addMessagesLink(WeekActivityResource weekActivityResource)
 		{
-			weekActivityResource
-					.add(linkProvider.getWeekActivityDetailMessagesLinkBuilder(weekActivityResource.getContent().getDateStr(),
+			weekActivityResource.add(linkProvider
+					.getWeekActivityDetailMessagesLinkBuilder(weekActivityResource.getContent().getDateStr(),
 							weekActivityResource.getContent().getGoalId()).withRel("messages"));
 		}
 
 		private void addAddCommentLink(WeekActivityResource weekActivityResource)
 		{
-			Optional<WebMvcLinkBuilder> linkBuilder = linkProvider.getWeekActivityDetailAddCommentLinkBuilder(
-					weekActivityResource.getContent().getDateStr(), weekActivityResource.getContent().getGoalId());
+			Optional<WebMvcLinkBuilder> linkBuilder = linkProvider
+					.getWeekActivityDetailAddCommentLinkBuilder(weekActivityResource.getContent().getDateStr(),
+							weekActivityResource.getContent().getGoalId());
 			linkBuilder.ifPresent(lb -> weekActivityResource.add(lb.withRel("addComment")));
 		}
 
@@ -409,14 +414,14 @@ abstract class ActivityControllerBase extends ControllerBase
 		{
 			if (weekActivityResource.getContent().hasPrevious())
 			{
-				weekActivityResource
-						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getPreviousDateStr(),
+				weekActivityResource.add(linkProvider
+						.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getPreviousDateStr(),
 								weekActivityResource.getContent().getGoalId()).withRel(IanaLinkRelations.PREV));
 			}
 			if (weekActivityResource.getContent().hasNext())
 			{
-				weekActivityResource
-						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getNextDateStr(),
+				weekActivityResource.add(linkProvider
+						.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getNextDateStr(),
 								weekActivityResource.getContent().getGoalId()).withRel(IanaLinkRelations.NEXT));
 			}
 		}
@@ -481,15 +486,16 @@ abstract class ActivityControllerBase extends ControllerBase
 
 		private void addMessagesLink(DayActivityResource dayActivityResource)
 		{
-			dayActivityResource
-					.add(linkProvider.getDayActivityDetailMessagesLinkBuilder(dayActivityResource.getContent().getDateStr(),
+			dayActivityResource.add(linkProvider
+					.getDayActivityDetailMessagesLinkBuilder(dayActivityResource.getContent().getDateStr(),
 							dayActivityResource.getContent().getGoalId()).withRel("messages"));
 		}
 
 		private void addAddCommentLink(DayActivityResource dayActivityResource)
 		{
-			Optional<WebMvcLinkBuilder> linkBuilder = linkProvider.getDayActivityDetailAddCommentLinkBuilder(
-					dayActivityResource.getContent().getDateStr(), dayActivityResource.getContent().getGoalId());
+			Optional<WebMvcLinkBuilder> linkBuilder = linkProvider
+					.getDayActivityDetailAddCommentLinkBuilder(dayActivityResource.getContent().getDateStr(),
+							dayActivityResource.getContent().getGoalId());
 			linkBuilder.ifPresent(lb -> dayActivityResource.add(lb.withRel("addComment")));
 		}
 
@@ -497,14 +503,14 @@ abstract class ActivityControllerBase extends ControllerBase
 		{
 			if (dayActivityResource.getContent().hasPrevious())
 			{
-				dayActivityResource
-						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getPreviousDateStr(),
+				dayActivityResource.add(linkProvider
+						.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getPreviousDateStr(),
 								dayActivityResource.getContent().getGoalId()).withRel(IanaLinkRelations.PREV));
 			}
 			if (dayActivityResource.getContent().hasNext())
 			{
-				dayActivityResource
-						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getNextDateStr(),
+				dayActivityResource.add(linkProvider
+						.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getNextDateStr(),
 								dayActivityResource.getContent().getGoalId()).withRel(IanaLinkRelations.NEXT));
 			}
 		}

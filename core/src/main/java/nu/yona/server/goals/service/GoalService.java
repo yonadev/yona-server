@@ -60,7 +60,7 @@ public class GoalService
 	public Set<GoalDto> getGoalsOfUser(UUID forUserId)
 	{
 		UserDto user = userService.getUser(forUserId);
-		return user.getOwnPrivateData().getGoals().orElse(Collections.emptySet());
+		return user.getOwnPrivateData().getGoalsIncludingHistoryItems().orElse(Collections.emptySet());
 	}
 
 	public GoalDto getGoalForUserId(UUID userId, UUID goalId)
@@ -71,7 +71,7 @@ public class GoalService
 
 	public GoalDto getGoalForUserAnonymizedId(UUID userAnonymizedId, UUID goalId)
 	{
-		return userAnonymizedService.getUserAnonymized(userAnonymizedId).getGoals().stream()
+		return userAnonymizedService.getUserAnonymized(userAnonymizedId).getGoalsIncludingHistoryItems().stream()
 				.filter(g -> g.getGoalId().equals(goalId)).findFirst()
 				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymizedId, goalId));
 	}
@@ -101,15 +101,16 @@ public class GoalService
 	public GoalDto addGoal(UUID userId, GoalDto goal, Optional<String> message)
 	{
 		assertIsValidNewGoal(goal);
-		User userEntity = userService.getUserEntityById(userId);
+		User userEntity = userService.lockUserForUpdate(userId);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Optional<Goal> conflictingExistingGoal = userAnonymizedEntity.getGoals().stream()
 				.filter(existingGoal -> existingGoal.getActivityCategory().getId().equals(goal.getActivityCategoryId()))
 				.findFirst();
 		if (conflictingExistingGoal.isPresent())
 		{
-			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(conflictingExistingGoal.get().getActivityCategory()
-					.getLocalizableName().get(LocaleContextHolder.getLocale()));
+			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(
+					conflictingExistingGoal.get().getActivityCategory().getLocalizableName()
+							.get(LocaleContextHolder.getLocale()));
 		}
 
 		Goal goalEntity = goal.createGoalEntity();
@@ -131,7 +132,7 @@ public class GoalService
 	@Transactional
 	public GoalDto updateGoal(UUID userId, UUID goalId, GoalDto newGoalDto, Optional<String> message)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		User userEntity = userService.lockUserForUpdate(userId);
 		Goal existingGoal = getGoalEntity(userEntity, goalId);
 
 		assertValidGoalUpdate(existingGoal, newGoalDto);
@@ -222,25 +223,25 @@ public class GoalService
 	{
 		if (!newGoalDto.getClass().equals(existingGoalDto.getClass()))
 		{
-			throw GoalServiceException.cannotChangeTypeOfGoal(existingGoalDto.getClass().getSimpleName(),
-					newGoalDto.getClass().getSimpleName());
+			throw GoalServiceException
+					.cannotChangeTypeOfGoal(existingGoalDto.getClass().getSimpleName(), newGoalDto.getClass().getSimpleName());
 		}
 	}
 
 	private void assertNoUpdateToThePast(GoalDto newGoalDto, Goal existingGoal)
 	{
-		if (newGoalDto.getCreationTime().isPresent()
-				&& newGoalDto.getCreationTime().get().isBefore(existingGoal.getCreationTime()))
+		if (newGoalDto.getCreationTime().isPresent() && newGoalDto.getCreationTime().get()
+				.isBefore(existingGoal.getCreationTime()))
 		{
-			throw GoalServiceException.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDto.getCreationTime().get(),
-					existingGoal.getCreationTime());
+			throw GoalServiceException
+					.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDto.getCreationTime().get(), existingGoal.getCreationTime());
 		}
 	}
 
 	@Transactional
 	public void deleteGoalAndInformBuddies(UUID userId, UUID goalId, Optional<String> message)
 	{
-		User userEntity = userService.getUserEntityById(userId);
+		User userEntity = userService.lockUserForUpdate(userId);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Goal goalEntity = userAnonymizedEntity.getGoals().stream().filter(goal -> goal.getId().equals(goalId)).findFirst()
 				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUser(userId, goalId));
@@ -286,7 +287,8 @@ public class GoalService
 			GoalChangeMessage.Change change, Optional<String> message)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> GoalChangeMessage.createInstance(BuddyInfoParameters.createInstance(userEntity),
-						activityCategoryOfChangedGoal, change, message.orElse(null)));
+				() -> GoalChangeMessage
+						.createInstance(BuddyInfoParameters.createInstance(userEntity), activityCategoryOfChangedGoal, change,
+								message.orElse(null)));
 	}
 }

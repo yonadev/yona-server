@@ -19,7 +19,8 @@ public class Matchers
 
 	public static Matcher<ResourceBasedException> hasMessageId(String messageId)
 	{
-		return new BaseMatcher<ResourceBasedException>() {
+		return new BaseMatcher<ResourceBasedException>()
+		{
 			@Override
 			public boolean matches(Object item)
 			{

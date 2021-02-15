@@ -1,11 +1,6 @@
-import org.gradle.internal.util.PropertiesUtils
-import java.nio.charset.StandardCharsets 
+import java.nio.charset.StandardCharsets
 
-buildscript {
-	repositories {
-		jcenter()
-	}
-}
+import org.gradle.internal.util.PropertiesUtils
 
 plugins {
 	id "java"
@@ -25,7 +20,7 @@ allprojects {
 }
 
 htmlDependencyReport {
-    projects = project.allprojects
+	projects = project.allprojects
 }
 
 subprojects {
@@ -42,39 +37,39 @@ subprojects {
 		build_number = System.getenv().BUILD_NUMBER ?: 0
 		docker_tag = "build-${build_number}"
 
-		version_batch_core     = "3.0.7.RELEASE"
+		version_batch_core = "3.0.7.RELEASE"
 		version_mariadb_client = "1.5.5"
 
-		yona_adminservice_scheme         = project.properties["yona_adminservice_scheme"]        ?: "http"
-		yona_adminservice_host           = project.properties["yona_adminservice_host"]          ?: "localhost"
-		yona_adminservice_port           = project.properties["yona_adminservice_port"]          ?: "8180"
-		yona_adminservice_mgmt_port      = project.properties["yona_adminservice_mgmt_port"]     ?: "9080"
-		yona_adminservice_debug_port     = project.properties["yona_adminservice_debug_port"]    ?: "8840"
-		yona_adminservice_url            = project.properties["yona_adminservice_url"]           ?: "${yona_adminservice_scheme}://${yona_adminservice_host}:${yona_adminservice_port}"
-		yona_analysisservice_scheme      = project.properties["yona_analysisservice_scheme"]     ?: "http"
-		yona_analysisservice_host        = project.properties["yona_analysisservice_host"]       ?: "localhost"
-		yona_analysisservice_port        = project.properties["yona_analysisservice_port"]       ?: "8181"
-		yona_analysisservice_mgmt_port   = project.properties["yona_analysisservice_mgmt_port"]  ?: "9081"
-		yona_analysisservice_debug_port  = project.properties["yona_analysisservice_debug_port"] ?: "8841"
-		yona_analysisservice_url         = project.properties["yona_analysisservice_url"]        ?: "${yona_analysisservice_scheme}://${yona_analysisservice_host}:${yona_analysisservice_port}"
-		yona_appservice_scheme           = project.properties["yona_appservice_scheme"]          ?: "http"
-		yona_appservice_host             = project.properties["yona_appservice_host"]            ?: "localhost"
-		yona_appservice_port             = project.properties["yona_appservice_port"]            ?: "8182"
-		yona_appservice_mgmt_port        = project.properties["yona_appservice_mgmt_port"]       ?: "9082"
-		yona_appservice_debug_port       = project.properties["yona_appservice_debug_port"]      ?: "8842"
-		yona_appservice_url              = project.properties["yona_appservice_url"]             ?: "${yona_appservice_scheme}://${yona_appservice_host}:${yona_appservice_port}"
-		yona_batchservice_scheme         = project.properties["yona_batchservice_scheme"]        ?: "http"
-		yona_batchservice_host           = project.properties["yona_batchservice_host"]          ?: "localhost"
-		yona_batchservice_port           = project.properties["yona_batchservice_port"]          ?: "8183"
-		yona_batchservice_mgmt_port      = project.properties["yona_batchservice_mgmt_port"]     ?: "9083"
-		yona_batchservice_debug_port     = project.properties["yona_batchservice_debug_port"]    ?: "8843"
-		yona_batchservice_url            = project.properties["yona_batchservice_url"]           ?: "${yona_batchservice_scheme}://${yona_batchservice_host}:${yona_batchservice_port}"
-		yona_enableHibernateStatsAllowed = project.properties["yona_enableHibernateStatsAllowed"]?: "false"
-		yona_testServer                  = project.properties["yona_testServer"]                 ?: "false"
+		yona_adminservice_scheme = project.properties["yona_adminservice_scheme"] ?: "http"
+		yona_adminservice_host = project.properties["yona_adminservice_host"] ?: "localhost"
+		yona_adminservice_port = project.properties["yona_adminservice_port"] ?: "8180"
+		yona_adminservice_mgmt_port = project.properties["yona_adminservice_mgmt_port"] ?: "9080"
+		yona_adminservice_debug_port = project.properties["yona_adminservice_debug_port"] ?: "8840"
+		yona_adminservice_url = project.properties["yona_adminservice_url"] ?: "${yona_adminservice_scheme}://${yona_adminservice_host}:${yona_adminservice_port}"
+		yona_analysisservice_scheme = project.properties["yona_analysisservice_scheme"] ?: "http"
+		yona_analysisservice_host = project.properties["yona_analysisservice_host"] ?: "localhost"
+		yona_analysisservice_port = project.properties["yona_analysisservice_port"] ?: "8181"
+		yona_analysisservice_mgmt_port = project.properties["yona_analysisservice_mgmt_port"] ?: "9081"
+		yona_analysisservice_debug_port = project.properties["yona_analysisservice_debug_port"] ?: "8841"
+		yona_analysisservice_url = project.properties["yona_analysisservice_url"] ?: "${yona_analysisservice_scheme}://${yona_analysisservice_host}:${yona_analysisservice_port}"
+		yona_appservice_scheme = project.properties["yona_appservice_scheme"] ?: "http"
+		yona_appservice_host = project.properties["yona_appservice_host"] ?: "localhost"
+		yona_appservice_port = project.properties["yona_appservice_port"] ?: "8182"
+		yona_appservice_mgmt_port = project.properties["yona_appservice_mgmt_port"] ?: "9082"
+		yona_appservice_debug_port = project.properties["yona_appservice_debug_port"] ?: "8842"
+		yona_appservice_url = project.properties["yona_appservice_url"] ?: "${yona_appservice_scheme}://${yona_appservice_host}:${yona_appservice_port}"
+		yona_batchservice_scheme = project.properties["yona_batchservice_scheme"] ?: "http"
+		yona_batchservice_host = project.properties["yona_batchservice_host"] ?: "localhost"
+		yona_batchservice_port = project.properties["yona_batchservice_port"] ?: "8183"
+		yona_batchservice_mgmt_port = project.properties["yona_batchservice_mgmt_port"] ?: "9083"
+		yona_batchservice_debug_port = project.properties["yona_batchservice_debug_port"] ?: "8843"
+		yona_batchservice_url = project.properties["yona_batchservice_url"] ?: "${yona_batchservice_scheme}://${yona_batchservice_host}:${yona_batchservice_port}"
+		yona_enableHibernateStatsAllowed = project.properties["yona_enableHibernateStatsAllowed"] ?: "false"
+		yona_testServer = project.properties["yona_testServer"] ?: "false"
 	}
 
 	repositories {
-		jcenter()
+		mavenCentral()
 		maven { url "https://repo.spring.io/snapshot" }
 	}
 
@@ -82,16 +77,14 @@ subprojects {
 		buildInfo {
 			properties {
 				time = null
-				additional = [
-					buildNumber : project.ext.build_number
-				]
+				additional = [buildNumber: project.ext.build_number]
 			}
 			doLast {
 				// Can be removed when we upgrade to a Spring Boot build that has this issue fixed:
 				// https://github.com/spring-projects/spring-boot/issues/14494
 				File propertiesFile = new File(destinationDir, 'build-info.properties')
 				Properties props = new Properties()
-				propertiesFile.withInputStream { props.load(it)}
+				propertiesFile.withInputStream { props.load(it) }
 				OutputStream out = new BufferedOutputStream(new FileOutputStream(propertiesFile))
 				PropertiesUtils.store(props, out, "Custom generated to ensure repeatability", StandardCharsets.UTF_8, "\n");
 				out.close()
@@ -107,8 +100,8 @@ subprojects {
 
 eclipse {
 	classpath {
-		 containers.remove("org.eclipse.jdt.launching.JRE_CONTAINER")
-		 containers "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"
+		containers.remove("org.eclipse.jdt.launching.JRE_CONTAINER")
+		containers "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"
 	}
 }
 

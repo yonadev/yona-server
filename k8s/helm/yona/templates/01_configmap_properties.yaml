@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-springboot
+  name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-springboot
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"

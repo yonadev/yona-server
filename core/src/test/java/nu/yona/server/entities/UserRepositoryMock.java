@@ -1,11 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.entities;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,15 +19,15 @@ public class UserRepositoryMock extends MockJpaRepositoryEntityWithUuid<User> im
 {
 
 	@Override
-	public User findByIdForUpdate(UUID id)
+	public Optional<User> findByIdForUpdate(UUID id)
 	{
-		return findById(id).get();
+		return findById(id);
 	}
 
 	@Override
 	public User findByMobileNumber(String mobileNumber)
 	{
-		throw new NotImplementedException();
+		return findOne(u -> u.getMobileNumber().equals(mobileNumber)).orElse(null);
 	}
 
 	@Override

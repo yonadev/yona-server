@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -42,7 +42,7 @@ public class UserAnonymized extends EntityWithUuid
 
 	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Where(clause = "end_time is null") // The history items have the user anonymized ID set, so they would appear in this
-										// collection if not explicitly excluded
+	// collection if not explicitly excluded
 	@BatchSize(size = 20)
 	private Set<Goal> goals;
 
@@ -52,7 +52,7 @@ public class UserAnonymized extends EntityWithUuid
 	@OneToMany(mappedBy = "owningUserAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
-	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private Set<DeviceAnonymized> devicesAnonymized;
 
 	@Transient
@@ -170,5 +170,29 @@ public class UserAnonymized extends EntityWithUuid
 			Goal.getRepository().findByUserAnonymizedId(getId()); // Preload in one go
 			isGoalPreloadDone = true;
 		}
+	}
+
+	public Set<Goal> getGoalsIncludingHistoryItems()
+	{
+		preloadGoals();
+		Set<Goal> activeGoals = getGoals();
+		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);
+		Set<Goal> allGoals = new HashSet<>(activeGoals);
+		allGoals.addAll(historyItems);
+		return allGoals;
+	}
+
+	private static Set<Goal> getGoalHistoryItems(Set<Goal> activeGoals)
+	{
+		Set<Goal> historyItems = new HashSet<>();
+		activeGoals.stream().forEach(g -> {
+			Optional<Goal> historyItem = g.getPreviousVersionOfThisGoal();
+			while (historyItem.isPresent())
+			{
+				historyItems.add(historyItem.get());
+				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
+			}
+		});
+		return historyItems;
 	}
 }

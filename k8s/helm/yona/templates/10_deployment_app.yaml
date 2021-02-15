@@ -99,13 +99,13 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-springboot
+            name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-springboot
         - name: profile-resources
           configMap:
-            name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-resources
+            name: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-resources
         - name: apple-resources
           secret:
-            secretName: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-apple-bundle
+            secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-apple-bundle
         - name: firebase-resources
           secret:
-            secretName: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle
+            secretName: {{ .Chart.AppVersion }}-{{ .Release.Revision }}-{{ .Values.global.stage | default "develop" }}-firebase-bundle

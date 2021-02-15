@@ -50,8 +50,8 @@ import nu.yona.server.util.AsyncExecutor;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.messaging.service",
 		"nu.yona.server.properties" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.FirebaseService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.messaging.service.FirebaseService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
 class FirebaseServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 }
@@ -153,8 +153,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 		{
 			return firebaseMessagingExceptionConstructor.newInstance(errorCode, message, null);
 		}
-		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-				| SecurityException e)
+		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e)
 		{
 			throw YonaException.unexpected(e);
 		}

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.entities;
 
@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
 import org.hibernate.annotations.Type;
+import org.hibernate.proxy.HibernateProxy;
 
 @MappedSuperclass
 public abstract class EntityWithUuid
@@ -20,12 +21,21 @@ public abstract class EntityWithUuid
 
 	/**
 	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
-	 * 
+	 *
 	 * @param id The ID of the entity
 	 */
 	protected EntityWithUuid(UUID id)
 	{
 		this.id = id;
+	}
+
+	public static UUID getIdWithoutLoadingEntity(EntityWithUuid entity)
+	{
+		if (entity instanceof HibernateProxy)
+		{
+			return (UUID) ((HibernateProxy) entity).getHibernateLazyInitializer().getIdentifier();
+		}
+		return entity.getId();
 	}
 
 	public UUID getId()

@@ -122,14 +122,15 @@ public class FirebaseService
 
 	private void storeForTestability(String registrationToken, Message firebaseMessage)
 	{
-		lastMessageByRegistrationToken.put(registrationToken,
-				MessageData.createInstance(MDC.getCopyOfContextMap(), firebaseMessage));
+		lastMessageByRegistrationToken
+				.put(registrationToken, MessageData.createInstance(MDC.getCopyOfContextMap(), firebaseMessage));
 	}
 
 	private void handleCompletion(Optional<Throwable> throwable, String token)
 	{
-		throwable.ifPresent(t -> logger.error(Constants.ALERT_MARKER,
-				"Fatal error: Exception while sending Firebase message to '" + token + "'", throwable));
+		throwable.ifPresent(t -> logger
+				.error(Constants.ALERT_MARKER, "Fatal error: Exception while sending Firebase message to '" + token + "'",
+						throwable));
 	}
 
 	private void handleNotRegisteredDevice(UUID deviceAnonymizedId)

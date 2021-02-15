@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -18,8 +18,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyConnectionChangeMessage;
-import nu.yona.server.subscriptions.service.BuddyDto;
 
 public abstract class BuddyMessageEmbeddedUserDto extends BuddyMessageDto
 {
@@ -54,7 +54,7 @@ public abstract class BuddyMessageEmbeddedUserDto extends BuddyMessageDto
 	public abstract static class Manager extends BuddyMessageDto.Manager
 	{
 		@Override
-		protected SenderInfo createSenderInfoForBuddy(BuddyDto buddy, Message messageEntity)
+		protected SenderInfo createSenderInfoForBuddy(Buddy buddy, Message messageEntity)
 		{
 			return getSenderInfoExtensionPoint(messageEntity);
 		}

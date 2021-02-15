@@ -79,9 +79,9 @@ public class BuddyController extends ControllerBase
 
 	/**
 	 * This method returns all the buddies that the given user has.
-	 * 
+	 *
 	 * @param password The Yona password as passed on in the header of the request.
-	 * @param userId The ID of the user. This is part of the URL.
+	 * @param userId   The ID of the user. This is part of the URL.
 	 * @return the list of buddies for the current user
 	 */
 	@GetMapping(value = "/")
@@ -89,8 +89,8 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<CollectionModel<BuddyResource>> getAllBuddies(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(
 					createAllBuddiesCollectionResource(curieProvider, userId, buddyService.getBuddiesOfUser(userId)),
@@ -103,8 +103,8 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID buddyId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 
 			return createOkResponse(buddyService.getBuddy(buddyId), createResourceAssembler(userId));
@@ -116,8 +116,8 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody PostBuddyDto postBuddy)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createResponse(buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postBuddy), this::getInviteUrl),
 					HttpStatus.CREATED, createResourceAssembler(userId));
@@ -133,8 +133,8 @@ public class BuddyController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID buddyId,
 			@RequestBody LastStatusChangeTimeUpdateDto lastStatusChangeTimeUpdateDto)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createResponse(
 					buddyService.updateLastStatusChangeTime(userId, buddyId, lastStatusChangeTimeUpdateDto.lastStatusChangeTime),
@@ -148,8 +148,8 @@ public class BuddyController extends ControllerBase
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
-				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession
+				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			buddyService.removeBuddy(userId, buddyId, Optional.ofNullable(messageStr));
 		}
@@ -194,8 +194,7 @@ public class BuddyController extends ControllerBase
 	{
 		return new CollectionModel<>(
 				new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId))
-						.toCollectionModel(allGoalsOfUser),
-				getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
+						.toCollectionModel(allGoalsOfUser), getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
 	}
 
 	public static WebMvcLinkBuilder getBuddyLinkBuilder(UUID userId, UUID buddyId)
@@ -262,8 +261,9 @@ public class BuddyController extends ControllerBase
 		public Map<String, Object> getEmbeddedResources()
 		{
 			HashMap<String, Object> result = new HashMap<>();
-			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL).value(), UserController.UserResourceAssembler
-					.createInstanceForBuddy(curieProvider, userId).toModel(getContent().getUser()));
+			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL).value(),
+					UserController.UserResourceAssembler.createInstanceForBuddy(curieProvider, userId)
+							.toModel(getContent().getUser()));
 
 			return result;
 		}
@@ -319,16 +319,16 @@ public class BuddyController extends ControllerBase
 
 		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)
 		{
-			buddyResource.add(
-					BuddyActivityController.getBuddyWeekActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
-							.withRel(BuddyActivityController.WEEK_OVERVIEW_REL));
+			buddyResource.add(BuddyActivityController
+					.getBuddyWeekActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
+					.withRel(BuddyActivityController.WEEK_OVERVIEW_REL));
 		}
 
 		private void addDayActivityOverviewsLink(BuddyResource buddyResource)
 		{
-			buddyResource.add(
-					BuddyActivityController.getBuddyDayActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
-							.withRel(BuddyActivityController.DAY_OVERVIEW_REL));
+			buddyResource.add(BuddyActivityController
+					.getBuddyDayActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
+					.withRel(BuddyActivityController.DAY_OVERVIEW_REL));
 		}
 	}
 }

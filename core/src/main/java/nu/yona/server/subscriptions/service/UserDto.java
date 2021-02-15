@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -53,12 +53,13 @@ public class UserDto
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed,
-			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
-			Set<BuddyDto> buddies, UUID userAnonymizedId, Set<UserDeviceDto> devices)
+			boolean isCreatedOnBuddyRequest, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
+			Set<GoalDto> goalsIncludingHistoryItems, Set<BuddyDto> buddies, UUID userAnonymizedId, Set<UserDeviceDto> devices)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, null, mobileNumber, isConfirmed, isCreatedOnBuddyRequest,
 				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, firstName, lastName, nickname, userPhotoId,
-						namedMessageSourceId, anonymousMessageSourceId, goals, buddies, userAnonymizedId, devices));
+						namedMessageSourceId, anonymousMessageSourceId, goalsIncludingHistoryItems, buddies, userAnonymizedId,
+						devices));
 	}
 
 	private UserDto(UUID id, Optional<LocalDate> appLastOpenedDate, String mobileNumber, boolean isConfirmed,
@@ -160,8 +161,9 @@ public class UserDto
 		{
 			return (OwnUserPrivateDataDto) privateData;
 		}
-		throw new IllegalStateException("Cannot fetch own user private data. Private data "
-				+ ((privateData == null) ? "is null" : "is of type " + privateData.getClass().getName()));
+		throw new IllegalStateException("Cannot fetch own user private data. Private data " + ((privateData == null) ?
+				"is null" :
+				"is of type " + privateData.getClass().getName()));
 	}
 
 	@JsonIgnore
@@ -171,8 +173,9 @@ public class UserDto
 		{
 			return privateData;
 		}
-		throw new IllegalStateException("Cannot fetch buddy user private data. Private data "
-				+ ((privateData == null) ? "is null" : " is of type " + privateData.getClass().getName()));
+		throw new IllegalStateException("Cannot fetch buddy user private data. Private data " + ((privateData == null) ?
+				"is null" :
+				" is of type " + privateData.getClass().getName()));
 	}
 
 	void updateUser(User originalUserEntity)
@@ -191,16 +194,17 @@ public class UserDto
 				userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest());
 	}
 
-	public static UserDto createInstance(User userEntity, Set<BuddyDto> buddies)
+	public static UserDto createInstance(User userEntity, UserAnonymizedDto userAnonymizedDto, Set<BuddyDto> buddies)
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
-				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
+				userAnonymizedDto.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
 				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(),
-				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
-				userEntity.getUserAnonymizedId(),
-				userEntity.getDevices().stream().map(UserDeviceDto::createInstance).collect(Collectors.toSet()));
+				userAnonymizedDto.getGoalsIncludingHistoryItems(), buddies, userEntity.getUserAnonymizedId(),
+				userEntity.getDevices().stream().map(d -> UserDeviceDto
+						.createInstance(userAnonymizedDto, d, userAnonymizedDto.getDeviceAnonymized(d.getDeviceAnonymizedId())))
+						.collect(Collectors.toSet()));
 	}
 
 	public static UserDto createInstance(User userEntity, BuddyUserPrivateDataDto buddyData)

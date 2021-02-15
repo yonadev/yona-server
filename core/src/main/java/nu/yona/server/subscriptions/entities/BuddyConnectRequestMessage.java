@@ -47,7 +47,7 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 
 	/**
 	 * Copy constructor. See {@link nu.yona.server.messaging.entities.Message#duplicate()}
-	 * 
+	 *
 	 * @param original Message to copy.
 	 */
 	public BuddyConnectRequestMessage(BuddyConnectRequestMessage original)

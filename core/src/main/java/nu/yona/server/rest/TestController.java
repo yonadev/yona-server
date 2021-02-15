@@ -68,7 +68,7 @@ public class TestController extends ControllerBase
 
 	/**
 	 * Returns the last e-mail that was prepared to be sent (but not sent because e-mail was disabled).
-	 * 
+	 *
 	 * @return the last e-mail that was prepared to be sent (but not sent because e-mail was disabled).
 	 */
 	@GetMapping(value = "/emails/last")
@@ -87,7 +87,7 @@ public class TestController extends ControllerBase
 
 	/**
 	 * Returns the last Firebase message that was prepared to be sent (but not sent because Firebase was disabled).
-	 * 
+	 *
 	 * @param registrationToken the registration token for which the message must be retrieved
 	 * @return the last Firebase message that was prepared to be sent (but not sent because Firebase was disabled).
 	 */
@@ -102,7 +102,7 @@ public class TestController extends ControllerBase
 
 	/**
 	 * Clears the last Firebase message that was prepared to be sent (but not sent because Firebase was disabled).
-	 * 
+	 *
 	 * @param registrationToken the registration token for which the message must be retrieved
 	 * @return the status
 	 */
@@ -117,9 +117,8 @@ public class TestController extends ControllerBase
 
 	private ResponseEntity<EntityModel<FirebaseMessageDto>> createResponse(Optional<MessageData> lastMessage)
 	{
-		return lastMessage.map(
-				m -> createOkResponse(FirebaseMessageDto.createInstance(m), createFirebaseMessageRepresentationModelAssembler()))
-				.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+		return lastMessage.map(m -> createOkResponse(FirebaseMessageDto.createInstance(m),
+				createFirebaseMessageRepresentationModelAssembler())).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
 
 	private FirebaseMessageRepresentationModelAssembler createFirebaseMessageRepresentationModelAssembler()
@@ -130,7 +129,7 @@ public class TestController extends ControllerBase
 	/**
 	 * Returns the headers stored in the {@link PassThroughHeadersHolder}. This method blocks till a second request is done, thus
 	 * enforcing multithreading.
-	 * 
+	 *
 	 * @return the headers stored in the {@link PassThroughHeadersHolder}
 	 */
 	@GetMapping(value = "/passThroughHeaders")
@@ -151,7 +150,7 @@ public class TestController extends ControllerBase
 			logger.info("GET on /passThroughHeaders: Going to wait for barrier. Current number waiting: {}",
 					passThroughHeadersRequestBarrier.getNumberWaiting());
 			passThroughHeadersRequestBarrier.await(30, TimeUnit.SECONDS); // If it takes more than 30 seconds before the next
-																			// request arrives, something is wrong in the test
+			// request arrives, something is wrong in the test
 		}
 		catch (InterruptedException e)
 		{

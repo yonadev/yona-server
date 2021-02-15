@@ -58,10 +58,12 @@ public class InactivityManagementService
 		{
 			transactionHelper.executeInNewTransaction(() -> {
 				UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
-				createWeekInactivityEntities(userAnonymizedId, intervalInactivities.stream()
-						.filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS).collect(Collectors.toSet()));
-				createDayInactivityEntities(userAnonymized, intervalInactivities.stream()
-						.filter(ia -> ia.getTimeUnit() == ChronoUnit.DAYS).collect(Collectors.toSet()));
+				createWeekInactivityEntities(userAnonymizedId,
+						intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS)
+								.collect(Collectors.toSet()));
+				createDayInactivityEntities(userAnonymized,
+						intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.DAYS)
+								.collect(Collectors.toSet()));
 			});
 		}
 	}
@@ -73,11 +75,9 @@ public class InactivityManagementService
 
 	private void createDayInactivityEntities(UserAnonymizedDto userAnonymized, Set<IntervalInactivityDto> dayInactivities)
 	{
-		dayInactivities.stream()
-				.forEach(di -> createDayInactivity(userAnonymized.getId(),
-						createWeekInactivity(userAnonymized.getId(), getGoal(userAnonymized, di.getGoalId()).getGoalId(),
-								TimeUtil.getStartOfWeek(userAnonymized.getTimeZone(), di.getStartTime())),
-						di));
+		dayInactivities.stream().forEach(di -> createDayInactivity(userAnonymized.getId(),
+				createWeekInactivity(userAnonymized.getId(), getGoal(userAnonymized, di.getGoalId()).getGoalId(),
+						TimeUtil.getStartOfWeek(userAnonymized.getTimeZone(), di.getStartTime())), di));
 	}
 
 	private GoalDto getGoal(UserAnonymizedDto userAnonymized, UUID goalId)
@@ -100,12 +100,10 @@ public class InactivityManagementService
 
 	private void createDayInactivity(UUID userAnonymizedId, WeekActivity weekActivity, IntervalInactivityDto dayInactivity)
 	{
-		createInactivity(userAnonymizedId, dayInactivity.getGoalId(),
-				() -> dayActivityRepository.findOne(userAnonymizedId, dayInactivity.getStartTime().toLocalDate(),
-						dayInactivity.getGoalId()),
+		createInactivity(userAnonymizedId, dayInactivity.getGoalId(), () -> dayActivityRepository
+						.findOne(userAnonymizedId, dayInactivity.getStartTime().toLocalDate(), dayInactivity.getGoalId()),
 				(ua, g) -> DayActivity.createInstance(ua, g, dayInactivity.getStartTime().getZone(),
-						dayInactivity.getStartTime().toLocalDate()),
-				weekActivity::addDayActivity);
+						dayInactivity.getStartTime().toLocalDate()), weekActivity::addDayActivity);
 	}
 
 	private <T> T createInactivity(UUID userAnonymizedId, UUID goalId, Supplier<T> existingActivityFinder,

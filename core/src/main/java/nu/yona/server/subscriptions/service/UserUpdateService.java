@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2019, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -26,6 +26,7 @@ import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.messaging.service.MessageService;
@@ -37,8 +38,10 @@ import nu.yona.server.subscriptions.entities.BuddyRepository;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.UserPhoto;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.util.Require;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class UserUpdateService
@@ -87,9 +90,9 @@ public class UserUpdateService
 
 	public String generateConfirmationCode()
 	{
-		return (yonaProperties.getSms().isEnabled())
-				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits())
-				: "1234";
+		return (yonaProperties.getSms().isEnabled()) ?
+				CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) :
+				"1234";
 	}
 
 	ConfirmationCode createConfirmationCode()
@@ -98,15 +101,44 @@ public class UserUpdateService
 	}
 
 	@Transactional
-	public void setOverwriteUserConfirmationCode(String mobileNumber)
+	public void requestOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(), existingUserEntity -> {
+		updateUser(UserLookupService.findUserByMobileNumber(mobileNumber).getId(),
+				user -> setOverwriteUserConfirmationCodeIfNotDoneRecently(mobileNumber, user));
+	}
+
+	private void setOverwriteUserConfirmationCodeIfNotDoneRecently(String mobileNumber, User user)
+	{
+		try
+		{
+			logger.info("DEBUG: begin UserUpdateService.setOverwriteUserConfirmationCodeIfNotDoneRecently for {}", mobileNumber);
+			if (isOverwriteUserConfirmationCodeStillValid(user.getOverwriteUserConfirmationCode()))
+			{
+				logger.info(
+						"User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code, but the current one 'DEBUG {}' is still valid, so no new code is sent",
+						user.getMobileNumber(), user.getId(), user.getOverwriteUserConfirmationCode().get().getId());
+				return;
+			}
 			ConfirmationCode confirmationCode = createConfirmationCode();
-			existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
+			user.setOverwriteUserConfirmationCode(confirmationCode);
 			sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
-			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
-					existingUserEntity.getMobileNumber(), existingUserEntity.getId());
-		});
+			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code 'DEBUG created {}'", user.getMobileNumber(), user.getId(), confirmationCode.getId());
+		}
+		finally
+		{
+			logger.info("DEBUG: end UserUpdateService.setOverwriteUserConfirmationCodeIfNotDoneRecently for {}", mobileNumber);
+		}
+	}
+
+	private boolean isOverwriteUserConfirmationCodeStillValid(Optional<ConfirmationCode> overwriteUserConfirmationCode)
+	{
+		return overwriteUserConfirmationCode.map(this::isOverwriteUserConfirmationCodeStillValid).orElse(false);
+	}
+
+	private boolean isOverwriteUserConfirmationCodeStillValid(ConfirmationCode overwriteUserConfirmationCode)
+	{
+		return overwriteUserConfirmationCode.getCreationTime()
+				.isAfter(TimeUtil.utcNow().minus(yonaProperties.getOverwriteUserConfirmationCodeNonResendInterval()));
 	}
 
 	@Transactional
@@ -160,12 +192,11 @@ public class UserUpdateService
 	{
 		OwnUserPrivateDataDto existingPrivateData = existingUser.getOwnPrivateData();
 		OwnUserPrivateDataDto newPrivateData = newUser.getOwnPrivateData();
-		return !newUser.getMobileNumber().equals(existingUser.getMobileNumber())
-				|| !existingPrivateData.getFirstName().equals(newPrivateData.getFirstName())
-				|| !existingPrivateData.getLastName().equals(newPrivateData.getLastName())
+		return !newUser.getMobileNumber().equals(existingUser.getMobileNumber()) || !existingPrivateData.getFirstName()
+				.equals(newPrivateData.getFirstName()) || !existingPrivateData.getLastName().equals(newPrivateData.getLastName())
 				|| !existingPrivateData.getNickname().equals(newPrivateData.getNickname())
-				|| newPrivateData.getYonaPassword() != null
-						&& !existingPrivateData.getYonaPassword().equals(newPrivateData.getYonaPassword());
+				|| newPrivateData.getYonaPassword() != null && !existingPrivateData.getYonaPassword()
+				.equals(newPrivateData.getYonaPassword());
 
 	}
 
@@ -176,8 +207,8 @@ public class UserUpdateService
 	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
 	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
 	 * would cause the GETs to fail rather than to wait for the other one to complete.
-	 * 
-	 * @param id The ID of the user to update
+	 *
+	 * @param id           The ID of the user to update
 	 * @param updateAction The update action to perform
 	 * @return The updated and saved user
 	 */
@@ -186,38 +217,69 @@ public class UserUpdateService
 	{
 		// We add a lock here to prevent concurrent user updates.
 		// The lock is per user, so concurrency is not an issue.
-		return userLookupService.withLockOnUser(id, user -> {
-			updateAction.accept(user);
-			if (user.canAccessPrivateData())
-			{
-				// The private data is accessible and might be updated, including the UserAnonymized
-				// Let the UserAnonymizedService save that to the repository and cache it
-				userAnonymizedService.updateUserAnonymized(user.getAnonymized());
-			}
-			return userRepository.save(user);
-		});
+		return userLookupService.withLockOnUser(id, user -> updateUser(user, updateAction));
+	}
+
+	/**
+	 * Performs the given update action on the user with the specified ID (if the user exists), while holding a write-lock on the
+	 * user. After the update, the entity is saved to the repository.<br/>
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing the user
+	 * preparation (migration steps, processing messages, handling buddies deleted while offline, etc.). This preparation is
+	 * executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't be an option here as that
+	 * would cause the GETs to fail rather than to wait for the other one to complete.
+	 *
+	 * @param id           The ID of the user to update
+	 * @param updateAction The update action to perform
+	 * @return an {@code Optional} describing the updated and saved user, or an empty {@code Optional} if a user with this ID
+	 * cannot be found
+	 */
+	@Transactional(dontRollbackOn = { MobileNumberConfirmationException.class, UserOverwriteConfirmationException.class })
+	public Optional<User> updateUserIfExisting(UUID id, Consumer<User> updateAction)
+	{
+		// We add a lock here to prevent concurrent user updates.
+		// The lock is per user, so concurrency is not an issue.
+		return userLookupService.withLockOnUserIfExisting(id, user -> updateUser(user, updateAction));
+	}
+
+	/**
+	 * Applies the given udpate action on the user and saves the user to the repository.<br/>
+	 * NOTE: This method is intended to be called while holding a pessimistic lock on the user entity.
+	 *
+	 * @param user         The user to update
+	 * @param updateAction The update action to perform
+	 * @return the updated and saved user
+	 */
+	private User updateUser(User user, Consumer<User> updateAction)
+	{
+		updateAction.accept(user);
+		if (user.canAccessPrivateData())
+		{
+			// The private data is accessible and might be updated, including the UserAnonymized
+			// Let the UserAnonymizedService save that to the repository and cache it
+			userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+		}
+		return userRepository.save(user);
 	}
 
 	@Transactional
-	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
+	public UserDto updateUserPhoto(User userEntity, Optional<UserPhoto> userPhoto)
 	{
-		User updatedUserEntity = updateUser(id, userEntity -> {
-			UserDto originalUser = userLookupService.createUserDto(userEntity);
-			userEntity.setUserPhotoId(userPhotoId);
-			UserDto userDto = userLookupService.createUserDto(userEntity);
-			if (userPhotoId.isPresent())
-			{
-				logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
-						userDto.getId());
-			}
-			else
-			{
-				logger.info("Deleted user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
-						userDto.getId());
-			}
-			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
-		});
-		return userLookupService.createUserDto(updatedUserEntity);
+		userAssertionService.assertUserEntityLockedForUpdate(userEntity);
+		UserDto originalUser = userLookupService.createUserDto(userEntity);
+		userEntity.setUserPhotoId(userPhoto.map(UserPhoto::getId));
+		UserDto userDto = userLookupService.createUserDto(userEntity);
+		if (userPhoto.isPresent())
+		{
+			logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+					userDto.getId());
+		}
+		else
+		{
+			logger.info("Deleted user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+					userDto.getId());
+		}
+		buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
+		return userLookupService.createUserDto(userRepository.save(userEntity));
 	}
 
 	private void assertValidUpdateRequestForUserCreatedNormally(UserDto user, User originalUserEntity)
@@ -266,13 +328,15 @@ public class UserUpdateService
 	@Transactional
 	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto user)
 	{
-		User originalUserEntity = userLookupService.getUserEntityById(id);
+		User originalUserEntity = userLookupService.lockUserForUpdate(id);
 
 		assertValidUpdateRequestForUserCreatedOnBuddyRequest(user, originalUserEntity);
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
-		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
+		ConfirmationCode mobileNumberConfirmationCode = savedUserEntity.getMobileNumberConfirmationCode()
+				.orElseThrow(() -> YonaException.illegalState("Mobile number confirmation code must exist in this state"));
+		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), mobileNumberConfirmationCode,
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		UserDto userDto = userLookupService.createUserDto(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
@@ -301,39 +365,39 @@ public class UserUpdateService
 	}
 
 	@Transactional
-	public void addBuddy(UserDto user, BuddyDto buddy)
+	public void addBuddy(User userEntity, BuddyDto buddy)
 	{
-		Require.that(user != null && user.getId() != null, InvalidDataException::emptyUserId);
+		Require.that(userEntity != null && userEntity.getId() != null, InvalidDataException::emptyUserId);
 		Require.that(buddy != null && buddy.getId() != null, InvalidDataException::emptyBuddyId);
+		userAssertionService.assertUserEntityLockedForUpdate(userEntity);
 
-		updateUser(user.getId(), userEntity -> {
-			userAssertionService.assertValidatedUser(userEntity);
+		userAssertionService.assertValidatedUser(userEntity);
 
-			Buddy buddyEntity = buddyRepository.findById(buddy.getId())
-					.orElseThrow(() -> InvalidDataException.missingEntity(Buddy.class, buddy.getId()));
-			userEntity.addBuddy(buddyEntity);
+		Buddy buddyEntity = buddyRepository.findById(buddy.getId())
+				.orElseThrow(() -> InvalidDataException.missingEntity(Buddy.class, buddy.getId()));
+		userEntity.addBuddy(buddyEntity);
 
-			UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-			userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
-			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
-		});
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}
 
-	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDto user)
+	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDto userDtoWithNewData)
 	{
-		return updateUser(retrievedEntitySet.userEntity.getId(), userEntity -> {
-			assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
-			// touch and save all user related data containing encryption
-			// see architecture overview for which classes contain encrypted data
-			// (this could also be achieved with very complex reflection)
-			userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
-			messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
-			messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
-			user.updateUser(userEntity);
-			userEntity.unsetIsCreatedOnBuddyRequest();
-			addDevicesToEntity(user, userEntity);
-			userEntity.touch();
-		});
+		assert userDtoWithNewData.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
+		// touch and save all user related data containing encryption
+		// see architecture overview for which classes contain encrypted data
+		// (this could also be achieved with very complex reflection)
+		User userEntity = retrievedEntitySet.userEntity;
+		userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
+		messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
+		messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
+		userDtoWithNewData.updateUser(userEntity);
+		userEntity.unsetIsCreatedOnBuddyRequest();
+		addDevicesToEntity(userDtoWithNewData, userEntity);
+		userEntity.touch();
+
+		return userRepository.save(userEntity);
 	}
 
 	private void addDevicesToEntity(UserDto userDto, User userEntity)

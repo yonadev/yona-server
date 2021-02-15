@@ -7,7 +7,7 @@ metadata:
     stage: ops
 spec:
   replicas: 1
-  strategy: 
+  strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 2
@@ -22,7 +22,7 @@ spec:
         - name: jnlp-slave
           image: yonadev/jnlp-slave-k8s-helm:latest
           imagePullPolicy: IfNotPresent
-          env:       
+          env:
             - name: JENKINS_URL
               value: http://127.0.0.1:1234
             - name: JENKINS_SECRET

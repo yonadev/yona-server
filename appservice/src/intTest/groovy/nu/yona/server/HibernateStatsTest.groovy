@@ -6,7 +6,7 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -18,8 +18,7 @@ import nu.yona.server.test.User
 import spock.lang.IgnoreIf
 import spock.lang.Shared
 
-@IgnoreIf(
-{
+@IgnoreIf({
 	!Boolean.valueOf(properties['yona.enableHibernateStatsAllowed'])
 })
 class HibernateStatsTest extends AbstractAppServiceIntegrationTest
@@ -58,11 +57,11 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		appService.setEnableStatistics(false)
 		YonaServer.storeStatistics(statistics, "HibernateStatsTest")
-		buddyUsers.each{ appService.deleteUser(it) }
+		buddyUsers.each { appService.deleteUser(it) }
 		appService.deleteUser(richard)
 	}
 
-	def 'Get user - first request' ()
+	def 'Get user - first request'()
 	{
 		given:
 		appService.clearCaches()
@@ -75,7 +74,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetUserWithPrivateDataFirst")
 	}
 
-	def 'Get user - second request' ()
+	def 'Get user - second request'()
 	{
 		given:
 		appService.clearCaches()
@@ -89,7 +88,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetUserWithPrivateDataSecond")
 	}
 
-	def 'Get messages - first request' ()
+	def 'Get messages - first request'()
 	{
 		given:
 		appService.clearCaches()
@@ -104,7 +103,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetMessagesFirst")
 	}
 
-	def 'Get messages - second request' ()
+	def 'Get messages - second request'()
 	{
 		given:
 		appService.clearCaches()
@@ -120,7 +119,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetMessagesSecond")
 	}
 
-	def 'Get day activity overviews - first request' ()
+	def 'Get day activity overviews - first request'()
 	{
 		given:
 		appService.clearCaches()
@@ -135,7 +134,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetDayActivityOverviewsFirst")
 	}
 
-	def 'Get day activity overviews - second request' ()
+	def 'Get day activity overviews - second request'()
 	{
 		given:
 		appService.clearCaches()
@@ -151,7 +150,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetDayActivityOverviewsSecond")
 	}
 
-	def 'Get week activity overviews - first request' ()
+	def 'Get week activity overviews - first request'()
 	{
 		given:
 		appService.clearCaches()
@@ -166,7 +165,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetWeekActivityOverviewsFirst")
 	}
 
-	def 'Get week activity overviews - second request' ()
+	def 'Get week activity overviews - second request'()
 	{
 		given:
 		appService.clearCaches()
@@ -182,7 +181,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetWeekActivityOverviewsSecond")
 	}
 
-	def 'Get day activity overviews with buddies - first request' ()
+	def 'Get day activity overviews with buddies - first request'()
 	{
 		given:
 		appService.clearCaches()
@@ -197,7 +196,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetDayActivityOverviewsWithBuddiesFirst")
 	}
 
-	def 'Get day activity overviews with buddies - second request' ()
+	def 'Get day activity overviews with buddies - second request'()
 	{
 		given:
 		appService.clearCaches()
@@ -213,7 +212,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetDayActivityOverviewsWithBuddiesSecond")
 	}
 
-	def 'Get day activity details last Friday - first request' ()
+	def 'Get day activity details last Friday - first request'()
 	{
 		given:
 		appService.clearCaches()
@@ -230,7 +229,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetDayActivityDetailsLastFridayFirst")
 	}
 
-	def 'Get day activity details last Friday - second request' ()
+	def 'Get day activity details last Friday - second request'()
 	{
 		given:
 		appService.clearCaches()
@@ -248,7 +247,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetDayActivityDetailsLastFridaySecond")
 	}
 
-	def 'Get week activity details last week - first request' ()
+	def 'Get week activity details last week - first request'()
 	{
 		given:
 		appService.clearCaches()
@@ -265,7 +264,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		captureStatistics("GetDayActivityDetailsLastFridayFirst")
 	}
 
-	def 'Get week activity details last week - second request' ()
+	def 'Get week activity details last week - second request'()
 	{
 		given:
 		appService.clearCaches()
@@ -286,15 +285,14 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	List<User> createBuddies(User user, int numBuddies)
 	{
 		def buddyUsers = []
-		(1..numBuddies).each
-		{
+		(1..numBuddies).each {
 			User buddyUser = createBuddyUser(it)
 			appService.makeBuddies(user, buddyUser)
 			buddyUser = appService.reloadUser(buddyUser)
 			updateLastStatusChangeTime(buddyUser, buddyUser.buddies[0], SCENARIO_RELATIVE_START_TIME)
 			buddyUsers.add(buddyUser)
 		}
-		appService.reloadUser(user).buddies.forEach{updateLastStatusChangeTime(user, it, SCENARIO_RELATIVE_START_TIME)}
+		appService.reloadUser(user).buddies.forEach { updateLastStatusChangeTime(user, it, SCENARIO_RELATIVE_START_TIME) }
 		return buddyUsers
 	}
 
@@ -313,19 +311,20 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	void setGoals(User user)
 	{
 		setGoalCreationTime(user, GAMBLING_ACT_CAT_URL, SCENARIO_RELATIVE_START_TIME)
-		addBudgetGoals(user,  [NEWS_ACT_CAT_URL, MULTIMEDIA_ACT_CAT_URL])
-		addTimeZoneGoals(user,  [ADULT_CONTENT_ACT_CAT_URL])
+		addBudgetGoals(user, [NEWS_ACT_CAT_URL, MULTIMEDIA_ACT_CAT_URL])
+		addTimeZoneGoals(user, [ADULT_CONTENT_ACT_CAT_URL])
 		createGoalHistoryItems(user, NEWS_ACT_CAT_URL)
 		createGoalHistoryItems(user, MULTIMEDIA_ACT_CAT_URL)
 	}
+
 	void addBudgetGoals(User user, def goalUrls)
 	{
-		goalUrls.each {addBudgetGoal(user, it, 0, SCENARIO_RELATIVE_START_TIME)}
+		goalUrls.each { addBudgetGoal(user, it, 0, SCENARIO_RELATIVE_START_TIME) }
 	}
 
 	void addTimeZoneGoals(User user, def goalUrls)
 	{
-		goalUrls.each {addTimeZoneGoal(user, it, ["11:00-12:00"], SCENARIO_RELATIVE_START_TIME)}
+		goalUrls.each { addTimeZoneGoal(user, it, ["11:00-12:00"], SCENARIO_RELATIVE_START_TIME) }
 	}
 
 	void createGoalHistoryItems(User user, def goalUrl)
@@ -345,33 +344,32 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 
 	void generateAppActivityForEveryDay(User user, def app)
 	{
-		(-2..-1).each {generateAppActivityForDaysOfWeek(user, app, "W$it", 7) }
+		(-2..-1).each { generateAppActivityForDaysOfWeek(user, app, "W$it", 7) }
 		generateAppActivityForDaysOfWeek(user, app, "W0", YonaServer.getCurrentDayOfWeek() + 1)
 	}
 
 	void generateAppActivityForDaysOfWeek(User user, def app, def week, def numDays)
 	{
 		def days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-		days[0..numDays-1].each { generateAppActivityForDay(user, app, "$week $it") }
+		days[0..numDays - 1].each { generateAppActivityForDay(user, app, "$week $it") }
 	}
 
 	void generateAppActivityForDay(User user, def app, def day)
 	{
 		def hoursBegin = ["00:05", "00:30", "00:55", "01:20"]
-		def hoursEnd   = ["00:10", "00:35", "01:00", "01:25"]
-		hoursBegin.eachWithIndex
-		{ begin, idx ->
-			reportAppActivity(user, user.requestingDevice, app, "$day $begin", "$day " + hoursEnd[idx])
+		def hoursEnd = ["00:10", "00:35", "01:00", "01:25"]
+		hoursBegin.eachWithIndex { begin, idx -> reportAppActivity(user, user.requestingDevice, app, "$day $begin", "$day " + hoursEnd[idx])
 		}
 	}
+
 	void generateCommentThreadOnYesterdaysNewsActivity(User user, def buddyUsers)
 	{
 		User buddyUser = buddyUsers.find { it.nickname == user.buddies[0].user.nickname }
 		def yesterdayShortDay = LocalDate.now().getDayOfWeek().minus(1).getDisplayName(TextStyle.SHORT, Locale.US)
-		ActivityCommentTest.assertCommentingWorks(appService, user, buddyUser, NEWS_ACT_CAT_URL, false, {u -> appService.getDayActivityOverviews(u, ["size": 14])},
-		{u -> appService.getDayActivityOverviews(u, u.buddies[0], ["size": 14])},
-		{responseOverviews, u, goal -> appService.getDayDetailsFromOverview(responseOverviews, u, goal, 0, yesterdayShortDay)},
-		{ u, message -> assertMarkReadUnread(u, message)})
+		ActivityCommentTest.assertCommentingWorks(appService, user, buddyUser, NEWS_ACT_CAT_URL, false, { u -> appService.getDayActivityOverviews(u, ["size": 14]) },
+				{ u -> appService.getDayActivityOverviews(u, u.buddies[0], ["size": 14]) },
+				{ responseOverviews, u, goal -> appService.getDayDetailsFromOverview(responseOverviews, u, goal, 0, yesterdayShortDay) },
+				{ u, message -> assertMarkReadUnread(u, message) })
 	}
 
 	void captureStatistics(def tag)

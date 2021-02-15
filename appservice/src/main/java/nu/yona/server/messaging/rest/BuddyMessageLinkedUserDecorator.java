@@ -17,8 +17,8 @@ public class BuddyMessageLinkedUserDecorator implements MessageResourceDecorator
 	public void decorate(MessageResourceAssembler assembler, MessageDto message)
 	{
 		BuddyMessageLinkedUserDto buddyMessage = (BuddyMessageLinkedUserDto) message;
-		buddyMessage.getSenderUser().ifPresent(user -> buddyMessage.add(
-				UserController.getBuddyUserLink(BuddyDto.USER_REL, user.getId(), assembler.getGoalIdMapping().getUserId())));
+		buddyMessage.getSenderUser().ifPresent(user -> buddyMessage
+				.add(UserController.getBuddyUserLink(BuddyDto.USER_REL, user.getId(), assembler.getGoalIdMapping().getUserId())));
 
 	}
 }

@@ -106,8 +106,7 @@ public class BatchTaskService
 			launcher.setTaskExecutor(taskExecutor);
 			return launcher.run(job, jobParameters);
 		}
-		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
-				| JobParametersInvalidException e)
+		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException | JobParametersInvalidException e)
 		{
 			logger.error("Unexpected exception", e);
 			throw YonaException.unexpected(e);

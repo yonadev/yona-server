@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
@@ -85,17 +85,18 @@ import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.InCryptoSession;
 import nu.yona.server.test.util.JUnitUtil;
+import nu.yona.server.util.HibernateHelperService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.device.service",
 		"nu.yona.server.subscriptions.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) }, excludeFilters = {
-						@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.User.*Service", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) }, excludeFilters = {
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserPhotoService", type = FilterType.REGEX) })
 class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";
@@ -158,6 +159,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@MockBean
 	private LockPool<UUID> mockUserSynchronizer;
 
+	@MockBean
+	private HibernateHelperService hibernateHelperService;
+
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
 
@@ -189,7 +193,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void getDevice_tryGetNonExistingDevice_exception() throws Exception
 	{
-		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service.getDevice(UUID.randomUUID()));
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.getDevice(richard.getId(), UUID.randomUUID()));
 		assertEquals("error.device.not.found.id", exception.getMessageId());
 	}
 
@@ -283,8 +288,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertDevice(device2, startTime, deviceName2, operatingSystem2, 1);
 
-		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(),
-				messageSupplierCaptor.capture());
+		verify(mockMessageService, times(1))
+				.broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));
 		BuddyDeviceChangeMessage buddyDeviceChangeMessage = (BuddyDeviceChangeMessage) message;
@@ -417,8 +422,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertDevice(device, startTime, newName, operatingSystem, 0);
 
-		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(),
-				messageSupplierCaptor.capture());
+		verify(mockMessageService, times(1))
+				.broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));
 		BuddyDeviceChangeMessage buddyDeviceChangeMessage = (BuddyDeviceChangeMessage) message;
@@ -450,7 +455,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertDevice(device, startTime, newName, operatingSystem, 0);
 
-		verify(mockMessageService, never()).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto> any(), any());
+		verify(mockMessageService, never()).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), any());
 		assertThat(device.getName(), sameInstance(oldName));
 	}
 
@@ -803,8 +808,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		richard.setAppLastOpenedDate(originalDate);
 		setAppLastOpenedDateField(device, originalDate);
 
-		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
-				() -> service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS),
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service
+				.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS),
 						Optional.of(SOME_APP_VERSION), SUPPORTED_APP_VERSION_CODE));
 		assertEquals("error.device.cannot.switch.operating.system", exception.getMessageId());
 	}
@@ -943,8 +948,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion,
 			int appVersionCode)
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion,
-				appVersionCode, Optional.empty(), Translator.EN_US_LOCALE);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized
+				.createInstance(deviceIndex, operatingSystem, appVersion, appVersionCode, Optional.empty(),
+						Translator.EN_US_LOCALE);
 		UserDevice device = UserDevice.createInstance(richard, deviceName, deviceAnonymized.getId(), "topSecret");
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		userDeviceRepository.save(device);
@@ -953,7 +959,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	private UserDto createRichardUserDto()
 	{
-		return UserDto.createInstance(richard, Collections.emptySet());
+		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(richard.getAnonymized());
+		return UserDto.createInstance(richard, userAnon, Collections.emptySet());
 	}
 
 	private UserAnonymizedDto createRichardAnonymizedDto()
@@ -972,8 +979,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	private Activity makeActivity(LocalDateTime startTime, ActivityData activityData, UserDevice device)
 	{
 		LocalDateTime activityStartTime = startTime.minusMinutes(activityData.minutesAgo);
-		return activityRepository.save(Activity.createInstance(device.getDeviceAnonymized(), ZoneId.of("Europe/Amsterdam"),
-				activityStartTime, activityStartTime.plusMinutes(activityData.durationMinutes), Optional.of(activityData.app)));
+		return activityRepository.save(Activity
+				.createInstance(device.getDeviceAnonymized(), ZoneId.of("Europe/Amsterdam"), activityStartTime,
+						activityStartTime.plusMinutes(activityData.durationMinutes), Optional.of(activityData.app)));
 	}
 
 	private static class ActivityData

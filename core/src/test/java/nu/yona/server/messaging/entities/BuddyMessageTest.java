@@ -46,10 +46,10 @@ public class BuddyMessageTest
 		private static final String FIRST_NAME_SUBSTITUTE = "FN BD";
 		private static final String LAST_NAME_SUBSTITUTE = "LN BD";
 		private final Field translatorStaticField = JUnitUtil.getAccessibleField(Translator.class, "staticReference");
-		private final Field privateUserPropertiesFirstNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
-				"firstName");
-		private final Field privateUserPropertiesLastNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
-				"lastName");
+		private final Field privateUserPropertiesFirstNameField = JUnitUtil
+				.getAccessibleField(PrivateUserProperties.class, "firstName");
+		private final Field privateUserPropertiesLastNameField = JUnitUtil
+				.getAccessibleField(PrivateUserProperties.class, "lastName");
 
 		@Mock
 		private Translator translator;

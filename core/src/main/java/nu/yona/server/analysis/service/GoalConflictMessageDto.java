@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -33,9 +33,9 @@ import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
-import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("goalConflictMessage")
@@ -169,14 +169,14 @@ public class GoalConflictMessageDto extends MessageDto
 		}
 
 		@Override
-		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
+		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return GoalConflictMessageDto.createInstance((GoalConflictMessage) messageEntity,
-					getSenderInfo(actingUser, messageEntity));
+			return GoalConflictMessageDto
+					.createInstance((GoalConflictMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
-		public MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action,
+		public MessageActionDto handleAction(User actingUser, Message messageEntity, String action,
 				MessageActionDto requestPayload)
 		{
 			switch (action)
@@ -188,16 +188,15 @@ public class GoalConflictMessageDto extends MessageDto
 			}
 		}
 
-		private MessageActionDto handleAction_RequestDisclosure(UserDto actingUser, GoalConflictMessage messageEntity,
+		private MessageActionDto handleAction_RequestDisclosure(User actingUser, GoalConflictMessage messageEntity,
 				MessageActionDto requestPayload)
 		{
 			messageEntity = updateMessageStatusAsDisclosureRequested(messageEntity);
 
 			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get());
-			messageService.sendMessage(
-					DisclosureRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(actingUser),
-							requestPayload.getProperty("message"), messageEntity),
-					toUser);
+			messageService.sendMessage(DisclosureRequestMessage
+					.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(actingUser),
+							requestPayload.getProperty("message"), messageEntity), toUser);
 
 			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
 		}

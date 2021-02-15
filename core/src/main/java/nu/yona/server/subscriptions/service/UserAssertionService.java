@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -19,8 +19,10 @@ import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserRepository;
+import nu.yona.server.util.HibernateHelperService;
 import nu.yona.server.util.Require;
 
 @Service
@@ -34,18 +36,30 @@ class UserAssertionService
 	/**
 	 * Holds the regex to validate a valid email address. Match the pattern a@b.c
 	 */
-	private static final Pattern REGEX_EMAIL = Pattern.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$",
-			Pattern.CASE_INSENSITIVE);
+	private static final Pattern REGEX_EMAIL = Pattern
+			.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$", Pattern.CASE_INSENSITIVE);
 
 	@Autowired(required = false)
 	private UserRepository userRepository;
+
+	@Autowired(required = false)
+	private HibernateHelperService hibernateHelperService;
+
+	@Autowired(required = false)
+	private YonaProperties yonaProperties;
 
 	public void assertValidatedUser(User user)
 	{
 		user.assertMobileNumberConfirmed();
 	}
 
-	static void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
+	public void assertUserEntityLockedForUpdate(User userEntity)
+	{
+		Require.that(hibernateHelperService.isLockedForUpdate(userEntity),
+				() -> YonaException.illegalState("User entity must be locked for update"));
+	}
+
+	void assertValidUserFields(UserDto user, UserService.UserPurpose purpose)
 	{
 		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getFirstName()), InvalidDataException::blankFirstName);
 		Require.that(StringUtils.isNotBlank(user.getOwnPrivateData().getLastName()), InvalidDataException::blankLastName);
@@ -61,7 +75,7 @@ class UserAssertionService
 			Require.that(StringUtils.isNotBlank(user.getEmailAddress()), InvalidDataException::blankEmailAddress);
 			assertValidEmailAddress(user.getEmailAddress());
 
-			Require.that(user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty(),
+			Require.that(user.getOwnPrivateData().getGoalsIncludingHistoryItems().orElse(Collections.emptySet()).isEmpty(),
 					InvalidDataException::goalsNotSupported);
 		}
 		else
@@ -70,7 +84,7 @@ class UserAssertionService
 		}
 	}
 
-	public static void assertValidMobileNumber(String mobileNumberStr)
+	public void assertValidMobileNumber(String mobileNumberStr)
 	{
 		try
 		{
@@ -78,6 +92,7 @@ class UserAssertionService
 					() -> InvalidDataException.invalidMobileNumber(mobileNumberStr));
 			PhoneNumberUtil util = PhoneNumberUtil.getInstance();
 			PhoneNumber mobileNumber = util.parse(mobileNumberStr, null);
+			assertIsSupportedCountryCode(mobileNumberStr, mobileNumber);
 			assertNoLeadingZeros(util, mobileNumberStr, mobileNumber);
 			assertIsMobile(util, mobileNumberStr, mobileNumber);
 		}
@@ -87,7 +102,16 @@ class UserAssertionService
 		}
 	}
 
-	private static void assertNoLeadingZeros(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
+	private void assertIsSupportedCountryCode(String mobileNumberStr, PhoneNumber mobileNumber)
+	{
+		int countryCode = mobileNumber.getCountryCode();
+		if (!yonaProperties.getSupportedCountryCodes().contains(countryCode))
+		{
+			throw InvalidDataException.countryCodeNotSupported(mobileNumberStr, countryCode);
+		}
+	}
+
+	private void assertNoLeadingZeros(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
 	{
 		// Format the number in the international format. Leading zeros would disappear but spaces and hyphens might be added.
 		// After removal of the spaces and hyphens, the formatted number should be identical to the original one.
@@ -97,7 +121,7 @@ class UserAssertionService
 		}
 	}
 
-	private static void assertIsMobile(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
+	private void assertIsMobile(PhoneNumberUtil util, String mobileNumberStr, PhoneNumber mobileNumber)
 	{
 		PhoneNumberType numberType = util.getNumberType(mobileNumber);
 		if ((numberType != PhoneNumberType.MOBILE) && (numberType != PhoneNumberType.FIXED_LINE_OR_MOBILE))
@@ -106,7 +130,7 @@ class UserAssertionService
 		}
 	}
 
-	public static void assertValidEmailAddress(String emailAddress)
+	public void assertValidEmailAddress(String emailAddress)
 	{
 		Require.that(REGEX_EMAIL.matcher(emailAddress).matches(), () -> InvalidDataException.invalidEmailAddress(emailAddress));
 	}
@@ -125,5 +149,4 @@ class UserAssertionService
 		}
 		throw UserServiceException.userExists(mobileNumber);
 	}
-
 }

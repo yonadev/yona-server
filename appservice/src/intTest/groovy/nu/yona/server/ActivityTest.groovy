@@ -1,12 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation
+ * Copyright (c) 2015, 2021 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import java.time.DayOfWeek
 import java.time.Duration
@@ -69,7 +71,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewBasics(responseDayOverviews, 1, 1)
 		assertWeekOverviewBasics(responseWeekOverviews, [2], 1)
 
-		def weekActivityOverviewForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == goal.url}
+		def weekActivityOverviewForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == goal.url }
 		weekActivityOverviewForGoal?._links?."yona:weekDetails"?.href
 		weekActivityOverviewForGoal?._links?."next"?.href == null
 		weekActivityOverviewForGoal?._links?."prev"?.href == null
@@ -82,11 +84,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		weekActivityDetails?._links?."prev"?.href == null
 
 		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[0]
-		def dayActivityOverviewForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		def dayActivityOverviewForGoal = dayActivityOverview.dayActivities.find { it._links."yona:goal".href == goal.url }
 		dayActivityOverviewForGoal?._links?."yona:dayDetails"?.href
 		dayActivityOverviewForGoal?._links?."next"?.href == null
 		dayActivityOverviewForGoal?._links?."prev"?.href == null
-		def dayActivityDetailUrl =  dayActivityOverviewForGoal?._links?."yona:dayDetails"?.href
+		def dayActivityDetailUrl = dayActivityOverviewForGoal?._links?."yona:dayDetails"?.href
 		def responseDayDetail = appService.getResourceWithPassword(dayActivityDetailUrl, richard.password)
 		assertResponseStatusOk(responseDayDetail)
 		def dayActivityDetails = responseDayDetail.responseData
@@ -109,7 +111,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
-		def expectedDaysNews = 6 + 7*3 + currentDayOfWeek + 1
+		def expectedDaysNews = 6 + 7 * 3 + currentDayOfWeek + 1
 		def expectedExtraDaysGambling = 7 * 2
 		def expectedTotalDays = expectedDaysNews + expectedExtraDaysGambling
 		def expectedTotalWeeks = 7
@@ -131,11 +133,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviewsPage3, [2, 1], expectedTotalWeeks)
 		assertWeekOverviewBasics(responseWeekOverviewsPage4, [1], expectedTotalWeeks)
 
-		def week5ForGoal = responseWeekOverviewsPage3.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		def week4ForGoal = responseWeekOverviewsPage2.responseData._embedded."yona:weekActivityOverviews"[1].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		def week3ForGoal = responseWeekOverviewsPage2.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		def week2ForGoal = responseWeekOverviewsPage1.responseData._embedded."yona:weekActivityOverviews"[1].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		def week1ForGoal = responseWeekOverviewsPage1.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def week5ForGoal = responseWeekOverviewsPage3.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week4ForGoal = responseWeekOverviewsPage2.responseData._embedded."yona:weekActivityOverviews"[1].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week3ForGoal = responseWeekOverviewsPage2.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week2ForGoal = responseWeekOverviewsPage1.responseData._embedded."yona:weekActivityOverviews"[1].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week1ForGoal = responseWeekOverviewsPage1.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
 		assertWeekDetailPrevNextLinks(richard, week5ForGoal, null, week4ForGoal)
 		assertWeekDetailPrevNextLinks(richard, week4ForGoal, week5ForGoal, week3ForGoal)
 		assertWeekDetailPrevNextLinks(richard, week1ForGoal, week2ForGoal, null)
@@ -143,11 +145,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewBasics(responseDayOverviewsPage1, 3, expectedTotalDays)
 		assertDayOverviewBasics(responseDayOverviewsPage2, 3, expectedTotalDays)
 
-		def day1ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		def day2ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[1].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		def day3ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[2].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		def secondToLastDayForGoal = responseDayOverviewsAllOnOnePage.responseData._embedded."yona:dayActivityOverviews"[expectedDaysNews - 2].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		def lastDayForGoal = responseDayOverviewsAllOnOnePage.responseData._embedded."yona:dayActivityOverviews"[expectedDaysNews - 1].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def day1ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def day2ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[1].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def day3ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[2].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def secondToLastDayForGoal = responseDayOverviewsAllOnOnePage.responseData._embedded."yona:dayActivityOverviews"[expectedDaysNews - 2].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def lastDayForGoal = responseDayOverviewsAllOnOnePage.responseData._embedded."yona:dayActivityOverviews"[expectedDaysNews - 1].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
 		assertDayDetailPrevNextLinks(richard, lastDayForGoal, null, secondToLastDayForGoal)
 		assertDayDetailPrevNextLinks(richard, day2ForGoal, day3ForGoal, day1ForGoal)
 		assertDayDetailPrevNextLinks(richard, day1ForGoal, day2ForGoal, null)
@@ -187,21 +189,19 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal timeZoneGoalMultimediaBob = richard.buddies[0].findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
 		Goal noGoGoalGamblingBob = bob.findActiveGoal(GAMBLING_ACT_CAT_URL)
 
-		def expectedValuesRichardLastWeek = [
-			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1]]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [46 : 1]]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
-		def expectedValuesBobLastWeek = [
-			"Mon" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82: 5]]]],
-			"Fri" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1]]]],
-			"Sat" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [84 : 1]]]]]
-		def expectedValuesWithBuddiesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
+		def expectedValuesRichardLastWeek = ["Mon": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13: 15, 14: 5]]]],
+											 "Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35: 15, 36: 10]]]],
+											 "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60: 1]]]],
+											 "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [46: 1]]]],
+											 "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
+		def expectedValuesBobLastWeek = ["Mon": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Tue": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Wed": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Thu": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80: 15, 81: 15, 82: 5]]]],
+										 "Fri": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60: 1]]]],
+										 "Sat": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [84: 1]]]]]
+		def expectedValuesWithBuddiesLastWeek = [[user: richard, expectedValues: expectedValuesRichardLastWeek], [user: richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + currentDayOfWeek + 1
@@ -425,9 +425,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		richard = appService.reloadUser(richard)
 		TimeZoneGoal timeZoneGoalMultimediaRichard = richard.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
 		Goal noGoGoalGamblingRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
-		def expectedValuesRichardLastWeek = [
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesRichardLastWeek = ["Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60: 1, 84: 1]]]],
+											 "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 2 + currentDayOfWeek + 1
@@ -462,8 +461,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalGambling = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		def currentShortDay = getCurrentShortDay(now)
-		def initialExpectedValues = [
-			(currentShortDay) : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def initialExpectedValues = [(currentShortDay): [[goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
 		def initialResponseWeekOverviews = appService.getWeekActivityOverviews(richard)
 		def initialResponseDayOverviews = appService.getDayActivityOverviews(richard)
 		assertResponseStatusOk(initialResponseWeekOverviews)
@@ -477,8 +475,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivities(richard, richard.requestingDevice, AppActivity.singleActivity("NU.nl", now, now))
 
 		then:
-		def expectedValuesAfterActivity = [
-			(currentShortDay) : [[goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [(getCurrentSpreadCell(now)) : 1]]], [goal:budgetGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def expectedValuesAfterActivity = [(currentShortDay): [[goal: budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [(getCurrentSpreadCell(now)): 1]]], [goal: budgetGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
 		def responseWeekOverviewsAfterActivity = appService.getWeekActivityOverviews(richard)
 		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.responseData._embedded."yona:weekActivityOverviews"[0]
 		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesAfterActivity, currentShortDay)
@@ -502,14 +499,12 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalGambling = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal noGoGoalGambling = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
-		def initialExpectedValuesRichardLastWeek = [
-			"Mon" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-		]
+		def initialExpectedValuesRichardLastWeek = ["Mon": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													"Tue": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													"Wed": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													"Thu": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													"Fri": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													"Sat": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],]
 		def initialResponseWeekOverviews = appService.getWeekActivityOverviews(richard)
 		def initialResponseDayOverviews = appService.getDayActivityOverviews(richard, ["size": 14])
 		assertResponseStatusOk(initialResponseWeekOverviews)
@@ -523,14 +518,12 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Wed 03:15", "W-1 Wed 03:35")
 
 		then:
-		def expectedValuesRichardLastWeekAfterActivity = [
-			"Mon" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
-			"Thu" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-		]
+		def expectedValuesRichardLastWeekAfterActivity = ["Mon": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+														  "Tue": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+														  "Wed": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13: 15, 14: 5]]]],
+														  "Thu": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+														  "Fri": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+														  "Sat": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],]
 		def responseWeekOverviewsAfterActivity = appService.getWeekActivityOverviews(richard)
 		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.responseData._embedded."yona:weekActivityOverviews"[1]
 		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, "Tue")
@@ -567,13 +560,12 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal timeZoneGoalSocial = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 		Goal noGoGoalGambling = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 
-		def expectedValuesRichardLastWeekBeforeDelete = [
-			"Mon" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
-			"Tue" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
-			"Wed" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
-			"Thu" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]],
-			"Fri" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Sat" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def expectedValuesRichardLastWeekBeforeDelete = ["Mon": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13: 15, 14: 5]]]],
+														 "Tue": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35: 15, 36: 10]]]],
+														 "Wed": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocial, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68: 1]]]],
+														 "Thu": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48: 1]]]],
+														 "Fri": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+														 "Sat": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
 		def expectedGoalsPerWeekBeforeDelete = [3, 3]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
@@ -615,16 +607,16 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusNoContent(response)
-		def expectedTotalDaysAfterDelete = expectedTotalDaysBeforeDelete // No change. The creation date of the account determines the earliest possible date
+		def expectedTotalDaysAfterDelete = expectedTotalDaysBeforeDelete
+		// No change. The creation date of the account determines the earliest possible date
 		def expectedTotalWeeksAfterDelete = expectedTotalWeeksBeforeDelete
-		def expectedValuesRichardLastWeekAfterDelete = [
-			"Mon" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
-			"Thu" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]],
-			"Fri" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Sat" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
-		def expectedGoalsPerWeekAfterDelete = expectedGoalsPerWeekBeforeDelete.collect{it - 1}
+		def expectedValuesRichardLastWeekAfterDelete = ["Mon": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+														"Tue": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+														"Wed": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocial, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68: 1]]]],
+														"Thu": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48: 1]]]],
+														"Fri": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+														"Sat": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocial, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
+		def expectedGoalsPerWeekAfterDelete = expectedGoalsPerWeekBeforeDelete.collect { it - 1 }
 
 		//get all days at once (max 2 weeks) to make assertion easy
 		def responseWeekOverviewsAfterDelete = appService.getWeekActivityOverviews(richard)
@@ -723,24 +715,22 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalMultimediaBeforeUpdate = addBudgetGoal(richard, MULTIMEDIA_ACT_CAT_URL, 60, "W-2 Tue 13:30")
 		updateBudgetGoal(richard, budgetGoalMultimediaBeforeUpdate, 81, "W-1 Mon 18:30")
 		richard = appService.reloadUser(richard)
-		budgetGoalMultimediaBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
+		budgetGoalMultimediaBeforeUpdate = richard.goals.find { it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
 		BudgetGoal budgetGoalMultimediaAfterUpdate = richard.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
 		Goal noGoGoalGambling = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 
-		def expectedValuesRichardWeekBeforeLastWeek = [
-			"Tue" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesRichardLastWeek = [
-			"Sun" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesRichardWeekBeforeLastWeek = ["Tue": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Wed": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Thu": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Fri": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Sat": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesRichardLastWeek = ["Sun": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Mon": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Tue": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Wed": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Thu": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Fri": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Sat": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 5 + 7 + currentDayOfWeek + 1
@@ -858,48 +848,44 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(bob, bob.requestingDevice, "Facebook", "W-1 Sat 20:55", "W-1 Sat 22:00")
 
 		richard = appService.reloadUser(richard)
-		budgetGoalNewsRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL && it.historyItem }
+		budgetGoalNewsRichardBeforeUpdate = richard.goals.find { it.activityCategoryUrl == NEWS_ACT_CAT_URL && it.historyItem }
 		BudgetGoal budgetGoalNewsRichardAfterUpdate = richard.findActiveGoal(NEWS_ACT_CAT_URL)
-		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
+		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find { it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
 		TimeZoneGoal timeZoneGoalSocialRichardAfterUpdate = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 		Goal noGoGoalGamblingRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 
-		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
-		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem}
-		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
-		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem}
-		Goal noGoGoalGamblingBob = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == GAMBLING_ACT_CAT_URL && !it.historyItem}
+		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].user.goals.find { it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
+		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].user.goals.find { it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem }
+		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].user.goals.find { it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
+		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].user.goals.find { it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem }
+		Goal noGoGoalGamblingBob = richard.buddies[0].user.goals.find { it.activityCategoryUrl == GAMBLING_ACT_CAT_URL && !it.historyItem }
 
-		def expectedValuesRichardWeekBeforeLastWeek = [
-			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesBobWeekBeforeLastWeek = [
-			"Thu" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82 : 5]]]],
-			"Fri" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
-			"Sat" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[ user : richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
+		def expectedValuesRichardWeekBeforeLastWeek = ["Mon": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13: 15, 14: 5]]]],
+													   "Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35: 15, 36: 10]]]],
+													   "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobWeekBeforeLastWeek = ["Thu": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80: 15, 81: 15, 82: 5]]]],
+												   "Fri": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60: 1, 84: 1]]]],
+												   "Sat": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[user: richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [user: richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
 
-		def expectedValuesRichardLastWeek = [
-			"Sun" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 12, spread: [36 : 2, 37 : 15, 38 : 15, 39 : 15, 40: 7, 86 : 2, 87 : 15, 88 : 1]]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 82 : 2, 83 : 15, 84 : 1]]]]]
-		def expectedValuesBobLastWeek = [
-			"Sun" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 40 : 2, 41 :15, 42 : 5, 86 : 2, 87 : 14]]]],
-			"Sat" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [83 : 5, 84: 15, 85: 15, 86: 15, 87: 15]]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesWithBuddiesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
+		def expectedValuesRichardLastWeek = ["Sun": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Mon": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 12, spread: [36: 2, 37: 15, 38: 15, 39: 15, 40: 7, 86: 2, 87: 15, 88: 1]]]],
+											 "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68: 1]]]],
+											 "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [82: 2, 83: 15, 84: 1]]]]]
+		def expectedValuesBobLastWeek = ["Sun": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Mon": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Tue": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Wed": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Thu": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Fri": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [40: 2, 41: 15, 42: 5, 86: 2, 87: 14]]]],
+										 "Sat": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [83: 5, 84: 15, 85: 15, 86: 15, 87: 15]]], [goal: timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesLastWeek = [[user: richard, expectedValues: expectedValuesRichardLastWeek], [user: richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + 7 + currentDayOfWeek + 1
@@ -1138,42 +1124,38 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(appService.removeGoal(richard, budgetGoalNewsRichardAfterUpdate))
 
 		richard = appService.reloadUser(richard)
-		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
+		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find { it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
 		TimeZoneGoal timeZoneGoalSocialRichardAfterUpdate = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
 		BudgetGoal budgetGoalGamblingRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		BudgetGoal budgetGoalGamblingBob = bob.findActiveGoal(GAMBLING_ACT_CAT_URL)
-		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
-		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem}
-		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
-		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem}
+		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].user.goals.find { it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
+		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].user.goals.find { it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem }
+		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].user.goals.find { it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
+		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].user.goals.find { it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem }
 
-		def expectedValuesRichardWeekBeforeLastWeek = [
-			"Mon" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesBobWeekBeforeLastWeek = [
-			"Thu" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82 : 5]]]],
-			"Fri" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
-			"Sat" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[ user : richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
+		def expectedValuesRichardWeekBeforeLastWeek = ["Mon": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Tue": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Wed": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Thu": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Fri": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Sat": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobWeekBeforeLastWeek = ["Thu": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80: 15, 81: 15, 82: 5]]]],
+												   "Fri": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60: 1, 84: 1]]]],
+												   "Sat": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[user: richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [user: richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
 
-		def expectedValuesRichardLastWeek = [
-			"Thu" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
-			"Fri" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 82 : 2, 83 : 15, 84 : 1]]]]]
-		def expectedValuesBobLastWeek = [
-			"Sun" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 40 : 2, 41 :15, 42 : 5, 86 : 2, 87 : 14]]]],
-			"Sat" : [[goal:budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [83 : 5, 84: 15, 85: 15, 86: 15, 87: 15]]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesWithBuddiesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
+		def expectedValuesRichardLastWeek = ["Thu": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68: 1]]]],
+											 "Fri": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Sat": [[goal: budgetGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [82: 2, 83: 15, 84: 1]]]]]
+		def expectedValuesBobLastWeek = ["Sun": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Mon": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Tue": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Wed": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Thu": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Fri": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [40: 2, 41: 15, 42: 5, 86: 2, 87: 14]]]],
+										 "Sat": [[goal: budgetGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [83: 5, 84: 15, 85: 15, 86: 15, 87: 15]]], [goal: timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesLastWeek = [[user: richard, expectedValues: expectedValuesRichardLastWeek], [user: richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDaysRichard = 6 + 7 + currentDayOfWeek + 1
@@ -1325,7 +1307,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def acceptUrl = connectRequestMessage.acceptUrl
-		assertResponseStatusOk(appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password))
+		assertResponseStatusOk(appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password))
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
 		Goal budgetGoalGamblingRichard = bob.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)
@@ -1335,11 +1317,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(responseDayOverviewsWithBuddies)
-		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL}.dayActivitiesForUsers.size() == 2
+		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find { it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL }.dayActivitiesForUsers.size() == 2
 		def responseWeekOverviews = appService.getWeekActivityOverviews(bob, bob.buddies[0])
 		assertResponseStatusOk(responseWeekOverviews)
-		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalGamblingRichard.url}
-		def weekActivityForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalGamblingRichard.url}
+		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalGamblingRichard.url }
+		def weekActivityForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalGamblingRichard.url }
 		def dayActivityInWeekForGoal = weekActivityForGoal.dayActivities[YonaServer.now.dayOfWeek.toString()]
 		dayActivityInWeekForGoal.totalActivityDurationMinutes == 0
 
@@ -1424,8 +1406,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		BudgetGoal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal noGoGoalGamblingRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
-		BudgetGoal budgetGoalNewsBob = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL }
-		Goal noGoGoalGamblingBob = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == GAMBLING_ACT_CAT_URL && !it.historyItem}
+		BudgetGoal budgetGoalNewsBob = richard.buddies[0].user.goals.find { it.activityCategoryUrl == NEWS_ACT_CAT_URL }
+		Goal noGoGoalGamblingBob = richard.buddies[0].user.goals.find { it.activityCategoryUrl == GAMBLING_ACT_CAT_URL && !it.historyItem }
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
@@ -1434,44 +1416,40 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-2 Thu 13:55")
 
 		richard = appService.reloadUser(richard)
-		bob= appService.reloadUser(bob)
+		bob = appService.reloadUser(bob)
 
-		TimeZoneGoal timeZoneGoalMultimediaBob = richard.buddies[0].user.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL }
+		TimeZoneGoal timeZoneGoalMultimediaBob = richard.buddies[0].user.goals.find { it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL }
 		assert timeZoneGoalMultimediaBob
 
-		def expectedValuesRichardWeekBeforeLastWeek = [
-			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesBobWeekBeforeLastWeek = [
-			"Mon" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[ user : richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
+		def expectedValuesRichardWeekBeforeLastWeek = ["Mon": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+													   "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobWeekBeforeLastWeek = ["Mon": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+												   "Tue": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+												   "Wed": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+												   "Thu": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+												   "Fri": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+												   "Sat": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[user: richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [user: richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
 
-		def expectedValuesRichardLastWeek = [
-			"Sun" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesBobLastWeek = [
-			"Sun" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesWithBuddiesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
+		def expectedValuesRichardLastWeek = ["Sun": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Mon": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+											 "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobLastWeek = ["Sun": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Mon": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Tue": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Wed": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Thu": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Fri": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										 "Sat": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesLastWeek = [[user: richard, expectedValues: expectedValuesRichardLastWeek], [user: richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + 7 + currentDayOfWeek + 1
@@ -1491,9 +1469,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
 
 		def thu2 = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[YonaServer.relativeDateStringToDaysOffset(2, "Thu")]
-		thu2.dayActivities.find{it._links."yona:activityCategory".href == SOCIAL_ACT_CAT_URL} == null // Richard has social but none of his buddies has it, so it's not included
-		thu2.dayActivities.find{it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL} != null // Buddy has multimedia, so it's included, though Richard doesn't have it
-		thu2.dayActivities.find{it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1 // Only Bob
+		thu2.dayActivities.find { it._links."yona:activityCategory".href == SOCIAL_ACT_CAT_URL } == null // Richard has social but none of his buddies has it, so it's not included
+		thu2.dayActivities.find { it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL } != null // Buddy has multimedia, so it's included, though Richard doesn't have it
+		thu2.dayActivities.find { it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL }.dayActivitiesForUsers.size() == 1 // Only Bob
 
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Thu")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
@@ -1508,9 +1486,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
 
 		def mon1 = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[YonaServer.relativeDateStringToDaysOffset(1, "Mon")]
-		mon1.dayActivities.find{it._links."yona:activityCategory".href == SOCIAL_ACT_CAT_URL} == null // Nobody has social, so it's not included
-		mon1.dayActivities.find{it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL} != null // Buddy has multimedia, so it's included
-		mon1.dayActivities.find{it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1 // Only Bob
+		mon1.dayActivities.find { it._links."yona:activityCategory".href == SOCIAL_ACT_CAT_URL } == null // Nobody has social, so it's not included
+		mon1.dayActivities.find { it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL } != null // Buddy has multimedia, so it's included
+		mon1.dayActivities.find { it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL }.dayActivitiesForUsers.size() == 1 // Only Bob
 
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sun")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Mon")
@@ -1577,57 +1555,46 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Mon 06:15", "W-1 Mon 06:35") // No overlap at all
 		reportAppActivity(richardIphone, richardIphone.requestingDevice, "NU.nl", "W-1 Tue 07:53", "W-1 Tue 08:11") // Next day, so different last monitored activity dates for the devices
 
-		def expectedValuesRichardLastWeek = [
-			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 86, spread: [13 : 15, 14 : 6, 15 : 0, 16 : 5, 17 : 15, 18 : 5, 19 : 0, 20 : 0, 21 : 15, 22 : 5, 23 : 0, 24 : 0, 25 : 15, 26 : 5]]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [13 : 1, 14 : 1]]]],
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 18, spread: [31 : 7, 32 : 11]]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def expectedValuesRichardLastWeek = ["Mon": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 86, spread: [13: 15, 14: 6, 15: 0, 16: 5, 17: 15, 18: 5, 19: 0, 20: 0, 21: 15, 22: 5, 23: 0, 24: 0, 25: 15, 26: 5]]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [13: 1, 14: 1]]]],
+											 "Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 18, spread: [31: 7, 32: 11]]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
 
-		def expectedRawValuesNewsMon = [["startTime": "W-1 Mon 03:15",
-				"endTime": "W-1 Mon 03:35",
-				"app": "NU.nl",
-				"deviceName": defaultDeviceName
-			], [	"startTime": "W-1 Mon 03:20",
-				"endTime": "W-1 Mon 03:21",
-				"app": "",
-				"deviceName": defaultDeviceName
-			], [	"startTime": "W-1 Mon 03:40",
-				"endTime": "W-1 Mon 03:41",
-				"app": "",
-				"deviceName": defaultDeviceName
-			], [	"startTime": "W-1 Mon 04:15",
-				"endTime": "W-1 Mon 04:35",
-				"app": "NU.nl",
-				"deviceName": defaultDeviceName
-			], [	"startTime": "W-1 Mon 05:15",
-				"endTime": "W-1 Mon 05:35",
-				"app": "NU.nl",
-				"deviceName": defaultDeviceName
-			], [	"startTime": "W-1 Mon 04:10",
-				"endTime": "W-1 Mon 04:20",
-				"app": "NU.nl",
-				"deviceName": iphoneDeviceName
-			], [	"startTime": "W-1 Mon 05:20",
-				"endTime": "W-1 Mon 05:30",
-				"app": "NU.nl",
-				"deviceName": iphoneDeviceName
-			], [	"startTime": "W-1 Mon 06:15",
-				"endTime": "W-1 Mon 06:35",
-				"app": "NU.nl",
-				"deviceName": iphoneDeviceName
-			]]
+		def expectedRawValuesNewsMon = [["startTime" : "W-1 Mon 03:15",
+										 "endTime"   : "W-1 Mon 03:35",
+										 "app"       : "NU.nl",
+										 "deviceName": defaultDeviceName], ["startTime" : "W-1 Mon 03:20",
+																			"endTime"   : "W-1 Mon 03:21",
+																			"app"       : "",
+																			"deviceName": defaultDeviceName], ["startTime" : "W-1 Mon 03:40",
+																											   "endTime"   : "W-1 Mon 03:41",
+																											   "app"       : "",
+																											   "deviceName": defaultDeviceName], ["startTime" : "W-1 Mon 04:15",
+																																				  "endTime"   : "W-1 Mon 04:35",
+																																				  "app"       : "NU.nl",
+																																				  "deviceName": defaultDeviceName], ["startTime" : "W-1 Mon 05:15",
+																																													 "endTime"   : "W-1 Mon 05:35",
+																																													 "app"       : "NU.nl",
+																																													 "deviceName": defaultDeviceName], ["startTime" : "W-1 Mon 04:10",
+																																																						"endTime"   : "W-1 Mon 04:20",
+																																																						"app"       : "NU.nl",
+																																																						"deviceName": iphoneDeviceName], ["startTime" : "W-1 Mon 05:20",
+																																																														  "endTime"   : "W-1 Mon 05:30",
+																																																														  "app"       : "NU.nl",
+																																																														  "deviceName": iphoneDeviceName], ["startTime" : "W-1 Mon 06:15",
+																																																																							"endTime"   : "W-1 Mon 06:35",
+																																																																							"app"       : "NU.nl",
+																																																																							"deviceName": iphoneDeviceName]]
 
-		def expectedRawValuesSocialMon = [[	"startTime": "W-1 Mon 03:20",
-				"endTime": "W-1 Mon 03:21",
-				"app": "",
-				"deviceName": defaultDeviceName
-			], [	"startTime": "W-1 Mon 03:42",
-				"endTime": "W-1 Mon 03:43",
-				"app": "",
-				"deviceName": defaultDeviceName
-			]]
+		def expectedRawValuesSocialMon = [["startTime" : "W-1 Mon 03:20",
+										   "endTime"   : "W-1 Mon 03:21",
+										   "app"       : "",
+										   "deviceName": defaultDeviceName], ["startTime" : "W-1 Mon 03:42",
+																			  "endTime"   : "W-1 Mon 03:43",
+																			  "app"       : "",
+																			  "deviceName": defaultDeviceName]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + currentDayOfWeek + 1
@@ -1690,14 +1657,13 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(richard.requestingDevice, ["social"], "http://www.facebook.com", "W-1 Mon 03:24")
 
 		def expectedGoalAccomplished = budget > 0
-		def expectedMinutesBeyondGoal = expectedGoalAccomplished || expectedValue.size() == 0 ? 0 :  expectedValue.entrySet().iterator().next().value
-		def expectedValuesRichardLastWeek = [
-			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialRichard, data: [goalAccomplished: expectedGoalAccomplished, minutesBeyondGoal: expectedMinutesBeyondGoal, spread: expectedValue]]],
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def expectedMinutesBeyondGoal = expectedGoalAccomplished || expectedValue.size() == 0 ? 0 : expectedValue.entrySet().iterator().next().value
+		def expectedValuesRichardLastWeek = ["Mon": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialRichard, data: [goalAccomplished: expectedGoalAccomplished, minutesBeyondGoal: expectedMinutesBeyondGoal, spread: expectedValue]]],
+											 "Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + currentDayOfWeek + 1
@@ -1730,10 +1696,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		where:
 		operatingSystem | budget | expectedValue
-		"ANDROID" | 0 | [ 13 : 4]
-		"ANDROID" | 60 | [ : ] // We only track no-go goals on Android, as app activity monitoring provides much better measurements
-		"IOS" | 0 | [13 : 4]
-		"IOS" | 60 | [13 : 4] // App activity monitoring is not possible on iOS, so we also track budget goals
+		"ANDROID"       | 0      | [13: 4]
+		"ANDROID"       | 60     | [:] // We only track no-go goals on Android, as app activity monitoring provides much better measurements
+		"IOS"           | 0      | [13: 4]
+		"IOS"           | 60     | [13: 4] // App activity monitoring is not possible on iOS, so we also track budget goals
 	}
 
 	def 'Richard sees buddy activities from the date they befriended'()
@@ -1752,7 +1718,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		// W-2
 		setCreationTime(richard, "W-2 Tue 15:34")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Tue 15:34")
-		Buddy buddyBea = richard.buddies.find{ it.user.firstName == "Bea"}
+		Buddy buddyBea = richard.buddies.find { it.user.firstName == "Bea" }
 		updateLastStatusChangeTime(richard, buddyBea, "W-2 Wed 17:34")
 		reportNetworkActivity(bea.requestingDevice, ["Gambling"], "http://www.poker.com", "W-2 Wed 15:00")
 		reportAppActivity(bea, bea.requestingDevice, "NU.nl", "W-2 Thu 03:15", "W-2 Thu 03:35")
@@ -1760,14 +1726,14 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		// W-1
 		setCreationTime(bob, "W-1 Wed 11:05")
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Wed 11:05")
-		Buddy buddyBob = richard.buddies.find{ it.user.firstName == "Bob"}
+		Buddy buddyBob = richard.buddies.find { it.user.firstName == "Bob" }
 		updateLastStatusChangeTime(richard, buddyBob, "W-1 Thu 11:07")
 		reportAppActivity(bea, bea.requestingDevice, "Facebook", "W-1 Thu 21:35", "W-1 Thu 21:45")
 		reportAppActivity(bob, bob.requestingDevice, "NU.nl", "W-1 Fri 15:07", "W-1 Fri 15:37")
 
 		richard = appService.reloadUser(richard)
-		buddyBob = richard.buddies.find{ it.user.firstName == "Bob"}
-		buddyBea = richard.buddies.find{ it.user.firstName == "Bea"}
+		buddyBob = richard.buddies.find { it.user.firstName == "Bob" }
+		buddyBea = richard.buddies.find { it.user.firstName == "Bea" }
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal noGoGoalGamblingRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		Goal budgetGoalNewsBob = buddyBob.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -1775,39 +1741,34 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal noGoGoalGamblingBea = buddyBea.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		Goal budgetGoalSocialBea = buddyBea.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
-		def expectedValuesRichardWeekM2 = [
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesBeaWeekM2 = [
-			"Wed" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60:1]]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesRichardWeekM1 = [
-			"Sun" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesBobWeekM1 = [
-			"Thu" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: false, minutesBeyondGoal: 30, spread: [60:8, 61:15, 62:7]]]],
-			"Sat" : [[goal:noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesBeaWeekM1 = [
-			"Sun" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [86:10]]]],
-			"Fri" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def expectedValuesWithBuddiesWeekM2 = [[ user : richard, expectedValues: expectedValuesRichardWeekM2], [ user : buddyBea.user, expectedValues: expectedValuesBeaWeekM2]]
-		def expectedValuesWithBuddiesWeekM1 = [[ user : richard, expectedValues: expectedValuesRichardWeekM1], [ user : buddyBea.user, expectedValues: expectedValuesBeaWeekM1], [ user : buddyBob.user, expectedValues: expectedValuesBobWeekM1]]
+		def expectedValuesRichardWeekM2 = ["Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBeaWeekM2 = ["Wed": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60: 1]]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Thu": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Fri": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Sat": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesRichardWeekM1 = ["Sun": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Mon": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Tue": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Wed": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Thu": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Fri": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+										   "Sat": [[goal: noGoGoalGamblingRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobWeekM1 = ["Thu": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Fri": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: false, minutesBeyondGoal: 30, spread: [60: 8, 61: 15, 62: 7]]]],
+									   "Sat": [[goal: noGoGoalGamblingBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBeaWeekM1 = ["Sun": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Mon": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Tue": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Wed": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Thu": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [86: 10]]]],
+									   "Fri": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+									   "Sat": [[goal: noGoGoalGamblingBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal: budgetGoalSocialBea, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesWeekM2 = [[user: richard, expectedValues: expectedValuesRichardWeekM2], [user: buddyBea.user, expectedValues: expectedValuesBeaWeekM2]]
+		def expectedValuesWithBuddiesWeekM1 = [[user: richard, expectedValues: expectedValuesRichardWeekM1], [user: buddyBea.user, expectedValues: expectedValuesBeaWeekM1], [user: buddyBob.user, expectedValues: expectedValuesBobWeekM1]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDaysBob = 4 + currentDayOfWeek
@@ -2066,9 +2027,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+		appService.deleteUser(bea)
 	}
 
-	private def getRawActivityData(User user, relativeDate, goal) {
+	private def getRawActivityData(User user, relativeDate, goal)
+	{
 		def mondayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime(relativeDate))
 		def rawDataUrl = "${YonaServer.stripQueryString(user.url)}/activity/days/${mondayDate}/details/${goal.getId()}/raw/"
 		def responseRawData = appService.getResourceWithPassword(rawDataUrl, user.password)
@@ -2078,7 +2041,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 	private void assertRawActivityData(actualData, expectedDataRelativeDates)
 	{
-		def expectedData = expectedDataRelativeDates.collect {convertExpectedData(it) }
+		def expectedData = expectedDataRelativeDates.collect { convertExpectedData(it) }
 
 		actualData.sort(this.&compareRawActivities)
 		expectedData.sort(this.&compareRawActivities)
@@ -2091,15 +2054,18 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		activity.startTime = YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(a.startTime))
 		activity.endTime = YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(a.endTime))
 		activity.durationMinutes = ChronoUnit.MINUTES.between(YonaServer.relativeDateTimeStringToZonedDateTime(a.startTime), YonaServer.relativeDateTimeStringToZonedDateTime(a.endTime))
-		activity.duration= Duration.ofMinutes(activity.durationMinutes).toString()
+		activity.duration = Duration.ofMinutes(activity.durationMinutes).toString()
 		return activity
 	}
 
 	private int compareRawActivities(x, y)
 	{
-		if(x.startTime == y.startTime){
+		if (x.startTime == y.startTime)
+		{
 			x.deviceName <=> y.deviceName
-		}else{
+		}
+		else
+		{
 			x.startTime <=> y.startTime
 		}
 	}

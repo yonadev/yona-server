@@ -6,14 +6,13 @@
  *******************************************************************************/
 package nu.yona.server
 
-import static nu.yona.server.test.CommonAssertions.*
+import static nu.yona.server.test.CommonAssertions.assertResponseStatus
 
-import groovy.json.*
+import groovy.json.JsonSlurper
 
 /**
  * These tests are to make sure the data validation of the user service is working. All fields are to be checked
- * and validated when adding a user
- */
+ * and validated when adding a user*/
 class UserValidationTest extends AbstractAppServiceIntegrationTest
 {
 

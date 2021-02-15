@@ -50,9 +50,9 @@ import nu.yona.server.test.util.JUnitUtil;
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.device.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.migration.MoveVpnPasswordToDevice", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
+		@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.migration.MoveVpnPasswordToDevice", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
 class MoveVpnPasswordToDeviceTestConfiguration extends UserRepositoriesConfiguration
 {
 	static final String PASSWORD = "password";
@@ -146,8 +146,8 @@ public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 
 	private UserDevice createDevice()
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "1.0.0", 2,
-				Optional.empty(), Translator.EN_US_LOCALE);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized
+				.createInstance(0, OperatingSystem.ANDROID, "1.0.0", 2, Optional.empty(), Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		return UserDevice.createInstance(richard, "Testing", deviceAnonymized.getId(), "toBeOverwritten");
 	}
