@@ -18,7 +18,7 @@ class AppActivity
 		final ZonedDateTime startTime
 		final ZonedDateTime endTime
 
-		public Activity(String application, ZonedDateTime startTime, ZonedDateTime endTime)
+		Activity(String application, ZonedDateTime startTime, ZonedDateTime endTime)
 		{
 			this.application = application
 			this.startTime = startTime
@@ -63,7 +63,6 @@ class AppActivity
 	static String buildActivitiesString(def activities)
 	{
 		def activitiesString = ""
-		def first = true
 		activities.each({
 			activitiesString += (activitiesString) ? ", " : ""
 			activitiesString += it.getJson()
@@ -72,13 +71,13 @@ class AppActivity
 	}
 
 
-	static AppActivity singleActivity(application, ZonedDateTime startTime, ZonedDateTime endTime)
+	static AppActivity singleActivity(String application, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
-		new AppActivity([new AppActivity.Activity(application, startTime, endTime)].toArray())
+		new AppActivity([new Activity(application, startTime, endTime)].toArray())
 	}
 
-	static AppActivity singleActivity(ZonedDateTime deviceDateTime, application, ZonedDateTime startTime, ZonedDateTime endTime)
+	static AppActivity singleActivity(ZonedDateTime deviceDateTime, String application, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
-		new AppActivity(deviceDateTime, [new AppActivity.Activity(application, startTime, endTime)].toArray())
+		new AppActivity(deviceDateTime, [new Activity(application, startTime, endTime)].toArray())
 	}
 }

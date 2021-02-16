@@ -22,9 +22,6 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 	@Shared
 	User richard
 
-	@Shared
-	def statistics = new LinkedHashMap()
-
 	def setupSpec()
 	{
 		analysisService.setEnableStatistics(false) // Fail fast when server stats are disabled

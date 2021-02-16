@@ -22,10 +22,10 @@ class ActivityCategoriesTest extends Specification
 	static final def cachePropagationTimeoutSeconds = 20
 
 	@Shared
-	def AdminService adminService = new AdminService()
+	AdminService adminService = new AdminService()
 
 	@Shared
-	def AppService appService = new AppService()
+	AppService appService = new AppService()
 
 	def 'App service should sync activity categories cache with admin service'()
 	{
@@ -76,8 +76,6 @@ class ActivityCategoriesTest extends Specification
 
 	def 'Get all activity categories loaded from file'()
 	{
-		given:
-
 		when:
 		def response = adminService.getAllActivityCategories()
 
@@ -105,8 +103,8 @@ class ActivityCategoriesTest extends Specification
 		String englishName = "Programming"
 		String dutchName = "Programmeren"
 		boolean isNoGo = false
-		def smoothwallCategories = ["programming", "scripting"] as Set
-		def apps = ["Eclipse", "Visual Studio"] as Set
+		def smoothwallCategories = ["programming", "scripting"]
+		def apps = ["Eclipse", "Visual Studio"]
 		String englishDescription = "Programming computers"
 		String dutchDescription = "Programmeren van computers"
 		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US": englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US": englishDescription])
@@ -121,8 +119,8 @@ class ActivityCategoriesTest extends Specification
 		response.responseData.localizableName["en-US"] == englishName
 		response.responseData.localizableName["nl-NL"] == dutchName
 		response.responseData.mandatoryNoGo == isNoGo
-		response.responseData.smoothwallCategories as Set == smoothwallCategories
-		response.responseData.applications as Set == apps
+		response.responseData.smoothwallCategories as Set == smoothwallCategories as Set
+		response.responseData.applications as Set == apps as Set
 		response.responseData.localizableDescription["en-US"] == englishDescription
 		response.responseData.localizableDescription["nl-NL"] == dutchDescription
 
@@ -132,8 +130,8 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.localizableName["en-US"] == englishName
 		getResponse.responseData.localizableName["nl-NL"] == dutchName
 		getResponse.responseData.mandatoryNoGo == isNoGo
-		getResponse.responseData.smoothwallCategories as Set == smoothwallCategories
-		getResponse.responseData.applications as Set == apps
+		getResponse.responseData.smoothwallCategories as Set == smoothwallCategories as Set
+		getResponse.responseData.applications as Set == apps as Set
 		getResponse.responseData.localizableDescription["en-US"] == englishDescription
 		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
 
@@ -141,7 +139,7 @@ class ActivityCategoriesTest extends Specification
 		getAllResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
 		def programmingCategory = findActivityCategoryByName(getAllResponse, englishName)
 		programmingCategory != null
-		programmingCategory.applications as Set == apps
+		programmingCategory.applications as Set == apps as Set
 		programmingCategory.localizableDescription["en-US"] == englishDescription
 
 		cleanup:
@@ -160,8 +158,8 @@ class ActivityCategoriesTest extends Specification
 		String englishName = "Chess"
 		String dutchName = "Schaken"
 		boolean isNoGo = true
-		def smoothwallCategories = ["chess"] as Set
-		def apps = ["Chess Free", "Analyze This", "Chess Opening Blunders"] as Set
+		def smoothwallCategories = ["chess"]
+		def apps = ["Chess Free", "Analyze This", "Chess Opening Blunders"]
 		String englishDescription = "Chess against humans"
 		String dutchDescription = "Schaken tegen mensen"
 		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US": englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US": englishDescription])
@@ -176,8 +174,8 @@ class ActivityCategoriesTest extends Specification
 		response.responseData.localizableName["en-US"] == englishName
 		response.responseData.localizableName["nl-NL"] == dutchName
 		response.responseData.mandatoryNoGo == isNoGo
-		response.responseData.smoothwallCategories as Set == smoothwallCategories
-		response.responseData.applications as Set == apps
+		response.responseData.smoothwallCategories as Set == smoothwallCategories as Set
+		response.responseData.applications as Set == apps as Set
 		response.responseData.localizableDescription["en-US"] == englishDescription
 		response.responseData.localizableDescription["nl-NL"] == dutchDescription
 
@@ -187,8 +185,8 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.localizableName["en-US"] == englishName
 		getResponse.responseData.localizableName["nl-NL"] == dutchName
 		getResponse.responseData.mandatoryNoGo == isNoGo
-		getResponse.responseData.smoothwallCategories as Set == smoothwallCategories
-		getResponse.responseData.applications as Set == apps
+		getResponse.responseData.smoothwallCategories as Set == smoothwallCategories as Set
+		getResponse.responseData.applications as Set == apps as Set
 		getResponse.responseData.localizableDescription["en-US"] == englishDescription
 		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
 
@@ -196,7 +194,7 @@ class ActivityCategoriesTest extends Specification
 		def chessCategory = getAllResponse.responseData._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
 		chessCategory != null
 		chessCategory._links.self.href == programmingCategory._links.self.href
-		chessCategory.applications as Set == apps
+		chessCategory.applications as Set == apps as Set
 		chessCategory.localizableDescription["en-US"] == englishDescription
 
 		cleanup:
@@ -264,7 +262,7 @@ class ActivityCategoriesTest extends Specification
 		}
 	}
 
-	private String createActivityCategoryJson(localizableName, boolean mandatoryNoGo, smoothwallCategories, applications, localizableDescription)
+	private static String createActivityCategoryJson(Map<String, String> localizableName, boolean mandatoryNoGo, List<String> smoothwallCategories, List<String> applications, Map<String, String> localizableDescription)
 	{
 		String localizableNameString = YonaServer.makeStringMap(localizableName)
 		String smoothwallCategoriesString = YonaServer.makeStringList(smoothwallCategories)
@@ -280,28 +278,14 @@ class ActivityCategoriesTest extends Specification
 		return json
 	}
 
-	private findActivityCategoryByName(getAllResponse, englishName)
+	private static findActivityCategoryByName(getAllResponse, englishName)
 	{
 		getAllResponse.responseData._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
 	}
 
-	private appServicefindActivityCategoryByName(getAllResponse, englishName)
+	private static appServicefindActivityCategoryByName(getAllResponse, englishName)
 	{
 		getAllResponse.responseData._embedded."yona:activityCategories".find { it.name == englishName }
-	}
-
-	private void waitForCachePropagation(originalCount)
-	{
-		for (int i = 0; i < cachePropagationTimeoutSeconds; i++)
-		{
-			def response = appService.getAllActivityCategoriesWithLanguage("en-US")
-			assertResponseStatusOk(response)
-			if (response.responseData._embedded."yona:activityCategories".size() != originalCount)
-			{
-				return
-			}
-			sleep(1000)
-		}
 	}
 
 	private void waitForCachePropagation(englishName, englishDescription)

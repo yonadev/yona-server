@@ -79,7 +79,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureRequestMessages[0].message == requestMessageText
 		assertEquals(disclosureRequestMessages[0].creationTime, YonaServer.now)
 		disclosureRequestMessages[0]._links.keySet() == ["self", "related", "yona:buddy", "yona:user", "yona:accept", "yona:reject", "yona:markRead", "yona:dayDetails"] as Set
-		disclosureRequestMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(bob.url))
+		disclosureRequestMessages[0]._links?."yona:user"?.href?.startsWith(YonaServer.stripQueryString(bob.url))
 		disclosureRequestMessages[0]._links?.related?.href == getRichardMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
 		// link to own activity present
 		def dayDetailsUrlRichard = disclosureRequestMessages[0]._links."yona:dayDetails"?.href
@@ -147,7 +147,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		assertEquals(disclosureResponseMessage.creationTime, YonaServer.now)
 		disclosureResponseMessage._links.keySet() == ["self", "edit", "related", "yona:buddy", "yona:user", "yona:markRead", "yona:dayDetails"] as Set
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
-		disclosureResponseMessage._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
+		disclosureResponseMessage._links?."yona:user"?.href?.startsWith(YonaServer.stripQueryString(richard.url))
 		disclosureResponseMessage._embedded?."yona:user" == null
 		// link to Richard's activity present
 		def dayDetailsUrl = disclosureResponseMessage._links."yona:dayDetails"?.href
@@ -221,7 +221,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage.message == responseMessageText
 		disclosureResponseMessage.nickname == richard.nickname
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
-		disclosureResponseMessage._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
+		disclosureResponseMessage._links?."yona:user"?.href?.startsWith(YonaServer.stripQueryString(richard.url))
 		disclosureResponseMessage._embedded?."yona:user" == null
 		disclosureResponseMessage._links."yona:dayDetails" == null
 

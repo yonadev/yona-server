@@ -26,7 +26,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		User bobAfterUpdate = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assertResponseStatusOk(richardMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 
 		then:
 		bobAfterUpdate.nickname == "Bobby"
@@ -57,10 +57,10 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.firstName = "Robert"
 		updatedBobJson.lastName = "Dunstan"
-		User bobAfterUpdate = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
+		appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assertResponseStatusOk(richardMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 
 		then:
 		buddyInfoUpdateMessages.size() == 1
@@ -86,14 +86,14 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		User bobby = makeUserForBuddyRequest(bob, "bob@dunn.net", "Bobby", "Dun")
 		appService.sendBuddyConnectRequest(richard, bobby)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		String acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
 
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.firstName = "Robert"
 		updatedBobJson.lastName = "Dunstan"
 		updatedBobJson.nickname = "RD"
-		User bobAfterUpdate = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
+		appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 
 		when:
 		def response = appService.getMessages(richard)

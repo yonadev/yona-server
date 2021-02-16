@@ -15,12 +15,10 @@ import spock.lang.Specification
 class RelevantSmoothwallCategoriesTest extends Specification
 {
 	@Shared
-	def AnalysisService analysisService = new AnalysisService()
+	AnalysisService analysisService = new AnalysisService()
 
 	def 'Get relevant Smoothwall categories'()
 	{
-		given:
-
 		when:
 		def response = analysisService.getRelevantSmoothwallCategories()
 

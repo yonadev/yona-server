@@ -31,10 +31,7 @@ class Buddy
 		this.sendingStatus = json.sendingStatus
 		this.lastStatusChangeTime = json.lastStatusChangeTime
 		this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
-		if (json._embedded?."yona:user")
-		{
-			this.user = new User(json._embedded."yona:user")
-		}
+		this.user = (json._embedded?."yona:user") ? new User(json._embedded."yona:user") : null
 		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.dailyActivityReportsUrl = json._links?."yona:dailyActivityReports"?.href
@@ -45,15 +42,5 @@ class Buddy
 	def findActiveGoal(def activityCategoryUrl)
 	{
 		user.goals.find { it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
-	}
-
-	/**
-	 * Finds a goal in the buddy context given the goal from the user context	*/
-	Goal findGoal(Goal goal)
-	{
-		def goalId = goal.url.substring(goal.url.lastIndexOf('/') + 1)
-		Goal matchingGoal = user.goals.find { it.url.endsWith(goalId) }
-		assert matchingGoal
-		return matchingGoal
 	}
 }

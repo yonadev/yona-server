@@ -14,7 +14,7 @@ import nu.yona.server.YonaServer
 @ToString(includeSuper = true, includeNames = true)
 class TimeZoneGoal extends Goal
 {
-	final String[] zones
+	final List<String> zones
 	final int[] spreadCells
 
 	TimeZoneGoal(def json)
@@ -47,17 +47,17 @@ class TimeZoneGoal extends Goal
 		}"""
 	}
 
-	public static TimeZoneGoal createInstance(activityCategoryUrl, zones)
+	static TimeZoneGoal createInstance(String activityCategoryUrl, zones)
 	{
 		createInstance(null, activityCategoryUrl, zones)
 	}
 
-	public static TimeZoneGoal createInstance(ZonedDateTime creationTime, activityCategoryUrl, zones)
+	static TimeZoneGoal createInstance(ZonedDateTime creationTime, activityCategoryUrl, zones)
 	{
 		new TimeZoneGoal([creationTime: creationTime, activityCategoryUrl: activityCategoryUrl, zones: zones])
 	}
 
-	public static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, ZonedDateTime creationTime, zones)
+	static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, ZonedDateTime creationTime, zones)
 	{
 		new TimeZoneGoal([creationTime: creationTime, activityCategoryUrl: originalGoal.activityCategoryUrl, zones: zones])
 	}

@@ -28,7 +28,7 @@ class YonaServer
 	private static final DateTimeFormatter ISO8601_WEEK_FORMATTER = new DateTimeFormatterBuilder().parseCaseInsensitive()
 			.appendValue(IsoFields.WEEK_BASED_YEAR, 4, 10, SignStyle.EXCEEDS_PAD).appendLiteral("-W")
 			.appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
-			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue()).toFormatter(Locale.forLanguageTag("en-US"));
+			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue()).toFormatter(Locale.forLanguageTag("en-US"))
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
 
@@ -55,9 +55,9 @@ class YonaServer
 		createResource(path, jsonString, parameters, addPasswordToHeaders(headers, password))
 	}
 
-	public static addPasswordToHeaders(headers, password)
+	static addPasswordToHeaders(Map<String, String> headers, String password)
 	{
-		def headersWithPassword = cloneMap(headers)
+		Map<String, String> headersWithPassword = cloneMap(headers)
 		if (password)
 		{
 			headersWithPassword["Yona-Password"] = password
@@ -65,9 +65,9 @@ class YonaServer
 		return headersWithPassword
 	}
 
-	private static def cloneMap(map)
+	private static <K, V> Map<K, V> cloneMap(Map<K, V> map)
 	{
-		map.getClass().newInstance(map)
+		map.getClass().newInstance(map) as Map<K, V>
 	}
 
 	def createResource(path, jsonString, parameters = [:], headers = [:])
@@ -110,7 +110,7 @@ class YonaServer
 
 	def postJson(path, jsonString, parameters = [:], headers = [:])
 	{
-		def object = null
+		def object
 		if (jsonString instanceof Map)
 		{
 			object = jsonString
@@ -129,7 +129,7 @@ class YonaServer
 
 	def putJson(path, jsonString, parameters = [:], headers = [:])
 	{
-		def object = null
+		def object
 		if (jsonString instanceof Map)
 		{
 			object = jsonString
@@ -146,7 +146,7 @@ class YonaServer
 				query: parameters + getQueryParams(path))
 	}
 
-	static def getQueryParams(url)
+	static def getQueryParams(String url)
 	{
 		def uriBuilder = new URIBuilder(url)
 		if (uriBuilder.query)
@@ -159,14 +159,14 @@ class YonaServer
 		}
 	}
 
-	static void storeStatistics(def statistics, def heading)
+	static void storeStatistics(Map<String, Integer> statistics, String heading)
 	{
 		def file = new File("build/reports/tests/intTest/" + heading + ".md")
 		file << "# $heading\n\n"
-		def statNames = (statistics[statistics.keySet().first()].keySet().findAll { it != "startTime" && it != "sqlStatements" } as List).sort()
+		List<String> statNames = (statistics[statistics.keySet().first()].keySet().findAll { it != "startTime" && it != "sqlStatements" } as List<String>).sort()
 		storeRow(file, ["Operation"] + statNamesToHeadingNames(statNames))
 		storeRow(file, ["---"] * (statNames.size() + 1))
-		statistics.each { k, v -> storeRow(file, [k] + statNames.collect { v[it] }) }
+		statistics.each { String k, v -> storeRow(file, [k] + statNames.collect { v[it] }) }
 
 		file << "\n# SQL statements\n\n"
 		statistics.each { k, v -> storeSqlStatements(file, k, v["sqlStatements"]) }
@@ -196,20 +196,20 @@ class YonaServer
 		url - ~/\?.*/
 	}
 
-	static def removeRequestParam(url, param)
+	static def removeRequestParam(String url, param)
 	{
 		URIBuilder uriBuilder = new URIBuilder(url)
 		return uriBuilder.removeQueryParam(param).toString()
 	}
 
-	static def appendToPath(url, addition)
+	static def appendToPath(String url, addition)
 	{
 		URIBuilder uriBuilder = new URIBuilder(url)
 		uriBuilder.path += addition
 		return uriBuilder.toString()
 	}
 
-	static String makeStringList(def strings)
+	static String makeStringList(List<String> strings)
 	{
 		def stringList = ""
 		strings.each({
@@ -219,17 +219,7 @@ class YonaServer
 		return stringList
 	}
 
-	static String makeList(def itemsJson)
-	{
-		def list = ""
-		itemsJson.each({
-			list += (list) ? ", " : ""
-			list += it
-		})
-		return list
-	}
-
-	static String makeStringMap(def strings)
+	static String makeStringMap(Map<String, String> strings)
 	{
 		def stringList = ""
 		strings.keySet().each({
@@ -268,7 +258,7 @@ class YonaServer
 
 	static def relativeDateTimeStringToZonedDateTime(relativeDateTimeString)
 	{
-		def fields = relativeDateTimeString.tokenize(' ')
+		List<String> fields = relativeDateTimeString.tokenize(' ')
 		assert fields.size() <= 3
 		assert fields.size() > 0
 		int parsedFields = 0
@@ -291,7 +281,7 @@ class YonaServer
 		// Fall through
 			case 1:
 				ZonedDateTime dateTime = parseTimeForDay(fields[parsedFields], now.plusDays(dayOffset).plusWeeks(weekOffset).getLong(ChronoField.EPOCH_DAY))
-				assert dateTime.compareTo(now) <= 0 // Must be in the past
+				assert dateTime <= now // Must be in the past
 				return dateTime
 		}
 	}
@@ -325,17 +315,17 @@ class YonaServer
 		return weeksBack * 7 + dayOffset
 	}
 
-	public static int getCurrentDayOfWeek()
+	static int getCurrentDayOfWeek()
 	{
 		getDayOfWeek(now)
 	}
 
-	public static int getDayOfWeek(ZonedDateTime dateTime)
+	static int getDayOfWeek(ZonedDateTime dateTime)
 	{
 		getDayOfWeek(dateTime.dayOfWeek.value)
 	}
 
-	public static int getDayOfWeek(int javaDayOfWeek)
+	static int getDayOfWeek(int javaDayOfWeek)
 	{
 		// In Java, Sunday is the last day of the week, but in Yona the first one
 		(javaDayOfWeek == 7) ? 0 : javaDayOfWeek

@@ -15,10 +15,10 @@ class AdminService extends Service
 		super("yona.adminservice.url", "http://localhost:8080")
 	}
 
-	def postSystemMessage(messageText)
+	def postSystemMessage(String messageText)
 	{
 		yonaServer.restClient.post(path: SYSTEM_MESSAGES_PATH,
-				body: "message=" + java.net.URLEncoder.encode(messageText, "UTF-8"),
+				body: "message=" + URLEncoder.encode(messageText, "UTF-8"),
 				contentType: 'application/x-www-form-urlencoded',
 				headers: [:],
 				query: [:])

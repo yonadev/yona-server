@@ -53,7 +53,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com"))
-		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard.requestingDevice, "news/media", "http://www.refdag.nl"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl"))
 
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"
@@ -171,7 +171,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		//insert some messages
 		//goal conflict
-		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard.requestingDevice, "news/media", "http://www.refdag.nl"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl"))
 		//goal change
 		appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 		sleep(500) // TODO this is a temporary measure to see whether this allows Hazelcast to sync the cache to the analysis service
@@ -192,7 +192,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com"))
-		assertResponseStatus(analysisService.postToAnalysisEngine(richard.requestingDevice, "news/media", "http://www.refdag.nl"), 400) // User deleted
+		assertResponseStatus(analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl"), 400) // User deleted
 
 		def getMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesResponse)

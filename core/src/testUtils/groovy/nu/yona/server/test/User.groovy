@@ -71,6 +71,12 @@ class User
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect { new Buddy(it) } : []
 		}
+		else
+		{
+			this.lastMonitoredActivityDate = null
+			this.password = null
+			this.buddies = null
+		}
 		this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect { Goal.fromJson(it) } : null
 		this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect { new Device(this.password, it) } : null
 		this.url = json._links.self.href
@@ -119,7 +125,7 @@ class User
 		return json
 	}
 
-	private static String makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber) // YD-544
+	static String makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber) // YD-544
 	{
 		def json = """{
 				"firstName":"${firstName}",

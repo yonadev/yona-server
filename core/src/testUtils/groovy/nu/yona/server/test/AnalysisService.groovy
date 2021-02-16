@@ -8,15 +8,12 @@ package nu.yona.server.test
 
 import java.time.ZonedDateTime
 
-import groovy.json.JsonSlurper
 import nu.yona.server.YonaServer
 
 class AnalysisService extends Service
 {
 	final USER_ANONYMIZED_PATH = "/userAnonymized/"
 	final RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT = "/relevantSmoothwallCategories/"
-
-	JsonSlurper jsonSlurper = new JsonSlurper()
 
 	AnalysisService()
 	{

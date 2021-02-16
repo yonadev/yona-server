@@ -32,7 +32,7 @@ abstract class Service
 	 * @param defaultValue The default property value
 	 * @return The value.
 	 */
-	static def String getProperty(propertyName, defaultValue)
+	static String getProperty(propertyName, defaultValue)
 	{
 		String retVal = System.properties.getProperty(propertyName, defaultValue)
 
@@ -77,7 +77,7 @@ abstract class Service
 	def getLastFirebaseMessage(def firebaseInstanceId)
 	{
 		// Firebase message is sent asynchronously, so wait till it is done, at most 5 seconds
-		def response
+		def response = null
 		for (def i = 0; i < 10; i++)
 		{
 			response = getResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
@@ -95,7 +95,7 @@ abstract class Service
 		deleteResource("$LAST_EMAIL_FIREBASE_MESSAGE/$firebaseInstanceId")
 	}
 
-	def isSuccess(def response)
+	static def isSuccess(def response)
 	{
 		response.status >= 200 && response.status < 300
 	}

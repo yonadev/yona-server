@@ -353,7 +353,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Try get nonexisting user'()
+	def 'Try get nonexistent user'()
 	{
 		given:
 		User richard = addRichard()
@@ -371,7 +371,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Try delete nonexisting user'()
+	def 'Try delete nonexistent user'()
 	{
 		given:
 		User richard = addRichard()

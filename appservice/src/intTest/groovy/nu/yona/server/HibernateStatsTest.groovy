@@ -14,12 +14,13 @@ import java.time.format.TextStyle
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
+import nu.yona.server.test.Goal
 import nu.yona.server.test.User
 import spock.lang.IgnoreIf
 import spock.lang.Shared
 
 @IgnoreIf({
-	!Boolean.valueOf(properties['yona.enableHibernateStatsAllowed'])
+	!Boolean.valueOf(properties['yona.enableHibernateStatsAllowed'] as String)
 })
 class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 {
@@ -29,7 +30,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	User richard
 
 	@Shared
-	def buddyUsers
+	List<User> buddyUsers
 
 	@Shared
 	def statistics = new LinkedHashMap()
@@ -330,7 +331,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	void createGoalHistoryItems(User user, def goalUrl)
 	{
 		user = appService.reloadUser(user)
-		BudgetGoal goal = user.findActiveGoal(goalUrl)
+		BudgetGoal goal = user.findActiveGoal(goalUrl) as BudgetGoal
 		updateBudgetGoal(user, goal, 10, "W-2 Tue 01:00")
 		updateBudgetGoal(user, goal, 20, "W-2 Wed 01:00")
 		updateBudgetGoal(user, goal, 30, "W-2 Thu 01:00")
@@ -366,10 +367,10 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		User buddyUser = buddyUsers.find { it.nickname == user.buddies[0].user.nickname }
 		def yesterdayShortDay = LocalDate.now().getDayOfWeek().minus(1).getDisplayName(TextStyle.SHORT, Locale.US)
-		ActivityCommentTest.assertCommentingWorks(appService, user, buddyUser, NEWS_ACT_CAT_URL, false, { u -> appService.getDayActivityOverviews(u, ["size": 14]) },
-				{ u -> appService.getDayActivityOverviews(u, u.buddies[0], ["size": 14]) },
-				{ responseOverviews, u, goal -> appService.getDayDetailsFromOverview(responseOverviews, u, goal, 0, yesterdayShortDay) },
-				{ u, message -> assertMarkReadUnread(u, message) })
+		ActivityCommentTest.assertCommentingWorks(appService, user, buddyUser, NEWS_ACT_CAT_URL, false, { User u -> appService.getDayActivityOverviews(u, ["size": 14]) },
+				{ User u -> appService.getDayActivityOverviews(u, u.buddies[0], ["size": 14]) },
+				{ responseOverviews, User u, Goal goal -> appService.getDayDetailsFromOverview(responseOverviews, u, goal, 0, yesterdayShortDay) },
+				{ User u, message -> assertMarkReadUnread(u, message) })
 	}
 
 	void captureStatistics(def tag)
