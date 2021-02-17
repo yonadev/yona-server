@@ -31,7 +31,7 @@ dependencies {
 
 	testCompile project(path: ":core", configuration: "testUtils")
 
-	intTestCompile "org.codehaus.groovy:groovy-all:2.5.5"
+	intTestCompile "org.codehaus.groovy:groovy-all:3.0.7"
 	intTestCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 	intTestCompile "org.spockframework:spock-core:1.2-groovy-2.5"
 }
