@@ -53,7 +53,7 @@ dependencies {
 	testCompile "com.spencerwi:hamcrest-jdk8-time:0.7.1"
 	testCompile "nl.jqno.equalsverifier:equalsverifier:3.1.10"
 
-	testUtilsCompile "org.codehaus.groovy:groovy-all:2.5.5"
+	testUtilsCompile "org.codehaus.groovy:groovy-all:3.0.7"
 	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 
 	// mandatory dependencies for using Spock
