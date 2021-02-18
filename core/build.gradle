@@ -44,7 +44,7 @@ dependencies {
 	compile "com.google.guava:guava:18.0"
 	compile "com.hazelcast:hazelcast-spring"
 	compile "com.googlecode.libphonenumber:libphonenumber:8.9.1"
-	compile "com.google.firebase:firebase-admin:6.4.0"
+	compile "com.google.firebase:firebase-admin:7.1.0"
 
 	testCompile "org.springframework.boot:spring-boot-starter-test"
 	testCompile "org.mockito:mockito-junit-jupiter"
