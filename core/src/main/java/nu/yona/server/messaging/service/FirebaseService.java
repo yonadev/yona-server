@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2018, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Notification;
 
 import nu.yona.server.Constants;
@@ -34,7 +35,6 @@ import nu.yona.server.util.Require;
 @Service
 public class FirebaseService
 {
-	private static final String FIREBASE_ID_NOT_REGISTERED = "registration-token-not-registered";
 	private static final Logger logger = LoggerFactory.getLogger(FirebaseService.class);
 
 	private final Map<String, MessageData> lastMessageByRegistrationToken = new HashMap<>();
@@ -69,7 +69,7 @@ public class FirebaseService
 		// contexts, while the URL requires the user ID.
 		String title = translator.getLocalizedMessage("notification.message.title");
 		String body = translator.getLocalizedMessage("notification.message.body");
-		Message firebaseMessage = Message.builder().setNotification(new Notification(title, body))
+		Message firebaseMessage = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(body).build())
 				.putData("messageId", Long.toString(getMessageId(message))).setToken(registrationToken).build();
 
 		// Sending takes quite a bit of time, so do it asynchronously
@@ -78,7 +78,7 @@ public class FirebaseService
 				t -> handleCompletion(t, registrationToken));
 	}
 
-	private long getMessageId(nu.yona.server.messaging.entities.Message message)
+	private static long getMessageId(nu.yona.server.messaging.entities.Message message)
 	{
 		Require.that(message.getId() != 0, () -> YonaException.illegalState("Message must be saved before this point"));
 		return message.getId();
@@ -111,7 +111,7 @@ public class FirebaseService
 		}
 		catch (FirebaseMessagingException e)
 		{
-			if (FIREBASE_ID_NOT_REGISTERED.equals(e.getErrorCode()))
+			if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED)
 			{
 				handleNotRegisteredDevice(deviceAnonymizedId);
 				return;
@@ -126,7 +126,7 @@ public class FirebaseService
 				.put(registrationToken, MessageData.createInstance(MDC.getCopyOfContextMap(), firebaseMessage));
 	}
 
-	private void handleCompletion(Optional<Throwable> throwable, String token)
+	private static void handleCompletion(Optional<Throwable> throwable, String token)
 	{
 		throwable.ifPresent(t -> logger
 				.error(Constants.ALERT_MARKER, "Fatal error: Exception while sending Firebase message to '" + token + "'",

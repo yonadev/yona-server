@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2020-2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -33,8 +33,11 @@ import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import com.google.firebase.ErrorCode;
+import com.google.firebase.IncomingHttpResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.MessagingErrorCode;
 
 import nu.yona.server.Translator;
 import nu.yona.server.device.service.DeviceService;
@@ -61,7 +64,8 @@ class FirebaseServiceTestConfiguration extends UserRepositoriesConfiguration
 public class FirebaseServiceTest extends BaseSpringIntegrationTest
 {
 	private static final Constructor<FirebaseMessagingException> firebaseMessagingExceptionConstructor = JUnitUtil
-			.getAccessibleConstructor(FirebaseMessagingException.class, String.class, String.class, Throwable.class);
+			.getAccessibleConstructor(FirebaseMessagingException.class, ErrorCode.class, String.class, Throwable.class,
+					IncomingHttpResponse.class, MessagingErrorCode.class);
 	private static final Field messageIdField = JUnitUtil.getAccessibleField(EntityWithId.class, "id");
 
 	@MockBean
@@ -119,8 +123,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 		String registrationToken = "token-" + UUID.randomUUID();
 		SystemMessage message = createMessage();
 		when(mockFirebaseMessaging.send(any()))
-				.thenThrow(createFirebaseMessagingException("registration-token-not-registered", "Sorry, failed"));
-
+				.thenThrow(createFirebaseMessagingException(MessagingErrorCode.UNREGISTERED, "Sorry, failed"));
 		service.sendMessage(deviceAnonymizedId, registrationToken, message);
 
 		verify(mockDeviceService, times(1)).clearFirebaseInstanceId(deviceAnonymizedId);
@@ -133,7 +136,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 		String registrationToken = "token-" + UUID.randomUUID();
 		SystemMessage message = createMessage();
 		when(mockFirebaseMessaging.send(any()))
-				.thenThrow(createFirebaseMessagingException("some-unknown-error", "Sorry, failed"));
+				.thenThrow(createFirebaseMessagingException(MessagingErrorCode.INTERNAL, "Sorry, failed"));
 
 		assertThrows(FirebaseServiceException.class, () -> service.sendMessage(deviceAnonymizedId, registrationToken, message));
 
@@ -147,11 +150,12 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 		return message;
 	}
 
-	private FirebaseMessagingException createFirebaseMessagingException(String errorCode, String message)
+	private static FirebaseMessagingException createFirebaseMessagingException(MessagingErrorCode messagingErrorCode,
+			String message)
 	{
 		try
 		{
-			return firebaseMessagingExceptionConstructor.newInstance(errorCode, message, null);
+			return firebaseMessagingExceptionConstructor.newInstance(ErrorCode.UNKNOWN, message, null, null, messagingErrorCode);
 		}
 		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e)
 		{
@@ -171,7 +175,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 		}
 	}
 
-	private void exec(Runnable action, Consumer<Optional<Throwable>> completionHandler)
+	private static void exec(Runnable action, Consumer<Optional<Throwable>> completionHandler)
 	{
 		try
 		{
