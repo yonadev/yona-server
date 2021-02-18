@@ -21,8 +21,6 @@ artifacts {
 	testUtils testUtilsJar
 }
 
-ext['junit-jupiter.version'] = '5.4.0'
-
 dependencies {
 	compile "com.hazelcast:hazelcast-client"
 	compile 'com.hazelcast:hazelcast-kubernetes:1.1.0'
@@ -48,9 +46,7 @@ dependencies {
 	compile "com.googlecode.libphonenumber:libphonenumber:8.9.1"
 	compile "com.google.firebase:firebase-admin:7.1.0"
 
-	testCompile("org.springframework.boot:spring-boot-starter-test") {
-		exclude group: 'junit', module: 'junit'
-	}
+	testCompile "org.springframework.boot:spring-boot-starter-test"
 	testCompile "org.mockito:mockito-junit-jupiter"
 	testCompile "org.jmockit:jmockit:1.49"
 	testCompile "org.junit.jupiter:junit-jupiter:5.4.0"
