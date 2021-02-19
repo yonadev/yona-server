@@ -28,7 +28,7 @@ task liquibasePathingJar(type: Jar) {
 	appendix = 'pathing'
 	doFirst {
 		manifest {
-			attributes "Class-Path": (configurations.runtime.files + configurations.liquibase.files).collect {
+			attributes "Class-Path": (configurations.productionRuntimeClasspath.files + configurations.liquibase.files).collect {
 				it.toURL().toString().replaceFirst(/file:\/+/, '/')
 			}.join(' ')
 		}

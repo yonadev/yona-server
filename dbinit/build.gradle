@@ -57,7 +57,7 @@ task pathingJar(type: Jar) {
 	appendix = 'pathing'
 	doFirst {
 		manifest {
-			attributes "Class-Path": configurations.runtime.files.collect {
+			attributes "Class-Path": configurations.productionRuntimeClasspath.files.collect {
 				it.toURL().toString().replaceFirst(/file:\/+/, '/')
 			}.join(' ')
 		}
