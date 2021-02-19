@@ -22,13 +22,13 @@ artifacts {
 }
 
 dependencies {
-	compile "com.hazelcast:hazelcast-client:3.12.12"
-	compile 'com.hazelcast:hazelcast-kubernetes:1.1.0'
+	compile "com.hazelcast:hazelcast:4.0.3"
+	compile 'com.hazelcast:hazelcast-kubernetes:2.2.1'
 	compile "org.springframework.boot:spring-boot-starter-hateoas"
 	compile "org.springframework.boot:spring-boot-starter-data-jpa"
 	compile "org.springframework.boot:spring-boot-starter-web"
 	compile "org.springframework.boot:spring-boot-starter-actuator"
-	compile "org.springframework.cloud:spring-cloud-starter-sleuth:2.1.0.RELEASE"
+	compile "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.1"
 	compile "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
 	compile "io.micrometer:micrometer-registry-prometheus:1.0.6"
 	compile "org.springframework:spring-context-support"
@@ -42,7 +42,7 @@ dependencies {
 	compile "org.springframework.security:spring-security-config:5.1.5.RELEASE"
 	compile "org.springframework.security:spring-security-web:5.1.5.RELEASE"
 	compile "com.google.guava:guava:23.0"
-	compile "com.hazelcast:hazelcast-spring"
+	compile "com.hazelcast:hazelcast-spring:4.0.3"
 	compile "com.googlecode.libphonenumber:libphonenumber:8.9.1"
 	compile "com.google.firebase:firebase-admin:7.1.0"
 

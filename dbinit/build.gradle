@@ -53,7 +53,7 @@ task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 }
 
 task pathingJar(type: Jar) {
-	dependsOn configurations.runtime
+	dependsOn configurations.productionRuntimeClasspath
 	appendix = 'pathing'
 	doFirst {
 		manifest {
