@@ -26,8 +26,8 @@ configurations {
 
 dependencies {
 	compile project(":core")
-	compile "org.bouncycastle:bcprov-jdk15on:1.58"
-	compile "org.bouncycastle:bcpkix-jdk15on:1.58"
+	compile "org.bouncycastle:bcprov-jdk15on:1.68"
+	compile "org.bouncycastle:bcpkix-jdk15on:1.68"
 	runtime "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
 	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
@@ -39,7 +39,7 @@ dependencies {
 
 	intTestCompile "org.codehaus.groovy:groovy-all:3.0.7"
 	intTestCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-	intTestCompile "org.spockframework:spock-core:1.2-groovy-2.5"
+	intTestCompile "org.spockframework:spock-core:1.3-groovy-2.5"
 }
 
 test {
