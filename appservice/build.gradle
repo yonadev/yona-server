@@ -26,7 +26,7 @@ configurations {
 
 dependencies {
 	compile project(":core")
-	compile "org.bouncycastle:bcprov-jdk15on:1.58"
+	compile "org.bouncycastle:bcprov-jdk15on:1.68"
 	compile "org.bouncycastle:bcpkix-jdk15on:1.58"
 	runtime "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
 	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
