@@ -33,7 +33,7 @@ dependencies {
 	compile "io.micrometer:micrometer-registry-prometheus:1.6.4"
 	compile "org.springframework:spring-context-support"
 	compile "org.hibernate:hibernate-java8:5.2.18.Final"
-	compile "org.atteo:evo-inflector:1.2.1"
+	compile "org.atteo:evo-inflector:1.2.2"
 	compile "commons-validator:commons-validator:1.4.1"
 	compile "commons-lang:commons-lang:2.6"
 	compile "javax.mail:mail:1.4.7"
