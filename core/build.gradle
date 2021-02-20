@@ -57,7 +57,7 @@ dependencies {
 	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 
 	// mandatory dependencies for using Spock
-	testUtilsCompile "org.spockframework:spock-core:1.2-groovy-2.5"
+	testUtilsCompile "org.spockframework:spock-core:1.3-groovy-2.5"
 }
 
 test {
