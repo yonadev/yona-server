@@ -51,7 +51,7 @@ dependencies {
 	testCompile "org.jmockit:jmockit:1.49"
 	testCompile "org.junit.jupiter:junit-jupiter:5.7.1"
 	testCompile "com.spencerwi:hamcrest-jdk8-time:0.7.1"
-	testCompile "nl.jqno.equalsverifier:equalsverifier:3.1.10"
+	testCompile "nl.jqno.equalsverifier:equalsverifier:3.5.4"
 
 	testUtilsCompile "org.codehaus.groovy:groovy-all:3.0.7"
 	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
