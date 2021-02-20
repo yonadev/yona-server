@@ -21,8 +21,6 @@ artifacts {
 	testUtils testUtilsJar
 }
 
-ext['junit-jupiter.version'] = '5.4.0'
-
 dependencies {
 	compile "com.hazelcast:hazelcast-client"
 	compile 'com.hazelcast:hazelcast-kubernetes:1.1.0'
@@ -37,25 +35,23 @@ dependencies {
 	compile "org.hibernate:hibernate-java8:5.1.2.Final"
 	compile "org.atteo:evo-inflector:1.2.1"
 	compile "commons-validator:commons-validator:1.4.1"
-	compile "commons-lang:commons-lang:2.4"
+	compile "commons-lang:commons-lang:2.6"
 	compile "javax.mail:mail:1.4.7"
 	compile("org.thymeleaf:thymeleaf-spring5:3.0.9.RELEASE")
 	compile "org.springframework.ldap:spring-ldap-core:2.3.3.RELEASE"
-	compile "org.springframework.security:spring-security-config:5.1.5.RELEASE"
-	compile "org.springframework.security:spring-security-web:5.1.5.RELEASE"
-	compile "com.google.guava:guava:18.0"
+	compile "org.springframework.security:spring-security-config:5.4.5"
+	compile "org.springframework.security:spring-security-web:5.4.5"
+	compile "com.google.guava:guava:23.0"
 	compile "com.hazelcast:hazelcast-spring"
 	compile "com.googlecode.libphonenumber:libphonenumber:8.9.1"
-	compile "com.google.firebase:firebase-admin:6.4.0"
+	compile "com.google.firebase:firebase-admin:7.1.0"
 
-	testCompile("org.springframework.boot:spring-boot-starter-test") {
-		exclude group: 'junit', module: 'junit'
-	}
+	testCompile "org.springframework.boot:spring-boot-starter-test"
 	testCompile "org.mockito:mockito-junit-jupiter"
 	testCompile "org.jmockit:jmockit:1.49"
-	testCompile "org.junit.jupiter:junit-jupiter:5.4.0"
+	testCompile "org.junit.jupiter:junit-jupiter:5.7.1"
 	testCompile "com.spencerwi:hamcrest-jdk8-time:0.7.1"
-	testCompile "nl.jqno.equalsverifier:equalsverifier:3.1.10"
+	testCompile "nl.jqno.equalsverifier:equalsverifier:3.5.4"
 
 	testUtilsCompile "org.codehaus.groovy:groovy-all:3.0.7"
 	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
