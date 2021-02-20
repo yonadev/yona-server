@@ -32,7 +32,7 @@ dependencies {
 	compile "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
 	compile "io.micrometer:micrometer-registry-prometheus:1.6.4"
 	compile "org.springframework:spring-context-support"
-	compile "org.hibernate:hibernate-java8:5.1.2.Final"
+	compile "org.hibernate:hibernate-java8:5.2.18.Final"
 	compile "org.atteo:evo-inflector:1.2.1"
 	compile "commons-validator:commons-validator:1.4.1"
 	compile "commons-lang:commons-lang:2.6"
