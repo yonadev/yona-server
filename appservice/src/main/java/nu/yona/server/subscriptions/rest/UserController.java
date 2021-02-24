@@ -337,7 +337,7 @@ public class UserController extends ControllerBase
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId,
-			@RequestParam(value = REQUESTING_DEVICE_ID_PARAM, required = false) UUID requestingDeviceId,
+			@RequestParam(value = REQUESTING_DEVICE_ID_PARAM, required = true) UUID requestingDeviceId,
 			@RequestBody ConfirmationCodeDto mobileNumberConfirmation)
 	{
 		try (CryptoSession cryptoSession = CryptoSession
