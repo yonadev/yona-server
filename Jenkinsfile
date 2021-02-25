@@ -13,7 +13,7 @@ pipeline {
 			}
 			steps {
 				checkout scm
-				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage htmlDependencyReport'
+				sh './gradlew --no-daemon -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage htmlDependencyReport'
 				script {
 					def scannerHome = tool 'SonarQube scanner 3.0';
 					withSonarQubeEnv('Yona SonarQube server') {
@@ -76,7 +76,7 @@ pipeline {
 		stage('Run integration tests') {
 			agent { label 'yona' }
 			steps {
-				sh './gradlew -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest'
+				sh './gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest'
 			}
 			post {
 				always {
