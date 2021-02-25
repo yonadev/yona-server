@@ -3,7 +3,7 @@ configurations {
 }
 
 dependencies {
-	liquibase "org.liquibase.ext:liquibase-hibernate5:3.8"
+	liquibase "org.liquibase.ext:liquibase-hibernate5:4.3.0.1"
 }
 
 //loading properties file.
@@ -28,7 +28,7 @@ task liquibasePathingJar(type: Jar) {
 	appendix = 'pathing'
 	doFirst {
 		manifest {
-			attributes "Class-Path": (configurations.runtime.files + configurations.liquibase.files).collect {
+			attributes "Class-Path": (configurations.productionRuntimeClasspath.files + configurations.liquibase.files).collect {
 				it.toURL().toString().replaceFirst(/file:\/+/, '/')
 			}.join(' ')
 		}

@@ -199,6 +199,10 @@ mariadb:
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
   #hostname_override: yona-mariadb.yona.svc.cluster.local
 
+hazelcast:
+  ReplicationController:
+    image_version: 4.0.3
+
 spring:
   loglevel: info
   logpattern: "correlation.id=%X{yona.correlation.id} app.os=%X{yona.app.os} app.versionCode=%X{yona.app.versionCode} app.versionName=\"%X{yona.app.versionName}\" Marker:%marker %5p"
