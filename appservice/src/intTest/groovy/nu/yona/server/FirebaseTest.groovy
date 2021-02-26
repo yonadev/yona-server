@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 Stichting Yona Foundation
+ * Copyright (c) 2019, 2021 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -12,14 +12,16 @@ import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 import java.time.ZonedDateTime
 import java.util.concurrent.Future
 
-import groovyx.net.http.AsyncHTTPBuilder
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
 class FirebaseTest extends AbstractAppServiceIntegrationTest
 {
-	def asyncHttpClient = new AsyncHTTPBuilder(poolSize: 5, uri: appService.yonaServer.restClient.uri)
+	def setupSpec()
+	{
+		enableConcurrentRequests(5)
+	}
 
 	def 'Richard and Bob both have a notification for the buddy request/acceptance'()
 	{
@@ -244,7 +246,7 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		Map<String, ?> args = [path       : YonaServer.stripQueryString(path),
 							   contentType: 'application/json',
 							   headers    : headers]
-		def retVal = asyncHttpClient.get(args)
+		def retVal = appService.yonaServer.asyncHttpClient.get(args)
 		return retVal
 	}
 }
