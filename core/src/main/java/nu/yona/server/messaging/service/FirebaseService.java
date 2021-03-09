@@ -129,8 +129,7 @@ public class FirebaseService
 	private static void handleCompletion(Optional<Throwable> throwable, String token)
 	{
 		throwable.ifPresent(t -> logger
-				.error(Constants.ALERT_MARKER, "Fatal error: Exception while sending Firebase message to '" + token + "'",
-						throwable));
+				.error(Constants.ALERT_MARKER, "Fatal error: Exception while sending Firebase message to '" + token + "'", t));
 	}
 
 	private void handleNotRegisteredDevice(UUID deviceAnonymizedId)
