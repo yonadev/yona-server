@@ -16,6 +16,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.web.firewall.RequestRejectedException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -80,7 +81,7 @@ public class GlobalExceptionMapping
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler({ MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class,
-			MissingServletRequestParameterException.class, MultipartException.class })
+			MissingServletRequestParameterException.class, MultipartException.class, RequestRejectedException.class })
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
 	public ErrorResponseDto handleInvalidRequestException(Exception exception, HttpServletRequest request)
@@ -148,7 +149,7 @@ public class GlobalExceptionMapping
 		return logUnhandledExceptionAndCreateErrorDto("exceeds the maximum request size", exception, request);
 	}
 
-	private ErrorResponseDto logUnhandledExceptionAndCreateErrorDto(String message, Exception exception,
+	private static ErrorResponseDto logUnhandledExceptionAndCreateErrorDto(String message, Exception exception,
 			HttpServletRequest request)
 	{
 		logUnhandledException(message, buildRequestInfo(request), exception);
@@ -156,7 +157,7 @@ public class GlobalExceptionMapping
 		return ErrorResponseDto.createInstance(exception.getMessage());
 	}
 
-	private void logUnhandledException(String message, String requestInfo, Exception exception)
+	private static void logUnhandledException(String message, String requestInfo, Exception exception)
 	{
 		Locale currentLocale = LocaleContextHolder.getLocale();
 		try
