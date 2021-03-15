@@ -24,8 +24,8 @@ artifacts {
 dependencies {
 	// When updating the below two version numbers, also update
 	// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
-	compile "com.hazelcast:hazelcast:4.1.1"
-	compile "com.hazelcast:hazelcast-spring:4.1.1"
+	compile "com.hazelcast:hazelcast:4.1.2"
+	compile "com.hazelcast:hazelcast-spring:4.1.2"
 	compile 'com.hazelcast:hazelcast-kubernetes:2.2.2'
 	compile "org.springframework.boot:spring-boot-starter-hateoas"
 	compile "org.springframework.boot:spring-boot-starter-data-jpa"
