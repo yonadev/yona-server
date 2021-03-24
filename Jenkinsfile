@@ -9,7 +9,7 @@ pipeline {
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
 				GITHUB_APP = credentials('github-app')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
+				HELM_HOME = "/opt/jnlp-agent/yona/k8s/helm/.helm"
 			}
 			steps {
 				checkout scm
@@ -21,7 +21,7 @@ pipeline {
 					}
 				}
 				dir ('k8s/helm') {
-					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GITHUB_APP_PSW /opt/ope-cloudbees/yona/k8s/helm helm-charts'
+					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GITHUB_APP_PSW /opt/jnlp-agent/yona/k8s/helm helm-charts'
 				}
 				sh 'git tag -a build-$BUILD_NUMBER -m "Jenkins"'
 				sh 'git push https://$x-access-token:${GITHUB_APP_PSW}@github.com/yonadev/yona-server.git --tags'
@@ -56,8 +56,8 @@ pipeline {
 			agent { label 'yona' }
 			environment {
 				YONA_DB = credentials('test-db')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
-				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
+				HELM_HOME = "/opt/jnlp-agent/yona/k8s/helm/.helm"
+				KUBECONFIG = "/opt/jnlp-agent/yona/k8s/admin.conf"
 			}
 			steps {
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
