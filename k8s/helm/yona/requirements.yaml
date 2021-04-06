@@ -8,6 +8,6 @@ dependencies:
     repository:  "https://jump.ops.yona.nu/helm-charts"
     condition: support_infrastructure.enabled
   - name: hazelcast
-    version: 0.1.2
+    version: 0.1.4
     repository:  "https://jump.ops.yona.nu/helm-charts"
     condition: deploy_hazelcast.enabled

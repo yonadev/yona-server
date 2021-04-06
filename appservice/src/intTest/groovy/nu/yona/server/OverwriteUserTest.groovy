@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation
+ * Copyright (c) 2015, 2021 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -17,6 +17,11 @@ import nu.yona.server.test.User
 
 class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 {
+	def setupSpec()
+	{
+		enableConcurrentRequests(5)
+	}
+
 	def 'Attempt to add another user with the same mobile number'()
 	{
 		given:
@@ -33,7 +38,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def userExistsAsserter(def response)
+	private def userExistsAsserter(def response)
 	{
 		assertResponseStatus(response, 400)
 		assert response.responseData.code == "error.user.exists"
@@ -477,5 +482,22 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	{
 		assertResponseStatusCreated(response)
 		assertUser(response.responseData)
+	}
+
+	def 'Concurrent requests cause no errors'()
+	{
+		given:
+		User richard = addRichard()
+		def numberOfTimes = 5
+
+		when:
+		def responses = appService.yonaServer.postJsonConcurrently(numberOfTimes, appService.OVERWRITE_USER_REQUEST_PATH, [:], ["mobileNumber": richard.mobileNumber])
+
+		then:
+		responses.size() == numberOfTimes
+		def p = responses.each { assert it == 204 }
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 }

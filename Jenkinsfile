@@ -9,11 +9,11 @@ pipeline {
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
 				GITHUB_APP = credentials('github-app')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
+				HELM_HOME = "/opt/jnlp-agent/yona/k8s/helm/.helm"
 			}
 			steps {
 				checkout scm
-				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage htmlDependencyReport'
+				sh './gradlew --no-daemon -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage htmlDependencyReport'
 				script {
 					def scannerHome = tool 'SonarQube scanner 3.0';
 					withSonarQubeEnv('Yona SonarQube server') {
@@ -21,7 +21,7 @@ pipeline {
 					}
 				}
 				dir ('k8s/helm') {
-					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GITHUB_APP_PSW /opt/ope-cloudbees/yona/k8s/helm helm-charts'
+					sh '../../scripts/publish-helm-package.sh $BUILD_NUMBER 1.2.$BUILD_NUMBER yona $GITHUB_APP_PSW /opt/jnlp-agent/yona/k8s/helm helm-charts'
 				}
 				sh 'git tag -a build-$BUILD_NUMBER -m "Jenkins"'
 				sh 'git push https://$x-access-token:${GITHUB_APP_PSW}@github.com/yonadev/yona-server.git --tags'
@@ -56,8 +56,8 @@ pipeline {
 			agent { label 'yona' }
 			environment {
 				YONA_DB = credentials('test-db')
-				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
-				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
+				HELM_HOME = "/opt/jnlp-agent/yona/k8s/helm/.helm"
+				KUBECONFIG = "/opt/jnlp-agent/yona/k8s/admin.conf"
 			}
 			steps {
 				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
@@ -76,7 +76,7 @@ pipeline {
 		stage('Run integration tests') {
 			agent { label 'yona' }
 			steps {
-				sh './gradlew -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest'
+				sh './gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest'
 			}
 			post {
 				always {

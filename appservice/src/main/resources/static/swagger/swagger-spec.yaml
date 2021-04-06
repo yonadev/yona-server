@@ -40,6 +40,12 @@ parameters:
     name: requestingDeviceId
     in: query
     description: The ID of the device from which the request originates. Several operations take this query parameter to enable returning a device-specific URL for the open-app event and to post the app activities
+    required: true
+    type: string
+  requestingDeviceIdOptional:
+    name: requestingDeviceId
+    in: query
+    description: The ID of the device from which the request originates. Several operations take this query parameter to enable returning a device-specific URL for the open-app event and to post the app activities
     required: false
     type: string
   tempPassword:
@@ -127,7 +133,7 @@ paths:
         - $ref: "#/parameters/yonaPasswordOptional"
         - $ref: "#/parameters/tempPassword"
         - $ref: "#/parameters/requestingUserId"
-        - $ref: "#/parameters/requestingDeviceId"
+        - $ref: "#/parameters/requestingDeviceIdOptional"
       tags:
         - User
       responses:
@@ -141,10 +147,10 @@ paths:
             $ref: '#/definitions/Error'
     put:
       summary: Update a user
-      description: Fetches the user identified by the given ID
+      description: Updates the user identified by the given ID
       parameters:
         - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/requestingDeviceId"
+        - $ref: "#/parameters/requestingDeviceIdOptional"
         - $ref: "#/parameters/yonaPasswordOptional"
         - $ref: "#/parameters/tempPassword"
         - in: body
@@ -315,7 +321,7 @@ paths:
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/requestingDeviceId"
+        - $ref: "#/parameters/requestingDeviceIdOptional"
       tags:
         - Device
       responses:
@@ -337,7 +343,7 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
-        - $ref: "#/parameters/requestingDeviceId"
+        - $ref: "#/parameters/requestingDeviceIdOptional"
       tags:
         - Device
       responses:
@@ -356,7 +362,7 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
-        - $ref: "#/parameters/requestingDeviceId"
+        - $ref: "#/parameters/requestingDeviceIdOptional"
         - in: body
           name: body
           description: Updated device
@@ -381,7 +387,7 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
-        - $ref: "#/parameters/requestingDeviceId"
+        - $ref: "#/parameters/requestingDeviceIdOptional"
       tags:
         - Device
       responses:
