@@ -111,7 +111,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.keySet() == ["self", "edit", "yona:markRead", "yona:buddy", "yona:user"] as Set
@@ -178,7 +178,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		def newDeviceRequestPassword = "Zomaar"
+		def newDeviceRequestPassword = "Something"
 		assertResponseStatusSuccess(appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword))
 
 		def getResponse = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
@@ -256,8 +256,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		def newDeviceRequestPassword = "Temp password"
 		appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
-		def getResponseImmmediately = appService.getNewDeviceRequest(richard.mobileNumber)
-		assertResponseStatusOk(getResponseImmmediately)
+		def getResponseImmediately = appService.getNewDeviceRequest(richard.mobileNumber)
+		assertResponseStatusOk(getResponseImmediately)
 
 		when:
 		def responseWrongPassword = appService.setNewDeviceRequest(richard.mobileNumber, "foo", "Some password")
@@ -302,6 +302,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def newDeviceRequestPassword = "Temp password"
 		User richard = addRichard()
 		def initialResponse = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
+		assertResponseStatusNoContent(initialResponse)
 
 		when:
 		def response = appService.clearNewDeviceRequest(richard.mobileNumber, richard.password)
@@ -326,6 +327,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def newDeviceRequestPassword = "Temp password"
 		User richard = addRichard()
 		def initialResponse = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
+		assertResponseStatusNoContent(initialResponse)
 
 		when:
 		def responseWrongPassword = appService.clearNewDeviceRequest(richard.mobileNumber, "foo")
@@ -347,7 +349,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Richard updates his device name; Bob gets the update'()
 	{
 		given:
-		def ts = timestamp
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
@@ -367,7 +368,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null
@@ -386,7 +387,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Richard updates his device firebase instance id; device is updated but not disclosed to Bob'()
 	{
 		given:
-		def ts = timestamp
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
@@ -406,7 +406,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 0
 
@@ -422,7 +422,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Richard updates device name after setting firebase instance id; firebase instance id is not changed'()
 	{
 		given:
-		def ts = timestamp
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
@@ -444,7 +443,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null
@@ -464,7 +463,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Try update device name without name'()
 	{
 		given:
-		def ts = timestamp
 		User richard = addRichard()
 		Device deviceToUpdate = richard.devices[0]
 		def existingName = "Existing name"
@@ -485,7 +483,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Try update device name to device name containing a colon'()
 	{
 		given:
-		def ts = timestamp
 		User richard = addRichard()
 		def updatedName = "Updated:name"
 
@@ -503,7 +500,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Try update device name to existing name'()
 	{
 		given:
-		def ts = timestamp
 		User richard = addRichard()
 		Device deviceToUpdate = richard.requestingDevice
 		def existingName = "Existing name"
@@ -523,7 +519,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Richard deletes a devices on which activities were done'()
 	{
 		given:
-		def ts = timestamp
 		User richardOnFirstDevice = addRichard()
 		setCreationTime(richardOnFirstDevice, "W-1 Mon 02:18")
 		setGoalCreationTime(richardOnFirstDevice, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
@@ -534,13 +529,11 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(richardOnSecondDevice, deviceToDelete, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 		Goal budgetGoalNewsRichard = richardOnFirstDevice.findActiveGoal(NEWS_ACT_CAT_URL)
 		def expectedValuesRichardLastWeek = ["Mon": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13: 15, 14: 5]]]],
-											 "Tue": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-											 "Wed": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-											 "Thu": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-											 "Fri": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-											 "Sat": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
-		def expectedTotalDays = 6 + currentDayOfWeek + 1
+											 "Tue": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Wed": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Thu": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Fri": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
+											 "Sat": [[goal: budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
 		def expectedTotalWeeks = 2
 
 
@@ -559,6 +552,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def responseWeekOverviews = appService.getWeekActivityOverviews(richardOnFirstDevice)
 		//get all days at once (max 2 weeks) to make assertion easy
 		def responseDayOverviewsAll = appService.getDayActivityOverviews(richardOnFirstDevice, ["size": 14])
+		assertResponseStatusOk(responseDayOverviewsAll)
+
 
 		then:
 		assertWeekOverviewBasics(responseWeekOverviews, [2, 2], expectedTotalWeeks)
@@ -575,7 +570,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Richard deletes one of his devices; Bob gets the update'()
 	{
 		given:
-		def ts = timestamp
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richardOnFirstDevice = richardAndBob.richard
 		User bob = richardAndBob.bob
@@ -597,7 +591,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyDeviceChangeMessage" && it.message ==~ /^User deleted.*/ }
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" && it.message ==~ /^User deleted.*/ }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null
@@ -617,7 +611,6 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 	def 'Try delete last device'()
 	{
 		given:
-		def ts = timestamp
 		User richard = addRichard()
 		Device deviceToDelete = richard.requestingDevice
 

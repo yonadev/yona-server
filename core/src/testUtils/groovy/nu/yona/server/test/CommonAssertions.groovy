@@ -12,7 +12,7 @@ import java.time.ZonedDateTime
 
 import nu.yona.server.YonaServer
 
-class CommonAssertions extends Service
+class CommonAssertions
 {
 	static final UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
 	static final VPN_LOGIN_ID_PATTERN = "(?i)^$UUID_PATTERN\\\$[0-9]+\$"
@@ -123,29 +123,29 @@ class CommonAssertions extends Service
 		boolean mobileNumberToBeConfirmed
 		if (user instanceof User)
 		{
-			mobileNumberToBeConfirmed = userCreatedOnBuddyRequest || ((boolean) user.mobileNumberConfirmationUrl)
+			mobileNumberToBeConfirmed = userCreatedOnBuddyRequest || user.mobileNumberConfirmationUrl != null
 			if (userCreatedOnBuddyRequest)
 			{
 				assert user.mobileNumberConfirmationUrl == null
 			}
 			assert user.password.startsWith("AES:128:")
-			assert mobileNumberToBeConfirmed ^ ((boolean) user.buddiesUrl)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user.messagesUrl)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user.newDeviceRequestUrl)
+			assert mobileNumberToBeConfirmed ^ user.buddiesUrl != null
+			assert mobileNumberToBeConfirmed ^ user.messagesUrl != null
+			assert mobileNumberToBeConfirmed ^ user.newDeviceRequestUrl != null
 		}
 		else
 		{
 			mobileNumberToBeConfirmed = userCreatedOnBuddyRequest || ((boolean) user._links?."yona:confirmMobileNumber"?.href)
 			assert user.yonaPassword.startsWith("AES:128:")
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:buddies"?._links?.self?.href)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:goals"?._links?.self?.href)
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:devices"?._links?.self?.href)
+			assert mobileNumberToBeConfirmed ^ user._embedded?."yona:buddies"?._links?.self?.href != null
+			assert mobileNumberToBeConfirmed ^ user._embedded?."yona:goals"?._links?.self?.href != null
+			assert mobileNumberToBeConfirmed ^ user._embedded?."yona:devices"?._links?.self?.href != null
 			if (userCreatedOnBuddyRequest)
 			{
 				assert user._links?."yona:confirmMobileNumber"?.href == null
 			}
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
-			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
+			assert mobileNumberToBeConfirmed ^ user._links?."yona:messages" != null
+			assert mobileNumberToBeConfirmed ^ user._links?."yona:newDeviceRequest" != null
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user.keySet() == USER_PROPERTIES_NUM_TO_BE_CONFIRMED : (user.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY || user.keySet() == USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY))
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() - USER_LINKS_VARYING == USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() - USER_LINKS_VARYING == USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._embedded == null : user._embedded.keySet() == USER_EMBEDDED)
@@ -232,8 +232,8 @@ class CommonAssertions extends Service
 	{
 		int epsilonMilliseconds = epsilonSeconds * 1000
 
-		assert dateTime.isAfter(comparisonDateTime.minus(Duration.ofMillis(epsilonMilliseconds)))
-		assert dateTime.isBefore(comparisonDateTime.plus(Duration.ofMillis(epsilonMilliseconds)))
+		assert dateTime.isAfter(comparisonDateTime - Duration.ofMillis(epsilonMilliseconds))
+		assert dateTime.isBefore(comparisonDateTime + Duration.ofMillis(epsilonMilliseconds))
 	}
 
 	static void assertDateTimeFormat(dateTimeString)
@@ -283,9 +283,12 @@ class CommonAssertions extends Service
 		assert response.status >= 200 && response.status < 300, "Invalid status: $response.status (expecting 2xx). Response: $response.data"
 	}
 
-	private static assertBuddyUsers(response)
+	static assertBuddyUsers(response)
 	{
-		response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies".each { assertBuddyUser(it._embedded."yona:user", it.sendingStatus == "ACCEPTED") }
+		if (response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies")
+		{
+			response.responseData._embedded."yona:buddies"._embedded."yona:buddies".each { assertBuddyUser(it._embedded."yona:user", it.sendingStatus == "ACCEPTED") }
+		}
 	}
 
 	static void assertBuddyUser(def buddyUser, boolean isBuddyRelationshipEstablished)

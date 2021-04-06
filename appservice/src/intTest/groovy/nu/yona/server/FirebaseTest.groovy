@@ -246,7 +246,6 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		Map<String, ?> args = [path       : YonaServer.stripQueryString(path),
 							   contentType: 'application/json',
 							   headers    : headers]
-		def retVal = appService.yonaServer.asyncHttpClient.get(args)
-		return retVal
+		appService.yonaServer.asyncHttpClient.get(args)
 	}
 }

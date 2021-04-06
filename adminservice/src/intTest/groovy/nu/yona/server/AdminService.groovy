@@ -7,13 +7,11 @@
 package nu.yona.server
 
 
-import groovy.json.JsonSlurper
 import nu.yona.server.test.Service
 
 class AdminService extends Service
 {
 	final static ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
-	JsonSlurper jsonSlurper = new JsonSlurper()
 
 	AdminService()
 	{

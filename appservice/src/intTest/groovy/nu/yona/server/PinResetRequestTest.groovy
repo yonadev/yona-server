@@ -106,7 +106,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	private void sleepTillPinResetCodeIsGenerated(User user, def delayString)
+	private static void sleepTillPinResetCodeIsGenerated(User user, def delayString)
 	{
 		long millis = Duration.parse(delayString).toMillis() + 2000
 		// Add 2 seconds margin, to be sure it's completed
@@ -213,7 +213,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	private void sleepTillMidOfPinResetCodeGenerationInterval(User user, def delayString)
+	private static void sleepTillMidOfPinResetCodeGenerationInterval(User user, def delayString)
 	{
 		long millis = Duration.parse(delayString).toMillis() / 2
 		println("$YonaServer.now: sleepTillMidOfPinResetCodeGenerationInterval: delayString=$delayString, user.url=$user.url, millis: $millis. Entering sleep")
@@ -324,7 +324,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		responses.size() == numberOfTimes
-		def p = responses.each { assert it == 204 }
+		responses.each { assert it == 204 }
 
 		cleanup:
 		appService.deleteUser(richard)

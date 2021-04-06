@@ -14,8 +14,8 @@ import nu.yona.server.YonaServer
 @ToString(includeNames = true)
 class Device
 {
-	private static final String SOME_APP_VERSION = "9.9.9"
-	private static final int SUPPORTED_APP_VERSION_CODE = 999
+	static final String SOME_APP_VERSION = "9.9.9"
+	static final int SUPPORTED_APP_VERSION_CODE = 999
 
 	final String password
 	final String url

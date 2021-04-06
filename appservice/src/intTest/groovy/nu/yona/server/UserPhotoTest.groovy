@@ -26,7 +26,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 	def setupSpec()
 	{
 		// Register MIME type encoder to call our method encodeMultipartEntity
-		appService.yonaServer.restClient.encoder.putAt("multipart/form-data", new MethodClosure(this, 'encodeMultipartEntity'))
+		appService.yonaServer.restClient.encoder["multipart/form-data"] = new MethodClosure(this, 'encodeMultipartEntity')
 	}
 
 	def 'Richard uploads his photo; the new URL is returned and is set on the user properties'()
@@ -222,7 +222,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll { it."nickname" == "RQ" }
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
@@ -246,7 +246,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll { it."nickname" == "RQ" }
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
@@ -273,7 +273,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll { it."nickname" == "RQ" }
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
@@ -299,7 +299,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages".findAll { it."nickname" == "RQ" }
+		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
@@ -323,7 +323,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -358,7 +358,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -392,7 +392,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days

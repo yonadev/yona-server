@@ -127,12 +127,12 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
 
-		def acceptUrl = buddyConnectRequestMessages[0]._links?."yona:accept"?.href
+		String acceptUrl = buddyConnectRequestMessages[0]._links?."yona:accept"?.href
 		def acceptBuddyRequestResponse = appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
 		assertResponseStatus(acceptBuddyRequestResponse, 400)
 		acceptBuddyRequestResponse.responseData.code == "error.user.not.found.id"
 
-		def rejectUrl = buddyConnectRequestMessages[0]._links?."yona:reject"?.href
+		String rejectUrl = buddyConnectRequestMessages[0]._links?."yona:reject"?.href
 		def rejectBuddyRequestResponse = appService.postMessageActionWithPassword(rejectUrl, ["message": "Too bad!"], bob.password)
 		assertResponseStatusOk(rejectBuddyRequestResponse)
 
@@ -259,7 +259,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		richard.emailAddress = "richard@quinn.com"
 		appService.sendBuddyConnectRequest(bob, richard)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(richard).acceptUrl
+		String acceptUrl = appService.fetchBuddyConnectRequestMessage(richard).acceptUrl
 		def acceptResponse = appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], richard.password)
 		assertResponseStatusOk(acceptResponse)
 		analysisService.postToAnalysisEngine(richard.requestingDevice, ["Gambling"], "http://www.poker.com")
@@ -318,7 +318,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.firstName == "${richard.firstName}Changed"
 
 		analysisService.postToAnalysisEngine(bob.requestingDevice, ["Gambling"], "http://www.poker.com")
-		analysisService.postToAnalysisEngine(richardChanged.requestingDevice, "news/media", "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richardChanged.requestingDevice, ["news/media"], "http://www.refdag.nl")
 
 		def getMessagesRichardResponse = appService.getMessages(richardChanged)
 		assertResponseStatusOk(getMessagesRichardResponse)
@@ -415,6 +415,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		def userAddResponse = appService.addUser(userCreationJson)
 		def overwriteRequestResponse = appService.requestOverwriteUser(userCreationMobileNumber)
+		assertResponseStatusNoContent(overwriteRequestResponse)
 		def userUrl = YonaServer.stripQueryString(userAddResponse.responseData._links.self.href)
 
 		when:
@@ -477,7 +478,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	private def assertUserOverwriteResponseDetails(def response)
+	private static def assertUserOverwriteResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
 		assertUser(response.responseData)

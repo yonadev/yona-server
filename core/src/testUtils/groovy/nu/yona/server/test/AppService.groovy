@@ -15,7 +15,6 @@ import static nu.yona.server.test.CommonAssertions.assertUserGetResponseDetails
 
 import java.time.ZonedDateTime
 
-import groovy.json.JsonSlurper
 import nu.yona.server.YonaServer
 
 class AppService extends Service
@@ -24,8 +23,6 @@ class AppService extends Service
 	static final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
 	static final USERS_PATH = "/users/"
 	static final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
-
-	JsonSlurper jsonSlurper = new JsonSlurper()
 
 	AppService()
 	{
@@ -92,13 +89,6 @@ class AppService extends Service
 	def getUser(Closure asserter, userUrl, password)
 	{
 		def response = yonaServer.getResourceWithPassword(userUrl, password)
-		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
-	}
-
-	def getUser(Closure asserter, userUrl)
-	{
-		def response = yonaServer.getResource(userUrl)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
@@ -171,7 +161,7 @@ class AppService extends Service
 	void makeBuddies(User requestingUser, User respondingUser)
 	{
 		sendBuddyConnectRequest(requestingUser, respondingUser)
-		def acceptUrl = fetchBuddyConnectRequestMessage(respondingUser).acceptUrl
+		String acceptUrl = fetchBuddyConnectRequestMessage(respondingUser).acceptUrl
 		def acceptResponse = postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], respondingUser.password)
 		assertResponseStatusOk(acceptResponse)
 
@@ -209,7 +199,7 @@ class AppService extends Service
 		assertResponseStatusOk(response)
 		assert response.responseData._embedded
 
-		def buddyConnectRequestMessages = response.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }
+		def buddyConnectRequestMessages = response.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyConnectRequestMessage" }
 		def selfUrl = buddyConnectRequestMessages[0]?._links?.self?.href ?: null
 		def message = buddyConnectRequestMessages[0]?.message ?: null
 		def acceptUrl = buddyConnectRequestMessages[0]?._links?."yona:accept"?.href ?: null
@@ -243,7 +233,7 @@ class AppService extends Service
 		assertResponseStatusOk(response)
 		assert response.responseData._embedded
 
-		def buddyConnectResponseMessages = response.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
+		def buddyConnectResponseMessages = response.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyConnectResponseMessage" }
 		assert buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
 		def selfUrl = buddyConnectResponseMessages[0]?._links?.self?.href
 		def message = buddyConnectResponseMessages[0]?.message ?: null
@@ -329,7 +319,7 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.weeklyActivityReportsUrl, user.password, parameters)
 	}
 
-	def getWeekActivityOverviews(User user, Buddy buddy, parameters = [:])
+	def getWeekActivityOverviews(User user, Buddy buddy, Map<String, Object> parameters = [:])
 	{
 		yonaServer.getResourceWithPassword(buddy.weeklyActivityReportsUrl, user.password, parameters)
 	}
@@ -339,7 +329,7 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.dailyActivityReportsUrl, user.password, parameters)
 	}
 
-	def getDayActivityOverviews(User user, Buddy buddy, parameters = [:])
+	def getDayActivityOverviews(User user, Buddy buddy, Map<String, Object> parameters = [:])
 	{
 		yonaServer.getResourceWithPassword(buddy.dailyActivityReportsUrl, user.password, parameters)
 	}
@@ -403,28 +393,6 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.dailyActivityReportsWithBuddiesUrl, user.password, parameters)
 	}
 
-	def getBuddyDayActivityOverviews(User user, int buddyIndex = 0, parameters = [:])
-	{
-		def userWithBuddies = this.getUser(this.&assertUserGetResponseDetailsWithPrivateData, user.url, true, user.password)
-		assert userWithBuddies.buddies != null
-		def buddy = userWithBuddies.buddies[buddyIndex]
-		assert buddy
-		assert buddy.dailyActivityReportsUrl
-
-		yonaServer.getResourceWithPassword(userWithBuddies.buddies[buddyIndex].dailyActivityReportsUrl, user.password, parameters)
-	}
-
-	def getBuddyWeekActivityOverviews(User user, int buddyIndex = 0, parameters = [:])
-	{
-		def userWithBuddies = this.getUser(this.&assertUserGetResponseDetailsWithPrivateData, user.url, true, user.password)
-		assert userWithBuddies.buddies != null
-		def buddy = userWithBuddies.buddies[buddyIndex]
-		assert buddy
-		assert buddy.weeklyActivityReportsUrl
-
-		yonaServer.getResourceWithPassword(userWithBuddies.buddies[buddyIndex].weeklyActivityReportsUrl, user.password, parameters)
-	}
-
 	def setNewDeviceRequest(mobileNumber, password, newDeviceRequestPassword)
 	{
 		def jsonString = """{ "newDeviceRequestPassword": "$newDeviceRequestPassword" }"""
@@ -457,7 +425,7 @@ class AppService extends Service
 
 	User addDevice(User user, name, operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE)
 	{
-		def newDeviceRequestPassword = "Zomaar"
+		def newDeviceRequestPassword = "Something"
 		assertResponseStatusSuccess(setNewDeviceRequest(user.mobileNumber, user.password, newDeviceRequestPassword))
 
 		def getResponse = getNewDeviceRequest(user.mobileNumber, newDeviceRequestPassword)
@@ -511,7 +479,7 @@ class AppService extends Service
 		yonaServer.getResource(user.goalsUrl, [:], ["Yona-Password": user.password])
 	}
 
-	def postMessageActionWithPassword(path, properties, password)
+	def postMessageActionWithPassword(String path, Map<String, String> properties, String password)
 	{
 		def propertiesString = YonaServer.makeStringMap(properties)
 		postMessageActionWithPassword(path, """{
@@ -521,7 +489,7 @@ class AppService extends Service
 				}""", password)
 	}
 
-	def postMessageActionWithPassword(path, String jsonString, password)
+	def postMessageActionWithPassword(String path, String jsonString, String password)
 	{
 		postMessageAction(path, jsonString, [:], ["Yona-Password": password])
 	}

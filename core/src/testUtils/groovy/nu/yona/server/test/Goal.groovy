@@ -8,7 +8,6 @@ package nu.yona.server.test
 
 import java.time.ZonedDateTime
 
-import groovy.json.JsonSlurper
 import nu.yona.server.YonaServer
 
 abstract class Goal
@@ -48,13 +47,6 @@ abstract class Goal
 		}
 		else
 			throw new RuntimeException("Unknown goal type: " + json["@type"])
-	}
-
-	def convertToJson()
-	{
-		def jsonStr = convertToJsonString()
-
-		return new JsonSlurper().parseText(jsonStr)
 	}
 
 	protected def buildSelfLinkString()

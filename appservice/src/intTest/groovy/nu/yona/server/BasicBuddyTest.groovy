@@ -111,7 +111,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectRequestMessages = response.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
-		assertEquals(buddyConnectRequestMessages[0].creationTime, YonaServer.now)
+		assertEquals(buddyConnectRequestMessages[0].creationTime as String, YonaServer.now)
 		buddyConnectRequestMessages[0].status == "REQUESTED"
 		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == "Richard"
 		buddyConnectRequestMessages[0]._links.keySet() == ["self", "yona:accept", "yona:reject", "yona:markRead"] as Set
@@ -137,7 +137,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
-		def acceptUrl = connectRequestMessage.acceptUrl
+		String acceptUrl = connectRequestMessage.acceptUrl
 
 		when:
 		def response = appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
@@ -172,7 +172,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectRequestMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
-		assertEquals(buddyConnectRequestMessages[0].creationTime, YonaServer.now)
+		assertEquals(buddyConnectRequestMessages[0].creationTime as String, YonaServer.now)
 		buddyConnectRequestMessages[0].status == "ACCEPTED"
 		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == "Richard"
 		buddyConnectRequestMessages[0]._links."yona:user" == null
@@ -194,7 +194,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		User bobby = makeUserForBuddyRequest(bob, "bob@dunn.net", "Bobby", "Dun")
 		appService.sendBuddyConnectRequest(richard, bobby)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		String acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
 
 		when:
@@ -209,7 +209,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(bob.url))
 		buddyConnectResponseMessages[0]._embedded?."yona:user" == null
 		buddyConnectResponseMessages[0].nickname == bob.nickname
-		assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
+		assertEquals(buddyConnectResponseMessages[0].creationTime as String, YonaServer.now)
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyConnectResponseMessages[0]._links.keySet() == ["self", "edit", "yona:markRead", "yona:buddy", "yona:user"] as Set
@@ -302,9 +302,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "RQ (me)"
-		assertEquals(richardGoalConflictMessages[0].creationTime, now)
-		assertEquals(richardGoalConflictMessages[0].activityStartTime, now)
-		assertEquals(richardGoalConflictMessages[0].activityEndTime, now.plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
+		assertEquals(richardGoalConflictMessages[0].creationTime as String, now)
+		assertEquals(richardGoalConflictMessages[0].activityStartTime as String, now)
+		assertEquals(richardGoalConflictMessages[0].activityEndTime as String, now + Duration.ofMinutes(1)) // Minimum duration 1 minute
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		richardGoalConflictMessages[0]._links."yona:buddy"?.href == null
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
@@ -316,9 +316,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
-		assertEquals(bobGoalConflictMessages[0].creationTime, now)
-		assertEquals(bobGoalConflictMessages[0].activityStartTime, now)
-		assertEquals(bobGoalConflictMessages[0].activityEndTime, now.plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
+		assertEquals(bobGoalConflictMessages[0].creationTime as String, now)
+		assertEquals(bobGoalConflictMessages[0].activityStartTime as String, now)
+		assertEquals(bobGoalConflictMessages[0].activityEndTime as String, now + Duration.ofMinutes(1)) // Minimum duration 1 minute
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		bobGoalConflictMessages[0]._links."yona:buddy"?.href == bob.buddies[0].url
 		bobGoalConflictMessages[0].url == null
@@ -335,7 +335,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		String acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		assertResponseStatusOk(appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password))
 		assertResponseStatusOk(appService.getMessages(richard)) // Causes processing of Bob's buddy connect response message
 
@@ -452,7 +452,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		ZonedDateTime now = YonaServer.now
 
 		when:
 		def url = buildLongUrl(2048)
@@ -479,13 +478,12 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Goal conflict of Richard with a more than 2k long URL is trunated and reported to Richard and Bob'()
+	def 'Goal conflict of Richard with a more than 2k long URL is truncated and reported to Richard and Bob'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		ZonedDateTime now = YonaServer.now
 
 		when:
 		def url = buildLongUrl(2049)
@@ -512,7 +510,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	private def buildLongUrl(def length)
+	private static String buildLongUrl(def length)
 	{
 		def baseUrl = "http://www.abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk.com/?queryString="
 		def queryString = 'X' * (length - baseUrl.length())
@@ -531,7 +529,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		sleep(100) // So we are sure the request time differs from the remove buddy time
-		ZonedDateTime removeBuddyTime = YonaServer.now
 		def response = appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -585,7 +582,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].nickname == "${richard.nickname}"
 		buddyDisconnectMessages[0]._embedded?."yona:user"?.firstName == "Richard"
 		buddyDisconnectMessages[0]._links."yona:user" == null
-		assertEquals(buddyDisconnectMessages[0].creationTime, YonaServer.now)
+		assertEquals(buddyDisconnectMessages[0].creationTime as String, YonaServer.now)
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyDisconnectMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -613,7 +610,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddy = appService.getBuddies(bob)[0]
 		def message = "Richard, as you know our ways parted, so I'll remove you as buddy."
 		sleep(100) // So we are sure the request time differs from the remove buddy time
-		ZonedDateTime removeBuddyTime = YonaServer.now
 		appService.removeBuddy(bob, buddy, message)
 
 		when:
@@ -629,7 +625,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].nickname == "${bob.nickname}"
 		buddyDisconnectMessages[0]._embedded?."yona:user"?.firstName == "Bob"
 		buddyDisconnectMessages[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
-		assertEquals(buddyDisconnectMessages[0].creationTime, YonaServer.now)
+		assertEquals(buddyDisconnectMessages[0].creationTime as String, YonaServer.now)
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 
@@ -796,7 +792,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		User bobby = makeUserForBuddyRequest(bob, "bob@dunn.net", "Bobby", "Dun")
 		appService.sendBuddyConnectRequest(richard, bobby)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		String acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
 
 		int numThreads = 10
@@ -882,7 +878,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		private User richard
 		private User bob
 		private def response
-		private def AppService ownAppService = new AppService()
+		private AppService ownAppService = new AppService()
 
 		MessagesRetriever(CyclicBarrier startBarrier, CountDownLatch doneSignal, User richard, User bob)
 		{
@@ -892,14 +888,14 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 			this.bob = bob
 		}
 
-		public void run()
+		void run()
 		{
 			try
 			{
 				startBarrier.await()
 				doWork()
 				doneSignal.countDown()
-			} catch (InterruptedException ex)
+			} catch (InterruptedException ignored)
 			{
 			} // return;
 		}
@@ -916,7 +912,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 			buddyConnectResponseMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(bob.url))
 			buddyConnectResponseMessages[0]._embedded?."yona:user" == null
 			buddyConnectResponseMessages[0].nickname == bob.nickname
-			assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
+			assertEquals(buddyConnectResponseMessages[0].creationTime as String, YonaServer.now)
 			buddyConnectResponseMessages[0].status == "ACCEPTED"
 			buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 			buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days

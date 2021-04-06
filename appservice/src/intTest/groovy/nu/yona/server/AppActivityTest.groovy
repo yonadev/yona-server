@@ -23,7 +23,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		ZonedDateTime testStartTime = YonaServer.now
-		ZonedDateTime startTime = testStartTime.minus(Duration.ofHours(1))
+		ZonedDateTime startTime = testStartTime - Duration.ofHours(1)
 		ZonedDateTime endTime = testStartTime
 		def nowString = YonaServer.toIsoDateTimeString(testStartTime)
 		def startTimeString = YonaServer.toIsoDateTimeString(startTime)
@@ -68,7 +68,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
-		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
+		assertEquals(goalConflictMessagesRichard[0].creationTime as String, goalConflictTime)
 		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -100,9 +100,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		ZonedDateTime endTime = startTime.plusHours(1)
 
 		when:
-		def currentTimeWrong = YonaServer.now.plus(offset)
-		def startTimeWrong = startTime.plus(offset)
-		def endTimeWrong = endTime.plus(offset)
+		def currentTimeWrong = YonaServer.now + offset
+		def startTimeWrong = startTime + offset
+		def endTimeWrong = endTime + offset
 		def response = appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice, AppActivity.singleActivity(currentTimeWrong, "Poker App", startTimeWrong, endTimeWrong))
 
 		then:
@@ -180,7 +180,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def response = appService.postAppActivityToAnalysisEngine(richard, richard.requestingDevice,
-				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime), new AppActivity.Activity("Lotto App", , startTime1, endTime1)].toArray()))
+				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime), new AppActivity.Activity("Lotto App", startTime1, endTime1)].toArray()))
 
 		then:
 		assertResponseStatusNoContent(response)
@@ -224,7 +224,6 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		ZonedDateTime goalConflictTime = YonaServer.now
 		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" } == null
 
 		cleanup:
@@ -326,7 +325,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Send app activity within device time inacuracy window'()
+	def 'Send app activity within device time inaccuracy window'()
 	{
 		given:
 		def richard = addRichard()

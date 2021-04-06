@@ -38,7 +38,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
+		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
 
 		vpnConnectionStatusChangeMessages.size() == 1
 		vpnConnectionStatusChangeMessages[0]._links.keySet() == ["self", "edit", "yona:buddy", "yona:user", "yona:markRead"] as Set

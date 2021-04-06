@@ -13,8 +13,6 @@ class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
 {
 	def 'Get all activity categories'()
 	{
-		given:
-
 		when:
 		def response = appService.getAllActivityCategoriesWithLanguage("en-US")
 

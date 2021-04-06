@@ -19,7 +19,7 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
-		def rejectUrl = connectRequestMessage.rejectUrl
+		String rejectUrl = connectRequestMessage.rejectUrl
 
 		when:
 		def rejectMessage = "Sorry, not you"
