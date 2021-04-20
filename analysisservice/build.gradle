@@ -35,7 +35,7 @@ dependencies {
 	testCompile project(':core').sourceSets.test.output
 	testCompile "org.mockito:mockito-core"
 
-	intTestCompile "org.codehaus.groovy:groovy-all:3.0.7"
+	intTestCompile "org.codehaus.groovy:groovy-all:3.0.8"
 	intTestCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 	intTestCompile "org.spockframework:spock-core:1.3-groovy-2.5"
 }
