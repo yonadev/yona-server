@@ -33,7 +33,7 @@ dependencies {
 	compile "org.springframework.boot:spring-boot-starter-actuator"
 	compile "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.2"
 	compile "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
-	compile "io.micrometer:micrometer-registry-prometheus:1.6.6"
+	compile "io.micrometer:micrometer-registry-prometheus:1.6.7"
 	compile "org.springframework:spring-context-support"
 	compile "org.hibernate:hibernate-java8:5.2.18.Final"
 	compile "org.atteo:evo-inflector:1.2.2"
