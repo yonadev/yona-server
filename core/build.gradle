@@ -46,7 +46,7 @@ dependencies {
 	compile "org.springframework.security:spring-security-web:5.4.6"
 	compile "com.google.guava:guava:23.0"
 	compile "com.googlecode.libphonenumber:libphonenumber:8.12.22"
-	compile "com.google.firebase:firebase-admin:7.2.0"
+	compile "com.google.firebase:firebase-admin:7.3.0"
 
 	testCompile "org.springframework.boot:spring-boot-starter-test"
 	testCompile "org.mockito:mockito-junit-jupiter"
