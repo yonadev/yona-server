@@ -41,7 +41,7 @@ dependencies {
 	compile "commons-lang:commons-lang:2.6"
 	compile "javax.mail:mail:1.4.7"
 	compile("org.thymeleaf:thymeleaf-spring5:3.0.12.RELEASE")
-	compile "org.springframework.ldap:spring-ldap-core:2.3.3.RELEASE"
+	compile "org.springframework.ldap:spring-ldap-core:2.3.4.RELEASE"
 	compile "org.springframework.security:spring-security-config:5.4.6"
 	compile "org.springframework.security:spring-security-web:5.4.6"
 	compile "com.google.guava:guava:23.0"
