@@ -37,7 +37,7 @@ dependencies {
 
 	intTestCompile "org.codehaus.groovy:groovy-all:3.0.8"
 	intTestCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-	intTestCompile "org.spockframework:spock-core:1.3-groovy-2.5"
+	intTestCompile "org.spockframework:spock-core:2.0-groovy-3.0"
 }
 
 test {
