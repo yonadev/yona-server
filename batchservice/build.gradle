@@ -23,10 +23,10 @@ configurations {
 }
 
 dependencies {
-	compile project(":core")
-	runtime "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
-	compile "org.springframework.batch:spring-batch-core:$project.ext.version_batch_core"
-	compile "org.quartz-scheduler:quartz:2.3.2"
+	implementation project(":core")
+	runtimeClasspath "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
+	implementation "org.springframework.batch:spring-batch-core:$project.ext.version_batch_core"
+	implementation "org.quartz-scheduler:quartz:2.3.2"
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 }
 
