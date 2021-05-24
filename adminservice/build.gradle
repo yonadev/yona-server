@@ -1,6 +1,7 @@
 description = "Administration service"
 
 apply plugin: "application"
+apply plugin: "groovy"
 
 mainClassName = "nu.yona.server.AdminServiceApplication"
 
@@ -20,7 +21,7 @@ release {
 
 configurations {
 	providedRuntime
-	intTestCompile.extendsFrom testCompile
+	intTestImplementation.extendsFrom testImplementation
 	intTestRuntime.extendsFrom testRuntime
 }
 
@@ -29,11 +30,11 @@ dependencies {
 	runtimeClasspath "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
-	testCompile project(path: ":core", configuration: "testUtils")
+	testImplementation project(path: ":core", configuration: "testUtils")
 
-	intTestCompile "org.codehaus.groovy:groovy-all:3.0.8"
-	intTestCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-	intTestCompile "org.spockframework:spock-core:$project.ext.version_spock_core"
+	intTestImplementation "org.codehaus.groovy:groovy-all:3.0.8"
+	intTestImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
+	intTestImplementation "org.spockframework:spock-core:$project.ext.version_spock_core"
 }
 
 test {
@@ -110,7 +111,6 @@ bootJar {
 
 eclipse {
 	classpath {
-		plusConfigurations += [configurations.intTestCompile]
+		plusConfigurations += [configurations.intTestImplementation]
 	}
 }
-
