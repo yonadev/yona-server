@@ -31,7 +31,7 @@ dependencies {
 	compile "org.springframework.boot:spring-boot-starter-data-jpa"
 	compile "org.springframework.boot:spring-boot-starter-web"
 	compile "org.springframework.boot:spring-boot-starter-actuator"
-	compile "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.2"
+	compile "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.3"
 	compile "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
 	compile "io.micrometer:micrometer-registry-prometheus:1.7.0"
 	compile "org.springframework:spring-context-support"
