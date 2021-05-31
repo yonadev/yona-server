@@ -45,7 +45,7 @@ dependencies {
 	compile "org.springframework.security:spring-security-config:5.5.0"
 	compile "org.springframework.security:spring-security-web:5.5.0"
 	compile "com.google.guava:guava:23.0"
-	compile "com.googlecode.libphonenumber:libphonenumber:8.12.23"
+	compile "com.googlecode.libphonenumber:libphonenumber:8.12.24"
 	compile "com.google.firebase:firebase-admin:7.3.0"
 
 	testCompile "org.springframework.boot:spring-boot-starter-test"
