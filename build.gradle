@@ -44,7 +44,7 @@ subprojects {
 		version_jmockit = "1.49"
 		version_junit_jupiter = "5.7.2"
 		version_hamcrest_jdk8_time = "0.7.1"
-		version_equalsverifier = "3.6"
+		version_equalsverifier = "3.6.1"
 		version_spock_core = "2.0-groovy-3.0"
 
 		yona_adminservice_scheme = project.properties["yona_adminservice_scheme"] ?: "http"
