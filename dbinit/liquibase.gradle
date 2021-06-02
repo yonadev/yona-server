@@ -4,6 +4,7 @@ configurations {
 
 dependencies {
 	liquibase "org.liquibase.ext:liquibase-hibernate5:4.3.0.1"
+	liquibase project.deps.mariadbClient
 }
 
 //loading properties file.

@@ -17,10 +17,10 @@ release {
 }
 
 dependencies {
-	compile project(":core")
-	runtime "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
-	compile "org.springframework.batch:spring-batch-core:$project.ext.version_batch_core"
-	compile "org.liquibase:liquibase-core:4.3.5"
+	implementation project(":core")
+	implementation project.deps.springBatchCore
+	implementation "org.liquibase:liquibase-core:4.3.5"
+	runtimeClasspath project.deps.mariadbClient
 }
 
 docker {
@@ -53,11 +53,11 @@ task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 }
 
 task pathingJar(type: Jar) {
-	dependsOn configurations.productionRuntimeClasspath
+	dependsOn configurations.runtimeClasspath
 	appendix = 'pathing'
 	doFirst {
 		manifest {
-			attributes "Class-Path": configurations.productionRuntimeClasspath.files.collect {
+			attributes "Class-Path": configurations.runtimeClasspath.files.collect {
 				it.toURL().toString().replaceFirst(/file:\/+/, '/')
 			}.join(' ')
 		}
