@@ -1,3 +1,7 @@
+plugins {
+    id 'java-library'
+}
+
 description = 'Core'
 
 jar {
@@ -24,42 +28,42 @@ artifacts {
 dependencies {
 	// When updating the below two version numbers, also update
 	// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
-	compile "com.hazelcast:hazelcast:4.2"
-	compile "com.hazelcast:hazelcast-spring:4.2"
-	compile 'com.hazelcast:hazelcast-kubernetes:2.2.2'
-	compile "org.springframework.boot:spring-boot-starter-hateoas"
-	compile "org.springframework.boot:spring-boot-starter-data-jpa"
-	compile "org.springframework.boot:spring-boot-starter-web"
-	compile "org.springframework.boot:spring-boot-starter-actuator"
-	compile "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.3"
-	compile "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
-	compile "io.micrometer:micrometer-registry-prometheus:1.7.0"
-	compile "org.springframework:spring-context-support"
-	compile "org.hibernate:hibernate-java8:5.4.31.Final"
-	compile "org.atteo:evo-inflector:1.2.2"
-	compile "commons-validator:commons-validator:1.7"
-	compile "commons-lang:commons-lang:2.6"
-	compile "javax.mail:mail:1.4.7"
-	compile("org.thymeleaf:thymeleaf-spring5:3.0.12.RELEASE")
-	compile "org.springframework.ldap:spring-ldap-core:2.3.4.RELEASE"
-	compile "org.springframework.security:spring-security-config:5.5.0"
-	compile "org.springframework.security:spring-security-web:5.5.0"
-	compile "com.google.guava:guava:23.0"
-	compile "com.googlecode.libphonenumber:libphonenumber:8.12.24"
-	compile "com.google.firebase:firebase-admin:7.3.0"
+	implementation "com.hazelcast:hazelcast:4.2"
+	implementation "com.hazelcast:hazelcast-spring:4.2"
+	implementation 'com.hazelcast:hazelcast-kubernetes:2.2.2'
+	api "org.springframework.boot:spring-boot-starter-hateoas"
+	api "org.springframework.boot:spring-boot-starter-data-jpa"
+	api "org.springframework.boot:spring-boot-starter-web"
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
+	implementation "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.3"
+	implementation "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
+	implementation "io.micrometer:micrometer-registry-prometheus:1.7.0"
+	api "org.springframework:spring-context-support"
+	implementation "org.hibernate:hibernate-java8:5.4.31.Final"
+	implementation "org.atteo:evo-inflector:1.2.2"
+	implementation "commons-validator:commons-validator:1.7"
+	implementation "commons-lang:commons-lang:2.6"
+	api "javax.mail:mail:1.4.7"
+	api "org.thymeleaf:thymeleaf-spring5:3.0.12.RELEASE"
+	implementation "org.springframework.ldap:spring-ldap-core:2.3.4.RELEASE"
+	implementation "org.springframework.security:spring-security-config:5.5.0"
+	implementation "org.springframework.security:spring-security-web:5.5.0"
+	api "com.google.guava:guava:23.0"
+	implementation "com.googlecode.libphonenumber:libphonenumber:8.12.24"
+	implementation "com.google.firebase:firebase-admin:7.3.0"
 
-	testCompile "org.springframework.boot:spring-boot-starter-test"
-	testCompile "org.mockito:mockito-junit-jupiter"
-	testCompile "org.jmockit:jmockit:1.49"
-	testCompile "org.junit.jupiter:junit-jupiter:5.7.2"
-	testCompile "com.spencerwi:hamcrest-jdk8-time:0.7.1"
-	testCompile "nl.jqno.equalsverifier:equalsverifier:3.6.1"
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	testImplementation "org.mockito:mockito-junit-jupiter"
+	testImplementation "org.jmockit:jmockit:$project.ext.version_jmockit"
+	testImplementation "org.junit.jupiter:junit-jupiter:$project.ext.version_junit_jupiter"
+	testImplementation "com.spencerwi:hamcrest-jdk8-time:$project.ext.version_hamcrest_jdk8_time"
+	testImplementation "nl.jqno.equalsverifier:equalsverifier:$project.ext.version_equalsverifier"
 
-	testUtilsCompile "org.codehaus.groovy:groovy-all:3.0.8"
-	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
+	testUtilsImplementation "org.codehaus.groovy:groovy-all:3.0.8"
+	testUtilsImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 
 	// mandatory dependencies for using Spock
-	testUtilsCompile "org.spockframework:spock-core:1.3-groovy-2.5"
+	testUtilsImplementation "org.spockframework:spock-core:$project.ext.version_spock_core"
 }
 
 test {
@@ -78,6 +82,6 @@ jar {
 
 eclipse {
 	classpath {
-		plusConfigurations += [configurations.testUtilsCompile]
+		plusConfigurations += [configurations.testUtilsImplementation]
 	}
 }

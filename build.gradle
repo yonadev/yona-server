@@ -23,6 +23,8 @@ htmlDependencyReport {
 	projects = project.allprojects
 }
 
+ext['groovy.version'] = '3.0.8'
+
 subprojects {
 	sourceCompatibility = 11.0
 	targetCompatibility = 11.0
@@ -39,6 +41,11 @@ subprojects {
 
 		version_batch_core = "3.0.7.RELEASE"
 		version_mariadb_client = "1.5.5"
+		version_jmockit = "1.49"
+		version_junit_jupiter = "5.7.2"
+		version_hamcrest_jdk8_time = "0.7.1"
+		version_equalsverifier = "3.6.1"
+		version_spock_core = "2.0-groovy-3.0"
 
 		yona_adminservice_scheme = project.properties["yona_adminservice_scheme"] ?: "http"
 		yona_adminservice_host = project.properties["yona_adminservice_host"] ?: "localhost"
