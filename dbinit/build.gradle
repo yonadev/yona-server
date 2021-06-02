@@ -18,9 +18,9 @@ release {
 
 dependencies {
 	implementation project(":core")
-	runtimeClasspath "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
-	implementation "org.springframework.batch:spring-batch-core:$project.ext.version_batch_core"
+	implementation project.deps.springBatchCore
 	implementation "org.liquibase:liquibase-core:4.3.5"
+	runtimeClasspath project.deps.mariadbClient
 }
 
 docker {

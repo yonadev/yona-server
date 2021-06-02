@@ -28,7 +28,7 @@ dependencies {
 	implementation project(":core")
 	implementation "org.bouncycastle:bcprov-jdk15on:1.68"
 	implementation "org.bouncycastle:bcpkix-jdk15on:1.68"
-	runtimeClasspath "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
+	runtimeClasspath project.deps.mariadbClient
 	runtimeClasspath "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 	runtimeClasspath "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
 	providedRuntimeClasspath "org.springframework.boot:spring-boot-starter-tomcat"
@@ -39,7 +39,7 @@ dependencies {
 
 	intTestImplementation "org.codehaus.groovy:groovy-all:3.0.8"
 	intTestImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-	intTestImplementation "org.spockframework:spock-core:$project.ext.version_spock_core"
+	intTestImplementation project.deps.spockCore
 }
 
 test {
