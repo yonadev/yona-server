@@ -17,14 +17,56 @@ import java.time.temporal.ChronoField
 import java.time.temporal.IsoFields
 import java.time.temporal.WeekFields
 
+import org.codehaus.groovy.runtime.IOGroovyMethods
+
 import groovy.json.JsonSlurper
 import groovyx.net.http.AsyncHTTPBuilder
 import groovyx.net.http.HTTPBuilder
+import groovyx.net.http.HttpResponseDecorator
 import groovyx.net.http.RESTClient
+import groovyx.net.http.ResponseParseException
 import groovyx.net.http.URIBuilder
 
 class YonaServer
 {
+	static class RESTClientGroovy3 extends RESTClient
+	{
+		RESTClientGroovy3(baseUrl)
+		{
+			super(baseUrl)
+		}
+
+		@Override
+		HttpResponseDecorator defaultSuccessHandler(HttpResponseDecorator resp, Object parsedData)
+				throws ResponseParseException
+		{
+			try
+			{
+				//If response is streaming, buffer it in a byte array:
+				if (parsedData instanceof InputStream)
+				{
+					ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+					// we've updated the below line
+					IOGroovyMethods.leftShift(buffer, (InputStream) parsedData);
+					resp.setData(new ByteArrayInputStream(buffer.toByteArray()))
+					return resp;
+				}
+				if (parsedData instanceof Reader)
+				{
+					StringWriter buffer = new StringWriter();
+					// we've updated the below line
+					IOGroovyMethods.leftShift(buffer, (Reader) parsedData);
+					resp.setData(new StringReader(buffer.toString()))
+					return resp;
+				}
+				return super.defaultSuccessHandler(resp, parsedData)
+			}
+			catch (IOException ex)
+			{
+				throw new ResponseParseException(resp, ex);
+			}
+		}
+	}
 	static final ZoneId EUROPE_AMSTERDAM_ZONE = ZoneId.of("Europe/Amsterdam")
 	static final Locale EN_US_LOCALE = Locale.forLanguageTag("en-US")
 	private static final DateTimeFormatter ISO8601_WEEK_FORMATTER = new DateTimeFormatterBuilder().parseCaseInsensitive()
@@ -38,7 +80,7 @@ class YonaServer
 
 	YonaServer(baseUrl)
 	{
-		restClient = new RESTClient(baseUrl)
+		restClient = new RESTClientGroovy3(baseUrl)
 
 		restClient.handler.failure = restClient.handler.success
 	}
@@ -364,4 +406,5 @@ class YonaServer
 		}
 		futures.collect { it.get() }
 	}
+
 }

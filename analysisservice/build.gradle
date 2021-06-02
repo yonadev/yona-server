@@ -103,6 +103,7 @@ task intTest(type: Test) {
 	description = "Run integration tests (located in src/intTest/...)."
 	testClassesDirs = project.sourceSets.intTest.output.classesDirs
 	classpath = project.sourceSets.intTest.runtimeClasspath
+	useJUnitPlatform()
 
 	systemProperties = ["java.util.logging.config.file": "../core/src/testUtils/logging.properties",
 						"yona.adminservice.url"        : project.ext.yona_adminservice_url,
