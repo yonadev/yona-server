@@ -27,14 +27,14 @@ configurations {
 
 dependencies {
 	implementation  project(":core")
-	runtimeClasspath "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
+	runtimeClasspath project.deps.mariadbClient
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
 	testImplementation project(path: ":core", configuration: "testUtils")
 
 	intTestImplementation "org.codehaus.groovy:groovy-all:3.0.8"
 	intTestImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-	intTestImplementation "org.spockframework:spock-core:$project.ext.version_spock_core"
+	intTestImplementation project.deps.spockCore
 }
 
 test {
