@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.data.repository.CrudRepository;
 
 import nu.yona.server.test.util.JUnitUtil;
@@ -19,7 +20,7 @@ public class MockCrudRepositoryEntityWithId<T extends EntityWithId> implements C
 {
 	private static final Field idField = JUnitUtil.getAccessibleField(EntityWithId.class, "id");
 	private int nextId;
-	private Map<Long, T> entities = new HashMap<>();
+	private final Map<Long, T> entities = new HashMap<>();
 
 	@Override
 	public <S extends T> S save(S entity)
@@ -95,6 +96,12 @@ public class MockCrudRepositoryEntityWithId<T extends EntityWithId> implements C
 	public void delete(T entity)
 	{
 		deleteById(entity.getId());
+	}
+
+	@Override
+	public void deleteAllById(Iterable<? extends Long> longs)
+	{
+		throw new NotImplementedException();
 	}
 
 	@Override
