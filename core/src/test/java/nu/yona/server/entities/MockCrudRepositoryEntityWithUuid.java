@@ -12,11 +12,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.data.repository.CrudRepository;
 
 public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implements CrudRepository<T, UUID>
 {
-	private Map<UUID, T> entities = new HashMap<>();
+	private final Map<UUID, T> entities = new HashMap<>();
 
 	@Override
 	public <S extends T> S save(S entity)
@@ -84,6 +85,12 @@ public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implemen
 	public void delete(T entity)
 	{
 		deleteById(entity.getId());
+	}
+
+	@Override
+	public void deleteAllById(Iterable<? extends UUID> uuids)
+	{
+		throw new NotImplementedException();
 	}
 
 	@Override
