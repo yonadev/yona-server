@@ -1,7 +1,7 @@
 FROM yonadev/mariadb-liquibase-update:3.6.3
 
 # Add jq (to validate json)
-RUN mkdir -p config/dummy # Workaround for spring-projects/spring-boot#26627
+ENV SPRING_CONFIG_LOCATION=optional:classpath:/,optional:classpath:/config/,optional:file:./,optional:file:./config/ # Workaround for spring-projects/spring-boot#26627
 ADD https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 /usr/local/bin/jq
 RUN chmod +x /usr/local/bin/jq
 

@@ -6,7 +6,7 @@ EXPOSE 8080 9080
 
 VOLUME /tmp
 
-RUN mkdir -p config/dummy # Workaround for spring-projects/spring-boot#26627
+ENV SPRING_CONFIG_LOCATION=optional:classpath:/,optional:classpath:/config/,optional:file:./,optional:file:./config/ # Workaround for spring-projects/spring-boot#26627
 ADD analysisservice.jar app.jar
 
 RUN sh -c 'touch /app.jar'
