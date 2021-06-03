@@ -6,6 +6,7 @@ EXPOSE 8080 9080
 
 VOLUME /tmp
 
+RUN mkdir -p config/dummy # Workaround for spring-projects/spring-boot#26627
 ADD appservice.jar app.jar
 
 RUN sh -c 'touch /app.jar'
