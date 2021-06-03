@@ -10,7 +10,7 @@ final Map<String, String> libraries = [
 	//
 	// DO NOT interpolate version variables here because Dependabot is not smart enough to understand those. Dependabot's
 	// version parsing is simply regex matching and never actually evaluates a gradle script.
-	springBatchCore 		: "org.springframework.batch:spring-batch-core:3.0.7.RELEASE",
+	springBatchCore 		: "org.springframework.batch:spring-batch-core:4.3.3",
 	springSecurityWeb		: "org.springframework.security:spring-security-web:5.5.0",
 	mariadbClient			: "org.mariadb.jdbc:mariadb-java-client:2.7.3",
 	jmockit					: "org.jmockit:jmockit:1.49",

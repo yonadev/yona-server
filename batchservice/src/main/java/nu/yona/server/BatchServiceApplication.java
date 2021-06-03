@@ -4,7 +4,10 @@
  *******************************************************************************/
 package nu.yona.server;
 
+import java.util.List;
+
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -33,5 +36,18 @@ public class BatchServiceApplication
 	public TaskScheduler taskScheduler()
 	{
 		return new ConcurrentTaskScheduler(); // single threaded by default
+	}
+
+	@Bean(name = "noopItemWriter")
+	public ItemWriter<Object> noopItemWriter()
+	{
+		return new ItemWriter<Object>()
+		{
+
+			@Override
+			public void write(List<? extends Object> items) throws Exception
+			{
+			}
+		};
 	}
 }
