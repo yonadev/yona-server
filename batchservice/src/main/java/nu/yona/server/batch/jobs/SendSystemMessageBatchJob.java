@@ -22,6 +22,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,10 @@ public class SendSystemMessageBatchJob
 	private ItemProcessor<UUID, Void> userAnonymizedProcessor;
 
 	@Autowired
+	@Qualifier("noopItemWriter")
+	private ItemWriter<Object> noopItemWriter;
+
+	@Autowired
 	private DataSource dataSource;
 
 	@Autowired
@@ -81,7 +86,7 @@ public class SendSystemMessageBatchJob
 	private Step sendSystemMessages()
 	{
 		return stepBuilderFactory.get("sendSystemMessages").<UUID, Void>chunk(USERS_CHUNK_SIZE).reader(userAnonymizedReader)
-				.processor(userAnonymizedProcessor).build();
+				.processor(userAnonymizedProcessor).writer(noopItemWriter).build();
 	}
 
 	@Bean(name = "sendSystemMessageJobUserAnonymizedReader", destroyMethod = "")
@@ -116,7 +121,7 @@ public class SendSystemMessageBatchJob
 
 	private ItemReader<UUID> userAnonymizedIdReader()
 	{
-		final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = createQueryProviderFactory();
+		SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = createQueryProviderFactory();
 		JdbcPagingItemReader<UUID> reader = createReader(sqlPagingQueryProviderFactoryBean);
 		logger.info("Reading users anonymized in chunks of {}", USERS_CHUNK_SIZE);
 		return reader;
@@ -124,7 +129,7 @@ public class SendSystemMessageBatchJob
 
 	private SqlPagingQueryProviderFactoryBean createQueryProviderFactory()
 	{
-		final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+		SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
 		sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
 		sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
 		sqlPagingQueryProviderFactoryBean.setFromClause("from users_anonymized");
@@ -132,7 +137,7 @@ public class SendSystemMessageBatchJob
 		return sqlPagingQueryProviderFactoryBean;
 	}
 
-	private JdbcPagingItemReader<UUID> createReader(final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean)
+	private JdbcPagingItemReader<UUID> createReader(SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean)
 	{
 		try
 		{
@@ -151,7 +156,7 @@ public class SendSystemMessageBatchJob
 		}
 	}
 
-	private RowMapper<UUID> singleUUIDColumnRowMapper()
+	private static RowMapper<UUID> singleUUIDColumnRowMapper()
 	{
 		return new RowMapper<UUID>()
 		{
