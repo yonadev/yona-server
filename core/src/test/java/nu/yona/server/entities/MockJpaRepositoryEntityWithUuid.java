@@ -121,4 +121,28 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	{
 		throw new NotImplementedException();
 	}
+
+	@Override
+	public <S extends T> List<S> saveAllAndFlush(Iterable<S> entities)
+	{
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void deleteAllInBatch(Iterable<T> entities)
+	{
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void deleteAllByIdInBatch(Iterable<UUID> uuids)
+	{
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public T getById(UUID uuid)
+	{
+		throw new NotImplementedException();
+	}
 }
