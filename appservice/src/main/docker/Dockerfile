@@ -10,6 +10,4 @@ ADD appservice.jar app.jar
 
 RUN sh -c 'touch /app.jar'
 
-# Workaround for spring-projects/spring-boot#26627
-ENV SPRING_CONFIG_LOCATION=optional:classpath:/,optional:classpath:/config/,optional:file:./,optional:file:./config/
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/urandom","-jar","app.jar", "--management.server.port=9080"]
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/urandom","-jar","app.jar", "--management.server.port=9080", "--spring.config.location=optional:classpath:/,optional:classpath:/config/,optional:file:./,optional:file:./config/"]

@@ -11,7 +11,4 @@ COPY changelogs /changelogs
 
 # Override with custom script for k8s / helm support
 COPY update.sh /scripts/
-# Workaround for spring-projects/spring-boot#26627
-ENV SPRING_CONFIG_LOCATION=optional:classpath:/,optional:classpath:/config/,optional:file:./,optional:file:./config/
 RUN chmod +x /scripts/update.sh
-
