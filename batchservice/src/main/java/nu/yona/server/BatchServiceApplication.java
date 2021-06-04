@@ -47,6 +47,7 @@ public class BatchServiceApplication
 			@Override
 			public void write(List<? extends Object> items) throws Exception
 			{
+				// Noop-implementation, so nothing to do here
 			}
 		};
 	}

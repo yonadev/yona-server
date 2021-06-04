@@ -12,4 +12,3 @@ COPY changelogs /changelogs
 # Override with custom script for k8s / helm support
 COPY update.sh /scripts/
 RUN chmod +x /scripts/update.sh
-
