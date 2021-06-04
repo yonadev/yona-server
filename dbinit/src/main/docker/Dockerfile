@@ -1,4 +1,4 @@
-FROM yonadev/mariadb-liquibase-update:3.6.3
+FROM yonadev/mariadb-liquibase-update:4.3.5
 
 # Add jq (to validate json)
 ADD https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 /usr/local/bin/jq
