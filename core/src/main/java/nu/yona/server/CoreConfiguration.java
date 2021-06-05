@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
@@ -103,7 +103,7 @@ public class CoreConfiguration
 		logger.info("Reading the Firebase service account info from {}", fileName);
 		try (InputStream serviceAccount = new FileInputStream(fileName))
 		{
-			FirebaseOptions options = new FirebaseOptions.Builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
+			FirebaseOptions options = FirebaseOptions.builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
 					.setDatabaseUrl(yonaProperties.getFirebase().getDatabaseUrl()).build();
 
 			FirebaseApp.initializeApp(options);

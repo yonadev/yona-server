@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.rest;
@@ -215,6 +215,7 @@ public class MessageController extends ControllerBase
 		private final CurieProvider curieProvider;
 		private final MessageController messageController;
 
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public MessageActionResource(CurieProvider curieProvider, MessageActionDto messageAction, GoalIdMapping goalIdMapping,
 				MessageController messageController)
 		{

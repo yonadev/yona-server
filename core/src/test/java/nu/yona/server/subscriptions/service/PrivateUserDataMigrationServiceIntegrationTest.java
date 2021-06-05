@@ -111,13 +111,13 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	@Autowired
 	private UserService userService;
 
-	private final String password = "password";
+	private final static String PASSWORD = "password";
 	private User richard;
 
 	@BeforeEach
 	public void setUpPerTest()
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password))
+		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();
 		}
@@ -138,7 +138,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	{
 		richard.setPrivateDataMigrationVersion(0);
 
-		try (CryptoSession cryptoSession = CryptoSession.start(password))
+		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
 			userService.doPreparationsAndCheckCanAccessPrivateData(richard.getId());
 
@@ -154,7 +154,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	{
 		richard.setPrivateDataMigrationVersion(2);
 
-		try (CryptoSession cryptoSession = CryptoSession.start(password))
+		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
 			userService.doPreparationsAndCheckCanAccessPrivateData(richard.getId());
 

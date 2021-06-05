@@ -48,7 +48,7 @@ public abstract class BaseSpringIntegrationTest
 	@BeforeEach
 	public final void setUpPerTestBase()
 	{
-		MockitoAnnotations.initMocks(this);
+		MockitoAnnotations.openMocks(this);
 
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(User.class, userRepository);

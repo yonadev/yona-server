@@ -54,7 +54,7 @@ class EncryptUserCreationTimeTest
 		{
 			user = JUnitUtil.createRichard();
 			userPrivate = JUnitUtil.getUserPrivate(user);
-			userAnonZoneId = userAnonymizedRepository.getOne(user.getUserAnonymizedId()).getTimeZone();
+			userAnonZoneId = userAnonymizedRepository.getById(user.getUserAnonymizedId()).getTimeZone();
 		}
 
 		userPrivate = Mockito.spy(userPrivate);

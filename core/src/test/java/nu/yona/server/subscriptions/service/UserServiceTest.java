@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,14 +77,23 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	@Autowired
 	private UserService service;
 
+	private static final String PASSWORD = "password";
+
 	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
 		yonaProperties.setSupportedCountryCodes("31");
-		try (CryptoSession cryptoSession = CryptoSession.start(BuddyDeviceChangeMessageDtoTestConfiguration.PASSWORD))
+		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();
 		}
+	}
+
+	@NotNull
+	@SuppressWarnings("unchecked")
+	private static <K, V> ArgumentCaptor<Map<K, V>> makeMapArgumentCaptor(Class<K> k, Class<V> v)
+	{
+		return ArgumentCaptor.forClass(Map.class);
 	}
 
 	@Override
@@ -110,7 +120,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 		Optional<ConfirmationCode> overwriteUserConfirmationCode = richard.getOverwriteUserConfirmationCode();
 		assertTrue(overwriteUserConfirmationCode.isPresent(), "Overwrite user confirmation code not set");
 
-		ArgumentCaptor<Map<String, Object>> messageParamCaptor = ArgumentCaptor.forClass(Map.class);
+		ArgumentCaptor<Map<String, Object>> messageParamCaptor = makeMapArgumentCaptor(String.class, Object.class);
 		verify(smsService, times(1))
 				.send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION), messageParamCaptor.capture());
 		assertThat("Correct confirmation code in message", messageParamCaptor.getValue().get("confirmationCode"),
@@ -148,7 +158,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 		assertTrue(overwriteUserConfirmationCode.isPresent(), "Overwrite user confirmation code not set");
 		assertThat(overwriteUserConfirmationCode, not(equalTo(initialOverwriteUserConfirmationCode)));
 
-		ArgumentCaptor<Map<String, Object>> messageParamCaptor = ArgumentCaptor.forClass(Map.class);
+		ArgumentCaptor<Map<String, Object>> messageParamCaptor = makeMapArgumentCaptor(String.class, Object.class);
 		verify(smsService, times(1))
 				.send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION), messageParamCaptor.capture());
 		assertThat("Correct confirmation code in message", messageParamCaptor.getValue().get("confirmationCode"),

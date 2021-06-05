@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
@@ -403,6 +403,7 @@ public class UserActivityController extends ActivityControllerBase
 		private final UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public DayActivityOverviewWithBuddiesResource(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
 				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
@@ -467,6 +468,7 @@ public class UserActivityController extends ActivityControllerBase
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
 
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public DayActivityWithBuddiesResource(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
 				String dateStr, DayActivityWithBuddiesDto dayActivity)
 		{
@@ -528,6 +530,7 @@ public class UserActivityController extends ActivityControllerBase
 
 	static class ActivityForOneUserResource extends EntityModel<ActivityForOneUser>
 	{
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public ActivityForOneUserResource(ActivityForOneUser dayActivity)
 		{
 			super(dayActivity);
@@ -654,6 +657,7 @@ public class UserActivityController extends ActivityControllerBase
 
 	public static class ActivitiesResource extends CollectionModel<ActivityWithDeviceDto>
 	{
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public ActivitiesResource(Map<UUID, String> deviceAnonymizedIdToDeviceName, List<ActivityDto> rawActivities)
 		{
 			super(wrapEnrichActivitiesWithDeviceName(deviceAnonymizedIdToDeviceName, rawActivities));

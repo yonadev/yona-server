@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -536,6 +536,7 @@ public class UserController extends ControllerBase
 		private final UUID requestingUserId;
 		private final Optional<UUID> requestingDeviceId;
 
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public UserResource(CurieProvider curieProvider, UserResourceRepresentation representation, UserDto user,
 				UUID requestingUserId, Optional<UUID> requestingDeviceId)
 		{

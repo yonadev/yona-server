@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
@@ -180,10 +180,6 @@ public class Buddy extends PrivateUserProperties
 		return this;
 	}
 
-	/**
-	 * @deprecated only for use by migration step.
-	 */
-	@Deprecated
 	public void setLastStatusChangeTime(LocalDateTime lastStatusChangeTime)
 	{
 		this.lastStatusChangeTime = lastStatusChangeTime;

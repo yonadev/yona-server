@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -142,6 +142,7 @@ public class NewDeviceRequestController extends ControllerBase
 
 	public static class NewDeviceRequestResource extends EntityModel<NewDeviceRequestDto>
 	{
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public NewDeviceRequestResource(NewDeviceRequestDto newDeviceRequest)
 		{
 			super(newDeviceRequest);

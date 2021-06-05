@@ -520,7 +520,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), 0);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -544,7 +544,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), 1);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -568,7 +568,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), -1);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -616,7 +616,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), deviceAnonymizedId1);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -641,7 +641,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), deviceAnonymizedId2);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -688,7 +688,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), device1.getId());
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -712,7 +712,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), device2.getId());
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getById(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -876,7 +876,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		removeDuplicateDefaultDevicesFirstOrSecond(1);
 	}
 
-	private void setAppLastOpenedDateField(UserDevice device, LocalDate originalDate)
+	private static void setAppLastOpenedDateField(UserDevice device, LocalDate originalDate)
 	{
 		try
 		{
@@ -888,7 +888,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		}
 	}
 
-	private LocalDate currentDateInAmsterdam()
+	private static LocalDate currentDateInAmsterdam()
 	{
 		return TimeUtil.toLocalDateTimeInZone(TimeUtil.utcNow(), ZoneId.of("Europe/Amsterdam")).toLocalDate();
 	}

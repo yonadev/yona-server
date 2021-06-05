@@ -70,10 +70,12 @@ class PinResetRequestServiceTest extends BaseSpringIntegrationTest
 	@MockBean
 	private BatchProxyService batchProxyService;
 
+	private final static String PASSWORD = "password";
+
 	@BeforeEach
 	public void setUpPerTest() throws Exception
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(BuddyDeviceChangeMessageDtoTestConfiguration.PASSWORD))
+		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();
 		}
@@ -84,7 +86,7 @@ class PinResetRequestServiceTest extends BaseSpringIntegrationTest
 	{
 		String code = "9876";
 		when(userService.generateConfirmationCode()).thenReturn(code);
-		when(userService.updateUserIfExisting(any(UUID.class), any(Consumer.class))).thenAnswer(new Answer<Optional<User>>()
+		when(userService.updateUserIfExisting(any(UUID.class), getAnyUserConsumer())).thenAnswer(new Answer<Optional<User>>()
 		{
 			@Override
 			public Optional<User> answer(InvocationOnMock invocation) throws Throwable
@@ -106,6 +108,12 @@ class PinResetRequestServiceTest extends BaseSpringIntegrationTest
 						eq(SmsTemplate.PIN_RESET_REQUEST_CONFIRMATION));
 		assertThat("Expected right related user set to goal conflict message", confirmationCodeCaptor.getValue().getCode(),
 				equalTo(code));
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Consumer<User> getAnyUserConsumer()
+	{
+		return any(Consumer.class);
 	}
 
 	@Test
