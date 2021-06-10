@@ -26,7 +26,7 @@ configurations {
 
 dependencies {
 	implementation project(":core")
-	implementation "org.bouncycastle:bcprov-jdk15on:1.68"
+	implementation "org.bouncycastle:bcprov-jdk15on:1.69"
 	implementation "org.bouncycastle:bcpkix-jdk15on:1.68"
 	runtimeClasspath project.deps.mariadbClient
 	runtimeClasspath "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
