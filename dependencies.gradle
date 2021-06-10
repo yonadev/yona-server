@@ -1,6 +1,6 @@
 /** Parses a version from a dependency declaration string */
 static String versionOf(String dependencySpec) {
-  return dependencySpec.split(':').last()
+	return dependencySpec.split(':').last()
 }
 
 final Map<String, String> libraries = [
@@ -18,12 +18,14 @@ final Map<String, String> libraries = [
 	hamcrestJdk8Time		: "com.spencerwi:hamcrest-jdk8-time:0.7.1",
 	equalsverifier			: "nl.jqno.equalsverifier:equalsverifier:3.6.1",
 	spockCore				: "org.spockframework:spock-core:2.0-groovy-3.0",
+	bcprov					: "org.bouncycastle:bcprov-jdk15on:1.69",
 
 ]
 
 // Export versions that are needed outside of this file (and elsewhere within)
 final Map<String, String> v = [
-  springSecurityWeb            : versionOf(libraries.springSecurityWeb)
+	springSecurityWeb		: versionOf(libraries.springSecurityWeb),
+	bcprov					: versionOf(libraries.bcprov),
 ]
 
 // While Dependabot won't be able to parse these deps, these will get upgraded for free anyway since they share versions
@@ -31,9 +33,10 @@ final Map<String, String> v = [
 // benefiting from Dependabot's automatic PR upgrades.
 final Map<String, String> related = [
 	springSecurityConfig	: "org.springframework.security:spring-security-config:${v.springSecurityWeb}",
+	bcpkix					: "org.bouncycastle:bcpkix-jdk15on:${v.bcprov}",
 ]
 
 ext {
-  deps = libraries + related
-  versions = v
+	deps = libraries + related
+	versions = v
 }
