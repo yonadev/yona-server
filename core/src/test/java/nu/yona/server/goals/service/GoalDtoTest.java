@@ -15,6 +15,6 @@ public class GoalDtoTest
 	public void equalsContract()
 	{
 		EqualsVerifier.forClass(GoalDto.class).withRedefinedSuperclass().withOnlyTheseFields("id")
-				.withPrefabValues(Link.class, new Link("edit"), new Link("self")).withNonnullFields("id").verify();
+				.withPrefabValues(Link.class, Link.of("edit"), Link.of("self")).withNonnullFields("id").verify();
 	}
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -81,7 +81,17 @@ public class LDAPUserService
 	@Entry(objectClasses = { "top", "account", "shadowAccount", "posixAccount" }, base = "ou=SSL")
 	private static final class User
 	{
-		private static LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder(KeyGenerators.secureRandom());
+		/**
+		 * Encoder for the password.
+		 * SHA1 is not considered secure anymore, so Spring deprecated it, with no intend to remove it. We continue to use it
+		 * because of our use case: secure the VPN to Smoothwall. If our LDAP gets hacked and our passwords are cracked, the only
+		 * thing an attacker could do is ingest bad traffic to a random innocent user. The VPN accounts are anonymous, so it is
+		 * not possible to ingest the traffic to a known user.
+		 * Considering this, it's not worth it to update the LDAP configuration with a more secure password hashing module.
+		 */
+		@SuppressWarnings("deprecation")
+		private static final LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder(
+				KeyGenerators.secureRandom());
 
 		@Id
 		private Name dn;

@@ -7,7 +7,6 @@ package nu.yona.server.analysis.service;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -27,6 +26,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.data.repository.Repository;
 
 import nu.yona.server.Translator;
@@ -71,7 +71,7 @@ public abstract class AnalysisEngineService_determineRelevantGoalsTest
 	@BeforeEach
 	public void setUp()
 	{
-		initMocks(this);
+		MockitoAnnotations.openMocks(this);
 
 		setUpRepositoryMocks();
 

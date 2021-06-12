@@ -189,7 +189,7 @@ public class ActivityUpdateServiceTest
 				});
 
 		// Mock device service and repo
-		lenient().when(mockDeviceAnonymizedRepository.getOne(deviceAnonId)).thenReturn(deviceAnonEntity);
+		lenient().when(mockDeviceAnonymizedRepository.getById(deviceAnonId)).thenReturn(deviceAnonEntity);
 	}
 
 	private void setUpRepositoryMocks()
@@ -206,7 +206,7 @@ public class ActivityUpdateServiceTest
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 	}
 
-	private Map<Locale, String> usString(String string)
+	private static Map<Locale, String> usString(String string)
 	{
 		return Collections.singletonMap(Translator.EN_US_LOCALE, string);
 	}
@@ -574,7 +574,7 @@ public class ActivityUpdateServiceTest
 				.createInstance(userAnonDto, deviceAnonDto, startTime, endTime, "Lotto", makeCategorySet(gamblingGoal));
 	}
 
-	private Set<ActivityCategoryDto> makeCategorySet(Goal... goals)
+	private static Set<ActivityCategoryDto> makeCategorySet(Goal... goals)
 	{
 		return Arrays.asList(goals).stream().map(Goal::getActivityCategory).map(ActivityCategoryDto::createInstance)
 				.collect(Collectors.toSet());

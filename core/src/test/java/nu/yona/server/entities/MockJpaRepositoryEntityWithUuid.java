@@ -93,6 +93,7 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	}
 
 	@Override
+	@Deprecated
 	public void deleteInBatch(Iterable<T> entities)
 	{
 		deleteAll(entities);
@@ -105,9 +106,10 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	}
 
 	@Override
+	@Deprecated
 	public T getOne(UUID id)
 	{
-		return findById(id).orElseThrow(() -> new javax.persistence.EntityNotFoundException("ID " + id + " not found"));
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -141,8 +143,8 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	}
 
 	@Override
-	public T getById(UUID uuid)
+	public T getById(UUID id)
 	{
-		throw new NotImplementedException();
+		return findById(id).orElseThrow(() -> new javax.persistence.EntityNotFoundException("ID " + id + " not found"));
 	}
 }

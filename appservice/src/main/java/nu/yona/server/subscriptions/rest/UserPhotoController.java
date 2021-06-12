@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2017, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -129,6 +129,7 @@ public class UserPhotoController extends ControllerBase
 
 	public static class UserPhotoResource extends EntityModel<UserPhotoDto>
 	{
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public UserPhotoResource(UserPhotoDto userPhoto)
 		{
 			super(userPhoto);

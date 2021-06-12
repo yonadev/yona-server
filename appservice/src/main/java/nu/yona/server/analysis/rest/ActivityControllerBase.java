@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2020 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
@@ -259,6 +259,7 @@ abstract class ActivityControllerBase extends ControllerBase
 	{
 		private final LinkProvider linkProvider;
 
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public WeekActivityResource(LinkProvider linkProvider, WeekActivityDto weekActivity)
 		{
 			super(weekActivity);
@@ -278,6 +279,7 @@ abstract class ActivityControllerBase extends ControllerBase
 	{
 		private final LinkProvider linkProvider;
 
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public WeekActivityOverviewResource(LinkProvider linkProvider, WeekActivityOverviewDto weekActivityOverview)
 		{
 			super(weekActivityOverview);
@@ -294,6 +296,7 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	static class DayActivityResource extends EntityModel<DayActivityDto>
 	{
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public DayActivityResource(DayActivityDto dayActivity)
 		{
 			super(dayActivity);
@@ -304,6 +307,7 @@ abstract class ActivityControllerBase extends ControllerBase
 	{
 		private final LinkProvider linkProvider;
 
+		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public DayActivityOverviewResource(LinkProvider linkProvider, DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
 			super(dayActivityOverview);
