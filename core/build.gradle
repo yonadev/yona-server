@@ -30,7 +30,7 @@ dependencies {
 	// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 	implementation "com.hazelcast:hazelcast:4.2"
 	implementation "com.hazelcast:hazelcast-spring:4.2"
-	implementation 'com.hazelcast:hazelcast-kubernetes:2.2.2'
+	implementation 'com.hazelcast:hazelcast-kubernetes:2.2.3'
 	api "org.springframework.boot:spring-boot-starter-hateoas"
 	api "org.springframework.boot:spring-boot-starter-data-jpa"
 	api "org.springframework.boot:spring-boot-starter-web"
