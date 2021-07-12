@@ -19,7 +19,7 @@ release {
 dependencies {
 	implementation project(":core")
 	implementation project.deps.springBatchCore
-	implementation "org.liquibase:liquibase-core:4.4.0"
+	implementation "org.liquibase:liquibase-core:4.4.1"
 	runtimeClasspath project.deps.mariadbClient
 }
 
