@@ -35,7 +35,7 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
 	implementation "org.springframework.cloud:spring-cloud-starter-sleuth:3.0.3"
 	implementation "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
-	implementation "io.micrometer:micrometer-registry-prometheus:1.7.1"
+	implementation "io.micrometer:micrometer-registry-prometheus:1.7.2"
 	api "org.springframework:spring-context-support"
 	implementation "org.hibernate:hibernate-java8:5.4.31.Final"
 	implementation "org.atteo:evo-inflector:1.3"
