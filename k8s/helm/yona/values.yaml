@@ -201,7 +201,7 @@ mariadb:
 
 hazelcast:
   ReplicationController:
-    image_version: 4.2.1
+    image_version: 4.2.2
 
 spring:
   loglevel: info
