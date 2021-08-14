@@ -1,4 +1,4 @@
-FROM openjdk:11-jre-slim
+FROM openjdk:11.0.7-jre-slim
 
 WORKDIR /opt/app
 
