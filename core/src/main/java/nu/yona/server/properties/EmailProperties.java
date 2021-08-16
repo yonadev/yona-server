@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
@@ -21,6 +21,7 @@ public class EmailProperties
 		private int port;
 		private boolean enableAuth;
 		private boolean enableStartTls;
+		private String sslProtocols;
 		private String username;
 		private String password;
 
@@ -74,6 +75,16 @@ public class EmailProperties
 			this.enableStartTls = enableStartTls;
 		}
 
+		public String getSslProtocols()
+		{
+			return sslProtocols;
+		}
+
+		public void setSslProtocols(String sslProtocols)
+		{
+			this.sslProtocols = sslProtocols;
+		}
+		
 		public String getUsername()
 		{
 			return username;

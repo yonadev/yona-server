@@ -122,6 +122,7 @@ public class CoreConfiguration
 		Properties mailProperties = new Properties();
 		mailProperties.put("mail.smtp.auth", yonaProperties.getEmail().getSmtp().isEnableAuth());
 		mailProperties.put("mail.smtp.starttls.enable", yonaProperties.getEmail().getSmtp().isEnableStartTls());
+		mailProperties.put("mail.smtp.ssl.protocols", yonaProperties.getEmail().getSmtp().getSslProtocols());
 		mailSender.setJavaMailProperties(mailProperties);
 		mailSender.setHost(yonaProperties.getEmail().getSmtp().getHost());
 		mailSender.setPort(yonaProperties.getEmail().getSmtp().getPort());
