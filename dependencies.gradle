@@ -11,17 +11,17 @@ final Map<String, String> libraries = [
 	// DO NOT interpolate version variables here because Dependabot is not smart enough to understand those. Dependabot's
 	// version parsing is simply regex matching and never actually evaluates a gradle script.
 	springBatchCore 		: "org.springframework.batch:spring-batch-core:4.3.3",
-	springSecurityWeb		: "org.springframework.security:spring-security-web:5.5.1",
+	springSecurityWeb		: "org.springframework.security:spring-security-web:5.5.2",
 	mariadbClient			: "org.mariadb.jdbc:mariadb-java-client:2.7.4",
 	jmockit					: "org.jmockit:jmockit:1.49",
 	junitJupiter			: "org.junit.jupiter:junit-jupiter:5.7.2",
 	hamcrestJdk8Time		: "com.spencerwi:hamcrest-jdk8-time:0.7.1",
-	equalsverifier			: "nl.jqno.equalsverifier:equalsverifier:3.7",
+	equalsverifier			: "nl.jqno.equalsverifier:equalsverifier:3.7.1",
 	spockCore				: "org.spockframework:spock-core:2.0-groovy-3.0",
 	bcprov					: "org.bouncycastle:bcprov-jdk15on:1.69",
 	// When updating the below version number, also update
 	// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
-	hazelcast				: "com.hazelcast:hazelcast:4.2.1",
+	hazelcast				: "com.hazelcast:hazelcast:4.2.2",
 ]
 
 // Export versions that are needed outside of this file (and elsewhere within)
