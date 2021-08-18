@@ -1,6 +1,26 @@
 version: 2
 updates:
   - package-ecosystem: "gradle"
-    directory: "/" # Location of package manifests
+    directory: "/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/adminservice/src/main/docker"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/analysisservice/src/main/docker"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/appservice/src/main/docker"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/batchservice/src/main/docker"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/dbinit/src/main/docker"
     schedule:
       interval: "daily"
