@@ -58,7 +58,7 @@ dependencies {
 	testImplementation project.deps.hamcrestJdk8Time
 	testImplementation project.deps.equalsverifier
 
-	testUtilsImplementation "org.codehaus.groovy:groovy-all:3.0.8"
+	testUtilsImplementation "org.codehaus.groovy:groovy-all:3.0.9"
 	testUtilsImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 
 	// mandatory dependencies for using Spock
