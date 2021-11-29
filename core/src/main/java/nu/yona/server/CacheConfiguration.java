@@ -7,8 +7,6 @@ package nu.yona.server;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.metrics.cache.CacheMetricsRegistrar;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
@@ -22,7 +20,6 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spring.cache.HazelcastCacheManager;
 
-import io.micrometer.core.instrument.Tag;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 
@@ -31,9 +28,6 @@ public class CacheConfiguration extends CachingConfigurerSupport
 {
 	@Autowired
 	private YonaProperties yonaProperties;
-
-	@Autowired(required = false)
-	private CacheMetricsRegistrar cacheMetricsRegistrar;
 
 	@Override
 	@Bean
@@ -63,13 +57,6 @@ public class CacheConfiguration extends CachingConfigurerSupport
 		{
 			throw YonaException.unexpected(e);
 		}
-	}
-
-	public void registerCacheForMetrics(String cacheName)
-	{
-		Cache cache = cacheManager().getCache(cacheName);
-		Tag t = Tag.of("cacheManager", "cacheManager");
-		this.cacheMetricsRegistrar.bindCacheToRegistry(cache, t);
 	}
 
 	@Bean
