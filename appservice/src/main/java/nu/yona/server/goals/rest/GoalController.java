@@ -76,8 +76,8 @@ public class GoalController extends ControllerBase
 			@PathVariable UUID userId)
 	{
 		UUID requestingUserId = RestUtil.parseUuid(requestingUserIdStr);
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
 			Set<GoalDto> goals = (requestingUserId.equals(userId)) ?
 					goalService.getGoalsOfUser(userId) :
@@ -99,8 +99,8 @@ public class GoalController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID goalId)
 	{
 		UUID requestingUserId = RestUtil.parseUuid(requestingUserIdStr);
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
 			GoalDto goal = (requestingUserId.equals(userId)) ?
 					goalService.getGoalForUserId(userId, goalId) :
@@ -121,8 +121,8 @@ public class GoalController extends ControllerBase
 			@PathVariable UUID userId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			setActivityCategoryId(goal);
 			return createResponse(goalService.addGoal(userId, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED,
@@ -136,8 +136,8 @@ public class GoalController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID goalId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			setActivityCategoryId(goal);
 			return createOkResponse(goalService.updateGoal(userId, goalId, goal, Optional.ofNullable(messageStr)),
@@ -151,8 +151,8 @@ public class GoalController extends ControllerBase
 	public void removeGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID goalId, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			goalService.deleteGoalAndInformBuddies(userId, goalId, Optional.ofNullable(messageStr));
 		}
@@ -171,7 +171,7 @@ public class GoalController extends ControllerBase
 	public static CollectionModel<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
 			Set<GoalDto> allGoalsOfUser)
 	{
-		return new CollectionModel<>(new GoalResourceAssembler(requestingUserId, userId).toCollectionModel(allGoalsOfUser),
+		return CollectionModel.of(new GoalResourceAssembler(requestingUserId, userId).toCollectionModel(allGoalsOfUser),
 				getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
 	}
 
