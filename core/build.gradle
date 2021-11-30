@@ -25,6 +25,8 @@ artifacts {
 	testUtils testUtilsJar
 }
 
+ext["thymeleaf.version"] = "3.0.13.RELEASE"
+
 dependencies {
 	implementation project.deps.hazelcast
 	implementation project.deps.hazelcastSpring
@@ -42,7 +44,7 @@ dependencies {
 	implementation "commons-validator:commons-validator:1.7"
 	implementation "commons-lang:commons-lang:2.6"
 	api "javax.mail:mail:1.4.7"
-	api "org.thymeleaf:thymeleaf-spring5:3.0.12.RELEASE"
+	api "org.thymeleaf:thymeleaf-spring5:3.0.13.RELEASE"
 	implementation "org.springframework.ldap:spring-ldap-core:2.3.4.RELEASE"
 	implementation project.deps.springSecurityWeb
 	implementation project.deps.springSecurityConfig
