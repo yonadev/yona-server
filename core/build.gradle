@@ -25,6 +25,8 @@ artifacts {
 	testUtils testUtilsJar
 }
 
+ext["thymeleaf.version"] = "3.0.13.RELEASE"
+
 dependencies {
 	implementation project.deps.hazelcast
 	implementation project.deps.hazelcastSpring
