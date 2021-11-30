@@ -298,9 +298,6 @@ public class MessageService
 	{
 		private final Map<Class<? extends Message>, DtoManager> managers = new HashMap<>();
 
-		@Autowired
-		private UserService userService;
-
 		@Override
 		public MessageDto createInstance(User user, Message messageEntity)
 		{
@@ -362,9 +359,9 @@ public class MessageService
 
 	private void sendFirebaseNotification(DeviceAnonymizedDto deviceAnonymized, Message message)
 	{
-		LocaleContextHelper.inLocaleContext(() -> firebaseService
-						.sendMessage(deviceAnonymized.getId(), deviceAnonymized.getFirebaseInstanceId().get(), message),
-				deviceAnonymized.getLocale());
+		LocaleContextHelper.inLocaleContext(
+				() -> firebaseService.sendMessage(deviceAnonymized.getId(), deviceAnonymized.getFirebaseInstanceId().get(),
+						message), deviceAnonymized.getLocale());
 	}
 
 	@Transactional
