@@ -67,7 +67,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.buddiesUrl == baseUserUrl + "/buddies/"
 		YonaServer.stripQueryString(john.goalsUrl) == baseUserUrl + "/goals/"
 		john.messagesUrl == baseUserUrl + "/messages/"
-		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
+		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + URLEncoder.encode(john.mobileNumber, "UTF-8")
 		john.pinResetRequestUrl == baseUserUrl + "/pinResetRequest/request"
 		john.dailyActivityReportsUrl == baseUserUrl + "/activity/days/"
 		john.dailyActivityReportsWithBuddiesUrl == baseUserUrl + "/activity/withBuddies/days/?requestingDeviceId=" + john.getRequestingDeviceId()
