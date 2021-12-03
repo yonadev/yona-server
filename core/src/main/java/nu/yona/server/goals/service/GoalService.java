@@ -13,6 +13,7 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +50,7 @@ public class GoalService
 	private BuddyService buddyService;
 
 	@Autowired(required = false)
+	@Lazy
 	private ActivityService activityService;
 
 	@Autowired
@@ -223,8 +225,8 @@ public class GoalService
 	{
 		if (!newGoalDto.getClass().equals(existingGoalDto.getClass()))
 		{
-			throw GoalServiceException
-					.cannotChangeTypeOfGoal(existingGoalDto.getClass().getSimpleName(), newGoalDto.getClass().getSimpleName());
+			throw GoalServiceException.cannotChangeTypeOfGoal(existingGoalDto.getClass().getSimpleName(),
+					newGoalDto.getClass().getSimpleName());
 		}
 	}
 
@@ -233,8 +235,8 @@ public class GoalService
 		if (newGoalDto.getCreationTime().isPresent() && newGoalDto.getCreationTime().get()
 				.isBefore(existingGoal.getCreationTime()))
 		{
-			throw GoalServiceException
-					.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDto.getCreationTime().get(), existingGoal.getCreationTime());
+			throw GoalServiceException.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDto.getCreationTime().get(),
+					existingGoal.getCreationTime());
 		}
 	}
 
@@ -287,8 +289,7 @@ public class GoalService
 			GoalChangeMessage.Change change, Optional<String> message)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> GoalChangeMessage
-						.createInstance(BuddyInfoParameters.createInstance(userEntity), activityCategoryOfChangedGoal, change,
-								message.orElse(null)));
+				() -> GoalChangeMessage.createInstance(BuddyInfoParameters.createInstance(userEntity),
+						activityCategoryOfChangedGoal, change, message.orElse(null)));
 	}
 }

@@ -29,10 +29,10 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.CacheConfiguration;
 import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
+import nu.yona.server.util.CacheRegistrar;
 
 @CacheConfig(cacheNames = ActivityCategoryService.CACHE_NAME)
 @Service
@@ -71,19 +71,19 @@ public class ActivityCategoryService
 	private ActivityCategoryRepository repository;
 
 	@Autowired(required = false)
-	private CacheConfiguration cacheConfiguration;
+	private CacheRegistrar cacheRegistrar;
 
 	private static final Logger logger = LoggerFactory.getLogger(ActivityCategoryService.class);
 
 	@PostConstruct
 	public void registerCacheForMetrics()
 	{
-		if (cacheConfiguration == null)
+		if (cacheRegistrar == null)
 		{
 			// Apparently running in a unit test that does not have all dependencies
 			return;
 		}
-		cacheConfiguration.registerCacheForMetrics(CACHE_NAME);
+		cacheRegistrar.registerCacheForMetrics(CACHE_NAME);
 	}
 
 	@Transactional
@@ -227,10 +227,10 @@ public class ActivityCategoryService
 
 	private boolean isUpToDate(ActivityCategory entity, ActivityCategoryDto dto)
 	{
-		return entity.getLocalizableName().equals(dto.getLocalizableNameByLocale()) && entity.isMandatoryNoGo() == dto
-				.isMandatoryNoGo() && entity.getSmoothwallCategories().equals(dto.getSmoothwallCategories()) && entity
-				.getApplications().equals(dto.getApplications()) && entity.getLocalizableDescription()
-				.equals(dto.getLocalizableDescriptionByLocale());
+		return entity.getLocalizableName().equals(dto.getLocalizableNameByLocale())
+				&& entity.isMandatoryNoGo() == dto.isMandatoryNoGo() && entity.getSmoothwallCategories()
+				.equals(dto.getSmoothwallCategories()) && entity.getApplications().equals(dto.getApplications())
+				&& entity.getLocalizableDescription().equals(dto.getLocalizableDescriptionByLocale());
 	}
 
 	private void deleteRemovedActivityCategories(Set<ActivityCategory> activityCategoriesInRepository,

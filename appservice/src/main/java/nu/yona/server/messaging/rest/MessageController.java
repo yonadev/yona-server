@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -79,9 +80,11 @@ public class MessageController extends ControllerBase
 	private CurieProvider curieProvider;
 
 	@Autowired
+	@Lazy
 	private UserActivityController userActivityController;
 
 	@Autowired
+	@Lazy
 	private BuddyActivityController buddyActivityController;
 
 	@Autowired
@@ -93,8 +96,8 @@ public class MessageController extends ControllerBase
 			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
 			@PathVariable UUID userId, Pageable pageable, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
 
@@ -115,8 +118,8 @@ public class MessageController extends ControllerBase
 	public HttpEntity<MessageDto> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable long messageId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
 			return createOkResponse(user, messageService.getMessage(user, messageId));
@@ -145,8 +148,8 @@ public class MessageController extends ControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable long id,
 			@PathVariable String action, @RequestBody MessageActionDto requestPayload)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
 
@@ -161,8 +164,8 @@ public class MessageController extends ControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable long messageId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
 			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(user, messageId),
@@ -289,8 +292,8 @@ public class MessageController extends ControllerBase
 
 		private void addRelatedMessageLink(MessageDto message, MessageDto messageResource)
 		{
-			message.getRelatedMessageId().ifPresent(rid -> messageResource
-					.add(getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), rid).withRel("related")));
+			message.getRelatedMessageId().ifPresent(rid -> messageResource.add(
+					getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), rid).withRel("related")));
 		}
 
 		@Override

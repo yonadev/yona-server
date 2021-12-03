@@ -19,6 +19,7 @@ import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -61,12 +62,14 @@ public class UserAddService
 	private YonaProperties yonaProperties;
 
 	@Autowired(required = false)
+	@Lazy
 	private DeviceService deviceService;
 
 	@Autowired(required = false)
 	private ActivityCategoryService activityCategoryService;
 
 	@Autowired(required = false)
+	@Lazy
 	private WhiteListedNumberService whiteListedNumberService;
 
 	@Autowired(required = false)
@@ -129,10 +132,10 @@ public class UserAddService
 		Set<Goal> goals = buildGoalsSet(user, signUp);
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		UserPrivate userPrivate = UserPrivate
-				.createInstance(user.getCreationTime().orElse(TimeUtil.utcNow()), user.getOwnPrivateData().getFirstName(),
-						user.getOwnPrivateData().getLastName(), user.getOwnPrivateData().getNickname(), userAnonymized.getId(),
-						anonymousMessageSource.getId(), namedMessageSource);
+		UserPrivate userPrivate = UserPrivate.createInstance(user.getCreationTime().orElse(TimeUtil.utcNow()),
+				user.getOwnPrivateData().getFirstName(), user.getOwnPrivateData().getLastName(),
+				user.getOwnPrivateData().getNickname(), userAnonymized.getId(), anonymousMessageSource.getId(),
+				namedMessageSource);
 		User userEntity = new User(UUID.randomUUID(), initializationVector,
 				user.getCreationTime().map(LocalDateTime::toLocalDate).orElse(TimeUtil.utcNow().toLocalDate()),
 				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
@@ -185,8 +188,8 @@ public class UserAddService
 
 	private void addNoGoGoal(User userEntity, ActivityCategoryDto category)
 	{
-		userEntity.getAnonymized().addGoal(BudgetGoal
-				.createNoGoInstance(TimeUtil.utcNow(), activityCategoryService.getActivityCategoryEntity(category.getId())));
+		userEntity.getAnonymized().addGoal(BudgetGoal.createNoGoInstance(TimeUtil.utcNow(),
+				activityCategoryService.getActivityCategoryEntity(category.getId())));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
@@ -230,20 +233,21 @@ public class UserAddService
 
 	private void deleteExistingUserToOverwriteIt(String mobileNumber, String userProvidedConfirmationCode)
 	{
-		User existingUserEntity = userLookupService
-				.lockUserForUpdate(UserLookupService.findUserByMobileNumber(mobileNumber).getId());
+		User existingUserEntity = userLookupService.lockUserForUpdate(
+				UserLookupService.findUserByMobileNumber(mobileNumber).getId());
 		Optional<ConfirmationCode> confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
 
 		assertValidConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> UserOverwriteConfirmationException.confirmationCodeNotSet(existingUserEntity.getMobileNumber()),
-				r -> UserOverwriteConfirmationException
-						.confirmationCodeMismatch(existingUserEntity.getMobileNumber(), userProvidedConfirmationCode, r),
+				r -> UserOverwriteConfirmationException.confirmationCodeMismatch(existingUserEntity.getMobileNumber(),
+						userProvidedConfirmationCode, r),
 				() -> UserOverwriteConfirmationException.tooManyAttempts(existingUserEntity.getMobileNumber()));
 
 		// notice we can't delete the associated anonymized data
 		// because the anonymized data cannot be retrieved
 		// (the relation is encrypted, the password is not available)
-		logger.info("DEBUG: mobile number {} delete/overwrite user with confirmation code ID {}", mobileNumber, confirmationCode.get().getId());
+		logger.info("DEBUG: mobile number {} delete/overwrite user with confirmation code ID {}", mobileNumber,
+				confirmationCode.get().getId());
 		userRepository.delete(existingUserEntity);
 		userRepository.flush(); // So we can insert another one
 		logger.info("User with mobile number '{}' and ID '{}' removed, to overwrite the account",
