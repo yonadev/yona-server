@@ -15,6 +15,7 @@ import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.device.service.DeviceService;
@@ -42,18 +43,22 @@ class UserDeleteService
 	private MessageSourceRepository messageSourceRepository;
 
 	@Autowired(required = false)
+	@Lazy
 	private BuddyService buddyService;
 
 	@Autowired(required = false)
+	@Lazy
 	private DeviceService deviceService;
 
 	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired(required = false)
+	@Lazy
 	private MessageService messageService;
 
 	@Autowired(required = false)
+	@Lazy
 	private GoalService goalService;
 
 	@Transactional
@@ -84,8 +89,8 @@ class UserDeleteService
 
 		handleBuddyUsersRemovedWhileOffline(userEntity);
 
-		userEntity.getBuddies().forEach(buddyEntity -> buddyService
-				.removeBuddyInfoForBuddy(userEntity, buddyEntity, message, DropBuddyReason.USER_ACCOUNT_DELETED));
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
+				DropBuddyReason.USER_ACCOUNT_DELETED));
 	}
 
 	private void deleteDevices(User userEntity)

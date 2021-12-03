@@ -14,6 +14,7 @@ import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.exceptions.InvalidDataException;
@@ -31,15 +32,18 @@ public class UserLookupService
 	private UserRepository userRepository;
 
 	@Autowired(required = false)
+	@Lazy
 	private BuddyService buddyService;
 
 	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired(required = false)
+	@Lazy
 	private MessageService messageService;
 
 	@Autowired(required = false)
+	@Lazy
 	private PrivateUserDataMigrationService privateUserDataMigrationService;
 
 	@Autowired(required = false)

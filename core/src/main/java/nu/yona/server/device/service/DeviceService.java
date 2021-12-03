@@ -15,6 +15,7 @@ import java.util.stream.IntStream;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -63,6 +64,7 @@ public class DeviceService
 	private LDAPUserService ldapUserService;
 
 	@Autowired(required = false)
+	@Lazy
 	private MessageService messageService;
 
 	@Autowired(required = false)
@@ -125,12 +127,13 @@ public class DeviceService
 	{
 		assertAcceptableDeviceName(userEntity, deviceDto.getName());
 		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode());
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized
-				.createInstance(findFirstFreeDeviceIndex(userEntity), deviceDto.getOperatingSystem(), deviceDto.getAppVersion(),
-						deviceDto.getAppVersionCode(), deviceDto.getFirebaseInstanceId(), LocaleContextHolder.getLocale());
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
+				deviceDto.getOperatingSystem(), deviceDto.getAppVersion(), deviceDto.getAppVersionCode(),
+				deviceDto.getFirebaseInstanceId(), LocaleContextHolder.getLocale());
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice deviceEntity = userDeviceRepository.save(UserDevice
-				.createInstance(userEntity, deviceDto.getName(), deviceAnonymized.getId(), userService.generatePassword()));
+		UserDevice deviceEntity = userDeviceRepository.save(
+				UserDevice.createInstance(userEntity, deviceDto.getName(), deviceAnonymized.getId(),
+						userService.generatePassword()));
 		userEntity.addDevice(deviceEntity);
 		UserAnonymizedDto userAnonymizedDto = evictUserAnonymizedFromCache(userEntity);
 
@@ -155,10 +158,9 @@ public class DeviceService
 			Optional<String> newName, UUID deviceAnonymizedId)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> BuddyDeviceChangeMessage
-						.createInstance(BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
-								getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymizedId, oldName,
-								newName));
+				() -> BuddyDeviceChangeMessage.createInstance(
+						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
+						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymizedId, oldName, newName));
 	}
 
 	@Transactional
@@ -234,8 +236,8 @@ public class DeviceService
 	{
 		DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
 		Optional<String> oldFirebaseInstanceId = deviceAnonymized.getFirebaseInstanceId();
-		changeRequest.firebaseInstanceId
-				.ifPresent(fid -> saveFirebaseInstanceIdIfUpdated(deviceAnonymized, fid, oldFirebaseInstanceId));
+		changeRequest.firebaseInstanceId.ifPresent(
+				fid -> saveFirebaseInstanceIdIfUpdated(deviceAnonymized, fid, oldFirebaseInstanceId));
 	}
 
 	private void saveFirebaseInstanceIdIfUpdated(DeviceAnonymized deviceAnonymized, String newFirebaseInstanceId,
@@ -309,8 +311,8 @@ public class DeviceService
 
 	public UUID getDefaultDeviceId(UserDto userDto)
 	{
-		UserAnonymizedDto userAnonymized = userAnonymizedService
-				.getUserAnonymized(userDto.getOwnPrivateData().getUserAnonymizedId());
+		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(
+				userDto.getOwnPrivateData().getUserAnonymizedId());
 		UUID defaultDeviceAnonymizedId = getDefaultDeviceAnonymized(userAnonymized).getId();
 		return userDto.getOwnPrivateData().getOwnDevices().stream()
 				.filter(d -> d.getDeviceAnonymizedId().equals(defaultDeviceAnonymizedId)).map(DeviceBaseDto::getId).findAny()
@@ -430,8 +432,8 @@ public class DeviceService
 		OperatingSystem registeredOperatingSystem = deviceAnonymized.getOperatingSystem();
 		if (registeredOperatingSystem != currentOperatingSystem && registeredOperatingSystem != OperatingSystem.UNKNOWN)
 		{
-			throw DeviceServiceException
-					.cannotSwitchDeviceOperatingSystem(registeredOperatingSystem, currentOperatingSystem, deviceEntity.getId());
+			throw DeviceServiceException.cannotSwitchDeviceOperatingSystem(registeredOperatingSystem, currentOperatingSystem,
+					deviceEntity.getId());
 		}
 		deviceAnonymized.setOperatingSystem(currentOperatingSystem);
 	}
@@ -513,10 +515,10 @@ public class DeviceService
 	private void sendVpnStatusChangeMessageToBuddies(boolean isVpnConnected, User userEntity, UserDevice deviceEntity)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> BuddyVpnConnectionStatusChangeMessage
-						.createInstance(BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
-								getVpnStatusChangeMessageText(isVpnConnected, deviceEntity.getName()), isVpnConnected,
-								deviceEntity.getDeviceAnonymizedId()));
+				() -> BuddyVpnConnectionStatusChangeMessage.createInstance(
+						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
+						getVpnStatusChangeMessageText(isVpnConnected, deviceEntity.getName()), isVpnConnected,
+						deviceEntity.getDeviceAnonymizedId()));
 	}
 
 	private String getVpnStatusChangeMessageText(boolean isVpnConnected, String deviceName)

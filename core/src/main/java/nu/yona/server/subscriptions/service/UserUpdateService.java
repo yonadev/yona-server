@@ -17,6 +17,7 @@ import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.CryptoUtil;
@@ -61,18 +62,21 @@ public class UserUpdateService
 	private YonaProperties yonaProperties;
 
 	@Autowired(required = false)
+	@Lazy
 	private BuddyService buddyService;
 
 	@Autowired(required = false)
 	private SmsService smsService;
 
 	@Autowired(required = false)
+	@Lazy
 	private DeviceService deviceService;
 
 	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired(required = false)
+	@Lazy
 	private MessageService messageService;
 
 	@Autowired(required = false)
@@ -122,7 +126,9 @@ public class UserUpdateService
 			ConfirmationCode confirmationCode = createConfirmationCode();
 			user.setOverwriteUserConfirmationCode(confirmationCode);
 			sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
-			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code 'DEBUG created {}'", user.getMobileNumber(), user.getId(), confirmationCode.getId());
+			logger.info(
+					"User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code 'DEBUG created {}'",
+					user.getMobileNumber(), user.getId(), confirmationCode.getId());
 		}
 		finally
 		{

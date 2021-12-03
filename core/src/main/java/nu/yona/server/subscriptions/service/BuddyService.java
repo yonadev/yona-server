@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -108,6 +109,7 @@ public class BuddyService
 	private UserPrivateRepository userPrivateRepository;
 
 	@Autowired(required = false)
+	@Lazy
 	private BuddyConnectResponseMessageDto.Manager connectResponseMessageHandler;
 
 	@Autowired
@@ -153,8 +155,8 @@ public class BuddyService
 		{
 			createAndInviteBuddyUser(idOfRequestingUser, buddy, inviteUrlGetter);
 		}
-		BuddyDto savedBuddy = transactionHelper
-				.executeInNewTransaction(() -> handleBuddyRequestForExistingUser(idOfRequestingUser, buddy));
+		BuddyDto savedBuddy = transactionHelper.executeInNewTransaction(
+				() -> handleBuddyRequestForExistingUser(idOfRequestingUser, buddy));
 
 		logger.info(
 				"User with mobile number '{}' and ID '{}' sent buddy connect message to {} user with mobile number '{}' and ID '{}' as buddy",
@@ -173,8 +175,8 @@ public class BuddyService
 		UUID savedUserId;
 		try (CryptoSession cryptoSession = CryptoSession.start(tempPassword))
 		{
-			savedUserId = transactionHelper
-					.executeInNewTransaction(() -> userService.addUserCreatedOnBuddyRequest(buddy.getUser()).getId());
+			savedUserId = transactionHelper.executeInNewTransaction(
+					() -> userService.addUserCreatedOnBuddyRequest(buddy.getUser()).getId());
 		}
 
 		String inviteUrl = inviteUrlGetter.apply(savedUserId, tempPassword);
@@ -357,8 +359,8 @@ public class BuddyService
 
 		Stream<BuddyConnectResponseMessage> buddyConnectResponseMessages = messagePage.getContent().stream()
 				.filter(m -> m instanceof BuddyConnectResponseMessage).map(m -> (BuddyConnectResponseMessage) m);
-		Stream<BuddyConnectResponseMessage> messagesFromBuddy = buddyConnectResponseMessages
-				.filter(m -> buddy.getUserId().equals(getUserId(m).orElse(null)));
+		Stream<BuddyConnectResponseMessage> messagesFromBuddy = buddyConnectResponseMessages.filter(
+				m -> buddy.getUserId().equals(getUserId(m).orElse(null)));
 		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> !m.isProcessed()).findFirst();
 		messageToBeProcessed.ifPresent(
 				m -> connectResponseMessageHandler.handleAction_Process(user, m, new MessageActionDto(Collections.emptyMap())));
@@ -427,8 +429,8 @@ public class BuddyService
 
 	private void removeUnprocessedBuddyAcceptanceMessages(User user, Buddy buddy)
 	{
-		List<Message> responseMessages = messageService
-				.getUnprocessedMessages(user, m -> isBuddyConnectResponseFromBuddy(m, buddy));
+		List<Message> responseMessages = messageService.getUnprocessedMessages(user,
+				m -> isBuddyConnectResponseFromBuddy(m, buddy));
 		if (responseMessages.isEmpty())
 		{
 			return;
@@ -523,8 +525,8 @@ public class BuddyService
 		// VPN account after overwriting their user account, the analysis engine might still create goal conflict messages for
 		// buddies, though the buddies do not know the user anymore. To prevent that, we should filter out the buddy anonymized
 		// entities that do not have a corresponding buddy anonymized entity at the receiving end.
-		return buddyAnonymizedRepository
-				.existsPendingOrEstablishedBuddyRelationship(buddyUserAnonymizedId, userAnonymized.getId());
+		return buddyAnonymizedRepository.existsPendingOrEstablishedBuddyRelationship(buddyUserAnonymizedId,
+				userAnonymized.getId());
 	}
 
 	public Set<MessageDestination> getBuddyDestinations(UserAnonymized userAnonymized)
@@ -591,8 +593,8 @@ public class BuddyService
 
 	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
 	{
-		Optional<BuddyAnonymizedDto> buddyAnonymized = buddyUserAnonymized
-				.getBuddyAnonymizedByUserAnonymizedIdIfExisting(userAnonymizedId);
+		Optional<BuddyAnonymizedDto> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymizedByUserAnonymizedIdIfExisting(
+				userAnonymizedId);
 		buddyAnonymized.map(ba -> buddyAnonymizedRepository.findById(ba.getId()).get()).ifPresent(bae -> {
 			bae.setDisconnected();
 			userAnonymizedService.updateUserAnonymized(buddyUserAnonymized.getId());
@@ -605,8 +607,8 @@ public class BuddyService
 	private void removeNamedMessagesSentByUser(User receivingUser, UUID sentByUserAnonymizedId)
 	{
 		MessageDestination namedMessageDestination = receivingUser.getNamedMessageDestination();
-		messageService
-				.removeMessagesFromUser(MessageDestinationDto.createInstance(namedMessageDestination), sentByUserAnonymizedId);
+		messageService.removeMessagesFromUser(MessageDestinationDto.createInstance(namedMessageDestination),
+				sentByUserAnonymizedId);
 	}
 
 	private void removeAnonymousMessagesSentByUser(UserAnonymizedDto receivingUserAnonymized, UUID sentByUserAnonymizedId)
@@ -694,8 +696,8 @@ public class BuddyService
 
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
-		messageService.sendDirectMessageAndFlushToDatabase(BuddyConnectRequestMessage
-				.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUserEntity),
+		messageService.sendDirectMessageAndFlushToDatabase(
+				BuddyConnectRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUserEntity),
 						buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), requestingUserEntity.getDevices(),
 						isRequestingSending, isRequestingReceiving), buddyUserEntity);
 
