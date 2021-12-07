@@ -19,10 +19,10 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.CacheConfiguration;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
+import nu.yona.server.util.CacheRegistrar;
 
 @CacheConfig(cacheNames = UserAnonymizedService.CACHE_NAME)
 @Service
@@ -34,7 +34,7 @@ public class UserAnonymizedService
 	private UserAnonymizedRepository userAnonymizedRepository;
 
 	@Autowired(required = false)
-	private CacheConfiguration cacheConfiguration;
+	private CacheRegistrar cacheRegistrar;
 
 	public Set<UserAnonymizedDto> getAllUsersAnonymized()
 	{
@@ -44,12 +44,12 @@ public class UserAnonymizedService
 	@PostConstruct
 	public void registerCacheForMetrics()
 	{
-		if (cacheConfiguration == null)
+		if (cacheRegistrar == null)
 		{
 			// Apparently running in a unit test that does not have all dependencies
 			return;
 		}
-		cacheConfiguration.registerCacheForMetrics(CACHE_NAME);
+		cacheRegistrar.registerCacheForMetrics(CACHE_NAME);
 	}
 
 	@Cacheable

@@ -55,6 +55,6 @@ public class BatchTaskController
 	{
 		Require.that(yonaProperties.isTestServer(),
 				() -> InvalidDataException.onlyAllowedOnTestServers("Endpoint /batch/aggregateActivities/ is not available"));
-		return new ResponseEntity<>(new EntityModel<>(batchTaskService.aggregateActivities()), HttpStatus.OK);
+		return new ResponseEntity<>(EntityModel.of(batchTaskService.aggregateActivities()), HttpStatus.OK);
 	}
 }

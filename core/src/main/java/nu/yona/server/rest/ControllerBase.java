@@ -80,7 +80,7 @@ public abstract class ControllerBase
 	public static <T, U extends RepresentationModel<?>> CollectionModel<U> createCollectionResource(Collection<T> dtos,
 			RepresentationModelAssembler<T, U> resourceAssembler, WebMvcLinkBuilder linkBuilder)
 	{
-		return new CollectionModel<>(resourceAssembler.toCollectionModel(dtos), linkBuilder.withSelfRel());
+		return CollectionModel.of(resourceAssembler.toCollectionModel(dtos), linkBuilder.withSelfRel());
 	}
 
 }

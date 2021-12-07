@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -56,6 +57,7 @@ public class MessageService
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired(required = false)
+	@Lazy
 	private BuddyService buddyService;
 
 	@Autowired(required = false)
@@ -298,9 +300,6 @@ public class MessageService
 	{
 		private final Map<Class<? extends Message>, DtoManager> managers = new HashMap<>();
 
-		@Autowired
-		private UserService userService;
-
 		@Override
 		public MessageDto createInstance(User user, Message messageEntity)
 		{
@@ -362,9 +361,9 @@ public class MessageService
 
 	private void sendFirebaseNotification(DeviceAnonymizedDto deviceAnonymized, Message message)
 	{
-		LocaleContextHelper.inLocaleContext(() -> firebaseService
-						.sendMessage(deviceAnonymized.getId(), deviceAnonymized.getFirebaseInstanceId().get(), message),
-				deviceAnonymized.getLocale());
+		LocaleContextHelper.inLocaleContext(
+				() -> firebaseService.sendMessage(deviceAnonymized.getId(), deviceAnonymized.getFirebaseInstanceId().get(),
+						message), deviceAnonymized.getLocale());
 	}
 
 	@Transactional
