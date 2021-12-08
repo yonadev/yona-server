@@ -22,6 +22,7 @@ final Map<String, String> libraries = [
 	// When updating the below version number, also update
 	// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 	hazelcast				: "com.hazelcast:hazelcast:4.2.2",
+	thymeleaf               : "org.thymeleaf:thymeleaf-spring5:3.0.14.RELEASE"
 ]
 
 // Export versions that are needed outside of this file (and elsewhere within)
@@ -29,6 +30,7 @@ final Map<String, String> v = [
 	springSecurityWeb		: versionOf(libraries.springSecurityWeb),
 	bcprov					: versionOf(libraries.bcprov),
 	hazelcast				: versionOf(libraries.hazelcast),
+	thymeleaf				: versionOf(libraries.thymeleaf),
 ]
 
 // While Dependabot won't be able to parse these deps, these will get upgraded for free anyway since they share versions
