@@ -26,7 +26,6 @@ artifacts {
 }
 
 ext["thymeleaf.version"] = project.versions["thymeleaf"]
-ext["log4j2.version"] = "2.15.0" // To be on the safe side for CVE-2021-44228
 
 dependencies {
 	implementation project.deps.hazelcast
