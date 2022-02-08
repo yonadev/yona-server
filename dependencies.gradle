@@ -12,7 +12,7 @@ final Map<String, String> libraries = [
 	// version parsing is simply regex matching and never actually evaluates a gradle script.
 	springBatchCore 		: "org.springframework.batch:spring-batch-core:4.3.4",
 	springSecurityWeb		: "org.springframework.security:spring-security-web:5.6.1",
-	mariadbClient			: "org.mariadb.jdbc:mariadb-java-client:2.7.4",
+	mariadbClient			: "org.mariadb.jdbc:mariadb-java-client:3.0.3",
 	jmockit					: "org.jmockit:jmockit:1.49",
 	junitJupiter			: "org.junit.jupiter:junit-jupiter:5.8.2",
 	hamcrestJdk8Time		: "com.spencerwi:hamcrest-jdk8-time:0.7.1",
@@ -21,7 +21,7 @@ final Map<String, String> libraries = [
 	bcprov					: "org.bouncycastle:bcprov-jdk15on:1.70",
 	// When updating the below version number, also update
 	// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
-	hazelcast				: "com.hazelcast:hazelcast:5.0.2",
+	hazelcast				: "com.hazelcast:hazelcast:4.2.4",
 	thymeleaf               : "org.thymeleaf:thymeleaf-spring5:3.0.14.RELEASE"
 ]
 
