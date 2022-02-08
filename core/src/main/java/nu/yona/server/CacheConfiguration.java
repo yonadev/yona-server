@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2018-2022 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
@@ -42,7 +42,9 @@ public class CacheConfiguration extends CachingConfigurerSupport
 		String hazelcastConfigFilePath = yonaProperties.getHazelcastConfigFilePath();
 		if (hazelcastConfigFilePath == null)
 		{
-			return Hazelcast.newHazelcastInstance(new Config());
+			Config config = new Config();
+			config.getNetworkConfig().getJoin().getMulticastConfig().setMulticastPort(61234);
+			return Hazelcast.newHazelcastInstance(config);
 		}
 		return getHazelcastClientInstance(hazelcastConfigFilePath);
 	}
