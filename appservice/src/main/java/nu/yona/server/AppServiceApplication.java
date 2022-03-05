@@ -46,8 +46,6 @@ import nu.yona.server.properties.YonaProperties;
 @EnableCaching
 public class AppServiceApplication implements WebMvcConfigurer
 {
-	private int thisIsReallyUnused;
-
 	private static final Logger logger = LoggerFactory.getLogger(AppServiceApplication.class);
 
 	private final YonaProperties yonaProperties;
@@ -73,30 +71,6 @@ public class AppServiceApplication implements WebMvcConfigurer
 	@Override
 	public void addCorsMappings(CorsRegistry registry)
 	{
-		registry.addMapping("/swagger/swagger-spec.yaml");
-		if (yonaProperties.getSecurity().isCorsAllowed())
-		{
-			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
-			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
-		}
-		registry.addMapping("/swagger/swagger-spec.yaml");
-		if (yonaProperties.getSecurity().isCorsAllowed())
-		{
-			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
-			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
-		}
-		registry.addMapping("/swagger/swagger-spec.yaml");
-		if (yonaProperties.getSecurity().isCorsAllowed())
-		{
-			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
-			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
-		}
-		registry.addMapping("/swagger/swagger-spec.yaml");
-		if (yonaProperties.getSecurity().isCorsAllowed())
-		{
-			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
-			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
-		}
 		registry.addMapping("/swagger/swagger-spec.yaml");
 		if (yonaProperties.getSecurity().isCorsAllowed())
 		{
