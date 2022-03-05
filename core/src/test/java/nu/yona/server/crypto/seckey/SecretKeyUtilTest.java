@@ -27,7 +27,7 @@ public class SecretKeyUtilTest
 
 			byte[] result = SecretKeyUtil.encryptUuid(uuid);
 
-			assertThat(result.length, greaterThan(16));
+			assertThat(result.length, greaterThan(160));
 		}
 	}
 
