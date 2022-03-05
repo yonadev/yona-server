@@ -46,6 +46,8 @@ import nu.yona.server.properties.YonaProperties;
 @EnableCaching
 public class AppServiceApplication implements WebMvcConfigurer
 {
+	private int thisIsUnused;
+
 	private static final Logger logger = LoggerFactory.getLogger(AppServiceApplication.class);
 
 	private final YonaProperties yonaProperties;
