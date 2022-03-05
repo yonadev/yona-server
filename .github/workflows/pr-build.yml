@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build, test and analyze
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -40,8 +40,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew check sonarqube --info
-      - name: Publish Unit Test Results
+      - name: Publish unit test results
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
         with:
-          files: test-results/**/*.xml
+          files: **/build/test-results/test/*.xml
