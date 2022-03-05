@@ -77,6 +77,30 @@ public class AppServiceApplication implements WebMvcConfigurer
 			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
 			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
 		}
+		registry.addMapping("/swagger/swagger-spec.yaml");
+		if (yonaProperties.getSecurity().isCorsAllowed())
+		{
+			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
+			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
+		}
+		registry.addMapping("/swagger/swagger-spec.yaml");
+		if (yonaProperties.getSecurity().isCorsAllowed())
+		{
+			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
+			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
+		}
+		registry.addMapping("/swagger/swagger-spec.yaml");
+		if (yonaProperties.getSecurity().isCorsAllowed())
+		{
+			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
+			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
+		}
+		registry.addMapping("/swagger/swagger-spec.yaml");
+		if (yonaProperties.getSecurity().isCorsAllowed())
+		{
+			// Enable CORS for the other resources, to allow testing the API through Swagger UI.
+			registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
+		}
 	}
 
 	@Bean
