@@ -37,7 +37,7 @@ dependencies {
 	testImplementation "org.apache.httpcomponents:httpmime:4.5.13"
 	testImplementation "org.mockito:mockito-core"
 
-	intTestImplementation "org.codehaus.groovy:groovy-all:3.0.9"
+	intTestImplementation "org.codehaus.groovy:groovy-all:3.0.10"
 	intTestImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 	intTestImplementation project.deps.spockCore
 }
