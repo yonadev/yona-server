@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Set build number
         run: |
-          echo ::set-env name=BUILD_NUMBER::$(($GITHUB_RUN_NUMBER+1500))
+          echo "BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v2
         with:
