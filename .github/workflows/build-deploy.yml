@@ -42,6 +42,8 @@ jobs:
         if: always()
         with:
           files: '**/build/test-results/test/*.xml'
+      - name: Publish Docker images
+        run: ./gradlew -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} pushDockerImage
       - name: Tag the build
         uses: rickstaa/action-create-tag@v1
         with:
