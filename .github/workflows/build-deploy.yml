@@ -20,8 +20,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-      - name: Echo build number
-        run: echo "Build number is $BUILD_NUMBER"
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
@@ -44,3 +42,9 @@ jobs:
         if: always()
         with:
           files: '**/build/test-results/test/*.xml'
+      - name: Tag the build
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: "build-${{ env.BUILD_NUMBER }}"
+          message: "GitHub build"
+          commit_sha: ${{ github.sha }}
