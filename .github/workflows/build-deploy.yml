@@ -44,7 +44,7 @@ jobs:
           helm package -d ${PACKAGE_DIR} --version ${CHART_VERSION} ${CHART}
           popd
           pushd ${HELM_REPO_DIR}
-          git add ${PACKAGE_PATH}
+          git add ${PACKAGE_DIR}/${CHART}-${VERSION}.tgz
           helm repo index docs --url https://yonadev.github.io/helm-charts
           export GIT_AUTHOR_NAME="Yona build server"
           export GIT_AUTHOR_EMAIL=dev@yona.nu
