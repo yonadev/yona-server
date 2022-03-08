@@ -34,6 +34,7 @@ jobs:
         run: |
           echo "PACKAGE_DIR=${HELM_REPO_DIR}/docs" >> $GITHUB_ENV
           echo "CHART_VERSION=1.2.${BUILD_NUMBER}" >> $GITHUB_ENV
+        run: |
           mkdir build
           cp -r ${CHART} build
           pushd build
