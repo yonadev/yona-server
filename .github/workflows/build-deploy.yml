@@ -59,7 +59,7 @@ jobs:
         with:
           source-directory: '${{ env.HELM_REPO }}'
           destination-github-username: 'yonabuild'
-          destination-repository-name: '${{ env.HELM_REPO }}'
+          destination-repository-name: 'yonadev/${{ env.HELM_REPO }}'
           user-email: dev@yona.nu
           target-branch: main
       - name: Set up JDK 11
