@@ -53,7 +53,7 @@ jobs:
           echo "About to commit"
           git commit -am "Package for build ${BUILD_NUMBER}"
           echo "About to push"
-          git push https://yonabuild:${{ secrets.YONA_BUILD_GITHUB_PAT }}@github.com/yonadev/$HELM_REPO.git master
+          git push https://${{ secrets.YONA_BUILD_GITHUB_PAT }}@github.com/yonadev/$HELM_REPO.git master
           echo "Pushed"
           popd
       - name: Set up JDK 11
