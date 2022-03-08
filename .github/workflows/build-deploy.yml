@@ -16,11 +16,12 @@ jobs:
         run: |
           echo "BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))" >> $GITHUB_ENV
           echo "CHART_VERSION=1.2.$BUILD_NUMBER" >> $GITHUB_ENV
+          echo "HELM_REPO_DIR=$PWD/$HELM_REPO" >> $GITHUB_ENV
       - name: Checkout Helm chart repo
         uses: actions/checkout@v2
         with:
           repository: yonadev/${{ env.HELM_REPO }}
-          path: '/${{ env.HELM_REPO }}'
+          path: '${{ env.HELM_REPO }}'
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -33,7 +34,7 @@ jobs:
       - name: Build Helm package
         working-directory: ./k8s/helm
         run: |
-          echo "PACKAGE_DIR=/$HELM_REPO/docs" >> $GITHUB_ENV
+          echo "PACKAGE_DIR=$HELM_REPO_DIR/docs" >> $GITHUB_ENV
           mkdir build
           cp -r $CHART build
           pushd build
