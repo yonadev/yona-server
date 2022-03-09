@@ -26,10 +26,6 @@ jobs:
           repository: yonadev/${{ env.HELM_REPO }}
           path: '${{ env.HELM_REPO }}'
           token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
@@ -54,6 +50,10 @@ jobs:
           git commit -am "Package for build ${BUILD_NUMBER}"
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
