@@ -78,11 +78,11 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew check sonarqube --info
       - name: Publish unit test results
-        working-directory: yona-server
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
         with:
           files: '**/build/test-results/test/*.xml'
+        working-directory: yona-server
       - name: Publish Docker images
         working-directory: yona-server
         run: ./gradlew -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} -PdockerUrl=unix:///var/run/docker.sock pushDockerImage
