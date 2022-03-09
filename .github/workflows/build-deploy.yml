@@ -4,6 +4,10 @@ on:
   push:
     branches: [ master ]
 
+defaults:
+  run:
+    working-directory: yona-server
+
 jobs:
   build:
     name: Build, test and analyze
@@ -72,7 +76,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Build and analyze
-        working-directory: yona-server
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -82,12 +85,9 @@ jobs:
         if: always()
         with:
           files: '**/build/test-results/test/*.xml'
-        working-directory: yona-server
       - name: Publish Docker images
-        working-directory: yona-server
         run: ./gradlew -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} -PdockerUrl=unix:///var/run/docker.sock pushDockerImage
       - name: Tag the build
-        working-directory: yona-server
         uses: rickstaa/action-create-tag@v1
         with:
           tag: "build-${{ env.BUILD_NUMBER }}"
