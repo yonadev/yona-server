@@ -21,20 +21,21 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
           path: 'yona-server'
-      - name: Set build number
-        run: |
-          BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))
-          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
-          HELM_REPO_DIR=${HELM_REPO}
-          echo "HELM_REPO_DIR=$HELM_REPO_DIR" >> $GITHUB_ENV
-          echo "PACKAGE_DIR=${HELM_REPO_DIR}/docs" >> $GITHUB_ENV
-          echo "CHART_VERSION=1.2.${BUILD_NUMBER}" >> $GITHUB_ENV
       - name: Checkout Helm chart repo
         uses: actions/checkout@v2
         with:
           repository: yonadev/${{ env.HELM_REPO }}
           path: '${{ env.HELM_REPO }}'
           token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
+      - name: Set build number
+        working-dir: '${{ env.HELM_REPO }}'
+        run: |
+          BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
+          HELM_REPO_DIR=${PWD}
+          echo "HELM_REPO_DIR=$HELM_REPO_DIR" >> $GITHUB_ENV
+          echo "PACKAGE_DIR=${HELM_REPO_DIR}/docs" >> $GITHUB_ENV
+          echo "CHART_VERSION=1.2.${BUILD_NUMBER}" >> $GITHUB_ENV
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
