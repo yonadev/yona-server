@@ -16,7 +16,7 @@ jobs:
       CHART: yona
       HELM_REPO: helm-charts
     steps:
-      - name: Checkout
+      - name: Checkout src repo
         uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
@@ -30,36 +30,7 @@ jobs:
       - name: Set build number
         working-directory: '${{ env.HELM_REPO }}'
         run: |
-          BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))
-          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
-          HELM_REPO_DIR=${PWD}
-          echo "HELM_REPO_DIR=$HELM_REPO_DIR" >> $GITHUB_ENV
-          echo "PACKAGE_DIR=${HELM_REPO_DIR}/docs" >> $GITHUB_ENV
-          echo "CHART_VERSION=1.2.${BUILD_NUMBER}" >> $GITHUB_ENV
-      - name: Install Helm
-        uses: azure/setup-helm@v1
-        with:
-          version: 'v3.3.0'
-      - name: Build Helm package
-        working-directory: yona-server/k8s/helm
-        run: |
-          mkdir build
-          cp -r ${CHART} build
-          pushd build
-          sed --in-place s/_ReplaceWithBuildNumber_/${BUILD_NUMBER}/ ${CHART}/Chart.yaml
-          helm dependency update ${CHART}
-          helm package -d ${PACKAGE_DIR} --version ${CHART_VERSION} ${CHART}
-          popd
-          pushd ${HELM_REPO_DIR}
-          git add ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
-          helm repo index docs --url https://yonadev.github.io/helm-charts
-          export GIT_AUTHOR_NAME="Yona build server"
-          export GIT_AUTHOR_EMAIL=dev@yona.nu
-          export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
-          export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
-          git commit -am "Package for build ${BUILD_NUMBER}"
-          git push https://github.com/yonadev/$HELM_REPO.git master
-          popd
+          echo "BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))" >> $GITHUB_ENV
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
@@ -89,8 +60,44 @@ jobs:
       - name: Publish Docker images
         run: ./gradlew -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} -PdockerUrl=unix:///var/run/docker.sock pushDockerImage
       - name: Tag the build
-        uses: rickstaa/action-create-tag@v1
+        run: |
+          git tag -a build-${BUILD_NUMBER} -m "GitHub build"
+          git push https://github.com/yonadev/yona-server.git --tags
+      - name: Checkout Helm chart repo
+        uses: actions/checkout@v2
         with:
-          tag: "build-${{ env.BUILD_NUMBER }}"
-          message: "GitHub build"
+          repository: yonadev/${{ env.HELM_REPO }}
+          path: '${{ env.HELM_REPO }}'
+          token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
+      - name: Set environment
+        working-directory: '${{ env.HELM_REPO }}'
+        run: |
+          HELM_REPO_DIR=${PWD}
+          echo "HELM_REPO_DIR=$HELM_REPO_DIR" >> $GITHUB_ENV
+          echo "PACKAGE_DIR=${HELM_REPO_DIR}/docs" >> $GITHUB_ENV
+          echo "CHART_VERSION=1.2.${BUILD_NUMBER}" >> $GITHUB_ENV
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: 'v3.3.0'
+      - name: Build Helm package
+        working-directory: yona-server/k8s/helm
+        run: |
+          mkdir build
+          cp -r ${CHART} build
+          pushd build
+          sed --in-place s/_ReplaceWithBuildNumber_/${BUILD_NUMBER}/ ${CHART}/Chart.yaml
+          helm dependency update ${CHART}
+          helm package -d ${PACKAGE_DIR} --version ${CHART_VERSION} ${CHART}
+          popd
+          pushd ${HELM_REPO_DIR}
+          git add ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
+          helm repo index docs --url https://yonadev.github.io/helm-charts
+          export GIT_AUTHOR_NAME="Yona build server"
+          export GIT_AUTHOR_EMAIL=dev@yona.nu
+          export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
+          export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
+          git commit -am "Package for build ${BUILD_NUMBER}"
+          git push https://github.com/yonadev/$HELM_REPO.git master
+          popd
           commit_sha: ${{ github.sha }}
