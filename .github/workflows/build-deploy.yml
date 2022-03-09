@@ -28,7 +28,7 @@ jobs:
           path: '${{ env.HELM_REPO }}'
           token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
       - name: Set build number
-        working-dir: '${{ env.HELM_REPO }}'
+        working-directory: '${{ env.HELM_REPO }}'
         run: |
           BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
