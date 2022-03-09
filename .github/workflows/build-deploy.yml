@@ -59,12 +59,6 @@ jobs:
           files: '**/build/test-results/test/*.xml'
       - name: Publish Docker images
         run: ./gradlew -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} -PdockerUrl=unix:///var/run/docker.sock pushDockerImage
-      - name: Checkout Helm chart repo
-        uses: actions/checkout@v2
-        with:
-          repository: yonadev/${{ env.HELM_REPO }}
-          path: '${{ env.HELM_REPO }}'
-          token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
       - name: Tag the build
         run: |
           export GIT_AUTHOR_NAME="Yona build server"
@@ -75,6 +69,12 @@ jobs:
           git config --global user.name "${GIT_AUTHOR_NAME}"
           git tag -a build-${BUILD_NUMBER} -m "GitHub build"
           git push https://github.com/yonadev/yona-server.git --tags
+      - name: Checkout Helm chart repo
+        uses: actions/checkout@v2
+        with:
+          repository: yonadev/${{ env.HELM_REPO }}
+          path: '${{ env.HELM_REPO }}'
+          token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
       - name: Set environment
         working-directory: '${{ env.HELM_REPO }}'
         run: |
@@ -106,4 +106,3 @@ jobs:
           git commit -am "Package for build ${BUILD_NUMBER}"
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
-          commit_sha: ${{ github.sha }}
