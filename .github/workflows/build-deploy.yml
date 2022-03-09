@@ -31,6 +31,14 @@ jobs:
         working-directory: '${{ env.HELM_REPO }}'
         run: |
           echo "BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))" >> $GITHUB_ENV
+      - name: Tag the build
+        run: |
+          export GIT_AUTHOR_NAME="Yona build server"
+          export GIT_AUTHOR_EMAIL=dev@yona.nu
+          export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
+          export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
+          git tag -a build-${BUILD_NUMBER} -m "GitHub build"
+          git push https://github.com/yonadev/yona-server.git --tags
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
@@ -59,14 +67,6 @@ jobs:
           files: '**/build/test-results/test/*.xml'
       - name: Publish Docker images
         run: ./gradlew -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} -PdockerUrl=unix:///var/run/docker.sock pushDockerImage
-      - name: Tag the build
-        run: |
-          git tag -a build-${BUILD_NUMBER} -m "GitHub build"
-          export GIT_AUTHOR_NAME="Yona build server"
-          export GIT_AUTHOR_EMAIL=dev@yona.nu
-          export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
-          export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
-          git push https://github.com/yonadev/yona-server.git --tags
       - name: Checkout Helm chart repo
         uses: actions/checkout@v2
         with:
