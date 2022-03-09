@@ -16,6 +16,11 @@ jobs:
       CHART: yona
       HELM_REPO: helm-charts
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
+          path: 'yona-server'
       - name: Set build number
         run: |
           BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))
@@ -30,11 +35,6 @@ jobs:
           repository: yonadev/${{ env.HELM_REPO }}
           path: '${{ env.HELM_REPO }}'
           token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
-          path: '${{ env.SRC_REPO }}'
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
