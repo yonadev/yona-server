@@ -25,7 +25,7 @@ jobs:
         run: |
           BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
-          HELM_REPO_DIR=${PWD}/${HELM_REPO}
+          HELM_REPO_DIR=${HELM_REPO}
           echo "HELM_REPO_DIR=$HELM_REPO_DIR" >> $GITHUB_ENV
           echo "PACKAGE_DIR=${HELM_REPO_DIR}/docs" >> $GITHUB_ENV
           echo "CHART_VERSION=1.2.${BUILD_NUMBER}" >> $GITHUB_ENV
