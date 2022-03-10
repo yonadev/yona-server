@@ -108,7 +108,7 @@ jobs:
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
 
-  run-int-test:
+  run_int_test:
     name: Run integration tests
     runs-on: ubuntu-latest
     # needs: build
