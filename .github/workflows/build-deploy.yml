@@ -107,8 +107,7 @@ jobs:
           git commit -am "Package for build ${BUILD_NUMBER}"
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
-
-  run_int_test:
+  run-int-test:
     name: Run integration tests
     runs-on: ubuntu-latest
     # needs: build
@@ -119,5 +118,3 @@ jobs:
           username: ${{ secrets.INT_TEST_USERNAME }}
           key: ${{ secrets.INT_TEST_SSH_KEY }}
           script: whoami
-
-INT_TEST_SSH_KEY
