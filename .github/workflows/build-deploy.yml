@@ -15,6 +15,7 @@ jobs:
     env:
       CHART: yona
       HELM_REPO: helm-charts
+    if: false
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -106,3 +107,18 @@ jobs:
           git commit -am "Package for build ${BUILD_NUMBER}"
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
+
+jobs:
+  run-int-test:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+    # needs: build
+      - name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.INT_TEST_HOST }}
+          username: ${{ secrets.INT_TEST_USERNAME }}
+          key: ${{ secrets.INT_TEST_SSH_KEY }}
+          script: whoami
+
+INT_TEST_SSH_KEY
