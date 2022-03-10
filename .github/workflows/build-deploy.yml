@@ -119,3 +119,4 @@ jobs:
           username: ${{ secrets.INT_TEST_USERNAME }}
           key: ${{ secrets.INT_TEST_SSH_KEY }}
           script: whoami
+          debug: true
