@@ -113,10 +113,18 @@ jobs:
     runs-on: ubuntu-latest
     # needs: build
     steps:
-      - name: executing remote ssh commands using ssh key
+      - name: Wipe existing deployment
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.INT_TEST_HOST }}
           username: ${{ secrets.INT_TEST_USERNAME }}
           key: ${{ secrets.INT_TEST_SSH_KEY }}
-          script: whoami
+          script: |
+            helm uninstall yona --namespace yona
+            kubectl delete -n yona configmaps --all
+            kubectl delete -n yona job --all
+            kubectl delete -n yona secrets --all
+            kubectl delete pvc -n yona --all
+            echo Waiting for purge to complete
+            sleep 30
+            helm repo update
