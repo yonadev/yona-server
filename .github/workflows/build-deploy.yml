@@ -120,12 +120,12 @@ jobs:
           username: ${{ secrets.INT_TEST_USERNAME }}
           key: ${{ secrets.INT_TEST_SSH_KEY }}
           script: |
-            kubectl config use-context kubernetes
-            helm uninstall yona --namespace yona
-            kubectl delete -n yona configmaps --all
-            kubectl delete -n yona job --all
-            kubectl delete -n yona secrets --all
-            kubectl delete pvc -n yona --all
+            echo "get current context" && kubectl config current-context
+            echo "helm uninstall" && helm uninstall yona --namespace yona
+            echo "delete configmaps" && kubectl delete -n yona configmaps --all
+            echo "delete job" && kubectl delete -n yona job --all
+            echo "delete secrets" && kubectl delete -n yona secrets --all
+            echo "delete pvc" && kubectl delete pvc -n yona --all
             echo Waiting for purge to complete
             sleep 30
             helm repo update
