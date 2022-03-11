@@ -120,6 +120,8 @@ jobs:
           username: ${{ secrets.INT_TEST_USERNAME }}
           key: ${{ secrets.INT_TEST_SSH_KEY }}
           script: |
+            echo "Environment:" > /tmp/bot.log
+            export >> /tmp/bot.log
             echo "get current context" && kubectl config current-context
             echo "helm uninstall" && helm uninstall yona --namespace yona
             echo "delete configmaps" && kubectl delete -n yona configmaps --all
