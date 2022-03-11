@@ -124,6 +124,8 @@ jobs:
           key: ${{ secrets.INT_TEST_SSH_KEY }}
           envs: HELM_HOME, KUBECONFIG
           script: |
+            export HELM_HOME=$HELM_HOME
+            export KUBECONFIG=$KUBECONFIG
             echo "Environment:" > /tmp/bot.log
             export >> /tmp/bot.log
             echo "get current context" && kubectl config current-context
