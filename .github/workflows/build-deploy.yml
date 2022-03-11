@@ -120,7 +120,7 @@ jobs:
           username: ${{ secrets.INT_TEST_USERNAME }}
           key: ${{ secrets.INT_TEST_SSH_KEY }}
           script: |
-            kubectl config get-contexts
+            kubectl config use-context kubernetes
             helm uninstall yona --namespace yona
             kubectl delete -n yona configmaps --all
             kubectl delete -n yona job --all
