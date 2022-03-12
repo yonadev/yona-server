@@ -155,4 +155,4 @@ jobs:
             export BUILD_NUMBER_TO_DEPLOY=$BUILD_NUMBER_TO_DEPLOY
             ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
             URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-            wget --header='PRIVATE-TOKEN: ${YONA_BUILD_GITLAB_TOKEN}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${DEPLOYMENT_NAME} yona/yona
+            wget --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${DEPLOYMENT_NAME} yona/yona
