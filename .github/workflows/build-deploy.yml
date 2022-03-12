@@ -142,7 +142,18 @@ jobs:
           NAMESPACE: yona
           DEPLOYMENT_NAME: yona
           BUILD_NUMBER_TO_DEPLOY: 1543
-        run: |
-          ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
-          URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-          wget --header='PRIVATE-TOKEN: ${YONA_BUILD_GITLAB_TOKEN}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${DEPLOYMENT_NAME} yona/yona"
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.INT_TEST_HOST }}
+          username: ${{ secrets.INT_TEST_USERNAME }}
+          key: ${{ secrets.INT_TEST_SSH_KEY }}
+          envs: HELM_HOME, KUBECONFIG
+          script: |
+            export REPO_NUMBER=$REPO_NUMBER
+            export VALUES_PATH=$VALUES_PATH
+            export NAMESPACE=$NAMESPACE
+            export DEPLOYMENT_NAME=$DEPLOYMENT_NAME
+            export BUILD_NUMBER_TO_DEPLOY=$BUILD_NUMBER_TO_DEPLOY
+            ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
+            URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
+            wget --header='PRIVATE-TOKEN: ${YONA_BUILD_GITLAB_TOKEN}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${DEPLOYMENT_NAME} yona/yona"
