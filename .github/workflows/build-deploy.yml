@@ -111,20 +111,18 @@ jobs:
     name: Run integration tests
     environment: int-test
     runs-on: ubuntu-latest
+    env:
+      KUBECONFIG: /opt/jnlp-agent/yona/k8s/admin.conf
     # needs: build
     steps:
       - name: Wipe existing deployment
-        env:
-          HELM_HOME: /opt/jnlp-agent/yona/k8s/helm/.helm
-          KUBECONFIG: /opt/jnlp-agent/yona/k8s/admin.conf
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.INT_TEST_HOST }}
           username: ${{ secrets.INT_TEST_USERNAME }}
           key: ${{ secrets.INT_TEST_SSH_KEY }}
-          envs: HELM_HOME, KUBECONFIG
+          envs: KUBECONFIG
           script: |
-            export HELM_HOME=$HELM_HOME
             export KUBECONFIG=$KUBECONFIG
             kubectl config current-context
             helm uninstall yona --namespace yona
@@ -147,8 +145,9 @@ jobs:
           host: ${{ secrets.INT_TEST_HOST }}
           username: ${{ secrets.INT_TEST_USERNAME }}
           key: ${{ secrets.INT_TEST_SSH_KEY }}
-          envs: HELM_HOME, KUBECONFIG
+          envs: KUBECONFIG, REPO_NUMBER, VALUES_PATH, NAMESPACE, DEPLOYMENT_NAME, BUILD_NUMBER_TO_DEPLOY
           script: |
+            export KUBECONFIG=$KUBECONFIG
             export REPO_NUMBER=$REPO_NUMBER
             export VALUES_PATH=$VALUES_PATH
             export NAMESPACE=$NAMESPACE
