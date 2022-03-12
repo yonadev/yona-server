@@ -126,14 +126,23 @@ jobs:
           script: |
             export HELM_HOME=$HELM_HOME
             export KUBECONFIG=$KUBECONFIG
-            echo "Environment:" > /tmp/bot.log
-            export >> /tmp/bot.log
-            echo "get current context" && kubectl config current-context
-            echo "helm uninstall" && helm uninstall yona --namespace yona
-            echo "delete configmaps" && kubectl delete -n yona configmaps --all
-            echo "delete job" && kubectl delete -n yona job --all
-            echo "delete secrets" && kubectl delete -n yona secrets --all
-            echo "delete pvc" && kubectl delete pvc -n yona --all
+            kubectl config current-context
+            helm uninstall yona --namespace yona
+            kubectl delete -n yona configmaps --all
+            kubectl delete -n yona job --all
+            kubectl delete -n yona secrets --all
+            kubectl delete pvc -n yona --all
             echo Waiting for purge to complete
             sleep 30
             helm repo update
+      - name: Install Yona
+        env:
+          REPO_NUMBER: 4
+          VALUES_PATH: infrastructure/helm/values.yaml
+          NAMESPACE: yona
+          DEPLOYMENT_NAME: yona
+          BUILD_NUMBER_TO_DEPLOY: 1543
+        run: |
+          ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
+          URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
+          wget --header='PRIVATE-TOKEN: ${YONA_BUILD_GITLAB_TOKEN}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${DEPLOYMENT_NAME} yona/yona"
