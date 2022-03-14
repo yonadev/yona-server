@@ -157,6 +157,10 @@ jobs:
             URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
             wget --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${DEPLOYMENT_NAME} yona/yona
             /home/bert.roos/wait-for-services.sh # TODO: pull this from GitHub
+      - name: Checkout src repo
+        uses: actions/checkout@v2
+        with:
+          path: 'yona-server'
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest
       - name: Publish integration test results
