@@ -162,7 +162,7 @@ jobs:
         with:
           path: 'yona-server'
       - name: Run integration tests
-        run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest
+        run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=http://build.dev.yona.nu:31002 -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
