@@ -161,6 +161,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: 'yona-server'
+      - name: Check endpoints
+        run: |
+          curl http://build.dev.yona.nu:31000/activityCategories/
+          curl http://build.dev.yona.nu:31001/relevantSmoothwallCategories/
+          curl http://build.dev.yona.nu:31002/activityCategories/
+          curl http://build.dev.yona.nu:31003/scheduler/jobs/
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=http://build.dev.yona.nu:31002 -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest
       - name: Publish integration test results
