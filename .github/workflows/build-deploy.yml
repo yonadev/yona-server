@@ -176,3 +176,10 @@ jobs:
         if: always()
         with:
           files: '**/build/test-results/intTest/*.xml'
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Integration test report
+          path: |
+            adminservice\build\reports\tests\intTest
