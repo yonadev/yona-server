@@ -23,9 +23,12 @@ class AdminConnectTest extends Specification
 	def 'Just say it\'s fine'()
 	{
 		when:
-		def val = "Non-null"
+		def adminUrl = adminService.yonaServer.restClient.uri
+		def appUrl = appService.yonaServer.restClient.uri
 
 		then:
-		val
+		println "Admin url: " + adminUrl
+		println "App url: " + appUrl
+		adminUrl
 	}
 }

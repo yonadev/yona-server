@@ -116,6 +116,7 @@ jobs:
     # needs: build
     steps:
       - name: Wipe existing deployment
+        if: false
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.INT_TEST_HOST }}
@@ -134,6 +135,7 @@ jobs:
             sleep 30
             helm repo update
       - name: Install Yona
+        if: false
         env:
           REPO_NUMBER: 4
           VALUES_PATH: infrastructure/helm/values.yaml
