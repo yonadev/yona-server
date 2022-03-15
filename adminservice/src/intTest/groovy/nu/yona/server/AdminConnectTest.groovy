@@ -8,6 +8,8 @@
 package nu.yona.server
 
 
+import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
+
 import nu.yona.server.test.AppService
 import spock.lang.Shared
 import spock.lang.Specification
@@ -20,15 +22,12 @@ class AdminConnectTest extends Specification
 	@Shared
 	AppService appService = new AppService()
 
-	def 'Just say it\'s fine'()
+	def 'Connect admin service'()
 	{
 		when:
-		def adminUrl = adminService.yonaServer.restClient.uri
-		def appUrl = appService.yonaServer.restClient.uri
+		def response = adminService.getAllActivityCategories()
 
 		then:
-		println "Admin url: " + adminUrl
-		println "App url: " + appUrl
-		adminUrl
+		assertResponseStatusOk(response)
 	}
 }

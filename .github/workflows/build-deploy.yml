@@ -171,18 +171,8 @@ jobs:
           curl http://build.dev.yona.nu:31003/scheduler/jobs/
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=http://build.dev.yona.nu:31002 -Pyona_batchservice_url=http://build.dev.yona.nu:31003 :adminService:intTest --tests AdminConnectTest
-      - name: Check endpoints
-        run: |
-          find adminservice -print
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
         with:
           files: '**/build/test-results/intTest/*.xml'
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: Integration test report
-          path: |
-            yona-server/adminservice/build/reports/tests/intTest
