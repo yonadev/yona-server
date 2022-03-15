@@ -182,4 +182,4 @@ jobs:
         with:
           name: Integration test report
           path: |
-            adminservice\build\reports\tests\intTest
+            adminservice/build/reports/tests/intTest
