@@ -22,10 +22,10 @@ class AdminConnectTest extends Specification
 	@Shared
 	AppService appService = new AppService()
 
-	def 'Connect admin service'()
+	def 'Connect app service'()
 	{
 		when:
-		def response = adminService.getAllActivityCategories()
+		def response = appService.getAllActivityCategoriesWithLanguage("en-US")
 
 		then:
 		assertResponseStatusOk(response)
