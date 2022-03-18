@@ -170,7 +170,7 @@ jobs:
           curl http://build.dev.yona.nu:31002/activityCategories/
           curl http://build.dev.yona.nu:31003/scheduler/jobs/
       - name: Run integration tests
-        run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=http://build.dev.yona.nu:31002 -Pyona_batchservice_url=http://build.dev.yona.nu:31003 :adminService:intTest --tests AdminConnectTest
+        run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://www.nu.nl -Pyona_batchservice_url=http://build.dev.yona.nu:31003 :adminService:intTest --tests AdminConnectTest
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
