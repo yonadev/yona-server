@@ -163,14 +163,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: 'yona-server'
-      - name: Check endpoints
-        run: |
-          curl https://admin.build.dev.yona.nu/activityCategories/
-          curl https://analysis.build.dev.yona.nu/relevantSmoothwallCategories/
-          curl https://app.build.dev.yona.nu/activityCategories/
-          curl https://batch.build.dev.yona.nu/scheduler/jobs/
       - name: Run integration tests
-        run: ./gradlew --no-daemon -Pyona_adminservice_url=https://admin.build.dev.yona.nu -Pyona_analysisservice_url=https://analysis.build.dev.yona.nu -Pyona_appservice_url=https://app.build.dev.yona.nu -Pyona_batchservice_url=https://batch.build.dev.yona.nu :adminService:intTest --tests AdminConnectTest
+        run: ./gradlew --no-daemon -Pyona_adminservice_url=https://admin.build.dev.yona.nu -Pyona_analysisservice_url=https://analysis.build.dev.yona.nu -Pyona_appservice_url=https://app.build.dev.yona.nu -Pyona_batchservice_url=https://batch.build.dev.yona.nu intTest
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
