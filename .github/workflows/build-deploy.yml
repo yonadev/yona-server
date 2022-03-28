@@ -33,8 +33,9 @@ jobs:
         run: |
           echo "BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))" >> $GITHUB_ENV
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
+          distribution: 'zulu'
           java-version: 11
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
@@ -163,8 +164,13 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: 'yona-server'
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 11
       - name: Run integration tests
-        run: ./gradlew --no-daemon -Pyona_adminservice_url=https://admin.build.dev.yona.nu -Pyona_analysisservice_url=https://analysis.build.dev.yona.nu -Pyona_appservice_url=https://app.build.dev.yona.nu -Pyona_batchservice_url=https://batch.build.dev.yona.nu intTest
+        run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 intTest
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
