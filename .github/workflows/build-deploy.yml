@@ -170,7 +170,7 @@ jobs:
           distribution: 'zulu'
           java-version: 11
       - name: Run integration tests
-        run: ./gradlew --no-daemon -Pyona_adminservice_url=https://admin.build.dev.yona.nu -Pyona_analysisservice_url=https://analysis.build.dev.yona.nu -Pyona_appservice_url=https://app.build.dev.yona.nu -Pyona_batchservice_url=https://batch.build.dev.yona.nu intTest
+        run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 :adminService:intTest
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
