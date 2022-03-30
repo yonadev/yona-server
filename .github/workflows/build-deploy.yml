@@ -15,7 +15,8 @@ jobs:
     env:
       CHART: yona
       HELM_REPO: helm-charts
-    if: false
+    outputs:
+      build-number: ${{ steps.set-build-number.build-number }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -29,9 +30,12 @@ jobs:
           path: '${{ env.HELM_REPO }}'
           token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
       - name: Set build number
+        id: set-build-number
         working-directory: '${{ env.HELM_REPO }}'
         run: |
-          echo "BUILD_NUMBER=$(($GITHUB_RUN_NUMBER+1500))" >> $GITHUB_ENV
+          build_number=$(($GITHUB_RUN_NUMBER+1500))
+          echo "BUILD_NUMBER=${build_number}" >> $GITHUB_ENV
+          echo "::set-output name=build-number::${build_number}"
       - name: Set up JDK 11
         uses: actions/setup-java@v3.0.0
         with:
@@ -114,10 +118,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KUBECONFIG: /opt/jnlp-agent/yona/k8s/admin.conf
-    # needs: build
+    needs: build
     steps:
       - name: Wipe existing deployment
-        if: false
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.INT_TEST_HOST }}
@@ -136,13 +139,12 @@ jobs:
             sleep 30
             helm repo update
       - name: Install Yona
-        if: false
         env:
           REPO_NUMBER: 4
           VALUES_PATH: infrastructure/helm/values.yaml
           NAMESPACE: yona
           DEPLOYMENT_NAME: yona
-          BUILD_NUMBER_TO_DEPLOY: 1543 # TODO: Take this from the previous job
+          BUILD_NUMBER_TO_DEPLOY: ${{ needs.build.outputs.build-number }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.INT_TEST_HOST }}
@@ -170,7 +172,7 @@ jobs:
           distribution: 'zulu'
           java-version: 11
       - name: Run integration tests
-        run: ./gradlew --no-daemon -Pyona_adminservice_url=http://build.dev.yona.nu:31000 -Pyona_analysisservice_url=http://build.dev.yona.nu:31001 -Pyona_appservice_url=https://build.dev.yona.nu -Pyona_batchservice_url=http://build.dev.yona.nu:31003 :appService:intTest
+        run: ./gradlew --no-daemon -Pyona_adminservice_url=https://admin.build.dev.yona.nu -Pyona_analysisservice_url=https://analysis.build.dev.yona.nu -Pyona_appservice_url=https://app.build.dev.yona.nu -Pyona_batchservice_url=https://batch.build.dev.yona.nu intTest
       - name: Publish integration test results
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         if: always()
