@@ -16,7 +16,7 @@ jobs:
       CHART: yona
       HELM_REPO: helm-charts
     outputs:
-      build-number: ${{ steps.set-build-number.build-number }}
+      build-number: ${{ steps.set-build-number.outputs.build-number }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
