@@ -137,7 +137,6 @@ jobs:
             kubectl delete pvc -n yona --all
             echo Waiting for purge to complete
             sleep 30
-            helm repo update
       - name: Install Yona
         env:
           REPO_NUMBER: 4
@@ -152,6 +151,7 @@ jobs:
           key: ${{ secrets.INT_TEST_SSH_KEY }}
           envs: KUBECONFIG, REPO_NUMBER, VALUES_PATH, NAMESPACE, DEPLOYMENT_NAME, BUILD_NUMBER_TO_DEPLOY
           script: |
+            helm repo update --debug
             export KUBECONFIG=$KUBECONFIG
             export REPO_NUMBER=$REPO_NUMBER
             export VALUES_PATH=$VALUES_PATH
@@ -160,7 +160,7 @@ jobs:
             export BUILD_NUMBER_TO_DEPLOY=$BUILD_NUMBER_TO_DEPLOY
             ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
             URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-            wget --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} ${DEPLOYMENT_NAME} yona/yona
+            wget --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER_TO_DEPLOY} --debug ${DEPLOYMENT_NAME} yona/yona
             /home/bert.roos/wait-for-services.sh # TODO: pull this from GitHub
       - name: Checkout src repo
         uses: actions/checkout@v2
