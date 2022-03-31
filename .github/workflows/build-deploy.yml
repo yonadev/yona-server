@@ -15,9 +15,9 @@ jobs:
     env:
       CHART: yona
       HELM_REPO: helm-charts
+    if: false
     outputs:
       build-number: ${{ steps.set-build-number.outputs.build-number }}
-    if: false
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
