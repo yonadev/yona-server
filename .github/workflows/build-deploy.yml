@@ -139,31 +139,15 @@ jobs:
             kubectl delete pvc -n yona --all
             echo Waiting for purge to complete
             sleep 30
-      - name: Install Yona
-        env:
-          REPO_NUMBER: 4
-          VALUES_PATH: infrastructure/helm/values.yaml
-          NAMESPACE: yona
-          DEPLOYMENT_NAME: yona
-          BUILD_NUMBER: ${{ needs.build.outputs.build-number }}
-        uses: appleboy/ssh-action@master
+      - name: Deploy Yona
+        uses: ./.github/workflows/actions/deploy
         with:
-          host: ${{ secrets.INT_TEST_HOST }}
-          username: ${{ secrets.INT_TEST_USERNAME }}
-          key: ${{ secrets.INT_TEST_SSH_KEY }}
-          envs: KUBECONFIG, REPO_NUMBER, VALUES_PATH, NAMESPACE, DEPLOYMENT_NAME, BUILD_NUMBER
-          script: |
-            helm repo update --debug
-            export KUBECONFIG=$KUBECONFIG
-            export REPO_NUMBER=$REPO_NUMBER
-            export VALUES_PATH=$VALUES_PATH
-            export NAMESPACE=$NAMESPACE
-            export DEPLOYMENT_NAME=$DEPLOYMENT_NAME
-            export BUILD_NUMBER=$BUILD_NUMBER
-            ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
-            URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-            wget --no-verbose --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER} --debug ${DEPLOYMENT_NAME} yona/yona
-            /home/bert.roos/wait-for-services.sh # TODO: pull this from GitHub
+          build-number: ${{ needs.build.outputs.build-number }}
+          repo-number: 4
+          gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
+          host-name: ${{ secrets.INT_TEST_HOST }}
+          ssh-user-name: ${{ secrets.INT_TEST_USERNAME }}
+          ssh-key: ${{ secrets.INT_TEST_SSH_KEY }}
   run-int-test:
     name: Run integration tests
     environment: int-test
