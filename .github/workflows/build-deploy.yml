@@ -15,7 +15,6 @@ jobs:
     env:
       CHART: yona
       HELM_REPO: helm-charts
-    if: false
     outputs:
       build-number: ${{ steps.set-build-number.outputs.build-number }}
     steps:
@@ -119,8 +118,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KUBECONFIG: /opt/jnlp-agent/yona/k8s/admin.conf
+    needs: build
     outputs:
-      build-number: 1596
+      build-number: ${{ needs.build.outputs.build-number }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -146,7 +146,7 @@ jobs:
       - name: Deploy Yona
         uses: ../.github/workflows/actions/deploy
         with:
-          build-number: 1596
+          build-number: ${{ needs.build.outputs.build-number }}
           repo-number: 4
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
           host-name: ${{ secrets.INT_TEST_HOST }}
