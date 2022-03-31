@@ -124,8 +124,6 @@ jobs:
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
-        with:
-          path: 'yona-server'
       - name: Wipe existing deployment
         uses: appleboy/ssh-action@master
         with:
@@ -144,7 +142,7 @@ jobs:
             echo Waiting for purge to complete
             sleep 30
       - name: Deploy Yona
-        uses: ../.github/workflows/actions/deploy
+        uses: ./.github/workflows/actions/deploy
         with:
           build-number: ${{ needs.build.outputs.build-number }}
           repo-number: 4
