@@ -17,6 +17,7 @@ jobs:
       HELM_REPO: helm-charts
     outputs:
       build-number: ${{ steps.set-build-number.outputs.build-number }}
+    if: false
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -118,9 +119,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KUBECONFIG: /opt/jnlp-agent/yona/k8s/admin.conf
-    needs: build
     outputs:
-      build-number: ${{ needs.build.outputs.build-number }}
+      build-number: 1596
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -144,9 +144,9 @@ jobs:
             echo Waiting for purge to complete
             sleep 30
       - name: Deploy Yona
-        uses: ./.github/workflows/actions/deploy
+        uses: ../.github/workflows/actions/deploy
         with:
-          build-number: ${{ needs.build.outputs.build-number }}
+          build-number: 1596
           repo-number: 4
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
           host-name: ${{ secrets.INT_TEST_HOST }}
