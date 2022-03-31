@@ -122,6 +122,10 @@ jobs:
     outputs:
       build-number: ${{ needs.build.outputs.build-number }}
     steps:
+      - name: Checkout src repo
+        uses: actions/checkout@v2
+        with:
+          path: 'yona-server'
       - name: Wipe existing deployment
         uses: appleboy/ssh-action@master
         with:
