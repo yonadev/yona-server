@@ -1,15 +1,6 @@
 name: Deploy
 description: Deploy Yona to a server
 inputs:
-  build-number:
-    description: 'The build number to deploy'
-    required: true
-  repo-number:
-    description: 'The number of the GitLab repo containing the values'
-    required: true
-  gitlab-token:
-    description: 'The token of the GitLab repo'
-    required: true
   host-name:
     description: 'The name of the host to deploy to'
     required: true
@@ -19,6 +10,26 @@ inputs:
   ssh-key:
     description: 'The SSH key'
     required: true
+  k8s-context:
+    description: 'Kubernetes context to operate in'
+    required: true
+  k8s-namespace:
+    description: 'Kubernetes namespace to operate in'
+    required: false
+    default: yona
+  helm-release:
+    description: 'Helm release to create or upgrade'
+    required: false
+    default: yona
+  build-number:
+    description: 'The build number to deploy'
+    required: true
+  repo-number:
+    description: 'The number of the GitLab repo containing the values'
+    required: true
+  gitlab-token:
+    description: 'The token of the GitLab repo'
+    required: true
 
 runs:
   using: "composite"
@@ -27,24 +38,25 @@ runs:
       env:
         REPO_NUMBER: ${{ inputs.repo-number }}
         VALUES_PATH: infrastructure/helm/values.yaml
-        NAMESPACE: yona
-        DEPLOYMENT_NAME: yona
+        NAMESPACE: ${{ inputs.k8s-namespace }}
+        RELEASE: ${{ inputs.helm-release }}
         BUILD_NUMBER: ${{ inputs.build-number }}
       uses: appleboy/ssh-action@master
       with:
         host: ${{ inputs.host-name }}
         username: ${{ inputs.ssh-user-name }}
         key: ${{ inputs.ssh-key }}
-        envs: KUBECONFIG, REPO_NUMBER, VALUES_PATH, NAMESPACE, DEPLOYMENT_NAME, BUILD_NUMBER
+        envs: KUBECONFIG, REPO_NUMBER, VALUES_PATH, NAMESPACE, RELEASE, BUILD_NUMBER
         script: |
-          helm repo update --debug
+          helm repo update
           export KUBECONFIG=$KUBECONFIG
           export REPO_NUMBER=$REPO_NUMBER
           export VALUES_PATH=$VALUES_PATH
           export NAMESPACE=$NAMESPACE
-          export DEPLOYMENT_NAME=$DEPLOYMENT_NAME
+          export RELEASE=$RELEASE
           export BUILD_NUMBER=$BUILD_NUMBER
           ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
           URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-          wget --no-verbose --header='PRIVATE-TOKEN: ${{ inputs.gitlab-token }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER} --debug ${DEPLOYMENT_NAME} yona/yona
+          kubectl config use-context ${{ inputs.k8s-context }}
+          wget --no-verbose --header='PRIVATE-TOKEN: ${{ inputs.gitlab-token }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER} ${RELEASE} yona/yona
           wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${BUILD_NUMBER}/scripts/wait-for-services.sh | bash

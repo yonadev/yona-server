@@ -133,7 +133,6 @@ jobs:
           envs: KUBECONFIG
           script: |
             export KUBECONFIG=$KUBECONFIG
-            kubectl config current-context
             helm uninstall yona --namespace yona
             kubectl delete -n yona configmaps --all
             kubectl delete -n yona job --all
@@ -144,12 +143,13 @@ jobs:
       - name: Deploy Yona
         uses: ./.github/workflows/actions/deploy
         with:
-          build-number: ${{ needs.build.outputs.build-number }}
-          repo-number: 4
-          gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
           host-name: ${{ secrets.INT_TEST_HOST }}
           ssh-user-name: ${{ secrets.INT_TEST_USERNAME }}
           ssh-key: ${{ secrets.INT_TEST_SSH_KEY }}
+          k8s-context: kubernetes-admin@kubernetes
+          build-number: ${{ needs.build.outputs.build-number }}
+          repo-number: 4
+          gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
   run-int-test:
     name: Run integration tests
     environment: int-test
