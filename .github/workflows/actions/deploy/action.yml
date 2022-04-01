@@ -57,6 +57,5 @@ runs:
           export BUILD_NUMBER=$BUILD_NUMBER
           ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
           URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-          kubectl config use-context ${{ inputs.k8s-context }}
-          wget --no-verbose --header='PRIVATE-TOKEN: ${{ inputs.gitlab-token }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER} ${RELEASE} yona/yona
+          wget --no-verbose --header='PRIVATE-TOKEN: ${{ inputs.gitlab-token }}' --output-document=- ${URL} | helm upgrade --install --values - --kube-context ${{ inputs.k8s-context }} --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER} ${RELEASE} yona/yona
           wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${BUILD_NUMBER}/scripts/wait-for-services.sh | bash
