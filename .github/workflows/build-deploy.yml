@@ -146,9 +146,11 @@ jobs:
           host-name: ${{ secrets.INT_TEST_HOST }}
           ssh-user-name: ${{ secrets.INT_TEST_USERNAME }}
           ssh-key: ${{ secrets.INT_TEST_SSH_KEY }}
-          k8s-context: kubernetes-admin@kubernetes
+          kube-config: ${{ env.KUBECONFIG }}
+          kube-context: kubernetes-admin@kubernetes
           build-number: ${{ needs.build.outputs.build-number }}
           repo-number: 4
+          helm-values-path: infrastructure/helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
   run-int-test:
     name: Run integration tests

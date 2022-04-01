@@ -10,10 +10,13 @@ inputs:
   ssh-key:
     description: 'The SSH key'
     required: true
-  k8s-context:
+  kube-config:
+    description: 'Path to the kubeconfig file'
+    required: true
+  kube-context:
     description: 'Kubernetes context to operate in'
     required: true
-  k8s-namespace:
+  kube-namespace:
     description: 'Kubernetes namespace to operate in'
     required: false
     default: yona
@@ -27,6 +30,9 @@ inputs:
   repo-number:
     description: 'The number of the GitLab repo containing the values'
     required: true
+  helm-values-path:
+    description: 'The path to the values YAML file in the GitLab repo'
+    required: true
   gitlab-token:
     description: 'The token of the GitLab repo'
     required: true
@@ -35,27 +41,15 @@ runs:
   using: "composite"
   steps:
     - name: Install Yona
-      env:
-        REPO_NUMBER: ${{ inputs.repo-number }}
-        VALUES_PATH: infrastructure/helm/values.yaml
-        NAMESPACE: ${{ inputs.k8s-namespace }}
-        RELEASE: ${{ inputs.helm-release }}
-        BUILD_NUMBER: ${{ inputs.build-number }}
       uses: appleboy/ssh-action@master
       with:
         host: ${{ inputs.host-name }}
         username: ${{ inputs.ssh-user-name }}
         key: ${{ inputs.ssh-key }}
-        envs: KUBECONFIG, REPO_NUMBER, VALUES_PATH, NAMESPACE, RELEASE, BUILD_NUMBER
         script: |
           helm repo update
-          export KUBECONFIG=$KUBECONFIG
-          export REPO_NUMBER=$REPO_NUMBER
-          export VALUES_PATH=$VALUES_PATH
-          export NAMESPACE=$NAMESPACE
-          export RELEASE=$RELEASE
-          export BUILD_NUMBER=$BUILD_NUMBER
+          export VALUES_PATH=${{ inputs.helm-values-path }}
           ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
-          URL="https://git.ops.yona.nu/api/v4/projects/${REPO_NUMBER}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-          wget --no-verbose --header='PRIVATE-TOKEN: ${{ inputs.gitlab-token }}' --output-document=- ${URL} | helm upgrade --install --values - --kube-context ${{ inputs.k8s-context }} --namespace ${NAMESPACE} --version 1.2.${BUILD_NUMBER} ${RELEASE} yona/yona
-          wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${BUILD_NUMBER}/scripts/wait-for-services.sh | bash
+          URL="https://git.ops.yona.nu/api/v4/projects/${{ inputs.repo-number }}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
+          wget --no-verbose --header='PRIVATE-TOKEN: ${{ inputs.gitlab-token }}' --output-document=- ${URL} | helm upgrade --install --values - --kubeconfig ${{ inputs.kube-config }} --kube-context ${{ inputs.kube-context }} --namespace ${{ inputs.kube-namespace }} --version 1.2.${{ inputs.build-number }} ${{ inputs.helm-release }} yona/yona
+          wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ inputs.build-number }}/scripts/wait-for-services.sh | bash
