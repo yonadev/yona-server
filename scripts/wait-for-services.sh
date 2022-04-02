@@ -27,6 +27,7 @@ function waitTillK8SInstanceWorks() {
 	fi
 }
 
+kubectl config use-context ${KUBECONTEXT}
 waitTillK8SInstanceWorks liquibase Succeeded 1200 5
 waitTillK8SInstanceWorks admin Running 60
 waitTillK8SInstanceWorks analysis Running 60

@@ -49,6 +49,7 @@ runs:
         script: |
           helm repo update
           export KUBECONFIG=${{ inputs.kube-config }} # Used in Helm and wait-for-services.sh
+          export KUBECONTEXT=${{ inputs.kube-context }} # Used in wait-for-services.sh
           export VALUES_PATH=${{ inputs.helm-values-path }}
           ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
           URL="https://git.ops.yona.nu/api/v4/projects/${{ inputs.repo-number }}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
