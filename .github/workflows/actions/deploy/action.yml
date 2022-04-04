@@ -10,6 +10,15 @@ inputs:
   ssh-key:
     description: 'The SSH key'
     required: true
+  proxy-host-name:
+    description: 'The name of the proxy host to go through'
+    required: false
+  proxy-ssh-user-name:
+    description: 'The user name on the proxy host'
+    required: false
+  proxy-ssh-key:
+    description: 'The SSH key for the proxy host'
+    required: false
   kube-config:
     description: 'Path to the kubeconfig file'
     required: true
@@ -41,11 +50,14 @@ runs:
   using: "composite"
   steps:
     - name: Install Yona
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@v0.1.4
       with:
         host: ${{ inputs.host-name }}
         username: ${{ inputs.ssh-user-name }}
         key: ${{ inputs.ssh-key }}
+        proxy_host: ${{ inputs.proxy-host-name }}
+        proxy_username: ${{ inputs.proxy-ssh-user-name }}
+        proxy_key: ${{ inputs.proxy-ssh-key }}
         script: |
           helm repo update
           export KUBECONFIG=${{ inputs.kube-config }} # Used in Helm and wait-for-services.sh
