@@ -176,3 +176,36 @@ jobs:
         if: always()
         with:
           files: '**/build/test-results/intTest/*.xml'
+  deploy-load-test-server:
+    name: Deploy load test server
+    environment: load-test
+    runs-on: ubuntu-latest
+    env:
+      KUBECONFIG: /home/bert.roos/.kube/config
+    needs: run-int-test
+    outputs:
+      build-number: ${{ needs.run-int-test.outputs.build-number }}
+    steps:
+      - name: Checkout src repo
+        uses: actions/checkout@v2
+      - name: Wipe existing database
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOYMENT_HOST }}
+          username: ${{ secrets.DEPLOYMENT_USERNAME }}
+          key: ${{ secrets.DEPLOYMENT_SSH_KEY }}
+          script: |
+            mysql -h ${{ secrets.BETA_DB_IP_ADDRESS }} -u ${{ secrets.BETA_DB_USERNAME }} -p ${{ secrets.BETA_DB_PASSWORD }} -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"
+      - name: Deploy Yona
+        uses: ./.github/workflows/actions/deploy
+        with:
+          host-name: ${{ secrets.DEPLOYMENT_HOST }}
+          ssh-user-name: ${{ secrets.DEPLOYMENT_USERNAME }}
+          ssh-key: ${{ secrets.DEPLOYMENT_SSH_KEY }}
+          kube-config: ${{ env.KUBECONFIG }}
+          kube-context: beta
+          kube-namespace: loadtest
+          build-number: ${{ needs.build.outputs.build-number }}
+          repo-number: 2
+          helm-values-path: helm/values_loadtest.yaml
+          gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
