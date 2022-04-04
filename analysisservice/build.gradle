@@ -39,7 +39,7 @@ dependencies {
 	testImplementation "org.mockito:mockito-junit-jupiter"
 	testImplementation project.deps.jmockit
 
-	intTestImplementation "org.codehaus.groovy:groovy-all:3.0.9"
+	intTestImplementation "org.codehaus.groovy:groovy-all:3.0.10"
 	intTestImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 	intTestImplementation project.deps.spockCore
 }
