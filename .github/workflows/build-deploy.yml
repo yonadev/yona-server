@@ -10,6 +10,7 @@ defaults:
 
 jobs:
   build:
+    if: ${{ false }}  # disable for now
     name: Build, test and analyze
     runs-on: ubuntu-latest
     env:
@@ -113,6 +114,7 @@ jobs:
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
   deploy-int-test-server:
+    if: ${{ false }}  # disable for now
     name: Deploy integration test server
     environment: int-test
     runs-on: ubuntu-latest
@@ -153,6 +155,7 @@ jobs:
           helm-values-path: infrastructure/helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
   run-int-test:
+    if: ${{ false }}  # disable for now
     name: Run integration tests
     environment: int-test
     runs-on: ubuntu-latest
@@ -182,9 +185,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KUBECONFIG: /home/bert.roos/.kube/config
-    needs: run-int-test
-    outputs:
-      build-number: ${{ needs.run-int-test.outputs.build-number }}
+      # needs: run-int-test
+    # outputs:
+      # build-number: ${{ needs.run-int-test.outputs.build-number }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -198,6 +201,8 @@ jobs:
           proxy_username: ${{ secrets.PROXY_USERNAME }}
           proxy_key: ${{ secrets.PROXY_SSH_KEY }}
           script: |
+            pwd
+            ls -l
             mysql -h ${{ secrets.BETA_DB_IP_ADDRESS }} -u ${{ secrets.BETA_DB_USERNAME }} -p${{ secrets.BETA_DB_PASSWORD }} -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"
       - name: Deploy Yona
         uses: ./.github/workflows/actions/deploy
@@ -211,7 +216,8 @@ jobs:
           kube-config: ${{ env.KUBECONFIG }}
           kube-context: beta
           kube-namespace: loadtest
-          build-number: ${{ needs.build.outputs.build-number }}
+          # build-number: ${{ needs.build.outputs.build-number }}
+          build-number: 1615
           repo-number: 2
           helm-values-path: helm/values_loadtest.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
