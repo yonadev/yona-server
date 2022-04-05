@@ -182,7 +182,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KUBECONFIG: /home/bert.roos/.kube/config
-      needs: run-int-test
+    needs: run-int-test
     outputs:
       build-number: ${{ needs.run-int-test.outputs.build-number }}
     steps:
