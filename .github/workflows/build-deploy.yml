@@ -125,7 +125,7 @@ jobs:
       - name: Checkout src repo
         uses: actions/checkout@v2
       - name: Wipe existing deployment
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.INT_TEST_HOST }}
           username: ${{ secrets.INT_TEST_USERNAME }}
@@ -189,14 +189,14 @@ jobs:
       - name: Checkout src repo
         uses: actions/checkout@v2
       - name: Wipe existing database
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USERNAME }}
           key: ${{ secrets.DEPLOYMENT_SSH_KEY }}
-          proxy-host: ${{ secrets.PROXY_HOST }}
-          proxy-username: ${{ secrets.PROXY_USERNAME }}
-          proxy-key: ${{ secrets.PROXY_SSH_KEY }}
+          proxy_host: ${{ secrets.PROXY_HOST }}
+          proxy_username: ${{ secrets.PROXY_USERNAME }}
+          proxy_key: ${{ secrets.PROXY_SSH_KEY }}
           script: |
             mysql -h ${{ secrets.BETA_DB_IP_ADDRESS }} -u ${{ secrets.BETA_DB_USERNAME }} -p${{ secrets.BETA_DB_PASSWORD }} -e "DROP DATABASE loadtest; CREATE DATABASE loadtest;"
       - name: Deploy Yona
