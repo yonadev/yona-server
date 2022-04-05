@@ -10,7 +10,6 @@ defaults:
 
 jobs:
   build:
-    if: ${{ false }}  # TODO disable for now
     name: Build, test and analyze
     runs-on: ubuntu-latest
     env:
@@ -114,7 +113,6 @@ jobs:
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
   deploy-int-test-server:
-    if: ${{ false }}  # TODO disable for now
     name: Deploy integration test server
     environment: int-test
     runs-on: ubuntu-latest
@@ -155,7 +153,6 @@ jobs:
           helm-values-path: infrastructure/helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
   run-int-test:
-    if: ${{ false }}  # TODO disable for now
     name: Run integration tests
     environment: int-test
     runs-on: ubuntu-latest
@@ -185,9 +182,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KUBECONFIG: /home/bert.roos/.kube/config
-      # TODO needs: run-int-test
-    # TODO outputs:
-      # TODO build-number: ${{ needs.run-int-test.outputs.build-number }}
+      needs: run-int-test
+    outputs:
+      build-number: ${{ needs.run-int-test.outputs.build-number }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -215,8 +212,7 @@ jobs:
           kube-context: beta
           kube-namespace: loadtest
           helm-release: loadtest
-          # TODO build-number: ${{ needs.build.outputs.build-number }}
-          build-number: 1615 # TODO
+          build-number: ${{ needs.build.outputs.build-number }}
           repo-number: 2
           helm-values-path: helm/values_loadtest.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}

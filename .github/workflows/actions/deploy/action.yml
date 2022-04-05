@@ -61,6 +61,7 @@ runs:
         script: |
           helm repo update
           export KUBECONFIG=${{ inputs.kube-config }} # Used in Helm and wait-for-services.sh
+          export NAMESPACE=${{ inputs.kube-namespace }} # Used in wait-for-services.sh
           export VALUES_PATH=${{ inputs.helm-values-path }}
           ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
           kubectl config use-context ${{ inputs.kube-context }}
