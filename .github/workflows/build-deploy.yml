@@ -212,7 +212,7 @@ jobs:
           kube-context: beta
           kube-namespace: loadtest
           helm-release: loadtest
-          build-number: ${{ needs.build.outputs.build-number }}
+          build-number: ${{ needs.run-int-test.outputs.build-number }}
           repo-number: 2
           helm-values-path: helm/values_loadtest.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
