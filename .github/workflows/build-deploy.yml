@@ -200,6 +200,7 @@ jobs:
           proxy_host: ${{ secrets.PROXY_HOST }}
           proxy_username: ${{ secrets.PROXY_USERNAME }}
           proxy_key: ${{ secrets.PROXY_SSH_KEY }}
+          debug: true # TODO: Remove this!
           script: |
             pwd
             ls -l
