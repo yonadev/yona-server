@@ -243,3 +243,30 @@ jobs:
           repo-number: 2
           helm-values-path: helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
+  deploy-prod-server:
+    name: Deploy production server
+    environment: prod
+    runs-on: ubuntu-latest
+    env:
+      KUBECONFIG: /home/bert.roos/.kube/config
+    needs: deploy-beta-test-server
+    outputs:
+      build-number: ${{ needs.deploy-beta-test-server.outputs.build-number }}
+    steps:
+      - name: Checkout src repo
+        uses: actions/checkout@v2
+      - name: Deploy Yona
+        uses: ./.github/workflows/actions/deploy
+        with:
+          host-name: ${{ secrets.DEPLOYMENT_HOST }}
+          ssh-user-name: ${{ secrets.DEPLOYMENT_USERNAME }}
+          ssh-key: ${{ secrets.DEPLOYMENT_SSH_KEY }}
+          proxy-host-name: ${{ secrets.PROXY_HOST }}
+          proxy-ssh-user-name: ${{ secrets.PROXY_USERNAME }}
+          proxy-ssh-key: ${{ secrets.PROXY_SSH_KEY }}
+          kube-config: ${{ env.KUBECONFIG }}
+          kube-context: prod
+          build-number: ${{ needs.deploy-beta-test-server.outputs.build-number }}
+          repo-number: 1
+          helm-values-path: helm/values.yaml
+          gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
