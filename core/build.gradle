@@ -45,7 +45,7 @@ dependencies {
 	implementation "commons-lang:commons-lang:2.6"
 	api "javax.mail:mail:1.4.7"
 	api project.deps.thymeleaf
-	implementation "org.springframework.ldap:spring-ldap-core:2.3.7.RELEASE"
+	implementation "org.springframework.ldap:spring-ldap-core:2.4.0"
 	implementation project.deps.springSecurityWeb
 	implementation project.deps.springSecurityConfig
 	api "com.google.guava:guava:23.0"
