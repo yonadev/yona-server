@@ -10,12 +10,12 @@ defaults:
 jobs:
   run-int-test:
     name: Run integration tests
-    environment: int-test
     runs-on: ubuntu-latest
+    env:
+      BUILD_NUMBER: "1635"
 #    needs: deploy-int-test-server
-    outputs:
+#    outputs:
 #      build-number: ${{ needs.deploy-int-test-server.outputs.build-number }}
-      build-number: 1635
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -66,7 +66,7 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
-          helm upgrade --install --values values.yml --namespace ${{ env.NAMESPACE }} --version 1.2.${{ env.BUILD_NUMBER }} yona yona/yona
+          helm upgrade --install --values values.yml --namespace yona --version 1.2.${{ env.BUILD_NUMBER }} yona yona/yona
           wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ env.BUILD_NUMBER }}/scripts/wait-for-services.sh | bash
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
