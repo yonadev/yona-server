@@ -67,7 +67,8 @@ jobs:
           EOF
 
           helm upgrade --install --values values.yml --namespace yona --version 1.2.${{ env.BUILD_NUMBER }} yona yona/yona
-          wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ env.BUILD_NUMBER }}/scripts/wait-for-services.sh | bash
+          # wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ env.BUILD_NUMBER }}/scripts/wait-for-services.sh | bash
+          sleep 120
           kubectl config set-context --current --namespace=yona
           kubectl get deployment
           kubectl get pods
