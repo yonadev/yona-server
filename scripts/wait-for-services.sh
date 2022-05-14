@@ -12,17 +12,6 @@ function waitTillK8SInstanceWorks() {
 	echo "Waiting for ${1}-${BUILD_NUMBER_TO_DEPLOY} in namespace ${_NAMESPACE} to become ${2}"
 	until [ $n -ge $iterations ]
 	do
-
-	# Debug logging
-	set -x
-	echo "*** Begin log for name: ${1}"
-	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' || true
-	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}" || true
-	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' || true
-	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep ${2} || true
-	echo "*** End log for name: ${1}"
-	set +x
-
 	if [ "$2" == "Succeeded" ]; then  #Hack to deal with Job differently
  		kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -q -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}" && echo -e "\n - Success\n" && break
 	else
