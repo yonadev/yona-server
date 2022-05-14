@@ -69,11 +69,11 @@ jobs:
           helm upgrade --install --values values.yml --namespace yona --version 1.2.${{ env.BUILD_NUMBER }} yona yona/yona
           export INITIAL_WAIT_TIME=120
           export BUILD_NUMBER_TO_DEPLOY=${{ env.BUILD_NUMBER }}
+          kubectl config set-context --current --namespace=yona
           echo "*** Get describe Liquibase pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep liquibase`
           # wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ env.BUILD_NUMBER }}/scripts/wait-for-services.sh | bash || true
           wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh | bash || true
 
-          kubectl config set-context --current --namespace=yona
           echo "*** Get deployment" && kubectl get deployment
           echo "*** Get pods" && kubectl get pods
           echo "*** Get pending pods" && kubectl get pods --field-selector=status.phase=Pending
