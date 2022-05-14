@@ -16,10 +16,10 @@ function waitTillK8SInstanceWorks() {
 	# Debug logging
 	set -x
 	echo "*** Begin log for name: ${1}"
-	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}'
-	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}"
-	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}'
-	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep ${2}
+	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' || true
+	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}" || true
+	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' || true
+	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep ${2} || true
 	echo "*** End log for name: ${1}"
 	set +x
 
