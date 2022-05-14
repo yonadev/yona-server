@@ -6,10 +6,6 @@ on:
       build-number:
         required: true
         type: string
-    outputs:
-      build-number:
-        description: "The build number"
-        value: "${{ inputs.build-number }}"
 
 defaults:
   run:

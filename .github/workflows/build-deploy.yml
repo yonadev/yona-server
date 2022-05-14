@@ -125,9 +125,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KUBECONFIG: /home/bert.roos/.kube/config
-    needs: run-int-tests
+    needs:
+      - run-int-tests
+      - build
     outputs:
-      build-number: ${{ needs.run-int-tests.outputs.build-number }}
+      build-number: ${{ needs.build.outputs.build-number }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
