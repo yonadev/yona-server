@@ -112,6 +112,13 @@ jobs:
           git commit -am "Package for build ${BUILD_NUMBER}"
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
+
+  run-int-tests-in-minikube:
+    needs: build
+    uses: ./.github/workflows/run-int-tests
+    with:
+      build-number: ${{ needs.build.outputs.build-number }}
+
   deploy-int-test-server:
     name: Deploy integration test server
     environment: int-test
