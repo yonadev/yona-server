@@ -6,6 +6,8 @@ on:
       build-number:
         required: true
         type: string
+    outputs:
+      build-number: ${{ inputs.build-number }}
 
 defaults:
   run:

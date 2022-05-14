@@ -115,8 +115,6 @@ jobs:
 
   run-int-tests:
     needs: build
-    outputs:
-      build-number: ${{ needs.build.outputs.build-number }}
     uses: ./.github/workflows/run-int-tests.yml
     with:
       build-number: ${{ needs.build.outputs.build-number }}
