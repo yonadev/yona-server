@@ -68,6 +68,12 @@ jobs:
 
           helm upgrade --install --values values.yml --namespace yona --version 1.2.${{ env.BUILD_NUMBER }} yona yona/yona
           wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ env.BUILD_NUMBER }}/scripts/wait-for-services.sh | bash
+          kubectl config set-context --current --namespace=yona
+          kubectl get deployment
+          kubectl get pods
+          kubectl get pods --field-selector=status.phase=Pending
+          kubectl get StorageClass
+          kubectl get PersistentVolume
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish integration test results
