@@ -71,9 +71,9 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
-          helm upgrade --wait --install --values values.yml --namespace yona --version 1.2.${{ inputs.build-number }} yona yona/yona
-          export BUILD_NUMBER_TO_DEPLOY=${{ inputs.build-number }} # Used in wait-for-services.sh
-          wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ inputs.build-number }}/scripts/wait-for-services.sh | bash || true
+          helm upgrade --wait --install --values values.yml --namespace yona --version 1.2.${{ github.event.inputs.build-number }} yona yona/yona
+          export BUILD_NUMBER_TO_DEPLOY=${{ github.event.inputs.build-number }} # Used in wait-for-services.sh
+          wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ github.event.inputs.build-number }}/scripts/wait-for-services.sh | bash || true
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish integration test results
