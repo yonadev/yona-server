@@ -76,10 +76,11 @@ jobs:
           echo "*** Get describe LDAP pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep ldap`
           echo "*** Get storage class" && kubectl get StorageClass
           echo "*** Get persistent volume" && kubectl get PersistentVolume
-          export INITIAL_WAIT_TIME=120
+          export INITIAL_WAIT_TIME=1200
           export BUILD_NUMBER_TO_DEPLOY=${{ env.BUILD_NUMBER }}
           # wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ env.BUILD_NUMBER }}/scripts/wait-for-services.sh | bash || true
           wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh | bash || true
+          echo "*** Get pods" && kubectl get pods
 
           
       - name: Run integration tests
