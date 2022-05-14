@@ -113,85 +113,23 @@ jobs:
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
 
-  run-int-tests-in-minikube:
+  run-int-tests:
     needs: build
     uses: ./.github/workflows/run-int-tests.yml
     with:
       build-number: ${{ needs.build.outputs.build-number }}
-
-  deploy-int-test-server:
-    name: Deploy integration test server
-    environment: int-test
-    runs-on: ubuntu-latest
-    env:
-      KUBECONFIG: /opt/jnlp-agent/yona/k8s/admin.conf
-    needs: build
     outputs:
       build-number: ${{ needs.build.outputs.build-number }}
-    steps:
-      - name: Checkout src repo
-        uses: actions/checkout@v2
-      - name: Wipe existing deployment
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: ${{ secrets.INT_TEST_HOST }}
-          username: ${{ secrets.INT_TEST_USERNAME }}
-          key: ${{ secrets.INT_TEST_SSH_KEY }}
-          envs: KUBECONFIG
-          script: |
-            export KUBECONFIG=$KUBECONFIG
-            helm uninstall yona --namespace yona
-            kubectl delete -n yona configmaps --all
-            kubectl delete -n yona job --all
-            kubectl delete -n yona secrets --all
-            kubectl delete pvc -n yona --all
-            echo Waiting for purge to complete
-            sleep 30
-      - name: Deploy Yona
-        uses: ./.github/workflows/actions/deploy
-        with:
-          host-name: ${{ secrets.INT_TEST_HOST }}
-          ssh-user-name: ${{ secrets.INT_TEST_USERNAME }}
-          ssh-key: ${{ secrets.INT_TEST_SSH_KEY }}
-          kube-config: ${{ env.KUBECONFIG }}
-          kube-context: kubernetes-admin@kubernetes
-          build-number: ${{ needs.build.outputs.build-number }}
-          repo-number: 4
-          helm-values-path: infrastructure/helm/values.yaml
-          gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
-  run-int-test:
-    name: Run integration tests
-    environment: int-test
-    runs-on: ubuntu-latest
-    needs: deploy-int-test-server
-    outputs:
-      build-number: ${{ needs.deploy-int-test-server.outputs.build-number }}
-    steps:
-      - name: Checkout src repo
-        uses: actions/checkout@v2
-        with:
-          path: 'yona-server'
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3.0.0
-        with:
-          distribution: 'zulu'
-          java-version: 11
-      - name: Run integration tests
-        run: ./gradlew --no-daemon -Pyona_adminservice_url=https://admin.build.dev.yona.nu -Pyona_analysisservice_url=https://analysis.build.dev.yona.nu -Pyona_appservice_url=https://app.build.dev.yona.nu -Pyona_batchservice_url=https://batch.build.dev.yona.nu intTest
-      - name: Publish integration test results
-        uses: EnricoMi/publish-unit-test-result-action@v1.30
-        if: always()
-        with:
-          files: '**/build/test-results/intTest/*.xml'
+
   deploy-load-test-server:
     name: Deploy load test server
     environment: load-test
     runs-on: ubuntu-latest
     env:
       KUBECONFIG: /home/bert.roos/.kube/config
-    needs: run-int-test
+    needs: run-int-tests
     outputs:
-      build-number: ${{ needs.run-int-test.outputs.build-number }}
+      build-number: ${{ needs.run-int-tests.outputs.build-number }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -219,10 +157,11 @@ jobs:
           kube-context: beta
           kube-namespace: loadtest
           helm-release: loadtest
-          build-number: ${{ needs.run-int-test.outputs.build-number }}
+          build-number: ${{ needs.run-int-tests.outputs.build-number }}
           repo-number: 2
           helm-values-path: helm/values_loadtest.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
+
   deploy-beta-test-server:
     name: Deploy beta test server
     environment: beta-test
@@ -250,6 +189,7 @@ jobs:
           repo-number: 2
           helm-values-path: helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
+
   deploy-prod-server:
     name: Deploy production server
     environment: prod
