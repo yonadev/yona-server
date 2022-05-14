@@ -7,7 +7,7 @@ on:
         required: true
         type: string
     outputs:
-      build-number: ${{ inputs.build-number }}
+      build-number: ${{ steps.output-build-number.build-number }}
 
 defaults:
   run:
@@ -18,6 +18,8 @@ jobs:
     name: Run integration tests
     runs-on: ubuntu-latest
     steps:
+      - id: output-build-number
+        run: echo "::set-output name=build-number::${{ inputs.build-number }}"
       - name: Checkout src repo
         uses: actions/checkout@v2
         with:
