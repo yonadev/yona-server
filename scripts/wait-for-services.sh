@@ -14,6 +14,7 @@ function waitTillK8SInstanceWorks() {
 	do
 
 	# Debug logging
+	echo "*** Name: ${1}"
 	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}'
 	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}"
 	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}'
@@ -35,7 +36,7 @@ function waitTillK8SInstanceWorks() {
 	fi
 }
 
-waitTillK8SInstanceWorks liquibase Succeeded $(_INITIAL_WAIT_TIME) 5
+waitTillK8SInstanceWorks liquibase Succeeded ${_INITIAL_WAIT_TIME} 5
 waitTillK8SInstanceWorks admin Running 60
 waitTillK8SInstanceWorks analysis Running 60
 waitTillK8SInstanceWorks app Running 60
