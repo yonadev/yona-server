@@ -67,15 +67,7 @@ jobs:
           EOF
 
           helm upgrade --install --values values.yml --namespace yona --version 1.2.${{ env.BUILD_NUMBER }} yona yona/yona
-          # wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ env.BUILD_NUMBER }}/scripts/wait-for-services.sh | bash
-          sleep 120
-          kubectl config set-context --current --namespace=yona
-          echo "*** Get deployment" && kubectl get deployment
-          echo "*** Get pods" && kubectl get pods
-          echo "*** Get pending pods" && kubectl get pods --field-selector=status.phase=Pending
-          echo "*** Get describe LDAP pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep ldap`
-          echo "*** Get storage class" && kubectl get StorageClass
-          echo "*** Get persistent volume" && kubectl get PersistentVolume
+          wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ env.BUILD_NUMBER }}/scripts/wait-for-services.sh | bash
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish integration test results
