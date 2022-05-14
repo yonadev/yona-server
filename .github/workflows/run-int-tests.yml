@@ -9,7 +9,7 @@ on:
     outputs:
       build-number:
         description: "The build number"
-        value: ${{ inputs.build-number }}
+        value: "${{ inputs.build-number }}"
 
 defaults:
   run:
