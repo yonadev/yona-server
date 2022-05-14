@@ -37,6 +37,9 @@ jobs:
           version: 'v3.3.0'
       - name: Deploy Yona
         run: |
+          helm repo add yona https://yonadev.github.io/helm-charts
+          wget -q --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/master/k8s/01_namespace.yaml | kubectl create -f -
+          wget -q --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/master/k8s/02_storage.yaml | kubectl create -f -
           helm repo update
           export NAMESPACE=yona # Used in wait-for-services.sh
           cat > values.yml << EOF
