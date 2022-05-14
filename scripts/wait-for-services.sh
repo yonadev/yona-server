@@ -14,11 +14,12 @@ function waitTillK8SInstanceWorks() {
 	do
 
 	# Debug logging
-	echo "*** Name: ${1}"
+	echo "*** Begin log for name: ${1}"
 	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}'
 	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}"
 	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}'
 	kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep ${2}
+	echo "*** End log for name: ${1}"
 
 	if [ "$2" == "Succeeded" ]; then  #Hack to deal with Job differently
  		kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -q -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}" && echo -e "\n - Success\n" && break
