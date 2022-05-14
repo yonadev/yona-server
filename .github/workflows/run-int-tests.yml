@@ -9,7 +9,7 @@ on:
     outputs:
       build-number:
         description: "The build number"
-        value: ${{ steps.output-build-number.build-number }}
+        value: ${{ inputs.build-number }}
 
 defaults:
   run:
