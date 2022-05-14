@@ -52,8 +52,8 @@ jobs:
 
           ldap:
             enabled: false
-            storage_class_name_ldap: "hostpath"
-            storage_class_name_sldap: "hostpath"
+            storage_class_name_ldap: "standard"
+            storage_class_name_sldap: "standard"
 
           nodePorts: {}
 
