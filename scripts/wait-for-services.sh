@@ -2,6 +2,7 @@
 set -e # Fail on error
 
 _NAMESPACE=${NAMESPACE:-yona}
+_INITIAL_WAIT_TIME=${INITIAL_WAIT_TIME:-1200}
 
 function waitTillK8SInstanceWorks() {
 	duration=${3:-1200}
@@ -27,7 +28,7 @@ function waitTillK8SInstanceWorks() {
 	fi
 }
 
-waitTillK8SInstanceWorks liquibase Succeeded 1200 5
+waitTillK8SInstanceWorks liquibase Succeeded $(_INITIAL_WAIT_TIME) 5
 waitTillK8SInstanceWorks admin Running 60
 waitTillK8SInstanceWorks analysis Running 60
 waitTillK8SInstanceWorks app Running 60
