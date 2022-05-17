@@ -16,7 +16,7 @@ jobs:
       CHART: yona
       HELM_REPO: helm-charts
     outputs:
-      build-number: ${{ steps.set-build-number.outputs.build-number }}
+      build-id: ${{ steps.set-build-id.outputs.build-id }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -29,13 +29,13 @@ jobs:
           repository: yonadev/${{ env.HELM_REPO }}
           path: '${{ env.HELM_REPO }}'
           token: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
-      - name: Set build number
-        id: set-build-number
+      - name: Set build ID
+        id: set-build-id
         working-directory: '${{ env.HELM_REPO }}'
         run: |
-          build_number=$(($GITHUB_RUN_NUMBER+1500))
-          echo "BUILD_NUMBER=${build_number}" >> $GITHUB_ENV
-          echo "::set-output name=build-number::${build_number}"
+          build_id=$(($GITHUB_RUN_NUMBER+1500))
+          echo "BUILD_ID=${build_id}" >> $GITHUB_ENV
+          echo "::set-output name=build-id::${build_id}"
       - name: Set up JDK 11
         uses: actions/setup-java@v3.0.0
         with:
@@ -73,7 +73,7 @@ jobs:
           export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
           git config --global user.email "${GIT_AUTHOR_EMAIL}"
           git config --global user.name "${GIT_AUTHOR_NAME}"
-          git tag --force --annotate build-${BUILD_NUMBER} -m "GitHub build"
+          git tag --force --annotate build-${BUILD_ID} -m "GitHub build"
           git push https://github.com/yonadev/yona-server.git --tags
       - name: Checkout Helm chart repo
         uses: actions/checkout@v2
@@ -87,7 +87,7 @@ jobs:
           HELM_REPO_DIR=${PWD}
           echo "HELM_REPO_DIR=$HELM_REPO_DIR" >> $GITHUB_ENV
           echo "PACKAGE_DIR=${HELM_REPO_DIR}/docs" >> $GITHUB_ENV
-          echo "CHART_VERSION=1.2.${BUILD_NUMBER}" >> $GITHUB_ENV
+          echo "CHART_VERSION=1.2.${BUILD_ID}" >> $GITHUB_ENV
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
@@ -98,7 +98,7 @@ jobs:
           mkdir build
           cp -r ${CHART} build
           pushd build
-          sed --in-place s/_ReplaceWithBuildNumber_/${BUILD_NUMBER}/ ${CHART}/Chart.yaml
+          sed --in-place s/_ReplaceWithBuildId_/${BUILD_ID}/ ${CHART}/Chart.yaml
           helm dependency update ${CHART}
           helm package -d ${PACKAGE_DIR} --version ${CHART_VERSION} ${CHART}
           popd
@@ -109,7 +109,7 @@ jobs:
           export GIT_AUTHOR_EMAIL=dev@yona.nu
           export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
           export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
-          git commit -am "Package for build ${BUILD_NUMBER}"
+          git commit -am "Package for build ${BUILD_ID}"
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
 
@@ -117,7 +117,7 @@ jobs:
     needs: build
     uses: ./.github/workflows/run-int-tests.yml
     with:
-      build-number: ${{ needs.build.outputs.build-number }}
+      build-id: ${{ needs.build.outputs.build-id }}
 
   deploy-load-test-server:
     name: Deploy load test server
@@ -129,7 +129,7 @@ jobs:
       - run-int-tests
       - build
     outputs:
-      build-number: ${{ needs.build.outputs.build-number }}
+      build-id: ${{ needs.build.outputs.build-id }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -157,7 +157,7 @@ jobs:
           kube-context: beta
           kube-namespace: loadtest
           helm-release: loadtest
-          build-number: ${{ needs.run-int-tests.outputs.build-number }}
+          build-id: ${{ needs.run-int-tests.outputs.build-id }}
           repo-number: 2
           helm-values-path: helm/values_loadtest.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
@@ -170,7 +170,7 @@ jobs:
       KUBECONFIG: /home/bert.roos/.kube/config
     needs: deploy-load-test-server
     outputs:
-      build-number: ${{ needs.deploy-load-test-server.outputs.build-number }}
+      build-id: ${{ needs.deploy-load-test-server.outputs.build-id }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -185,7 +185,7 @@ jobs:
           proxy-ssh-key: ${{ secrets.PROXY_SSH_KEY }}
           kube-config: ${{ env.KUBECONFIG }}
           kube-context: beta
-          build-number: ${{ needs.deploy-load-test-server.outputs.build-number }}
+          build-id: ${{ needs.deploy-load-test-server.outputs.build-id }}
           repo-number: 2
           helm-values-path: helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
@@ -198,7 +198,7 @@ jobs:
       KUBECONFIG: /home/bert.roos/.kube/config
     needs: deploy-beta-test-server
     outputs:
-      build-number: ${{ needs.deploy-beta-test-server.outputs.build-number }}
+      build-id: ${{ needs.deploy-beta-test-server.outputs.build-id }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -213,7 +213,7 @@ jobs:
           proxy-ssh-key: ${{ secrets.PROXY_SSH_KEY }}
           kube-config: ${{ env.KUBECONFIG }}
           kube-context: prod
-          build-number: ${{ needs.deploy-beta-test-server.outputs.build-number }}
+          build-id: ${{ needs.deploy-beta-test-server.outputs.build-id }}
           repo-number: 1
           helm-values-path: helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}

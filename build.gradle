@@ -37,8 +37,8 @@ subprojects {
 	apply plugin: "com.bmuschko.docker-remote-api"
 
 	project.ext {
-		build_number = System.getenv().BUILD_NUMBER ?: 0
-		docker_tag = "build-${build_number}"
+		build_id = System.getenv().BUILD_ID ?: "local"
+		docker_tag = "build-${build_id}"
 
 		yona_adminservice_scheme = project.properties["yona_adminservice_scheme"] ?: "http"
 		yona_adminservice_host = project.properties["yona_adminservice_host"] ?: "localhost"
@@ -77,7 +77,7 @@ subprojects {
 		buildInfo {
 			properties {
 				time = null
-				additional = [buildNumber: project.ext.build_number]
+				additional = [buildId: project.ext.build_id]
 			}
 			doLast {
 				// Can be removed when we upgrade to a Spring Boot build that has this issue fixed:

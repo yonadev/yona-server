@@ -9,11 +9,11 @@ function waitTillK8SInstanceWorks() {
 	sleepTime=${4:-5}
 	iterations=$[$duration / $sleepTime]
 	n=0
-	echo "Waiting for ${1}-${BUILD_NUMBER_TO_DEPLOY} in namespace ${_NAMESPACE} to become ${2}"
+	echo "Waiting for ${1}-${BUILD_ID} in namespace ${_NAMESPACE} to become ${2}"
 	until [ $n -ge $iterations ]
 	do
 	if [ "$2" == "Succeeded" ]; then  #Hack to deal with Job differently
- 		kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -q -e "^${BUILD_NUMBER_TO_DEPLOY}.*-liquibase-update.*${2}" && echo -e "\n - Success\n" && break
+ 		kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.name}:{.status.phase}{"\n"}{end}' | grep -q -e "^${BUILD_ID}.*-liquibase-update.*${2}" && echo -e "\n - Success\n" && break
 	else
 		kubectl get pods --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} && echo -e "\n - Success\n" && break
 	fi
@@ -23,7 +23,7 @@ function waitTillK8SInstanceWorks() {
 	done
 	if [ $n -ge $iterations ]
 	then
-		echo "Container ${BUILD_NUMBER_TO_DEPLOY}-${1} failed to become ${2} within timeout ($duration seconds)"
+		echo "Container ${BUILD_ID}-${1} failed to become ${2} within timeout ($duration seconds)"
 		return 1
 	fi
 }

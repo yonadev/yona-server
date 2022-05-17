@@ -76,7 +76,7 @@ public class DashboardController
 		model.addAttribute("lastMonitoredActivityPercentages", absoluteValuesToPercentages(lastMonitoredActivityCounts));
 		model.addAttribute("lastMonitoredActivitySumLast30Days",
 				userAnonymizedRepository.countByLastMonitoredActivityDateBetween(LocalDate.now().minusDays(29), LocalDate.now()));
-		model.addAttribute("buildNumber", buildProperties.get("buildNumber"));
+		model.addAttribute("buildId", buildProperties.get("buildId"));
 		model.addAttribute("daysAppOpenedLabels", DAYS_APP_OPENED_LABELS);
 		model.addAttribute("daysAppOpenedCounts", daysAppOpenedCounts);
 		model.addAttribute("daysAppOpenedPercentages", absoluteValuesToPercentages(daysAppOpenedCounts));
