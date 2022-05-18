@@ -56,7 +56,7 @@ spec:
       containers:
         - name: liquibase
           image: {{ .Values.global.imagebase | default "yonadev" }}/yona-mariadb-liquibase-update:build-{{ .Chart.AppVersion }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" | quote }}
           env:       
             - name: USER
               value: {{ .Values.mariadb.db.user | default "develop" | quote }}
