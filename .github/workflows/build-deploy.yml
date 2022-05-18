@@ -29,6 +29,7 @@ jobs:
     with:
       build-id: ${{ needs.determine-build-id.outputs.build-id }}
       is-pr-build: false
+      sonar-token: ${{ secrets.SONAR_TOKEN }}
 
   deploy-load-test-server:
     name: Deploy load test server

@@ -9,6 +9,9 @@ on:
       build-id:
         required: true
         type: string
+      sonar-token:
+        required: true
+        type: string
 
 defaults:
   run:
@@ -49,7 +52,7 @@ jobs:
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ inputs.sonar-token }}
         run: ./gradlew check sonarqube --info
       - name: Build Docker images
         run: ./gradlew buildDockerImage
