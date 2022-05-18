@@ -104,7 +104,6 @@ jobs:
           kubectl create -f k8s/02_storage.yaml
           helm repo add yona https://yonadev.github.io/helm-charts
           helm repo update
-          echo "*** Docker images" && docker images
           minikube image load yonadev/adminservice:build-${{ inputs.build-id }}
           minikube image load yonadev/analysisservice:build-${{ inputs.build-id }}
           minikube image load yonadev/appservice:build-${{ inputs.build-id }}
@@ -137,12 +136,12 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
-          helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz || true # TODO
+          helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
           echo "*** Set context" && kubectl config set-context --current --namespace=yona
           echo "*** Get deployment" && kubectl get deployment
           echo "*** Get pods" && kubectl get pods
           echo "*** Get pending pods" && kubectl get pods --field-selector=status.phase=Pending
-          echo "*** Get describe batch pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep batch`
+          echo "*** Get describe batch pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep liquibase`
           echo "*** Get storage class" && kubectl get StorageClass
           echo "*** Get persistent volume" && kubectl get PersistentVolume
 
