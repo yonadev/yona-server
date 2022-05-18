@@ -129,7 +129,7 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
-          helm upgrade --wait --install --values values.yml --namespace yona --version 1.2.${{ inputs.build-id }} yona yona/yona
+          helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
           export BUILD_ID=${{ inputs.build-id }} # Used in wait-for-services.sh
           ./scripts/wait-for-services.sh
