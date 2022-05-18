@@ -127,7 +127,7 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
-          helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
+          helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz || true # TODO
           echo "*** Set context" && kubectl config set-context --current --namespace=yona
           echo "*** Get deployment" && kubectl get deployment
           echo "*** Get pods" && kubectl get pods
