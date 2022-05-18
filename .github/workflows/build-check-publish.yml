@@ -24,6 +24,7 @@ jobs:
     env:
       CHART: yona
       HELM_REPO: helm-charts
+      BUILD_ID: ${{ inputs.build-id }} # Used in Gradle and wait-for-services
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
@@ -145,7 +146,6 @@ jobs:
           echo "*** Get storage class" && kubectl get StorageClass
           echo "*** Get persistent volume" && kubectl get PersistentVolume
 
-          export BUILD_ID=${{ inputs.build-id }} # Used in wait-for-services.sh
           ./scripts/wait-for-services.sh
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
