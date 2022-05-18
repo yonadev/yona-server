@@ -9,6 +9,9 @@ on:
       build-id:
         required: true
         type: string
+    secrets:
+      SONAR_TOKEN:
+        required: true
 
 defaults:
   run:
