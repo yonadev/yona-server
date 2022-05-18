@@ -128,6 +128,13 @@ jobs:
           EOF
 
           helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
+          echo "*** Set context" && kubectl config set-context --current --namespace=yona
+          echo "*** Get deployment" && kubectl get deployment
+          echo "*** Get pods" && kubectl get pods
+          echo "*** Get pending pods" && kubectl get pods --field-selector=status.phase=Pending
+          echo "*** Get describe LDAP pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep ldap`
+          echo "*** Get storage class" && kubectl get StorageClass
+          echo "*** Get persistent volume" && kubectl get PersistentVolume
 
           export BUILD_ID=${{ inputs.build-id }} # Used in wait-for-services.sh
           ./scripts/wait-for-services.sh
