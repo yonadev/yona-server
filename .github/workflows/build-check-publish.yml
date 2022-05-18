@@ -60,7 +60,7 @@ jobs:
           repository: yonadev/${{ env.HELM_REPO }}
           path: '${{ env.HELM_REPO }}'
       - name: Checkout Helm chart repo for normal build
-        if: !${{ inputs.is-pr-build }}
+        if: ${{ !inputs.is-pr-build }}
         uses: actions/checkout@v2
         with:
           repository: yonadev/${{ env.HELM_REPO }}
@@ -136,10 +136,10 @@ jobs:
            '**/build/test-results/test/*.xml'
            '**/build/test-results/intTest/*.xml'
       - name: Publish Docker images
-        if: !${{ inputs.is-pr-build }}
+        if: ${{ !inputs.is-pr-build }}
         run: ./gradlew -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} -PdockerUrl=unix:///var/run/docker.sock pushDockerImage
       - name: Publish Helm package
-        if: !${{ inputs.is-pr-build }}
+        if: ${{ !inputs.is-pr-build }}
         working-directory: yona-server/k8s/helm
         run: |
           pushd ${HELM_REPO_DIR}
@@ -153,7 +153,7 @@ jobs:
           git push https://github.com/yonadev/$HELM_REPO.git master
           popd
       - name: Tag the build
-        if: !${{ inputs.is-pr-build }}
+        if: ${{ !inputs.is-pr-build }}
         run: |
           export GIT_AUTHOR_NAME="Yona build server"
           export GIT_AUTHOR_EMAIL=dev@yona.nu
