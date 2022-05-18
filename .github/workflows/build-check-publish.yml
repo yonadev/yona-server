@@ -75,7 +75,11 @@ jobs:
           HELM_REPO_DIR=${PWD}
           echo "HELM_REPO_DIR=$HELM_REPO_DIR" >> $GITHUB_ENV
           echo "PACKAGE_DIR=${HELM_REPO_DIR}/docs" >> $GITHUB_ENV
-          echo "CHART_VERSION=1.2.${BUILD_ID}" >> $GITHUB_ENV
+          if [[ "${{ inputs.is-pr-build}}" == "true" ]]; then
+            echo "CHART_VERSION=0.0.1" >> $GITHUB_ENV
+          else
+            echo "CHART_VERSION=1.2.${BUILD_ID}" >> $GITHUB_ENV
+          fi
       - name: Set up Helm
         uses: azure/setup-helm@v1
         with:
