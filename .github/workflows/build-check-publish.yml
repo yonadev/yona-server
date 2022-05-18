@@ -90,7 +90,10 @@ jobs:
           mkdir build
           cp -r ${CHART} build
           pushd build
+          echo TODO A sed --in-place s/_ReplaceWithBuildId_/${BUILD_ID}/ ${CHART}/Chart.yaml
           sed --in-place s/_ReplaceWithBuildId_/${BUILD_ID}/ ${CHART}/Chart.yaml
+          echo TODO B && pwd
+          echo TODO C && cat ${CHART}/Chart.yaml
           helm dependency update ${CHART}
           helm package -d ${PACKAGE_DIR} --version ${CHART_VERSION} ${CHART}
           popd
@@ -129,6 +132,7 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
+          echo TODO A helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
           helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
           export BUILD_ID=${{ inputs.build-id }} # Used in wait-for-services.sh
