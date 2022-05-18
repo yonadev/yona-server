@@ -55,7 +55,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew check sonarqube --info
       - name: Build Docker images
-        run: ./gradlew buildDockerImage
+        run: ./gradlew -PdockerUrl=unix:///var/run/docker.sock buildDockerImage
       - name: Checkout Helm chart repo for PR
         if: ${{ inputs.is-pr-build }}
         uses: actions/checkout@v2
