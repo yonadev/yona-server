@@ -132,7 +132,7 @@ jobs:
           echo "*** Get deployment" && kubectl get deployment
           echo "*** Get pods" && kubectl get pods
           echo "*** Get pending pods" && kubectl get pods --field-selector=status.phase=Pending
-          echo "*** Get describe LDAP pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep ldap`
+          echo "*** Get describe batch pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep batch`
           echo "*** Get storage class" && kubectl get StorageClass
           echo "*** Get persistent volume" && kubectl get PersistentVolume
 
