@@ -23,4 +23,5 @@ jobs:
     with:
       build-id: ${{ needs.determine-build-id.outputs.build-id }}
       is-pr-build: true
-      sonar-token: "${{ secrets.SONAR_TOKEN }}"
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
