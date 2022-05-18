@@ -21,7 +21,7 @@ jobs:
         run: |
           build_id=$(($GITHUB_RUN_NUMBER+1500))
           echo "BUILD_ID=${build_id}" >> $GITHUB_ENV
-          echo "::set-output name=build-id::${build_id}"
+          echo "::set-output name=build-id::${BUILD_ID}"
 
   build-check-publish:
     needs: determine-build-id

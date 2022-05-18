@@ -25,8 +25,6 @@ jobs:
       CHART: yona
       HELM_REPO: helm-charts
       BUILD_ID: ${{ inputs.build-id }}
-    outputs:
-      build-id: ${{ steps.set-build-id.outputs.build-id }}
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v2
