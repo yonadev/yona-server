@@ -101,8 +101,8 @@ jobs:
           kubernetes version: 'v1.24.0'
       - name: Deploy Yona
         run: |
-          kubectl create -f yona-server/master/k8s/01_namespace.yaml
-          kubectl create -f yona-server/master/k8s/02_storage.yaml
+          kubectl create -f k8s/01_namespace.yaml
+          kubectl create -f k8s/02_storage.yaml
           helm repo add yona https://yonadev.github.io/helm-charts
           helm repo update
           cat > values.yml << EOF
