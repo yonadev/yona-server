@@ -14,6 +14,7 @@ deploy_hazelcast:
 global:
   stage: develop
   imagebase: yonadev
+  imagePullPolicy: IfNotPresent
 
 # Attempt tries in seed/update container before exit.  Not k8s job retry
 # This just reduces the 'failed' jobs spam in pod list until services
