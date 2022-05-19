@@ -141,7 +141,6 @@ jobs:
           echo "*** Get deployment" && kubectl get deployment
           echo "*** Get pods" && kubectl get pods
           echo "*** Get pending pods" && kubectl get pods --field-selector=status.phase=Pending
-          echo "*** Get describe liquibase pod" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep liquibase`
           echo "*** Get storage class" && kubectl get StorageClass
           echo "*** Get persistent volume" && kubectl get PersistentVolume
 
@@ -149,6 +148,10 @@ jobs:
           echo "*** Get describe liquibase pod after wait" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep liquibase`
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
+      - name: TODO Check directory structure for test results
+        run:|
+          pwd
+          ls -l
       - name: Publish test results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v1.30
