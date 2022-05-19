@@ -142,7 +142,7 @@ jobs:
       - name: TODO Check files inside minikube
         if: always()
         run: |
-          find /tmp -print || true
+          find /var/log/containers -print || true
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish test results
