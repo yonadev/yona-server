@@ -9,4 +9,4 @@ COPY json /json
 
 # Override with custom script for k8s / helm support
 COPY update.sh /scripts/
-RUN chmod +x /scripts/update.sh
+RUN chmod +x /scripts/update.sh /var/log/liquibase-update/liquibase-update.log

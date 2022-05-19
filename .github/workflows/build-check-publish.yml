@@ -122,8 +122,8 @@ jobs:
 
           ldap:
             enabled: false
-            storage_class_name_ldap: "standard"
-            storage_class_name_sldap: "standard"
+            storage_class_name_ldap: "standard" # TODO Shouldn't be required
+            storage_class_name_sldap: "standard" # TODO Shouldn't be required
 
           nodePorts: {}
 
@@ -139,11 +139,8 @@ jobs:
           helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
           # TODO ./scripts/wait-for-services.sh
-      - name: TODO Check files inside minikube
-        if: always()
-        run: |
-            echo TODO List Liquibase logs
-            find /var/lib/docker/containers -exec ls -l {} \;
+          echo TODO ls -l /tmp
+          ls -l /tmp
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish test results

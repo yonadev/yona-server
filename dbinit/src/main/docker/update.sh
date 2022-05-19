@@ -122,6 +122,8 @@ apply_liquibase () {
 
 #Main 
 
+{
+echo `date` *** Start ${0}
 # Todo ? is missing /changelogs fatal ?  Will there always be a /changelogs perhaps empty ?
 [ -d /changelogs ] || (echo "Folder /changelogs/ does not exist" ; exit $ERROR_EXIT_CODE)
 cd /changelogs
@@ -179,3 +181,5 @@ fi
 
 echo "All updates applied"
 exit 0
+echo `date` *** End ${0}
+} | tee -a ${1}

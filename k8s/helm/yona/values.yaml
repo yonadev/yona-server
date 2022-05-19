@@ -211,6 +211,9 @@ spring:
     loglevel: info
     config: /opt/app/config/hazelcast-client.xml
 
+job-liquibase:
+  storage_class_name: standard
+
 admin:
   act_categories_json_file: productionActivityCategories.json
 
