@@ -139,11 +139,11 @@ jobs:
 
           helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
-          ./scripts/wait-for-services.sh
+          # TODO ./scripts/wait-for-services.sh
       - name: TODO Check files inside minikube
         if: always()
         run: |
-          minikube ssh -- find /tmp/.yona-persistentvolumes -print
+          find /tmp/.yona-persistentvolumes -print || true
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish test results
