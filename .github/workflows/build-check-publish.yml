@@ -137,7 +137,7 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
-          helm upgrade --wait --wait-for-jobs --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
+          helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
           ./scripts/wait-for-services.sh || echo "Wait failed; cat log files" && for f in `find /tmp/hostpath-provisioner -name liquibase-update.log`; do; ls -l ${f}; cat ${f}; done
       - name: Run integration tests
