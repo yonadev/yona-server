@@ -138,7 +138,7 @@ jobs:
 
           helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
-          # TODO ./scripts/wait-for-services.sh
+          ./scripts/wait-for-services.sh || true # TODO
           echo TODO Cat log files
           for f in `find /tmp/hostpath-provisioner -name liquibase-update.log`; do
             ls -l ${f}
