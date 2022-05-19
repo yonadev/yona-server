@@ -180,6 +180,7 @@ else
 fi
 
 echo "All updates applied"
-exit 0
+exit 0 # Job won't be rescheduled when exiting with 0
 echo `date` *** End ${0}
 } | tee -a ${1}
+exit ${PIPESTATUS[0]}
