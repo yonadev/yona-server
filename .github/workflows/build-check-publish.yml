@@ -137,15 +137,8 @@ jobs:
           EOF
 
           helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
-          echo "*** Set context" && kubectl config set-context --current --namespace=yona
-          echo "*** Get deployment" && kubectl get deployment
-          echo "*** Get pods" && kubectl get pods
-          echo "*** Get pending pods" && kubectl get pods --field-selector=status.phase=Pending
-          echo "*** Get storage class" && kubectl get StorageClass
-          echo "*** Get persistent volume" && kubectl get PersistentVolume
 
-          ./scripts/wait-for-services.sh || true # TODO
-          echo "*** Get describe liquibase pod after wait" && kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep liquibase`
+          ./scripts/wait-for-services.sh
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: TODO Check directory structure for test results
@@ -157,8 +150,8 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v1.30
         with:
           files: |
-           '**/build/test-results/test/*.xml'
-           '**/build/test-results/intTest/*.xml'
+           **/build/test-results/test/*.xml
+           **/build/test-results/intTest/*.xml
       - name: Publish Docker images
         if: ${{ !inputs.is-pr-build }}
         run: ./gradlew -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} -PdockerUrl=unix:///var/run/docker.sock pushDockerImage
