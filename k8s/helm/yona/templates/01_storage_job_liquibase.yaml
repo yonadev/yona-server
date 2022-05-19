@@ -3,8 +3,8 @@ apiVersion: v1
 metadata:
   name: job-liquibase-log-claim
 spec:
-{{- if .Values.job-liquibase.storage_class_name }}
-  storageClassName: {{ .Values.job-liquibase.storage_class_name | quote }}
+{{- if .Values.job_liquibase.storage_class_name }}
+  storageClassName: {{ .Values.job_liquibase.storage_class_name | quote }}
 {{- end }}
   accessModes:
     - ReadWriteOnce
