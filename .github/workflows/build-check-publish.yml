@@ -98,6 +98,7 @@ jobs:
         with:
           minikube version: 'v1.25.2'
           kubernetes version: 'v1.24.0'
+          driver: docker
       - name: Deploy Yona
         run: |
           kubectl create -f k8s/01_namespace.yaml
