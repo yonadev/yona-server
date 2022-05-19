@@ -110,7 +110,7 @@ jobs:
           minikube image load yonadev/batchservice:build-${{ inputs.build-id }}
           minikube image load yonadev/yona-mariadb-liquibase-update:build-${{ inputs.build-id }}
           cat > values.yml << EOF
-          seed_max_tries: 20
+          seed_max_tries: 30
           support_infrastructure:
             enabled: true
 
@@ -137,14 +137,9 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
-          helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
+          helm upgrade --wait --wait-for-jobs--install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
-          ./scripts/wait-for-services.sh || true # TODO
-          echo TODO Cat log files
-          for f in `find /tmp/hostpath-provisioner -name liquibase-update.log`; do
-            ls -l ${f}
-            cat ${f}
-          done
+          ./scripts/wait-for-services.sh || echo "Wait failed; cat log files" && for f in `find /tmp/hostpath-provisioner -name liquibase-update.log`; do; ls -l ${f}; cat ${f}; done
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish test results
