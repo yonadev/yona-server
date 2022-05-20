@@ -47,7 +47,7 @@ jobs:
       - build-check-publish
     steps:
       - name: Checkout src repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Wipe existing database
         uses: appleboy/ssh-action@v0.1.4
         with:
@@ -97,7 +97,7 @@ jobs:
       - deploy-load-test-server
     steps:
       - name: Checkout src repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Deploy Yona
         uses: ./.github/workflows/actions/deploy
         with:
@@ -141,7 +141,7 @@ jobs:
       - deploy-beta-test-server
     steps:
       - name: Checkout src repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Deploy Yona
         uses: ./.github/workflows/actions/deploy
         with:
