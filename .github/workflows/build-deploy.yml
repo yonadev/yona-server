@@ -12,9 +12,6 @@ jobs:
   determine-build-id:
     name: Determine build ID
     runs-on: ubuntu-latest
-    permissions:
-      checks: write
-      issues: write
     outputs:
       build-id: ${{ steps.set-build-id.outputs.build-id }}
     steps:
@@ -84,7 +81,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.19.0
         with:
           channel-id: '#devops'
-          slack-message: "Load test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          slack-message: "Load test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
@@ -128,7 +125,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.19.0
         with:
           channel-id: '#devops'
-          slack-message: "Beta test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          slack-message: "Beta test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
@@ -172,6 +169,6 @@ jobs:
         uses: slackapi/slack-github-action@v1.19.0
         with:
           channel-id: '#devops'
-          slack-message: "Production deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          slack-message: "Production deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

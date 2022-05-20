@@ -196,6 +196,6 @@ jobs:
         uses: slackapi/slack-github-action@v1.19.0
         with:
           channel-id: '#devops'
-          slack-message: "Build ${{ inputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          slack-message: "Build ${{ inputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
