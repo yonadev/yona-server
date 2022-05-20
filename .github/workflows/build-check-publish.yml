@@ -123,8 +123,6 @@ jobs:
 
           ldap:
             enabled: false
-            storage_class_name_ldap: "standard" # TODO Shouldn't be required
-            storage_class_name_sldap: "standard" # TODO Shouldn't be required
 
           nodePorts: {}
 
