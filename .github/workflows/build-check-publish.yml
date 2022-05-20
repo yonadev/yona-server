@@ -183,12 +183,12 @@ jobs:
           git config --global user.name "${GIT_AUTHOR_NAME}"
           git tag --force --annotate build-${{ inputs.build-id }} -m "GitHub build"
           git push https://github.com/yonadev/yona-server.git --tags
-      - name: Notify success through Slack
-        if: success()
+      - name: Notify PR build success through Slack
+        if: ${{ success() && inputs.is-pr-build }}
         uses: slackapi/slack-github-action@v1.19.0
         with:
           channel-id: '#devops'
-          slack-message: "GitHub build ${{ inputs.build-id }} completed successfully"
+          slack-message: "Successfully built PR https://github.com/yonadev/yona-server/pull/${{ github.event.number }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify failure through Slack
@@ -196,6 +196,6 @@ jobs:
         uses: slackapi/slack-github-action@v1.19.0
         with:
           channel-id: '#devops'
-          slack-message: "GitHub build ${{ inputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          slack-message: "Build ${{ inputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
