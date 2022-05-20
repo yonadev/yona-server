@@ -31,6 +31,8 @@ jobs:
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       YONA_BUILD_GITHUB_PAT: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
+      DOCKER_HUB_USER_NAME: ${{ secrets.DOCKER_HUB_USER_NAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
   deploy-load-test-server:
     name: Deploy load test server
