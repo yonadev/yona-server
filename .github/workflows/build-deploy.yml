@@ -36,6 +36,7 @@ jobs:
       YONA_BUILD_GITHUB_PAT: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
       DOCKER_HUB_USER_NAME: ${{ secrets.DOCKER_HUB_USER_NAME }}
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   deploy-load-test-server:
     name: Deploy load test server
@@ -76,6 +77,14 @@ jobs:
           repo-number: 2
           helm-values-path: helm/values_loadtest.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
+      - name: Notify failure through Slack
+        if: failure()
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: '#devops'
+          slack-message: "Load test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   deploy-beta-test-server:
     name: Deploy beta test server
@@ -104,6 +113,21 @@ jobs:
           repo-number: 2
           helm-values-path: helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
+      - name: Notify deployment status through Slack
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: '#devops'
+          slack-message: "Build ${{ needs.determine-build-id.outputs.build-id }} ready to deploy to production"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - name: Notify failure through Slack
+        if: failure()
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: '#devops'
+          slack-message: "Beta test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   deploy-prod-server:
     name: Deploy production server
@@ -132,3 +156,18 @@ jobs:
           repo-number: 1
           helm-values-path: helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
+      - name: Notify deployment success through Slack
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: '#devops'
+          slack-message: "Build ${{ needs.determine-build-id.outputs.build-id }} successfully deployed to production"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - name: Notify failure through Slack
+        if: failure()
+        uses: slackapi/slack-github-action@v1.19.0
+        with:
+          channel-id: '#devops'
+          slack-message: "Production deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
