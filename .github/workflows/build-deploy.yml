@@ -30,6 +30,7 @@ jobs:
       is-pr-build: false
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      YONA_BUILD_GITHUB_PAT: ${{ secrets.YONA_BUILD_GITHUB_PAT }}
 
   deploy-load-test-server:
     name: Deploy load test server

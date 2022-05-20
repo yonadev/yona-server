@@ -12,6 +12,8 @@ on:
     secrets:
       SONAR_TOKEN:
         required: true
+      YONA_BUILD_GITHUB_PAT:
+        required: false
 
 defaults:
   run:
