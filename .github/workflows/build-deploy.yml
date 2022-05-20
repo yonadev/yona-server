@@ -26,7 +26,8 @@ jobs:
           echo "::set-output name=build-id::${build_id}"
 
   build-check-publish:
-    needs: determine-build-id
+    needs:
+      - determine-build-id
     uses: ./.github/workflows/build-check-publish.yml
     with:
       build-id: ${{ needs.determine-build-id.outputs.build-id }}
@@ -45,6 +46,7 @@ jobs:
     env:
       KUBECONFIG: /home/bert.roos/.kube/config
     needs:
+      - determine-build-id
       - build-check-publish
     steps:
       - name: Checkout src repo
@@ -93,6 +95,7 @@ jobs:
     env:
       KUBECONFIG: /home/bert.roos/.kube/config
     needs:
+      - determine-build-id
       - build-check-publish
       - deploy-load-test-server
     steps:
@@ -136,6 +139,7 @@ jobs:
     env:
       KUBECONFIG: /home/bert.roos/.kube/config
     needs:
+      - determine-build-id
       - build-check-publish
       - deploy-beta-test-server
     steps:
