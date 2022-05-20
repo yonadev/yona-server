@@ -54,7 +54,7 @@ spec:
       containers:
         - name: batch
           image: '{{ .Values.global.imagebase | default "yonadev" }}/batchservice:build-{{ .Chart.AppVersion }}'
-          #imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" | quote }}
           env:       
             - name: YONA_DB_USER_NAME
               value: {{ .Values.mariadb.db.user | default "develop" | quote }}

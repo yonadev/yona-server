@@ -36,6 +36,10 @@ task buildDockerImage(type: DockerBuildImage) {
 	images = ["${dockerImageName}:${project.ext.docker_tag}"]
 	doFirst {
 		copy {
+			from "data"
+			into "$inputDir.asFile.orNull/json"
+		}
+		copy {
 			from "src/main/liquibase"
 			into "$inputDir.asFile.orNull/changelogs"
 			exclude "liquibase-task.properties"
