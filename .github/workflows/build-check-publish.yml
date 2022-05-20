@@ -150,7 +150,7 @@ jobs:
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish test results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action@v1.30
+        uses: EnricoMi/publish-unit-test-result-action@v1.36
         with:
           files: |
            **/build/test-results/test/*.xml
