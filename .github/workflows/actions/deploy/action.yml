@@ -33,8 +33,8 @@ inputs:
     description: 'Helm release to create or upgrade'
     required: false
     default: yona
-  build-number:
-    description: 'The build number to deploy'
+  build-id:
+    description: 'The build id to deploy'
     required: true
   repo-number:
     description: 'The number of the GitLab repo containing the values'
@@ -66,5 +66,5 @@ runs:
           ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
           kubectl config use-context ${{ inputs.kube-context }}
           URL="https://git.ops.yona.nu/api/v4/projects/${{ inputs.repo-number }}/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-          wget --no-verbose --header='PRIVATE-TOKEN: ${{ inputs.gitlab-token }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${{ inputs.kube-namespace }} --version 1.2.${{ inputs.build-number }} ${{ inputs.helm-release }} yona/yona
-          wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ inputs.build-number }}/scripts/wait-for-services.sh | bash
+          wget --no-verbose --header='PRIVATE-TOKEN: ${{ inputs.gitlab-token }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace ${{ inputs.kube-namespace }} --version 1.2.${{ inputs.build-id }} ${{ inputs.helm-release }} yona/yona
+          wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-${{ inputs.build-id }}/scripts/wait-for-services.sh | bash

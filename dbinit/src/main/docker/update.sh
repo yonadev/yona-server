@@ -61,47 +61,29 @@ EOFLDAP
   return 1
 }
 
-apply_external_json () {
-  SOURCE="${GIT_BASE}build-${RELEASE}/dbinit/data/${1}"
+apply_json () {
+  SOURCE="${1}"
   TARGET="${2}"
-  DOWNLOAD="${1}"
-  download_validate $DOWNLOAD $SOURCE
+  upload_validate $SOURCE $TARGET
   if [ $? -eq 1 ]; then
-    echo "Failed to download valid json from ${TARGET}"
-    return 1
-  fi
-  upload_validate $DOWNLOAD $TARGET
-  if [ $? -eq 1 ]; then
-    echo "Failed to upload valid json to ${TARGET}"
-    return 1
-  fi
-}
-
-download_validate () {
-  STATUS=$(curl -s -o "/tmp/${1}" -w '%{http_code}' "${2}")
-  if [ $STATUS != "200" ]; then
-    echo "Failed to download ${2} - Error Code ${STATUS}"
-    return 1
-  fi
-  /usr/local/bin/jq . "/tmp/${1}"
-  if [ $? -ne 0 ]; then
-    echo "Download fails json validation ${2}"
-    cat ${2}
+    echo "Failed to upload JSON to ${TARGET}"
     return 1
   fi
 }
 
 upload_validate () {
+  SOURCE="${1}"
+  TARGET="${2}"
   COUNT=1
   while [  $COUNT -le $MAX_TRIES ]; do
-    echo  "Attempting to push ${2}: attempt $COUNT of $MAX_TRIES"
-    STATUS=$(curl -s -o "/tmp/response" -w '%{http_code}' -X PUT "${2}" -d @/tmp/${1} --header "Content-Type: application/json")
+    echo  "Attempting to push ${TARGET}: attempt $COUNT of $MAX_TRIES"
+    STATUS=$(curl -s -o "/tmp/response" -w '%{http_code}' -X PUT "${TARGET}" -d @${SOURCE} --header "Content-Type: application/json")
     if [ $STATUS == "200" ]; then
-      echo "Post Applied ${2} - Result Code ${STATUS}"
+      echo "Post Applied ${TARGET} - Result Code ${STATUS}"
       cat /tmp/response
       return 0
     fi
-    echo "Failed to post ${2} - Error Code ${STATUS}"
+    echo "Failed to post ${TARGET} - Error Code ${STATUS}"
     cat /tmp/response
     sleep 5
     let COUNT=COUNT+1
@@ -140,6 +122,8 @@ apply_liquibase () {
 
 #Main 
 
+{
+echo `date` *** Start ${0}
 # Todo ? is missing /changelogs fatal ?  Will there always be a /changelogs perhaps empty ?
 [ -d /changelogs ] || (echo "Folder /changelogs/ does not exist" ; exit $ERROR_EXIT_CODE)
 cd /changelogs
@@ -166,21 +150,21 @@ fi
 if [ -n "${RELEASE}" ]; then
   # Apply Quartz Jobs
   echo "Applying Quartz Jobs"
-  apply_external_json "QuartzOtherJobs.json" "http://batch.${SERVICE_NAMESPACE}.svc.cluster.local:8080/scheduler/jobs/OTHER/"
+  apply_json "/json/QuartzOtherJobs.json" "http://batch.${SERVICE_NAMESPACE}.svc.cluster.local:8080/scheduler/jobs/OTHER/"
   if [ $? -eq 1 ]; then
     exit $ERROR_EXIT_CODE
   fi
 
   # Apply Quartz Triggers (requires RELEASE env to be set)
   echo "Applying Quartz Triggers"
-  apply_external_json "QuartzOtherCronTriggers.json" "http://batch.${SERVICE_NAMESPACE}.svc.cluster.local:8080/scheduler/triggers/cron/OTHER/"
+  apply_json "/json/QuartzOtherCronTriggers.json" "http://batch.${SERVICE_NAMESPACE}.svc.cluster.local:8080/scheduler/triggers/cron/OTHER/"
   if [ $? -eq 1 ]; then
     exit $ERROR_EXIT_CODE
   fi
 
   # Apply Categories
   echo "Applying Categories"
-  apply_external_json ${ACT_CATEGORIES_JSON_FILE} "http://admin.${SERVICE_NAMESPACE}.svc.cluster.local:8080/activityCategories/"
+  apply_json /json/${ACT_CATEGORIES_JSON_FILE} "http://admin.${SERVICE_NAMESPACE}.svc.cluster.local:8080/activityCategories/"
   if [ $? -eq 1 ]; then
     exit $ERROR_EXIT_CODE
   fi
@@ -196,4 +180,7 @@ else
 fi
 
 echo "All updates applied"
-exit 0
+exit 0 # Job won't be rescheduled when exiting with 0
+echo `date` *** End ${0}
+} | tee -a ${1}
+exit ${PIPESTATUS[0]}

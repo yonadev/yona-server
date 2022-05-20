@@ -46,3 +46,19 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/tmp/.yona-persistentvolumes/pv0003"
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: pv0004
+  labels:
+    type: local
+spec:
+  storageClassName: default
+  persistentVolumeReclaimPolicy: Delete
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/.yona-persistentvolumes/pv0004"

@@ -5,40 +5,23 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-    name: Build, test and analyze
+  determine-build-id:
+    name: Determine build ID
     runs-on: ubuntu-latest
-    permissions:
-      checks: write
-      issues: write
-
+    outputs:
+      build-id: ${{ steps.set-build-id.outputs.build-id }}
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - name: Cache Gradle packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-      - name: Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew check sonarqube --info
-      - name: Publish unit test results
-        uses: EnricoMi/publish-unit-test-result-action@v1.30
-        if: always()
-        with:
-          files: '**/build/test-results/test/*.xml'
+      - name: Set build ID
+        id: set-build-id
+        run: |
+          build_id="pr${{ github.event.number }}"
+          echo "::set-output name=build-id::${build_id}"
+
+  build-check-publish:
+    needs: determine-build-id
+    uses: ./.github/workflows/build-check-publish.yml
+    with:
+      build-id: ${{ needs.determine-build-id.outputs.build-id }}
+      is-pr-build: true
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
