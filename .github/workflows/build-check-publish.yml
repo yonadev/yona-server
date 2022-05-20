@@ -139,7 +139,7 @@ jobs:
 
           helm upgrade --wait --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
-          ./scripts/wait-for-services.sh || echo "Wait failed; cat log files" && for f in `find /tmp/hostpath-provisioner -name liquibase-update.log`; do; ls -l ${f}; cat ${f}; done
+          ./scripts/wait-for-services.sh || (echo "Wait failed; cat log files" && (for f in $(find /tmp/hostpath-provisioner -name liquibase-update.log); do ls -l ${f}; cat ${f}; done) && false)
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
       - name: Publish test results
