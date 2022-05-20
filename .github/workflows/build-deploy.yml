@@ -12,6 +12,9 @@ jobs:
   determine-build-id:
     name: Determine build ID
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      issues: write
     outputs:
       build-id: ${{ steps.set-build-id.outputs.build-id }}
     steps:
