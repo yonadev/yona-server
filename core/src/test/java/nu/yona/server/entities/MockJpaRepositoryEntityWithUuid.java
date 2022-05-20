@@ -151,7 +151,14 @@ public class MockJpaRepositoryEntityWithUuid<T extends EntityWithUuid> extends M
 	}
 
 	@Override
+	@Deprecated
 	public T getById(UUID id)
+	{
+		return getReferenceById(id);
+	}
+
+	@Override
+	public T getReferenceById(UUID id)
 	{
 		return findById(id).orElseThrow(() -> new javax.persistence.EntityNotFoundException("ID " + id + " not found"));
 	}

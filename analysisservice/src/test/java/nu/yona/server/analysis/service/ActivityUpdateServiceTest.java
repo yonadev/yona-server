@@ -129,18 +129,20 @@ public class ActivityUpdateServiceTest
 		setUpRepositoryMocks();
 
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1).withHour(0).withMinute(1).withSecond(0);
-		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("gambling"), false, new HashSet<>(Arrays.asList("poker", "lotto")),
-						new HashSet<>(Arrays.asList("Poker App", "Lotto App")), usString("Descr")));
-		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("news"), false, new HashSet<>(Arrays.asList("refdag", "bbc")),
-						Collections.emptySet(), usString("Descr")));
-		socialGoal = TimeZoneGoal.createInstance(yesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("social"), false, new HashSet<>(Arrays.asList("social")),
-						Collections.emptySet(), usString("Descr")), Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(yesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("shopping"), false, new HashSet<>(Arrays.asList("webshop")),
-						Collections.emptySet(), usString("Descr")), 1);
+		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
+						new HashSet<>(Arrays.asList("poker", "lotto")), new HashSet<>(Arrays.asList("Poker App", "Lotto App")),
+						usString("Descr")));
+		newsGoal = BudgetGoal.createNoGoInstance(yesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
+						new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
+		socialGoal = TimeZoneGoal.createInstance(yesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
+						new HashSet<>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
+				Collections.emptyList());
+		shoppingGoal = BudgetGoal.createInstance(yesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
+						new HashSet<>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")), 1);
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
@@ -150,11 +152,11 @@ public class ActivityUpdateServiceTest
 		lenient().when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
 		// Set up UserAnonymized instance.
-		MessageDestination anonMessageDestinationEntity = MessageDestination
-				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
+		MessageDestination anonMessageDestinationEntity = MessageDestination.createInstance(
+				PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, socialGoal, shoppingGoal));
-		deviceAnonEntity = DeviceAnonymized
-				.createInstance(0, OperatingSystem.IOS, "Unknown", 0, Optional.empty(), Translator.EN_US_LOCALE);
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown", 0, Optional.empty(),
+				Translator.EN_US_LOCALE);
 		deviceAnonId = deviceAnonEntity.getId();
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
@@ -189,7 +191,7 @@ public class ActivityUpdateServiceTest
 				});
 
 		// Mock device service and repo
-		lenient().when(mockDeviceAnonymizedRepository.getById(deviceAnonId)).thenReturn(deviceAnonEntity);
+		lenient().when(mockDeviceAnonymizedRepository.getReferenceById(deviceAnonId)).thenReturn(deviceAnonEntity);
 	}
 
 	private void setUpRepositoryMocks()
@@ -383,8 +385,8 @@ public class ActivityUpdateServiceTest
 				equalTo(endTime.toLocalDateTime()));
 
 		// Verify that there is an activity cached
-		verify(mockAnalysisEngineCacheService, atLeastOnce())
-				.updateLastActivityForUser(eq(userAnonId), eq(deviceAnonId), eq(gamblingGoal.getId()), any());
+		verify(mockAnalysisEngineCacheService, atLeastOnce()).updateLastActivityForUser(eq(userAnonId), eq(deviceAnonId),
+				eq(gamblingGoal.getId()), any());
 	}
 
 	@Test
@@ -430,8 +432,8 @@ public class ActivityUpdateServiceTest
 
 		service.updateTimeLastActivity(createPayload(t1, t2), GoalDto.createInstance(gamblingGoal), lastRegisteredActivity);
 
-		verify(mockAnalysisEngineCacheService)
-				.updateLastActivityForUser(eq(userAnonId), eq(deviceAnonId), eq(gamblingGoal.getId()), any());
+		verify(mockAnalysisEngineCacheService).updateLastActivityForUser(eq(userAnonId), eq(deviceAnonId),
+				eq(gamblingGoal.getId()), any());
 	}
 
 	@Test
@@ -536,16 +538,16 @@ public class ActivityUpdateServiceTest
 	private DayActivity mockExistingActivities(Goal forGoal, Activity... activities)
 	{
 		LocalDateTime startTime = activities[0].getStartTime();
-		DayActivity dayActivity = DayActivity
-				.createInstance(userAnonEntity, forGoal, userAnonZoneId, startTime.truncatedTo(ChronoUnit.DAYS).toLocalDate());
+		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,
+				startTime.truncatedTo(ChronoUnit.DAYS).toLocalDate());
 		Arrays.asList(activities).forEach(a -> dayActivity.addActivity(a));
 		ActivityDto existingActivity = ActivityDto.createInstance(activities[activities.length - 1]);
 		lenient().doReturn(dayActivity).when(mockDayActivityRepository)
 				.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId());
 		lenient().when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, deviceAnonId, forGoal.getId()))
 				.thenReturn(Optional.of(existingActivity));
-		WeekActivity weekActivity = WeekActivity
-				.createInstance(userAnonEntity, forGoal, userAnonZoneId, TimeUtil.getStartOfWeek(startTime.toLocalDate()));
+		WeekActivity weekActivity = WeekActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,
+				TimeUtil.getStartOfWeek(startTime.toLocalDate()));
 		weekActivity.addDayActivity(dayActivity);
 		forGoal.addWeekActivity(weekActivity);
 		return dayActivity;
@@ -570,8 +572,8 @@ public class ActivityUpdateServiceTest
 
 	private ActivityPayload createPayload(ZonedDateTime startTime, ZonedDateTime endTime)
 	{
-		return ActivityPayload
-				.createInstance(userAnonDto, deviceAnonDto, startTime, endTime, "Lotto", makeCategorySet(gamblingGoal));
+		return ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime, endTime, "Lotto",
+				makeCategorySet(gamblingGoal));
 	}
 
 	private static Set<ActivityCategoryDto> makeCategorySet(Goal... goals)

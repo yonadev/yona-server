@@ -240,7 +240,7 @@ public class BuddyService
 	{
 		Require.isNonNull(buddy.getOwningUserPrivateId(),
 				() -> YonaException.illegalState("Owning user private ID cannot be null"));
-		UserPrivate owningUserPrivate = userPrivateRepository.getById(buddy.getOwningUserPrivateId());
+		UserPrivate owningUserPrivate = userPrivateRepository.getReferenceById(buddy.getOwningUserPrivateId());
 		return userAnonymizedService.getUserAnonymized(owningUserPrivate.getUserAnonymizedId());
 	}
 
