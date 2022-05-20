@@ -288,8 +288,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertDevice(device2, startTime, deviceName2, operatingSystem2, 1);
 
-		verify(mockMessageService, times(1))
-				.broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), messageSupplierCaptor.capture());
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(),
+				messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));
 		BuddyDeviceChangeMessage buddyDeviceChangeMessage = (BuddyDeviceChangeMessage) message;
@@ -422,8 +422,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertDevice(device, startTime, newName, operatingSystem, 0);
 
-		verify(mockMessageService, times(1))
-				.broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), messageSupplierCaptor.capture());
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(),
+				messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));
 		BuddyDeviceChangeMessage buddyDeviceChangeMessage = (BuddyDeviceChangeMessage) message;
@@ -520,7 +520,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), 0);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(),
+				equalTo(userDeviceRepository.getReferenceById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -544,7 +545,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), 1);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(),
+				equalTo(userDeviceRepository.getReferenceById(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -568,7 +570,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), -1);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(),
+				equalTo(userDeviceRepository.getReferenceById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -616,7 +619,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), deviceAnonymizedId1);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(),
+				equalTo(userDeviceRepository.getReferenceById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -641,7 +645,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), deviceAnonymizedId2);
 
 		// Assert success
-		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getById(device2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(),
+				equalTo(userDeviceRepository.getReferenceById(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -688,7 +693,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), device1.getId());
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getById(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getReferenceById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -712,7 +717,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), device2.getId());
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getById(device2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getReferenceById(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -781,8 +786,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		richard.setAppLastOpenedDate(originalDate);
 		setAppLastOpenedDateField(device, originalDate);
 
-		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service
-				.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("0.0.1"), 1));
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem),
+						Optional.of("0.0.1"), 1));
 		assertEquals("error.device.app.version.not.supported", exception.getMessageId());
 	}
 
@@ -795,8 +801,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		richard.setAppLastOpenedDate(originalDate);
 		setAppLastOpenedDateField(device, originalDate);
 
-		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service
-				.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"), -1));
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"),
+						-1));
 		assertEquals("error.device.invalid.version.code", exception.getMessageId());
 	}
 
@@ -808,8 +815,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		richard.setAppLastOpenedDate(originalDate);
 		setAppLastOpenedDateField(device, originalDate);
 
-		DeviceServiceException exception = assertThrows(DeviceServiceException.class, () -> service
-				.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS),
+		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
+				() -> service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(OperatingSystem.IOS),
 						Optional.of(SOME_APP_VERSION), SUPPORTED_APP_VERSION_CODE));
 		assertEquals("error.device.cannot.switch.operating.system", exception.getMessageId());
 	}
@@ -948,9 +955,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion,
 			int appVersionCode)
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized
-				.createInstance(deviceIndex, operatingSystem, appVersion, appVersionCode, Optional.empty(),
-						Translator.EN_US_LOCALE);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion,
+				appVersionCode, Optional.empty(), Translator.EN_US_LOCALE);
 		UserDevice device = UserDevice.createInstance(richard, deviceName, deviceAnonymized.getId(), "topSecret");
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		userDeviceRepository.save(device);
@@ -979,8 +985,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	private Activity makeActivity(LocalDateTime startTime, ActivityData activityData, UserDevice device)
 	{
 		LocalDateTime activityStartTime = startTime.minusMinutes(activityData.minutesAgo);
-		return activityRepository.save(Activity
-				.createInstance(device.getDeviceAnonymized(), ZoneId.of("Europe/Amsterdam"), activityStartTime,
+		return activityRepository.save(
+				Activity.createInstance(device.getDeviceAnonymized(), ZoneId.of("Europe/Amsterdam"), activityStartTime,
 						activityStartTime.plusMinutes(activityData.durationMinutes), Optional.of(activityData.app)));
 	}
 

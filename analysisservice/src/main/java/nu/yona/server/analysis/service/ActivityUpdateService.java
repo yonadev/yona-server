@@ -70,8 +70,8 @@ class ActivityUpdateService
 	public void addActivity(UserAnonymized userAnonymizedEntity, ActivityPayload payload, GoalDto matchingGoal,
 			Optional<ActivityDto> lastRegisteredActivity)
 	{
-		Goal matchingGoalEntity = goalService
-				.getGoalEntityForUserAnonymizedId(payload.userAnonymized.getId(), matchingGoal.getGoalId());
+		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedId(payload.userAnonymized.getId(),
+				matchingGoal.getGoalId());
 		Activity addedActivity = createNewActivity(userAnonymizedEntity, payload, matchingGoalEntity);
 		if (shouldUpdateCache(lastRegisteredActivity, addedActivity))
 		{
@@ -108,8 +108,8 @@ class ActivityUpdateService
 
 	private void sendConflictMessageToAllDestinationsOfUser(ActivityPayload payload, Activity activity, Goal matchingGoal)
 	{
-		GoalConflictMessage selfGoalConflictMessage = messageRepository
-				.save(GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity, matchingGoal, payload.url));
+		GoalConflictMessage selfGoalConflictMessage = messageRepository.save(
+				GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity, matchingGoal, payload.url));
 		messageService.sendMessage(selfGoalConflictMessage, payload.userAnonymized);
 
 		messageService.broadcastMessageToBuddies(payload.userAnonymized,
@@ -119,8 +119,8 @@ class ActivityUpdateService
 	private GoalConflictMessage createAndSaveBuddyGoalConflictMessage(ActivityPayload payload,
 			GoalConflictMessage selfGoalConflictMessage)
 	{
-		GoalConflictMessage message = GoalConflictMessage
-				.createInstanceForBuddy(payload.userAnonymized.getId(), selfGoalConflictMessage);
+		GoalConflictMessage message = GoalConflictMessage.createInstanceForBuddy(payload.userAnonymized.getId(),
+				selfGoalConflictMessage);
 		return messageRepository.save(message);
 	}
 
@@ -141,12 +141,13 @@ class ActivityUpdateService
 	public void updateTimeLastActivity(ActivityPayload payload, GoalDto matchingGoal, ActivityDto lastRegisteredActivity)
 	{
 		UUID deviceAnonymizedId = payload.deviceAnonymized.getId();
-		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId()).orElseThrow(() -> AnalysisException
-				.dayActivityNotFound(payload.userAnonymized.getId(), matchingGoal.getGoalId(), payload.startTime,
-						lastRegisteredActivity.getStartTime(), lastRegisteredActivity.getEndTime()));
+		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId()).orElseThrow(
+				() -> AnalysisException.dayActivityNotFound(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
+						payload.startTime, lastRegisteredActivity.getStartTime(), lastRegisteredActivity.getEndTime()));
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
-		Activity activity = dayActivity.getLastActivity(deviceAnonymizedId).orElseThrow(() -> ActivityServiceException
-				.lastActivityNotFoundOnDayActivity(deviceAnonymizedId, dayActivity.getActivities().size()));
+		Activity activity = dayActivity.getLastActivity(deviceAnonymizedId).orElseThrow(
+				() -> ActivityServiceException.lastActivityNotFoundOnDayActivity(deviceAnonymizedId,
+						dayActivity.getActivities().size()));
 		if (payload.startTime.isBefore(lastRegisteredActivity.getStartTime()))
 		{
 			activity.setStartTime(payload.startTime.toLocalDateTime());
@@ -172,14 +173,13 @@ class ActivityUpdateService
 
 	private Activity createNewActivity(UserAnonymized userAnonymized, ActivityPayload payload, Goal matchingGoal)
 	{
-		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getId())
-				.orElseGet(() -> createNewDayActivity(userAnonymized, payload, matchingGoal));
+		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getId()).orElseGet(
+				() -> createNewDayActivity(userAnonymized, payload, matchingGoal));
 
 		ZonedDateTime endTime = ensureMinimumDurationOneMinute(payload);
-		DeviceAnonymized deviceAnonymized = deviceAnonymizedRepository.getById(payload.deviceAnonymized.getId());
-		Activity activity = Activity
-				.createInstance(deviceAnonymized, payload.startTime.getZone(), payload.startTime.toLocalDateTime(),
-						endTime.toLocalDateTime(), payload.application);
+		DeviceAnonymized deviceAnonymized = deviceAnonymizedRepository.getReferenceById(payload.deviceAnonymized.getId());
+		Activity activity = Activity.createInstance(deviceAnonymized, payload.startTime.getZone(),
+				payload.startTime.toLocalDateTime(), endTime.toLocalDateTime(), payload.application);
 		activity = activityRepository.save(activity);
 		dayActivity.addActivity(activity);
 		return activity;
@@ -202,12 +202,12 @@ class ActivityUpdateService
 		dayActivityRepository.save(dayActivity);
 
 		ZonedDateTime startOfWeek = TimeUtil.getStartOfWeek(payload.userAnonymized.getTimeZone(), payload.startTime);
-		WeekActivity weekActivity = weekActivityRepository
-				.findOne(payload.userAnonymized.getId(), matchingGoal.getId(), startOfWeek.toLocalDate());
+		WeekActivity weekActivity = weekActivityRepository.findOne(payload.userAnonymized.getId(), matchingGoal.getId(),
+				startOfWeek.toLocalDate());
 		if (weekActivity == null)
 		{
-			weekActivity = WeekActivity
-					.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek.getZone(), startOfWeek.toLocalDate());
+			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek.getZone(),
+					startOfWeek.toLocalDate());
 			matchingGoal.addWeekActivity(weekActivity);
 		}
 		weekActivity.addDayActivity(dayActivity);
