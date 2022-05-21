@@ -151,8 +151,7 @@ jobs:
           ./scripts/wait-for-services.sh
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
-      - name: Gather logs on failure
-        # TODO if: failure()
+      - name: Gather logs
         if: always()
         run: |
           mkdir /tmp/yona-logs
@@ -166,7 +165,6 @@ jobs:
             kubectl logs ${p} > /tmp/yona-logs/${p}.log || true # Ignore errors
           done
       - name: Upload logs as artifacts
-        # TODO if: failure()
         if: always()
         uses: actions/upload-artifact@v3
         with:
@@ -208,6 +206,7 @@ jobs:
           git tag --force --annotate build-${{ inputs.build-id }} -m "GitHub build"
           git push https://github.com/yonadev/yona-server.git --tags
       - name : Wait for Helm package to become available on GitHub pages
+        if: ${{ !inputs.is-pr-build }}
         run: |
             maxWaitTime=600 # GitHub: Note: It can take up to 10 minutes for changes to your site to publish
             sleepDuration=5
