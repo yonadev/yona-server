@@ -163,7 +163,7 @@ jobs:
           done
           kubectl config set-context --current --namespace=yona
           for p in $(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do
-            kubectl logs ${p} > /tmp/yona-logs/${p}.log
+            kubectl logs ${p} > /tmp/yona-logs/${p}.log || true # Ignore errors
           done
       - name: Upload logs as artifacts
         # TODO if: failure()
