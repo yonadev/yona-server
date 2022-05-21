@@ -34,7 +34,7 @@ jobs:
             ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
             kubectl config use-context beta
             URL="https://git.ops.yona.nu/api/v4/projects/2/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-            wget --no-verbose --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --wait --install --values - --namespace loadtest --version 1.2.1667 loadtest yona/yona
+            wget --no-verbose --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --wait --install --values - --namespace loadtest --version 1.2.1674 loadtest yona/yona
             kubectl config set-context --current --namespace=loadtest
             kubectl get deployments
             kubectl get pods
@@ -44,4 +44,4 @@ jobs:
             kubectl get PersistentVolumes
             kubectl get PersistentVolumeClaims
 
-            wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-1667/scripts/wait-for-services.sh | bash
+            wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-1674/scripts/wait-for-services.sh | bash
