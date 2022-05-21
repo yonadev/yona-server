@@ -58,7 +58,9 @@ runs:
         proxy_host: ${{ inputs.proxy-host-name }}
         proxy_username: ${{ inputs.proxy-ssh-user-name }}
         proxy_key: ${{ inputs.proxy-ssh-key }}
+        script_stop: true
         script: |
+          set -x
           helm repo update
           export KUBECONFIG=${{ inputs.kube-config }} # Used in Helm and wait-for-services.sh
           export NAMESPACE=${{ inputs.kube-namespace }} # Used in wait-for-services.sh
