@@ -61,6 +61,7 @@ runs:
         script_stop: true
         script: |
           set -x
+          BASH_XTRACEFD=1 # Send script tracing to stdout
           helm repo update
           export KUBECONFIG=${{ inputs.kube-config }} # Used in Helm and wait-for-services.sh
           export NAMESPACE=${{ inputs.kube-namespace }} # Used in wait-for-services.sh
