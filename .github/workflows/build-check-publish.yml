@@ -158,11 +158,11 @@ jobs:
           mkdir /tmp/yona-logs
           i=0
           for f in $(find /tmp/hostpath-provisioner -name liquibase-update.log); do
-            ls -l ${f}
             cp ${f} /tmp/yona-logs/liquibase-update-${i}.log
             ((i+=1))
           done
-          for p in $(kubectl get pods --namespace yona -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do
+          kubectl config set-context --current --namespace=yona
+          for p in $(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do
             kubectl logs ${p} > /tmp/yona-logs/${p}.log
           done
       - name: Upload logs as artifacts
