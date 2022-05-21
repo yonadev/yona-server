@@ -148,9 +148,30 @@ jobs:
 
           helm upgrade --wait --wait-for-jobs --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
-          ./scripts/wait-for-services.sh || (echo "Wait failed; cat log files" && (for f in $(find /tmp/hostpath-provisioner -name liquibase-update.log); do ls -l ${f}; cat ${f}; done) && false)
+          ./scripts/wait-for-services.sh
       - name: Run integration tests
         run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
+      - name: Gather logs on failure
+        # TODO if: failure()
+        if: always()
+        run: |
+          mkdir /tmp/yona-logs
+          i=0
+          for f in $(find /tmp/hostpath-provisioner -name liquibase-update.log); do
+            ls -l ${f}
+            cp ${f} /tmp/yona-logs/liquibase-update-${i}.log
+            ((i+=1))
+          done
+          for p in $(kubectl get pods --namespace yona -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do
+            kubectl logs ${p} > /tmp/yona-logs/${p}.log
+          done
+      - name: Upload logs as artifacts
+        # TODO if: failure()
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs
+          path: /tmp/yona-logs/
       - name: Publish test results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v1.36
