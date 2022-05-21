@@ -188,17 +188,16 @@ jobs:
           git push https://github.com/yonadev/yona-server.git --tags
       - name : Wait for Helm package to become available on GitHub pages
         run: |
-            maxWaitTime=10 # GitHub: Note: It can take up to 10 minutes for changes to your site to publish
+            maxWaitTime=600 # GitHub: Note: It can take up to 10 minutes for changes to your site to publish
             sleepDuration=5
             totalSleepDuration=0
             while (( totalSleepDuration < maxWaitTime )); do
-              # if curl --output /dev/null --silent --head --fail https://yonadev.github.io/helm-charts/yona-1.2.${{ inputs.build-id }}.tgz; then
-              if curl --output /dev/null --silent --head --fail https://yonadev.github.io/helm-charts/yona-1.2.TODO.tgz; then
+              if curl --output /dev/null --silent --head --fail https://yonadev.github.io/helm-charts/yona-1.2.${{ inputs.build-id }}.tgz; then
                       echo Helm chart is available after ${totalSleepDuration} seconds
                 exit 0
               else
-               sleep ${sleepDuration}
-               ((totalSleepDuration+=sleepDuration))
+                sleep ${sleepDuration}
+                ((totalSleepDuration+=sleepDuration))
               fi
             done
             echo "ERROR: Helm chart is NOT available after ${totalSleepDuration} seconds"
