@@ -134,6 +134,9 @@ jobs:
 
           nodePorts: {}
 
+          job_liquibase:
+            log_storage_volume_enabled: true
+
           admin:
             act_categories_json_file : activityCategories.json
 
@@ -144,6 +147,7 @@ jobs:
           EOF
 
           helm upgrade --wait --wait-for-jobs --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
+          for f in $(find /tmp/hostpath-provisioner -name liquibase-update.log); do ls -l ${f}; cat ${f}; done # TODO, remove this!
 
           ./scripts/wait-for-services.sh || (echo "Wait failed; cat log files" && (for f in $(find /tmp/hostpath-provisioner -name liquibase-update.log); do ls -l ${f}; cat ${f}; done) && false)
       - name: Run integration tests

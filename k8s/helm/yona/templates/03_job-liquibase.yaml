@@ -94,11 +94,15 @@ spec:
               value: {{ .Values.admin.act_categories_json_file | default "productionActivityCategories.json" | quote }}
             - name: SERVICE_NAMESPACE
               value: {{ .Release.Namespace }}
+          {{- if .Values.job_liquibase.log_storage_volume_enabled}}
           volumeMounts:
             - mountPath: "/var/log/liquibase-update"
               name: log-pv-storage
+          {{- end }}
       restartPolicy: Never
+      {{- if .Values.job_liquibase.log_storage_volume_enabled}}
       volumes:
         - name: log-pv-storage
           persistentVolumeClaim:
             claimName: job-liquibase-log-claim
+      {{- end }}
