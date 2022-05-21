@@ -134,6 +134,9 @@ jobs:
 
           nodePorts: {}
 
+          job_liquibase:
+            log_storage_volume_enabled: true
+
           admin:
             act_categories_json_file : activityCategories.json
 
