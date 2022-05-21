@@ -212,6 +212,7 @@ spring:
     config: /opt/app/config/hazelcast-client.xml
 
 job_liquibase:
+  log_storage_volume_enabled: false
   storage_class_name: standard
 
 admin:
