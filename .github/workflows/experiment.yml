@@ -27,7 +27,7 @@ jobs:
           proxy_key: ${{ secrets.PROXY_SSH_KEY }}
           script: |
             echo "*** helm repo update"
-            helm repo update
+            helm repo update --debug
             export KUBECONFIG=${{ env.KUBECONFIG }} # Used in Helm and wait-for-services.sh
             export NAMESPACE=loadtest # Used in wait-for-services.sh
             export VALUES_PATH=helm/values_loadtest.yaml
@@ -36,7 +36,7 @@ jobs:
             kubectl config use-context beta
             URL="https://git.ops.yona.nu/api/v4/projects/2/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
             echo "*** helm upgrade"
-            wget --no-verbose --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --install --values - --namespace loadtest --version 1.2.1667 loadtest yona/yona
+            wget --no-verbose --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --wait --install --values - --namespace loadtest --version 1.2.1667 loadtest yona/yona
             echo "*** kubectl get pods"
             kubectl get pods
             echo "*** wait for services"
