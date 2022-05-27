@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -38,10 +37,8 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 @Table(name = "GOALS")
-public abstract class Goal extends EntityWithUuid implements IGoal, Serializable
+public abstract class Goal extends EntityWithUuid implements IGoal
 {
-	private static final long serialVersionUID = -3209852229834825712L;
-
 	protected static final LocalDateTime mandatoryGoalPresetCreationTime = LocalDateTime.of(2017, 1, 1, 12, 0);
 
 	@ManyToOne

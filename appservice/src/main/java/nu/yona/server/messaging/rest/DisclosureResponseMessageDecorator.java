@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.rest;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
+import nu.yona.server.analysis.rest.ActivityControllerBase;
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.analysis.service.DayActivityDto;
 import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
@@ -28,7 +29,7 @@ public class DisclosureResponseMessageDecorator implements MessageResourceDecora
 	{
 		String dateStr = DayActivityDto.formatDate(message.getGoalConflictStartTime());
 		message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(),
-				assembler.getSenderBuddyId(message), dateStr, message.getGoalId())
-				.withRel(BuddyActivityController.DAY_DETAIL_REL));
+						assembler.getSenderBuddyId(message), dateStr, message.getGoalId())
+				.withRel(ActivityControllerBase.DAY_DETAIL_REL));
 	}
 }
