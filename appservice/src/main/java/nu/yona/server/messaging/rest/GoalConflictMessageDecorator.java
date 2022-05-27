@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.rest;
 
+import nu.yona.server.analysis.rest.ActivityControllerBase;
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.analysis.service.DayActivityDto;
@@ -36,14 +37,14 @@ public class GoalConflictMessageDecorator implements MessageResourceDecorator
 		if (message.isSentFromBuddy())
 		{
 			message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(),
-					assembler.getSenderBuddyId(message), dateStr, message.getGoalId())
-					.withRel(BuddyActivityController.DAY_DETAIL_REL));
+							assembler.getSenderBuddyId(message), dateStr, message.getGoalId())
+					.withRel(ActivityControllerBase.DAY_DETAIL_REL));
 		}
 		else
 		{
-			message.add(UserActivityController
-					.getUserDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(), dateStr, message.getGoalId())
-					.withRel(UserActivityController.DAY_DETAIL_REL));
+			message.add(
+					UserActivityController.getUserDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(), dateStr,
+							message.getGoalId()).withRel(ActivityControllerBase.DAY_DETAIL_REL));
 		}
 	}
 }

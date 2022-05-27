@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.rest;
 
+import nu.yona.server.analysis.rest.ActivityControllerBase;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.analysis.service.DayActivityDto;
 import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
@@ -19,6 +20,6 @@ public class DisclosureRequestMessageDecorator implements MessageResourceDecorat
 		DisclosureRequestMessageDto disclosureRequestMessage = (DisclosureRequestMessageDto) message;
 		String dateStr = DayActivityDto.formatDate(disclosureRequestMessage.getGoalConflictStartTime());
 		message.add(UserActivityController.getUserDayActivityDetailLinkBuilder(assembler.getGoalIdMapping().getUserId(), dateStr,
-				disclosureRequestMessage.getGoalId()).withRel(UserActivityController.DAY_DETAIL_REL));
+				disclosureRequestMessage.getGoalId()).withRel(ActivityControllerBase.DAY_DETAIL_REL));
 	}
 }
