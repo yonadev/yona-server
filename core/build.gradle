@@ -50,7 +50,7 @@ dependencies {
 	implementation project.deps.springSecurityConfig
 	api "com.google.guava:guava:23.0"
 	implementation "com.googlecode.libphonenumber:libphonenumber:8.12.49"
-	implementation "com.google.firebase:firebase-admin:8.1.0"
+	implementation "com.google.firebase:firebase-admin:8.2.0"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.mockito:mockito-junit-jupiter"
