@@ -11,14 +11,6 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 def dockerImageName = "${project.group}/${jar.baseName}"
 
-release {
-	failOnCommitNeeded = true
-	tagTemplate = "adminservice-${version}"
-	git {
-		requireBranch = "yd-40-changes-for-building|master"
-	}
-}
-
 configurations {
 	providedRuntime
 	intTestImplementation.extendsFrom testImplementation

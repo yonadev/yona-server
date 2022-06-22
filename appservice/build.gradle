@@ -10,14 +10,6 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 def dockerImageName = "${project.group}/${jar.baseName}"
 
-release {
-	failOnCommitNeeded = true
-	tagTemplate = "appservice-${version}"
-	git {
-		requireBranch = "yd-40-changes-for-building|master"
-	}
-}
-
 configurations {
 	providedRuntimeClasspath
 	intTestImplementation.extendsFrom testImplementation
