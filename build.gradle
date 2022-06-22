@@ -8,7 +8,6 @@ plugins {
 	id "groovy"
 	id "io.spring.dependency-management" version "1.0.11.RELEASE"
 	id "org.springframework.boot" version "2.7.0" apply false
-	id "net.researchgate.release" version "2.8.1"
 	id "com.bmuschko.docker-remote-api" version "7.4.0" apply false
 	id "project-report"
     id "org.sonarqube" version "3.4.0.2513"
@@ -33,7 +32,6 @@ subprojects {
 	apply plugin: "groovy"
 	apply plugin: "io.spring.dependency-management"
 	apply plugin: "org.springframework.boot"
-	apply plugin: "net.researchgate.release"
 	apply plugin: "com.bmuschko.docker-remote-api"
 
 	project.ext {
