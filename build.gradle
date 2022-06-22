@@ -8,7 +8,7 @@ plugins {
 	id "groovy"
 	id "io.spring.dependency-management" version "1.0.11.RELEASE"
 	id "org.springframework.boot" version "2.7.0" apply false
-	id "net.researchgate.release" version "2.8.1"
+	id "net.researchgate.release" version "3.0.0"
 	id "com.bmuschko.docker-remote-api" version "7.4.0" apply false
 	id "project-report"
     id "org.sonarqube" version "3.4.0.2513"
