@@ -54,7 +54,7 @@ public class AdminController extends ControllerBase
 			{
 				// Use DOS protection to prevent spamming numbers with confirmation code text messages
 				// Do not include the mobile number in the URI. DOS protection should be number-independent
-				URI uri = getRequestOverwriteUserConfirmationCodeLinkBuilder(null).toUri();
+				URI uri = getRequestOverwriteUserConfirmationCodeLinkBuilder("NotSpecified").toUri();
 				dosProtectionService.executeAttempt(uri, request,
 						yonaProperties.getSecurity().getMaxRequestOverwriteUserConfirmationCodeAttemptsPerTimeWindow(),
 						() -> userService.requestOverwriteUserConfirmationCode(mobileNumber));
@@ -72,7 +72,7 @@ public class AdminController extends ControllerBase
 		}
 	}
 
-	static WebMvcLinkBuilder getRequestOverwriteUserConfirmationCodeLinkBuilder(String mobileNumber)
+	private static WebMvcLinkBuilder getRequestOverwriteUserConfirmationCodeLinkBuilder(String mobileNumber)
 	{
 		AdminController methodOn = methodOn(AdminController.class);
 		return linkTo(methodOn.requestOverwriteUserConfirmationCode(mobileNumber, null));
