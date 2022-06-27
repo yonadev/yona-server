@@ -172,7 +172,7 @@ jobs:
           path: /tmp/yona-logs/
       - name: Publish test results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action@v1.38
+        uses: EnricoMi/publish-unit-test-result-action@v1.39
         with:
           files: |
            **/build/test-results/test/*.xml
