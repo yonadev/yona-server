@@ -7,7 +7,7 @@ plugins {
 	id "eclipse"
 	id "groovy"
 	id "io.spring.dependency-management" version "1.0.12.RELEASE"
-	id "org.springframework.boot" version "2.7.1" apply false
+	id "org.springframework.boot" version "2.7.2" apply false
 	id "com.bmuschko.docker-remote-api" version "7.4.0" apply false
 	id "project-report"
     id "org.sonarqube" version "3.4.0.2513"
