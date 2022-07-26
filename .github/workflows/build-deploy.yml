@@ -8,6 +8,8 @@ defaults:
   run:
     working-directory: yona-server
 
+concurrency: ${{ github.workflow }}
+
 jobs:
   determine-build-id:
     name: Determine build ID
