@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2021 Stichting Yona Foundation
+ * Copyright (c) 2019, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -10,6 +10,9 @@ import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
 import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
 import java.time.ZonedDateTime
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
 import nu.yona.server.test.AppActivity
@@ -229,23 +232,21 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		given:
 		def appHeader1 = "ANDROID/1111/1.1.1"
 		def appHeader2 = "ANDROID/2222/2.2.2"
-		Future task1 = getResource("/test/passThroughHeaders", ["Yona-App-Version": appHeader1])
-		Future task2 = getResource("/test/passThroughHeaders", ["Yona-App-Version": appHeader2])
+		ExecutorService executorService = Executors.newFixedThreadPool(5)
+		Future task1 = getResource(executorService, "/test/passThroughHeaders", ["Yona-App-Version": appHeader1])
+		Future task2 = getResource(executorService, "/test/passThroughHeaders", ["Yona-App-Version": appHeader2])
 
 		when:
-		def responseData1 = task1.get()
-		def responseData2 = task2.get()
+		def response1 = task1.get()
+		def response2 = task2.get()
 
 		then:
-		responseData1.passThroughHeaders."Yona-App-Version" == appHeader1
-		responseData2.passThroughHeaders."Yona-App-Version" == appHeader2
+		response1.responseData.passThroughHeaders."Yona-App-Version" == appHeader1
+		response2.responseData.passThroughHeaders."Yona-App-Version" == appHeader2
 	}
 
-	Future getResource(path, headers = [:])
+	Future getResource(ExecutorService executorService, path, headers = [:])
 	{
-		Map<String, ?> args = [path       : YonaServer.stripQueryString(path),
-							   contentType: 'application/json',
-							   headers    : headers]
-		appService.yonaServer.asyncHttpClient.get(args)
+		executorService.submit({ return appService.yonaServer.getResource(path, [:], headers) } as Callable<YonaServer.Response>)
 	}
 }

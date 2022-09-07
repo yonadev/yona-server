@@ -1,11 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2021 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server
 
+import java.nio.charset.StandardCharsets
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
@@ -16,55 +17,34 @@ import java.time.format.SignStyle
 import java.time.temporal.ChronoField
 import java.time.temporal.IsoFields
 import java.time.temporal.WeekFields
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
-import org.codehaus.groovy.runtime.IOGroovyMethods
+import org.apache.http.HttpEntity
 
+import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
-import groovyx.net.http.AsyncHTTPBuilder
-import groovyx.net.http.HTTPBuilder
-import groovyx.net.http.HttpResponseDecorator
-import groovyx.net.http.RESTClient
-import groovyx.net.http.ResponseParseException
-import groovyx.net.http.URIBuilder
 
 class YonaServer
 {
-	static class RESTClientGroovy3 extends RESTClient
+	static class Response
 	{
-		RESTClientGroovy3(baseUrl)
-		{
-			super(baseUrl)
-		}
+		int status
+		def responseData
+		def data
+		def contentType
+		def headers
 
-		@Override
-		HttpResponseDecorator defaultSuccessHandler(HttpResponseDecorator resp, Object parsedData)
-				throws ResponseParseException
+		Response(int status, responseData, message, contentType, headers)
 		{
-			try
-			{
-				//If response is streaming, buffer it in a byte array:
-				if (parsedData instanceof InputStream)
-				{
-					ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-					// we've updated the below line
-					IOGroovyMethods.leftShift(buffer, (InputStream) parsedData);
-					resp.setData(new ByteArrayInputStream(buffer.toByteArray()))
-					return resp;
-				}
-				if (parsedData instanceof Reader)
-				{
-					StringWriter buffer = new StringWriter();
-					// we've updated the below line
-					IOGroovyMethods.leftShift(buffer, (Reader) parsedData);
-					resp.setData(new StringReader(buffer.toString()))
-					return resp;
-				}
-				return super.defaultSuccessHandler(resp, parsedData)
-			}
-			catch (IOException ex)
-			{
-				throw new ResponseParseException(resp, ex);
-			}
+			this.status = status
+			this.responseData = responseData
+			this.data = message
+			this.contentType = contentType
+			this.headers = headers
 		}
 	}
 	static final ZoneId EUROPE_AMSTERDAM_ZONE = ZoneId.of("Europe/Amsterdam")
@@ -74,29 +54,29 @@ class YonaServer
 			.appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
 			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue()).toFormatter(Locale.forLanguageTag("en-US"))
 	JsonSlurper jsonSlurper = new JsonSlurper()
-	RESTClient restClient
-	AsyncHTTPBuilder asyncHttpClient
+	Proxy proxy = Proxy.NO_PROXY // new Proxy(Proxy.Type.HTTP, new InetSocketAddress("localhost", 8888))
+	def baseUrl
 	int maxConcurrentRequests
+	ExecutorService executorService
 
 	YonaServer(baseUrl)
 	{
-		restClient = new RESTClientGroovy3(baseUrl)
-
-		restClient.handler.failure = restClient.handler.success
+		this.baseUrl = baseUrl
 	}
 
 	void enableConcurrentRequests(int maxConcurrentRequests)
 	{
 		this.maxConcurrentRequests = maxConcurrentRequests
-		asyncHttpClient = new AsyncHTTPBuilder(poolSize: maxConcurrentRequests, uri: restClient.uri)
+		executorService = Executors.newFixedThreadPool(5)
 	}
 
 	void shutdown()
 	{
+		/* TODO
 		if (asyncHttpClient)
 		{
 			asyncHttpClient.shutdown()
-		}
+		}*/
 	}
 
 	static ZonedDateTime getNow()
@@ -152,7 +132,12 @@ class YonaServer
 
 	def deleteResource(path, parameters = [:], headers = [:])
 	{
-		restClient.delete(path: stripQueryString(path), query: parameters + getQueryParams(path), headers: headers)
+		def urlConnection = buildUrl(path, parameters).openConnection(proxy)
+		urlConnection.setInstanceFollowRedirects(false)
+		urlConnection.setRequestMethod("DELETE")
+		headers.each({ urlConnection.setRequestProperty(it.key, it.value) })
+		logRequest(urlConnection)
+		return buildResponseObject(urlConnection)
 	}
 
 	def getResourceWithPassword(path, password, parameters = [:], headers = [:])
@@ -162,66 +147,156 @@ class YonaServer
 
 	def getResource(path, parameters = [:], headers = [:])
 	{
-		restClient.get(path: stripQueryString(path),
-				contentType: 'application/json',
-				query: parameters + getQueryParams(path),
-				headers: headers)
+		return getResource(path, parameters, headers + ["Accept": "application/json"], true)
+	}
+
+	def getNonJsonResource(path, parameters = [:], headers = [:])
+	{
+		return getResource(path, parameters, headers, false)
+	}
+
+	def getResource(path, parameters, headers, isJson)
+	{
+		def urlConnection = buildUrl(path, parameters).openConnection(proxy)
+		urlConnection.setInstanceFollowRedirects(false)
+		urlConnection.setRequestMethod("GET")
+		headers.findAll { it.value != null }.each({ urlConnection.setRequestProperty(it.key, it.value) })
+		logRequest(urlConnection)
+		return buildResponseObject(urlConnection, isJson)
+	}
+
+	private URL buildUrl(String path, Map<Object, Object> parameters)
+	{
+		def queryParamsMap = getQueryParamsMap(path) + parameters
+		def queryString = ""
+		if (queryParamsMap.size() > 0)
+		{
+			queryString = "?" + queryParamsMapToString(queryParamsMap)
+		}
+		def prefix = (path.startsWith("http") ? "" : baseUrl)
+
+		def url = new URL(prefix + stripQueryString(path) + queryString)
+		url
 	}
 
 	def postJson(String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
-		postThroughHttpBuilder(restClient, path, body, parameters, headers)
+		postOrPutToUrl("POST", path, "application/json", "application/json", body, parameters, headers)
 	}
 
-	private def postThroughHttpBuilder(HTTPBuilder httpBuilder, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	def postData(String path, String contentTypeHeader, String acceptHeader, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
-		def parsedBody
+		postOrPutToUrl("POST", path, contentTypeHeader, acceptHeader, body, parameters, headers)
+	}
+
+	def putData(String path, String contentTypeHeader, String acceptHeader, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	{
+		postOrPutToUrl("PUT", path, contentTypeHeader, acceptHeader, body, parameters, headers)
+	}
+
+	private def postOrPutToUrl(String requestMethod, String path, String contentTypeHeader, String acceptHeader, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	{
+		def bodyText
 		if (body instanceof Map)
 		{
-			parsedBody = body
+			bodyText = new JsonBuilder(body).toString()
+		}
+		else if (body instanceof JsonBuilder)
+		{
+			bodyText = body.toString()
 		}
 		else
 		{
-			parsedBody = jsonSlurper.parseText(body)
+			bodyText = body
 		}
 
-		httpBuilder.post(path: stripQueryString(path),
-				body: parsedBody,
-				contentType: 'application/json',
-				query: parameters + getQueryParams(path),
-				headers: headers)
+
+		def url = buildUrl(path, parameters)
+		def urlConnection = url.openConnection(proxy)
+		urlConnection.setInstanceFollowRedirects(false)
+		urlConnection.setRequestMethod(requestMethod)
+		urlConnection.setDoOutput(true)
+		urlConnection.setRequestProperty("Content-Type", contentTypeHeader)
+		if (acceptHeader)
+		{
+			urlConnection.setRequestProperty("Accept", acceptHeader)
+		}
+		headers.each({ urlConnection.setRequestProperty(it.key, it.value) })
+		logRequest(urlConnection, body)
+		if (body instanceof HttpEntity)
+		{
+			body.writeTo(urlConnection.getOutputStream())
+		}
+		else
+		{
+			urlConnection.getOutputStream().write(bodyText.getBytes("UTF-8"))
+		}
+		return buildResponseObject(urlConnection, acceptHeader == "application/json")
 	}
 
-	def putJson(path, jsonString, parameters = [:], headers = [:])
+	private Response buildResponseObject(URLConnection urlConnection, isJson = true)
 	{
-		def object
-		if (jsonString instanceof Map)
-		{
-			object = jsonString
-		}
-		else
-		{
-			object = jsonSlurper.parseText(jsonString)
-		}
-
-		restClient.put(path: stripQueryString(path),
-				body: object,
-				contentType: 'application/json',
-				headers: headers,
-				query: parameters + getQueryParams(path))
+		int responseCode = urlConnection.getResponseCode()
+		def data = isSuccessCode(responseCode) ? urlConnection.getInputStream()?.getText() : urlConnection.getErrorStream()?.getText()
+		def parsedData = data ? (isSuccessCode(responseCode) && isJson ? jsonSlurper.parseText(data) : tryParseErrorText(data)) : null
+		logResponse(responseCode, data, parsedData)
+		return new Response(responseCode, parsedData, data, urlConnection.getContentType(), urlConnection.getHeaderFields())
 	}
 
-	static def getQueryParams(String url)
+	private static void logRequest(URLConnection urlConnection, Object body = null)
 	{
-		def uriBuilder = new URIBuilder(url)
-		if (uriBuilder.query)
+		def url = urlConnection.getURL()
+		def requestMethod = urlConnection.getRequestMethod()
+		def headers = urlConnection.getRequestProperties()
+		System.err.println "Open $url for $requestMethod with headers $headers"
+	}
+
+	private static void logResponse(int responseCode, String rawData, Object parsedData)
+	{
+		System.err.println "Response status: $responseCode"
+	}
+
+	def tryParseErrorText(def data)
+	{
+		try
 		{
-			return uriBuilder.query
+			return jsonSlurper.parseText(data)
 		}
-		else
+		catch (Throwable ignored)
+		{
+			return null
+		}
+	}
+
+	private static boolean isSuccessCode(int responseCode)
+	{
+		responseCode >= 200 && responseCode <= 299
+	}
+
+	def putJson(path, body, parameters = [:], headers = [:])
+	{
+		postOrPutToUrl("PUT", path, "application/json", "application/json", body, parameters, headers)
+	}
+
+	static def getQueryParamsMap(String url)
+	{
+		URI uri = new URI(url)
+
+		def queryString = uri.getRawQuery()
+		if (queryString == null)
 		{
 			return [:]
 		}
+		return Stream.of(queryString.split("&"))
+				.map(e -> e.split("="))
+				.collect(Collectors.toMap(v -> v[0], v -> URLDecoder.decode(v[1], StandardCharsets.UTF_8)))
+	}
+
+	static def queryParamsMapToString(def queryParamsMap)
+	{
+		return queryParamsMap.entrySet().stream()
+				.map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue().toString(), StandardCharsets.UTF_8))
+				.collect(Collectors.joining("&"))
 	}
 
 	static void storeStatistics(Map<String, Integer> statistics, String heading)
@@ -263,15 +338,19 @@ class YonaServer
 
 	static def removeRequestParam(String url, param)
 	{
-		URIBuilder uriBuilder = new URIBuilder(url)
-		return uriBuilder.removeQueryParam(param).toString()
+		URI givenUri = new URI(url)
+		def queryString = Stream.of(givenUri.getQuery().split("&"))
+				.map(p -> p.split("="))
+				.filter(p -> p[0] != param)
+				.map(p -> String.join("=", p))
+				.collect(Collectors.joining("&"))
+		return new URI(givenUri.getScheme(), givenUri.getAuthority(), givenUri.getPath(), queryString, givenUri.getFragment()).toString()
 	}
 
 	static def appendToPath(String url, addition)
 	{
-		URIBuilder uriBuilder = new URIBuilder(url)
-		uriBuilder.path += addition
-		return uriBuilder.toString()
+		URI givenUri = new URI(url)
+		return new URI(givenUri.getScheme(), givenUri.getAuthority(), givenUri.getPath() + addition, givenUri.getQuery(), givenUri.getFragment()).toString()
 	}
 
 	static String makeStringList(List<String> strings)
@@ -336,14 +415,14 @@ class YonaServer
 				assert fields[0].startsWith("W")
 				weekOffset = Integer.parseInt(fields[0].substring(1))
 				parsedFields++
-		// Fall through
+				// Fall through
 			case 2:
 				int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee")
 						.withLocale(Locale.forLanguageTag("en-US"))
 						.parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK))
 				dayOffset = weekDay - getDayOfWeek(now)
 				parsedFields++
-		// Fall through
+				// Fall through
 			case 1:
 				ZonedDateTime dateTime = parseTimeForDay(fields[parsedFields], now.plusDays(dayOffset).plusWeeks(weekOffset).getLong(ChronoField.EPOCH_DAY))
 				assert dateTime <= now // Must be in the past
@@ -396,15 +475,12 @@ class YonaServer
 		(javaDayOfWeek == 7) ? 0 : javaDayOfWeek
 	}
 
-	public def postJsonConcurrently(int numberOfTimes, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	def postJsonConcurrently(int numberOfTimes, String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
 		assert numberOfTimes <= maxConcurrentRequests, "numberOfTimes ($numberOfTimes) must be <= maxConcurrentRequests ($maxConcurrentRequests)"
-		asyncHttpClient.handler.success = { resp -> resp.status }
-		asyncHttpClient.handler.failure = asyncHttpClient.handler.success
 		def futures = (1..numberOfTimes).collect {
-			postThroughHttpBuilder(asyncHttpClient, path, body, parameters, headers)
+			executorService.submit({ return postJson(path, body, parameters, headers) } as Callable<Response>)
 		}
 		futures.collect { it.get() }
 	}
-
 }

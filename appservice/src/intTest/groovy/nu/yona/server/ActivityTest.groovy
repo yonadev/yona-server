@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2021 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -34,7 +34,6 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		Object o = YonaServer.getQueryParams("")
 		setCreationTime(richard, "W-2 Mon 02:18")
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
@@ -52,7 +51,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(responseDayOverviewWithBuddies, 404)
-		responseDayOverviewWithBuddies.data.code == "error.buddy.list.empty"
+		responseDayOverviewWithBuddies.responseData.code == "error.buddy.list.empty"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -308,30 +307,30 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def weekOverviewLink = weekOverviewLastWeek._links.self.href
 		def weekOverviewResponse = appService.getResourceWithPassword(weekOverviewLink, richard.password)
 		assertResponseStatusOk(weekOverviewResponse)
-		assert weekOverviewResponse.data.date == weekOverviewLastWeek.date
+		assert weekOverviewResponse.responseData.date == weekOverviewLastWeek.date
 
 		def dayOverviewOffset = YonaServer.relativeDateStringToDaysOffset(1, "Thu")
 		def dayOverviewLink = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOverviewOffset]._links.self.href
 		def dayOverviewResponse = appService.getResourceWithPassword(dayOverviewLink, richard.password)
 		assertResponseStatusOk(dayOverviewResponse)
-		assert dayOverviewResponse.data.date == responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOverviewOffset].date
+		assert dayOverviewResponse.responseData.date == responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOverviewOffset].date
 
 		def dayOverviewWithBuddiesOffset = YonaServer.relativeDateStringToDaysOffset(1, "Fri")
 		def dayOverviewWithBuddiesLink = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset]._links.self.href
 		def dayOverviewWithBuddiesResponse = appService.getResourceWithPassword(dayOverviewWithBuddiesLink, richard.password)
 		assertResponseStatusOk(dayOverviewWithBuddiesResponse)
-		assert dayOverviewWithBuddiesResponse.data.date == responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset].date
+		assert dayOverviewWithBuddiesResponse.responseData.date == responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset].date
 
 		def buddyWeekOverviewLink = buddyWeekOverviewLastWeek._links.self.href
 		def responseBuddyWeekOverview = appService.getResourceWithPassword(buddyWeekOverviewLink, richard.password)
 		assertResponseStatusOk(responseBuddyWeekOverview)
-		assert responseBuddyWeekOverview.data.date == buddyWeekOverviewLastWeek.date
+		assert responseBuddyWeekOverview.responseData.date == buddyWeekOverviewLastWeek.date
 
 		def buddyDayOverviewOffset = YonaServer.relativeDateStringToDaysOffset(1, "Sat")
 		def buddyDayOverviewLink = responseBuddyDayOverviews.responseData._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset]._links.self.href
 		def responseBuddyDayOverview = appService.getResourceWithPassword(buddyDayOverviewLink, richard.password)
 		assertResponseStatusOk(responseBuddyDayOverview)
-		assert responseBuddyDayOverview.data.date == responseBuddyDayOverviews.responseData._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset].date
+		assert responseBuddyDayOverview.responseData.date == responseBuddyDayOverviews.responseData._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset].date
 
 		cleanup:
 		appService.deleteUser(richard)

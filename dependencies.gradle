@@ -18,6 +18,7 @@ final Map<String, String> libraries = [
 	hamcrestJdk8Time		: "com.spencerwi:hamcrest-jdk8-time:0.7.1",
 	equalsverifier			: "nl.jqno.equalsverifier:equalsverifier:3.10.1",
 	spockCore				: "org.spockframework:spock-core:2.2-groovy-4.0",
+	apacheHttpMime			: "org.apache.httpcomponents:httpmime:4.5.13",
 	bcprov					: "org.bouncycastle:bcprov-jdk15on:1.70",
 	// When updating the below version number, also update
 	// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml

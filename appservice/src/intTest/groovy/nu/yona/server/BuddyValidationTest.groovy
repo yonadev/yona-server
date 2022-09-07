@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -8,7 +8,6 @@ package nu.yona.server
 
 import static nu.yona.server.test.CommonAssertions.assertResponseStatus
 
-import groovy.json.JsonSlurper
 import nu.yona.server.test.User
 
 /**
@@ -17,14 +16,17 @@ import nu.yona.server.test.User
 class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 {
 
-	def jsonSlurper = new JsonSlurper()
-	def userCreationJson = """{
-				"firstName":"John",
-				"lastName":"Doe",
-				"mobileNumber":"${makeMobileNumber(timestamp)}",
-				"emailAddress":"john@doe.com"
-				}"""
-	def password = "John Doe"
+	def userCreationJson = makeUserCreationJson()
+
+	def makeUserCreationJson()
+	{
+		def json = [:]
+		json.firstName = "John"
+		json.lastName = "Doe"
+		json.mobileNumber = "${makeMobileNumber(timestamp)}"
+		json.emailAddress = "john@doe.com"
+		return json
+	}
 
 	def 'AddBuddy - empty first name'()
 	{
@@ -32,9 +34,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def object = jsonSlurper.parseText(userCreationJson)
-		object.remove('firstName')
-		def response = appService.sendBuddyConnectRequest(richard, object, false)
+		userCreationJson.remove('firstName')
+		def response = appService.sendBuddyConnectRequest(richard, userCreationJson, false)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -50,9 +51,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def object = jsonSlurper.parseText(userCreationJson)
-		object.remove('lastName')
-		def response = appService.sendBuddyConnectRequest(richard, object, false)
+		userCreationJson.remove('lastName')
+		def response = appService.sendBuddyConnectRequest(richard, userCreationJson, false)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -68,9 +68,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def object = jsonSlurper.parseText(userCreationJson)
-		object.remove('mobileNumber')
-		def response = appService.sendBuddyConnectRequest(richard, object, false)
+		userCreationJson.remove('mobileNumber')
+		def response = appService.sendBuddyConnectRequest(richard, userCreationJson, false)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -86,9 +85,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def object = jsonSlurper.parseText(userCreationJson)
-		object.put('mobileNumber', '++55 5 ')
-		def response = appService.sendBuddyConnectRequest(richard, object, false)
+		userCreationJson.put('mobileNumber', '++55 5 ')
+		def response = appService.sendBuddyConnectRequest(richard, userCreationJson, false)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -104,9 +102,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def object = jsonSlurper.parseText(userCreationJson)
-		object.remove('emailAddress')
-		def response = appService.sendBuddyConnectRequest(richard, object, false)
+		userCreationJson.remove('emailAddress')
+		def response = appService.sendBuddyConnectRequest(richard, userCreationJson, false)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -122,13 +119,12 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def object = jsonSlurper.parseText(userCreationJson)
-		object.put('emailAddress', 'a@b')
-		def response1 = appService.sendBuddyConnectRequest(richard, object, false)
-		object.put('emailAddress', '@b.c')
-		def response2 = appService.sendBuddyConnectRequest(richard, object, false)
-		object.put('emailAddress', 'a@b@c.c')
-		def response3 = appService.sendBuddyConnectRequest(richard, object, false)
+		userCreationJson.put('emailAddress', 'a@b')
+		def response1 = appService.sendBuddyConnectRequest(richard, userCreationJson, false)
+		userCreationJson.put('emailAddress', '@b.c')
+		def response2 = appService.sendBuddyConnectRequest(richard, userCreationJson, false)
+		userCreationJson.put('emailAddress', 'a@b@c.c')
+		def response3 = appService.sendBuddyConnectRequest(richard, userCreationJson, false)
 
 		then:
 		assertResponseStatus(response1, 400)

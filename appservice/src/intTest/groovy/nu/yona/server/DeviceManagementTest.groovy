@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -191,7 +191,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.request.missing.property"
-		response.data.message ==~ /^Mandatory property 'name'.*/
+		response.responseData.message ==~ /^Mandatory property 'name'.*/
 
 		when:
 		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", null, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
@@ -199,7 +199,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.request.missing.property"
-		response.data.message ==~ /^Mandatory property 'operatingSystem'.*/
+		response.responseData.message ==~ /^Mandatory property 'operatingSystem'.*/
 
 		when:
 		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", "IOS", null, Device.SUPPORTED_APP_VERSION_CODE)
@@ -207,7 +207,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.request.missing.property"
-		response.data.message ==~ /^Mandatory property 'appVersion'.*/
+		response.responseData.message ==~ /^Mandatory property 'appVersion'.*/
 
 		when:
 		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", "IOS", Device.SOME_APP_VERSION, null)
@@ -215,7 +215,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.request.missing.property"
-		response.data.message ==~ /^Mandatory property 'appVersionCode'.*/
+		response.responseData.message ==~ /^Mandatory property 'appVersionCode'.*/
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -474,7 +474,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.request.missing.property"
-		response.data.message ==~ /^Mandatory property 'name'.*/
+		response.responseData.message ==~ /^Mandatory property 'name'.*/
 
 		cleanup:
 		appService.deleteUser(richard)

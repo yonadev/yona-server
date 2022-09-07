@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 Stichting Yona Foundation
+ * Copyright (c) 2017, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -10,7 +10,7 @@ import static nu.yona.server.test.CommonAssertions.assertResponseStatus
 import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
 import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 
 import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy

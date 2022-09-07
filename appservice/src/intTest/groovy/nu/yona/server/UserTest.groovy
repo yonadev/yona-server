@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2021 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -323,7 +323,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.request.missing.request.parameter"
-		response.data.message ==~ /^Request parameter 'requestingDeviceId' is mandatory in this context.*/
+		response.responseData.message ==~ /^Request parameter 'requestingDeviceId' is mandatory in this context.*/
 
 		cleanup:
 		appService.deleteUser(john)
@@ -348,7 +348,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 400)
 		response.responseData.code == "error.request.extra.property"
-		response.data.message ==~ /^Property 'deviceName' is not supported in this context.*/
+		response.responseData.message ==~ /^Property 'deviceName' is not supported in this context.*/
 
 		cleanup:
 		appService.deleteUser(john)
@@ -410,7 +410,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Retrieve Apple App site association'()
 	{
 		when:
-		def responseAppleAppSiteAssociation = appService.yonaServer.restClient.get(path: "/.well-known/apple-app-site-association")
+		def responseAppleAppSiteAssociation = appService.yonaServer.getResource("$appService.yonaServer.baseUrl/.well-known/apple-app-site-association")
 
 		then:
 		assertResponseStatusOk(responseAppleAppSiteAssociation)
@@ -474,7 +474,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def jsonStr = User.makeUserJsonStringWithDeviceInfo(firstName, lastName, nickname, makeMobileNumber(ts), deviceName, operatingSystem, appVersion, appVersionCode)
+		def jsonStr = User.makeUserJsonWithDeviceInfo(firstName, lastName, nickname, makeMobileNumber(ts), deviceName, operatingSystem, appVersion, appVersionCode)
 		def response = appService.addUser(jsonStr)
 
 		then:

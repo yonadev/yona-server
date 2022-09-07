@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
+ * Copyright (c) 2017, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -17,10 +17,6 @@ class AdminService extends Service
 
 	def postSystemMessage(String messageText)
 	{
-		yonaServer.restClient.post(path: SYSTEM_MESSAGES_PATH,
-				body: "message=" + URLEncoder.encode(messageText, "UTF-8"),
-				contentType: 'application/x-www-form-urlencoded',
-				headers: [:],
-				query: [:])
-	}
+		yonaServer.postData(SYSTEM_MESSAGES_PATH, "application/x-www-form-urlencoded", null, "message=" + URLEncoder.encode(messageText, "UTF-8"))
+
 }
