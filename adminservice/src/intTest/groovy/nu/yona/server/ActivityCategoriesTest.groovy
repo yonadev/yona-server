@@ -124,7 +124,7 @@ class ActivityCategoriesTest extends Specification
 		response.responseData.localizableDescription["en-US"] == englishDescription
 		response.responseData.localizableDescription["nl-NL"] == dutchDescription
 
-		def getResponse = adminService.yonaServer.getResource(response.responseData._links.self.href)
+		def getResponse = adminService.yonaServer.getJson(response.responseData._links.self.href)
 		assertResponseStatusOk(getResponse)
 		getResponse.responseData._links.self.href.startsWith(adminService.url)
 		getResponse.responseData.localizableName["en-US"] == englishName
@@ -179,7 +179,7 @@ class ActivityCategoriesTest extends Specification
 		response.responseData.localizableDescription["en-US"] == englishDescription
 		response.responseData.localizableDescription["nl-NL"] == dutchDescription
 
-		def getResponse = adminService.yonaServer.getResource(createResponse.responseData._links.self.href)
+		def getResponse = adminService.yonaServer.getJson(createResponse.responseData._links.self.href)
 		assertResponseStatusOk(getResponse)
 		getResponse.responseData._links.self.href == createResponse.responseData._links.self.href
 		getResponse.responseData.localizableName["en-US"] == englishName

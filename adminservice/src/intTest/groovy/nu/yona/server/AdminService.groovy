@@ -20,6 +20,6 @@ class AdminService extends Service
 
 	def getAllActivityCategories()
 	{
-		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH)
+		yonaServer.getJson(ACTIVITY_CATEGORIES_PATH)
 	}
 }

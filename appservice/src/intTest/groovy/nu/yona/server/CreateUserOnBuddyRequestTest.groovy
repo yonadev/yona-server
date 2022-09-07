@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -123,7 +123,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.devices == null // Mobile number not confirmed yet
 		bobFromGetAfterUpdate.url
 
-		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(YonaServer.stripQueryString(bobFromGetAfterUpdate.url) + "/messages/", bobFromGetAfterUpdate.password)
+		def getMessagesResponse = appService.yonaServer.getJsonWithPassword(YonaServer.stripQueryString(bobFromGetAfterUpdate.url) + "/messages/", bobFromGetAfterUpdate.password)
 		assertResponseStatus(getMessagesResponse, 400)
 		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 
@@ -600,7 +600,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		if (expectedStatus == 400)
 		{
 			response.responseData.code == "error.request.missing.property"
-			response.data.message ==~ /^Mandatory property '$propertyToRemove'.*/
+			response.responseData.message ==~ /^Mandatory property '$propertyToRemove'.*/
 		}
 
 		cleanup:

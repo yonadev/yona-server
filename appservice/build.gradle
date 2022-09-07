@@ -26,12 +26,12 @@ dependencies {
 	providedRuntimeClasspath "org.springframework.boot:spring-boot-starter-tomcat"
 
 	testImplementation project(path: ":core", configuration: "testUtils")
-	testImplementation "org.apache.httpcomponents:httpmime:4.5.13"
+	testImplementation project.deps.apacheHttpMime
 	testImplementation "org.mockito:mockito-core"
 
-	intTestImplementation "org.codehaus.groovy:groovy-all:3.0.12"
-	intTestImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
+	intTestImplementation "org.apache.groovy:groovy-all:4.0.4"
 	intTestImplementation project.deps.spockCore
+	intTestImplementation "org.apache.commons:commons-lang3:3.12.0"
 }
 
 test {

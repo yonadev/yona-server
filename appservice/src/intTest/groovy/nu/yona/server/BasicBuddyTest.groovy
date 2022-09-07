@@ -254,7 +254,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		Buddy[] buddiesBob = appService.getBuddies(bob)
 
 		then:
-		def getBuddyUserGoalsResponse = appService.yonaServer.getResource(richard.buddies[0].user.goalsUrl, [:], ["Yona-Password": richard.password])
+		def getBuddyUserGoalsResponse = appService.yonaServer.getJson(richard.buddies[0].user.goalsUrl, [:], ["Yona-Password": richard.password])
 		assertResponseStatusOk(getBuddyUserGoalsResponse)
 		getBuddyUserGoalsResponse.responseData._embedded."yona:goals".size() == 2
 
@@ -272,11 +272,11 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assert bobGoalUrls.sort() == richardBuddyUserGoalUrls.sort()
 
 		buddiesRichard[0].user.goals.each {
-			assertResponseStatusOk(appService.yonaServer.getResource(it.url, [:], ["Yona-Password": richard.password]))
+			assertResponseStatusOk(appService.yonaServer.getJson(it.url, [:], ["Yona-Password": richard.password]))
 		}
 
 		buddiesBob[0].user.goals.each {
-			assertResponseStatusOk(appService.yonaServer.getResource(it.url, [:], ["Yona-Password": bob.password]))
+			assertResponseStatusOk(appService.yonaServer.getJson(it.url, [:], ["Yona-Password": bob.password]))
 		}
 
 		cleanup:

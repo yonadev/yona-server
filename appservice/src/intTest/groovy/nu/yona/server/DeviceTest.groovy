@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation
+ * Copyright (c) 2017, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -100,7 +100,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		assert richard.requestingDevice.sslRootCertCn
-		def responseSslRootCertUrl = appService.yonaServer.restClient.get(path: richard.requestingDevice.sslRootCertUrl, headers: ["Yona-Password": richard.password])
+		def responseSslRootCertUrl = appService.yonaServer.getData(richard.requestingDevice.sslRootCertUrl, [:], ["Yona-Password": richard.password])
 
 		then:
 		assertResponseStatusOk(responseSslRootCertUrl)
@@ -149,20 +149,20 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		}
 		assertEquals(johnAfterNumberConfirmation.requestingDevice.appLastOpenedDate, YonaServer.now.toLocalDate())
 
-		def responseSslRootCert = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl)
+		def responseSslRootCert = appService.yonaServer.getData(johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl)
 		assertResponseStatusOk(responseSslRootCert)
 		assert responseSslRootCert.contentType == "application/pkix-cert"
 
 		assert johnAfterNumberConfirmation.requestingDevice.vpnProfile.ovpnProfileUrl
-		def responseOvpnProfile = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.vpnProfile.ovpnProfileUrl)
+		def responseOvpnProfile = appService.yonaServer.getData(johnAfterNumberConfirmation.requestingDevice.vpnProfile.ovpnProfileUrl)
 		assertResponseStatusOk(responseOvpnProfile)
 		responseOvpnProfile.contentType == "application/x-openvpn-profile"
 
 		assert johnAfterNumberConfirmation.requestingDevice.appleMobileConfig
-		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, headers: ["Yona-Password": johnAfterNumberConfirmation.password])
+		def responseAppleMobileConfig = appService.yonaServer.getData(johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, [:], ["Yona-Password": johnAfterNumberConfirmation.password])
 		assertResponseStatusOk(responseAppleMobileConfig)
 		assert responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
-		def appleMobileConfig = responseAppleMobileConfig.responseData.text
+		def appleMobileConfig = responseAppleMobileConfig.data
 		assert appleMobileConfig.contains("<string>${johnAfterNumberConfirmation.requestingDevice.vpnProfile.vpnLoginId}\\n${johnAfterNumberConfirmation.requestingDevice.vpnProfile.vpnPassword}</string>")
 	}
 

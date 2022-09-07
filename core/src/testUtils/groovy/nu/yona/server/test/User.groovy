@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -10,7 +10,6 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 
 import groovy.transform.ToString
-import net.sf.json.groovy.JsonSlurper
 import nu.yona.server.YonaServer
 
 @ToString(includeNames = true)
@@ -96,43 +95,45 @@ class User
 
 	def convertToJson()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion)
-
-		return new JsonSlurper().parseText(jsonStr)
+		return makeUserJsonInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null, boolean forceDeviceInfo = false)
+	private static def makeUserJsonInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null, boolean forceDeviceInfo = false)
 	{
 		if (deviceName && !firebaseInstanceId)
 		{
 			firebaseInstanceId = UUID.randomUUID().toString()
 		}
-		def firebaseInstanceIdString = (firebaseInstanceId) ? """"deviceFirebaseInstanceId":"$firebaseInstanceId",""" : ""
-		def devicePropertiesString = (deviceName || forceDeviceInfo) ? """"deviceName":"$deviceName", "deviceOperatingSystem":"$deviceOperatingSystem", "deviceAppVersion":"$deviceAppVersion", "deviceAppVersionCode":"$deviceAppVersionCode",$firebaseInstanceIdString""" : ""
-		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""
-		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
-		def json = """{
-				"_links":{
-					$selfLinkString
-				},
-				$devicePropertiesString
-				"firstName":"${firstName}",
-				"lastName":"${lastName}",
-				$passwordString
-				"nickname":"${nickname}",
-				"mobileNumber":"${mobileNumber}"
-		}"""
+		def json = [:]
+		json.firstName = firstName
+		json.lastName = lastName
+		json.nickname = nickname
+		json.mobileNumber = mobileNumber
+		json.yonaPassword = password
+		if (deviceName || forceDeviceInfo)
+		{
+			json.deviceName = deviceName
+			json.deviceOperatingSystem = deviceOperatingSystem
+			json.deviceAppVersion = deviceAppVersion
+			json.deviceAppVersionCode = deviceAppVersionCode
+			json.deviceFirebaseInstanceId = firebaseInstanceId
+		}
+		json._links = [:]
+		if (url)
+		{
+			json._links.self = [:]
+			json._links.self.href = url
+		}
 		return json
 	}
 
-	static String makeLegacyUserJsonString(firstName, lastName, nickname, mobileNumber) // YD-544
+	static def makeLegacyUserJson(firstName, lastName, nickname, mobileNumber) // YD-544
 	{
-		def json = """{
-				"firstName":"${firstName}",
-				"lastName":"${lastName}",
-				"nickname":"${nickname}",
-				"mobileNumber":"${mobileNumber}"
-		}"""
+		def json = [:]
+		json.firstName = firstName
+		json.lastName = lastName
+		json.nickname = nickname
+		json.mobileNumber = mobileNumber
 		return json
 	}
 
@@ -143,7 +144,7 @@ class User
 
 	def getRequestingDeviceId()
 	{
-		YonaServer.getQueryParams(url)["requestingDeviceId"]
+		YonaServer.getQueryParamsMap(url)["requestingDeviceId"]
 	}
 
 	Device getRequestingDevice()
@@ -166,13 +167,13 @@ class User
 		goals.find { it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
-	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
+	static makeUserJson(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId)
+		makeUserJsonInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId)
 	}
 
-	static String makeUserJsonStringWithDeviceInfo(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
+	static makeUserJsonWithDeviceInfo(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = Device.SOME_APP_VERSION, deviceAppVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId, true)
+		makeUserJsonInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId, true)
 	}
 }

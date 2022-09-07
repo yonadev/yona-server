@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+	id 'java-library'
 }
 
 description = 'Core'
@@ -54,14 +54,14 @@ dependencies {
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.mockito:mockito-junit-jupiter"
-	testImplementation 'org.jetbrains:annotations:23.0.0'
+	testImplementation "org.jetbrains:annotations:23.0.0"
 	testImplementation project.deps.jmockit
 	testImplementation project.deps.junitJupiter
 	testImplementation project.deps.hamcrestJdk8Time
 	testImplementation project.deps.equalsverifier
 
-	testUtilsImplementation "org.codehaus.groovy:groovy-all:3.0.12"
-	testUtilsImplementation "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
+	testUtilsImplementation "org.apache.groovy:groovy-all:4.0.4"
+	testUtilsImplementation project.deps.apacheHttpMime
 
 	// mandatory dependencies for using Spock
 	testUtilsImplementation project.deps.spockCore

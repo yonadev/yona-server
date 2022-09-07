@@ -127,12 +127,12 @@ abstract class Service
 
 	def getResourceWithPassword(path, password, parameters = [:], headers = [:])
 	{
-		yonaServer.getResource(path, parameters, YonaServer.addPasswordToHeaders(headers, password))
+		yonaServer.getJson(path, parameters, YonaServer.addPasswordToHeaders(headers, password))
 	}
 
 	def getResource(path, parameters = [:], headers = [:])
 	{
-		yonaServer.getResource(path, parameters, headers)
+		yonaServer.getJson(path, parameters, headers)
 	}
 
 	def updateResource(path, jsonString, parameters = [:], headers = [:])

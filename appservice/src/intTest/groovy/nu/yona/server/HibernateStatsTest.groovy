@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -16,15 +16,12 @@ import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
-import spock.lang.IgnoreIf
+import spock.lang.Requires
 import spock.lang.Shared
 
-@IgnoreIf({
-	!Boolean.valueOf(properties['yona.enableHibernateStatsAllowed'] as String)
-})
+@Requires(reason = 'Hibernate stats test must be explicitly enabled', value = { Boolean.valueOf(System.getProperty("yona.enableHibernateStatsAllowed")) })
 class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 {
-
 	static final String SCENARIO_RELATIVE_START_TIME = "W-2 Sun 01:00"
 	@Shared
 	User richard

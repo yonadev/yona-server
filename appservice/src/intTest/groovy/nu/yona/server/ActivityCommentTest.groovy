@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 Stichting Yona Foundation
+ * Copyright (c) 2017, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -10,7 +10,7 @@ import static nu.yona.server.test.CommonAssertions.assertResponseStatus
 import static nu.yona.server.test.CommonAssertions.assertResponseStatusNoContent
 import static nu.yona.server.test.CommonAssertions.assertResponseStatusOk
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 
 import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
@@ -609,7 +609,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 	{
 		int expectedNumMessages = expectedData.size
 		int expectedNumMessagesInPage = Math.min(expectedNumMessages, pageSize)
-		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password, ["size": pageSize])
+		def response = appService.yonaServer.getJsonWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password, ["size": pageSize])
 
 		assertResponseStatusOk(response)
 		def messages = response.responseData?._embedded?."yona:messages"
@@ -642,7 +642,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 	private static void assertNextPage(AppService appService, responseGetActivityDetails, User user)
 	{
 		int defaultPageSize = 4
-		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links.next.href, user.password)
+		def response = appService.yonaServer.getJsonWithPassword(responseGetActivityDetails.responseData._links.next.href, user.password)
 
 		assertResponseStatusOk(response)
 		assert response.responseData?._embedded?."yona:messages"?.size() == 1
