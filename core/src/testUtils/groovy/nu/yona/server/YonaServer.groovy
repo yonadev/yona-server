@@ -140,22 +140,22 @@ class YonaServer
 		return buildResponseObject(urlConnection)
 	}
 
-	def getResourceWithPassword(path, password, parameters = [:], headers = [:])
+	def getJsonWithPassword(path, password, parameters = [:], headers = [:])
 	{
-		getResource(path, parameters, addPasswordToHeaders(headers, password))
+		getJson(path, parameters, addPasswordToHeaders(headers, password))
 	}
 
-	def getResource(path, parameters = [:], headers = [:])
+	def getJson(path, parameters = [:], headers = [:])
 	{
 		return getResource(path, parameters, headers + ["Accept": "application/json"], true)
 	}
 
-	def getNonJsonResource(path, parameters = [:], headers = [:])
+	def getData(path, parameters = [:], headers = [:])
 	{
 		return getResource(path, parameters, headers, false)
 	}
 
-	def getResource(path, parameters, headers, isJson)
+	private def getResource(path, parameters, headers, isJson)
 	{
 		def urlConnection = buildUrl(path, parameters).openConnection(proxy)
 		urlConnection.setInstanceFollowRedirects(false)
@@ -181,20 +181,20 @@ class YonaServer
 
 	def postJson(String path, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
-		postOrPutToUrl("POST", path, "application/json", "application/json", body, parameters, headers)
+		postOrPutResource("POST", path, "application/json", "application/json", body, parameters, headers)
 	}
 
 	def postData(String path, String contentTypeHeader, String acceptHeader, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
-		postOrPutToUrl("POST", path, contentTypeHeader, acceptHeader, body, parameters, headers)
+		postOrPutResource("POST", path, contentTypeHeader, acceptHeader, body, parameters, headers)
 	}
 
 	def putData(String path, String contentTypeHeader, String acceptHeader, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
-		postOrPutToUrl("PUT", path, contentTypeHeader, acceptHeader, body, parameters, headers)
+		postOrPutResource("PUT", path, contentTypeHeader, acceptHeader, body, parameters, headers)
 	}
 
-	private def postOrPutToUrl(String requestMethod, String path, String contentTypeHeader, String acceptHeader, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
+	private def postOrPutResource(String requestMethod, String path, String contentTypeHeader, String acceptHeader, Object body, Map<String, String> parameters = [:], Map<String, String> headers = [:])
 	{
 		def bodyText
 		if (body instanceof Map)
@@ -275,7 +275,7 @@ class YonaServer
 
 	def putJson(path, body, parameters = [:], headers = [:])
 	{
-		postOrPutToUrl("PUT", path, "application/json", "application/json", body, parameters, headers)
+		postOrPutResource("PUT", path, "application/json", "application/json", body, parameters, headers)
 	}
 
 	static def getQueryParamsMap(String url)

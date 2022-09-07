@@ -247,6 +247,6 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 
 	Future getResource(ExecutorService executorService, path, headers = [:])
 	{
-		executorService.submit({ return appService.yonaServer.getResource(path, [:], headers) } as Callable<YonaServer.Response>)
+		executorService.submit({ return appService.yonaServer.getJson(path, [:], headers) } as Callable<YonaServer.Response>)
 	}
 }

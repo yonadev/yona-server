@@ -41,7 +41,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.mobileNumberConfirmationUrl == baseUserUrl + "/confirmMobileNumber?requestingDeviceId=" + john.getRequestingDeviceId()
 		john.resendMobileNumberConfirmationCodeUrl == baseUserUrl + "/resendMobileNumberConfirmationCode"
 
-		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(baseUserUrl + "/messages/", john.password)
+		def getMessagesResponse = appService.yonaServer.getJsonWithPassword(baseUserUrl + "/messages/", john.password)
 		assertResponseStatus(getMessagesResponse, 400)
 		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 
@@ -268,7 +268,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def baseUserUrl = YonaServer.stripQueryString(johnAfterUpdate.url)
-		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(baseUserUrl + "/messages/", johnAfterUpdate.password)
+		def getMessagesResponse = appService.yonaServer.getJsonWithPassword(baseUserUrl + "/messages/", johnAfterUpdate.password)
 
 		then:
 		assertResponseStatus(getMessagesResponse, 400)
@@ -277,7 +277,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		when:
 		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertUserGetResponseDetails, johnAfterUpdate)
 		baseUserUrl = YonaServer.stripQueryString(johnAfterNumberConfirmation.url)
-		getMessagesResponse = appService.yonaServer.getResourceWithPassword(baseUserUrl + "/messages/", johnAfterNumberConfirmation.password)
+		getMessagesResponse = appService.yonaServer.getJsonWithPassword(baseUserUrl + "/messages/", johnAfterNumberConfirmation.password)
 
 		then:
 		assertResponseStatusOk(getMessagesResponse)
@@ -410,7 +410,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Retrieve Apple App site association'()
 	{
 		when:
-		def responseAppleAppSiteAssociation = appService.yonaServer.getResource("$appService.yonaServer.baseUrl/.well-known/apple-app-site-association")
+		def responseAppleAppSiteAssociation = appService.yonaServer.getJson("$appService.yonaServer.baseUrl/.well-known/apple-app-site-association")
 
 		then:
 		assertResponseStatusOk(responseAppleAppSiteAssociation)

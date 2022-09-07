@@ -70,11 +70,11 @@ class AppService extends Service
 		def response
 		if (includePrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
+			response = yonaServer.getJsonWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
-			response = yonaServer.getResourceWithPassword(userUrl, password)
+			response = yonaServer.getJsonWithPassword(userUrl, password)
 		}
 		asserter(response)
 		assertBuddyUsers(response)
@@ -83,12 +83,12 @@ class AppService extends Service
 
 	def getUser(userUrl, password = null)
 	{
-		yonaServer.getResourceWithPassword(userUrl, password)
+		yonaServer.getJsonWithPassword(userUrl, password)
 	}
 
 	def getUser(Closure asserter, userUrl, password)
 	{
-		def response = yonaServer.getResourceWithPassword(userUrl, password)
+		def response = yonaServer.getJsonWithPassword(userUrl, password)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
@@ -98,7 +98,7 @@ class AppService extends Service
 		def response
 		if (user.hasPrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(user.url, user.password, ["requestingUserId": user.getId()])
+			response = yonaServer.getJsonWithPassword(user.url, user.password, ["requestingUserId": user.getId()])
 			if (asserter)
 			{
 				asserter(response)
@@ -111,7 +111,7 @@ class AppService extends Service
 		}
 		else
 		{
-			response = yonaServer.getResourceWithPassword(user.url, user.password)
+			response = yonaServer.getJsonWithPassword(user.url, user.password)
 			asserter(response)
 		}
 		return (isSuccess(response)) ? new User(response.responseData) : null
@@ -291,12 +291,12 @@ class AppService extends Service
 
 	def getAllActivityCategoriesWithLanguage(language)
 	{
-		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH, [:], ["Accept-Language": language])
+		yonaServer.getJson(ACTIVITY_CATEGORIES_PATH, [:], ["Accept-Language": language])
 	}
 
 	List<Buddy> getBuddies(User user)
 	{
-		def response = yonaServer.getResourceWithPassword(user.buddiesUrl, user.password)
+		def response = yonaServer.getJsonWithPassword(user.buddiesUrl, user.password)
 		assertResponseStatusOk(response)
 		assert response.responseData._links?.self?.href == user.buddiesUrl
 
@@ -309,27 +309,27 @@ class AppService extends Service
 
 	def getMessages(User user, parameters = [:], headers = [:])
 	{
-		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, parameters, headers)
+		yonaServer.getJsonWithPassword(user.messagesUrl, user.password, parameters, headers)
 	}
 
 	def getWeekActivityOverviews(User user, parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(user.weeklyActivityReportsUrl, user.password, parameters)
+		yonaServer.getJsonWithPassword(user.weeklyActivityReportsUrl, user.password, parameters)
 	}
 
 	def getWeekActivityOverviews(User user, Buddy buddy, Map<String, Object> parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(buddy.weeklyActivityReportsUrl, user.password, parameters)
+		yonaServer.getJsonWithPassword(buddy.weeklyActivityReportsUrl, user.password, parameters)
 	}
 
 	def getDayActivityOverviews(User user, parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(user.dailyActivityReportsUrl, user.password, parameters)
+		yonaServer.getJsonWithPassword(user.dailyActivityReportsUrl, user.password, parameters)
 	}
 
 	def getDayActivityOverviews(User user, Buddy buddy, Map<String, Object> parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(buddy.dailyActivityReportsUrl, user.password, parameters)
+		yonaServer.getJsonWithPassword(buddy.dailyActivityReportsUrl, user.password, parameters)
 	}
 
 	def getDayActivityDetails(User user, Goal goal, int weeksBack, String shortDay)
@@ -388,7 +388,7 @@ class AppService extends Service
 
 	def getDayActivityOverviewsWithBuddies(User user, parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(user.dailyActivityReportsWithBuddiesUrl, user.password, parameters)
+		yonaServer.getJsonWithPassword(user.dailyActivityReportsWithBuddiesUrl, user.password, parameters)
 	}
 
 	def setNewDeviceRequest(mobileNumber, password, newDeviceRequestPassword)
@@ -399,7 +399,7 @@ class AppService extends Service
 
 	def getNewDeviceRequest(mobileNumber, newDeviceRequestPassword = null)
 	{
-		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", [:], ["Yona-NewDeviceRequestPassword": newDeviceRequestPassword])
+		yonaServer.getJson("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", [:], ["Yona-NewDeviceRequestPassword": newDeviceRequestPassword])
 	}
 
 	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion = Device.SOME_APP_VERSION, appVersionCode = Device.SUPPORTED_APP_VERSION_CODE, firebaseInstanceId = null)
@@ -472,7 +472,7 @@ class AppService extends Service
 
 	def getGoals(User user)
 	{
-		yonaServer.getResource(user.goalsUrl, [:], ["Yona-Password": user.password])
+		yonaServer.getJson(user.goalsUrl, [:], ["Yona-Password": user.password])
 	}
 
 	def postMessageActionWithPassword(String path, Map<String, String> properties, String password)

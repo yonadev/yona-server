@@ -100,7 +100,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		assert richard.requestingDevice.sslRootCertCn
-		def responseSslRootCertUrl = appService.yonaServer.getNonJsonResource(richard.requestingDevice.sslRootCertUrl, [:], ["Yona-Password": richard.password])
+		def responseSslRootCertUrl = appService.yonaServer.getData(richard.requestingDevice.sslRootCertUrl, [:], ["Yona-Password": richard.password])
 
 		then:
 		assertResponseStatusOk(responseSslRootCertUrl)
@@ -149,17 +149,17 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		}
 		assertEquals(johnAfterNumberConfirmation.requestingDevice.appLastOpenedDate, YonaServer.now.toLocalDate())
 
-		def responseSslRootCert = appService.yonaServer.getNonJsonResource(johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl)
+		def responseSslRootCert = appService.yonaServer.getData(johnAfterNumberConfirmation.requestingDevice.sslRootCertUrl)
 		assertResponseStatusOk(responseSslRootCert)
 		assert responseSslRootCert.contentType == "application/pkix-cert"
 
 		assert johnAfterNumberConfirmation.requestingDevice.vpnProfile.ovpnProfileUrl
-		def responseOvpnProfile = appService.yonaServer.getNonJsonResource(johnAfterNumberConfirmation.requestingDevice.vpnProfile.ovpnProfileUrl)
+		def responseOvpnProfile = appService.yonaServer.getData(johnAfterNumberConfirmation.requestingDevice.vpnProfile.ovpnProfileUrl)
 		assertResponseStatusOk(responseOvpnProfile)
 		responseOvpnProfile.contentType == "application/x-openvpn-profile"
 
 		assert johnAfterNumberConfirmation.requestingDevice.appleMobileConfig
-		def responseAppleMobileConfig = appService.yonaServer.getNonJsonResource(johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, [:], ["Yona-Password": johnAfterNumberConfirmation.password])
+		def responseAppleMobileConfig = appService.yonaServer.getData(johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, [:], ["Yona-Password": johnAfterNumberConfirmation.password])
 		assertResponseStatusOk(responseAppleMobileConfig)
 		assert responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
 		def appleMobileConfig = responseAppleMobileConfig.data

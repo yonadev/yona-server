@@ -22,7 +22,7 @@ class AnalysisService extends Service
 
 	def getRelevantSmoothwallCategories()
 	{
-		yonaServer.getResource(RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT)
+		yonaServer.getJson(RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT)
 	}
 
 	def postToAnalysisEngine(Device device, categories, url, ZonedDateTime eventTime = null)

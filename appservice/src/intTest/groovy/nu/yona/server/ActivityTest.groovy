@@ -47,7 +47,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def url = YonaServer.appendToPath(richard.dailyActivityReportsWithBuddiesUrl, YonaServer.toIsoDateString(YonaServer.now))
-		def responseDayOverviewWithBuddies = appService.yonaServer.getResourceWithPassword(url, richard.password)
+		def responseDayOverviewWithBuddies = appService.yonaServer.getJsonWithPassword(url, richard.password)
 
 		then:
 		assertResponseStatus(responseDayOverviewWithBuddies, 404)
@@ -1902,7 +1902,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day overview user, before account creation
 		def urlDayActivityOverviewTooEarly = YonaServer.appendToPath(richard.dailyActivityReportsUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-2 Mon 20:00")))
-		def responseDayActivityOverviewTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityOverviewTooEarly, richard.password)
+		def responseDayActivityOverviewTooEarly = appService.yonaServer.getJsonWithPassword(urlDayActivityOverviewTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseDayActivityOverviewTooEarly, 400)
@@ -1910,7 +1910,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day detail user, before account creation
 		def urlDayActivityDetailBeforeAccount = YonaServer.appendToPath(urlDayActivityOverviewTooEarly, "/details/" + noGoGoalGamblingRichard.id)
-		def responseDayActivityDetailBeforeAccount = appService.yonaServer.getResourceWithPassword(urlDayActivityDetailBeforeAccount, richard.password)
+		def responseDayActivityDetailBeforeAccount = appService.yonaServer.getJsonWithPassword(urlDayActivityDetailBeforeAccount, richard.password)
 
 		then:
 		assertResponseStatus(responseDayActivityDetailBeforeAccount, 400)
@@ -1918,7 +1918,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day detail user, before goal creation
 		def urlDayActivityDetailBeforeGoal = YonaServer.appendToPath(urlDayActivityOverviewTooEarly, "/details/" + budgetGoalSocialBea.id)
-		def responseDayActivityDetailBeforeGoal = appService.yonaServer.getResourceWithPassword(urlDayActivityDetailBeforeGoal, richard.password)
+		def responseDayActivityDetailBeforeGoal = appService.yonaServer.getJsonWithPassword(urlDayActivityDetailBeforeGoal, richard.password)
 
 		then:
 		assertResponseStatus(responseDayActivityDetailBeforeGoal, 400)
@@ -1926,7 +1926,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day overview buddy, before buddy relationship
 		def urlDayActivityOverviewBuddyBeaTooEarly = YonaServer.appendToPath(buddyBea.dailyActivityReportsUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-2 Tue 20:00")))
-		def responseDayActivityOverviewBuddyBeaTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityOverviewBuddyBeaTooEarly, richard.password)
+		def responseDayActivityOverviewBuddyBeaTooEarly = appService.yonaServer.getJsonWithPassword(urlDayActivityOverviewBuddyBeaTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseDayActivityOverviewBuddyBeaTooEarly, 400)
@@ -1934,7 +1934,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day overview buddy, before buddy creation
 		def urlDayActivityOverviewBuddyBobTooEarly = YonaServer.appendToPath(buddyBob.dailyActivityReportsUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Wed 20:00")))
-		def responseDayActivityOverviewBuddyBobTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityOverviewBuddyBobTooEarly, richard.password)
+		def responseDayActivityOverviewBuddyBobTooEarly = appService.yonaServer.getJsonWithPassword(urlDayActivityOverviewBuddyBobTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseDayActivityOverviewBuddyBobTooEarly, 400)
@@ -1942,7 +1942,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day detail buddy, before buddy relationship
 		def urlDayActivityDetailBuddyBeaTooEarly = YonaServer.appendToPath(urlDayActivityOverviewBuddyBeaTooEarly, "/details/" + noGoGoalGamblingBea.id)
-		def responseDayActivityDetailBuddyBeaTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityDetailBuddyBeaTooEarly, richard.password)
+		def responseDayActivityDetailBuddyBeaTooEarly = appService.yonaServer.getJsonWithPassword(urlDayActivityDetailBuddyBeaTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseDayActivityDetailBuddyBeaTooEarly, 400)
@@ -1950,7 +1950,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day detail buddy, before buddy creation
 		def urlDayActivityDetailBuddyBobTooEarly = YonaServer.appendToPath(urlDayActivityOverviewBuddyBobTooEarly, "/details/" + noGoGoalGamblingBob.id)
-		def responseDayActivityDetailBuddyBobTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityDetailBuddyBobTooEarly, richard.password)
+		def responseDayActivityDetailBuddyBobTooEarly = appService.yonaServer.getJsonWithPassword(urlDayActivityDetailBuddyBobTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseDayActivityDetailBuddyBobTooEarly, 400)
@@ -1958,7 +1958,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Week overview user, before account creation
 		def urlWeekActivityOverviewTooEarly = YonaServer.appendToPath(richard.weeklyActivityReportsUrl, YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-3 Mon 20:00")))
-		def responseWeekActivityOverviewTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityOverviewTooEarly, richard.password)
+		def responseWeekActivityOverviewTooEarly = appService.yonaServer.getJsonWithPassword(urlWeekActivityOverviewTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseWeekActivityOverviewTooEarly, 400)
@@ -1966,7 +1966,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day detail user, before account creation
 		def urlWeekActivityDetailBeforeAccount = YonaServer.appendToPath(urlWeekActivityOverviewTooEarly, "/details/" + noGoGoalGamblingRichard.id)
-		def responseWeekActivityDetailBeforeAccount = appService.yonaServer.getResourceWithPassword(urlWeekActivityDetailBeforeAccount, richard.password)
+		def responseWeekActivityDetailBeforeAccount = appService.yonaServer.getJsonWithPassword(urlWeekActivityDetailBeforeAccount, richard.password)
 
 		then:
 		assertResponseStatus(responseWeekActivityDetailBeforeAccount, 400)
@@ -1975,7 +1975,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		// Week detail user, before goal creation
 		def urlWeekActivityOverviewTooEarlyBea = YonaServer.appendToPath(buddyBea.weeklyActivityReportsUrl, YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-4 Mon 20:00")))
 		def urlWeekActivityDetailBeforeGoal = YonaServer.appendToPath(urlWeekActivityOverviewTooEarlyBea, "/details/" + budgetGoalSocialBea.id)
-		def responseWeekActivityDetailBeforeGoal = appService.yonaServer.getResourceWithPassword(urlWeekActivityDetailBeforeGoal, richard.password)
+		def responseWeekActivityDetailBeforeGoal = appService.yonaServer.getJsonWithPassword(urlWeekActivityDetailBeforeGoal, richard.password)
 
 		then:
 		assertResponseStatus(responseWeekActivityDetailBeforeGoal, 400)
@@ -1983,7 +1983,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Week overview buddy, before buddy relationship
 		def urlWeekActivityOverviewBuddyBeaTooEarly = YonaServer.appendToPath(buddyBea.weeklyActivityReportsUrl, YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-3 Tue 20:00")))
-		def responseWeekActivityOverviewBuddyBeaTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityOverviewBuddyBeaTooEarly, richard.password)
+		def responseWeekActivityOverviewBuddyBeaTooEarly = appService.yonaServer.getJsonWithPassword(urlWeekActivityOverviewBuddyBeaTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseWeekActivityOverviewBuddyBeaTooEarly, 400)
@@ -1991,7 +1991,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Week overview buddy, before buddy creation
 		def urlWeekActivityOverviewBuddyBobTooEarly = YonaServer.appendToPath(buddyBob.weeklyActivityReportsUrl, YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-2 Wed 20:00")))
-		def responseWeekActivityOverviewBuddyBobTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityOverviewBuddyBobTooEarly, richard.password)
+		def responseWeekActivityOverviewBuddyBobTooEarly = appService.yonaServer.getJsonWithPassword(urlWeekActivityOverviewBuddyBobTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseWeekActivityOverviewBuddyBobTooEarly, 400)
@@ -1999,7 +1999,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Week detail buddy, before buddy relationship
 		def urlWeekActivityDetailBuddyBeaTooEarly = YonaServer.appendToPath(urlWeekActivityOverviewBuddyBeaTooEarly, "/details/" + noGoGoalGamblingBea.id)
-		def responseWeekActivityDetailBuddyBeaTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityDetailBuddyBeaTooEarly, richard.password)
+		def responseWeekActivityDetailBuddyBeaTooEarly = appService.yonaServer.getJsonWithPassword(urlWeekActivityDetailBuddyBeaTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseWeekActivityDetailBuddyBeaTooEarly, 400)
@@ -2007,7 +2007,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Week detail buddy, before buddy creation
 		def urlWeekActivityDetailBuddyBobTooEarly = YonaServer.appendToPath(urlWeekActivityOverviewBuddyBobTooEarly, "/details/" + noGoGoalGamblingBob.id)
-		def responseWeekActivityDetailBuddyBobTooEarly = appService.yonaServer.getResourceWithPassword(urlWeekActivityDetailBuddyBobTooEarly, richard.password)
+		def responseWeekActivityDetailBuddyBobTooEarly = appService.yonaServer.getJsonWithPassword(urlWeekActivityDetailBuddyBobTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseWeekActivityDetailBuddyBobTooEarly, 400)
@@ -2015,7 +2015,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		// Day overview user with buddies, before account creation
 		def urlDayActivityOverviewWithBuddiesTooEarly = YonaServer.appendToPath(richard.dailyActivityReportsWithBuddiesUrl, YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-2 Mon 20:00")))
-		def responseDayActivityOverviewWithBuddiesTooEarly = appService.yonaServer.getResourceWithPassword(urlDayActivityOverviewWithBuddiesTooEarly, richard.password)
+		def responseDayActivityOverviewWithBuddiesTooEarly = appService.yonaServer.getJsonWithPassword(urlDayActivityOverviewWithBuddiesTooEarly, richard.password)
 
 		then:
 		assertResponseStatus(responseDayActivityOverviewWithBuddiesTooEarly, 400)

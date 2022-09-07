@@ -123,7 +123,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.devices == null // Mobile number not confirmed yet
 		bobFromGetAfterUpdate.url
 
-		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(YonaServer.stripQueryString(bobFromGetAfterUpdate.url) + "/messages/", bobFromGetAfterUpdate.password)
+		def getMessagesResponse = appService.yonaServer.getJsonWithPassword(YonaServer.stripQueryString(bobFromGetAfterUpdate.url) + "/messages/", bobFromGetAfterUpdate.password)
 		assertResponseStatus(getMessagesResponse, 400)
 		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 

@@ -60,7 +60,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
 
-		def downloadResponse = appService.yonaServer.getNonJsonResource(newUserPhotoUrl)
+		def downloadResponse = appService.yonaServer.getData(newUserPhotoUrl)
 		assertResponseStatusOk(downloadResponse)
 		downloadResponse.contentType == "image/png"
 
@@ -83,7 +83,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
 
-		def downloadResponse = appService.yonaServer.getNonJsonResource(newUserPhotoUrl)
+		def downloadResponse = appService.yonaServer.getData(newUserPhotoUrl)
 		assertResponseStatusOk(downloadResponse)
 		downloadResponse.contentType == "image/png"
 
@@ -115,7 +115,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def userPhotoUrl = uploadUserPhoto(richard)
 
 		when:
-		def response = appService.yonaServer.getNonJsonResource(userPhotoUrl)
+		def response = appService.yonaServer.getData(userPhotoUrl)
 
 		then:
 		assertResponseStatusOk(response)
@@ -140,10 +140,10 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
 
-		def retrievePhotoBeforeResponse = appService.yonaServer.getNonJsonResource(userPhotoUrlBefore)
+		def retrievePhotoBeforeResponse = appService.yonaServer.getData(userPhotoUrlBefore)
 		assertResponseStatusOk(retrievePhotoBeforeResponse)
 
-		def retrieveNewPhotoResponse = appService.yonaServer.getNonJsonResource(newUserPhotoUrl)
+		def retrieveNewPhotoResponse = appService.yonaServer.getData(newUserPhotoUrl)
 		assertResponseStatusOk(retrieveNewPhotoResponse)
 
 		cleanup:
@@ -165,7 +165,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == null
 
-		def retrievePhotoBeforeResponse = appService.yonaServer.getNonJsonResource(userPhotoUrlBefore)
+		def retrievePhotoBeforeResponse = appService.yonaServer.getData(userPhotoUrlBefore)
 		assertResponseStatusOk(retrievePhotoBeforeResponse)
 
 		cleanup:
@@ -236,7 +236,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
-		def response = appService.yonaServer.getNonJsonResource(richardPhotoUrl)
+		def response = appService.yonaServer.getData(richardPhotoUrl)
 		assertResponseStatusOk(response)
 
 		cleanup:
@@ -263,7 +263,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
-		def response = appService.yonaServer.getNonJsonResource(richardPhotoUrl)
+		def response = appService.yonaServer.getData(richardPhotoUrl)
 		assertResponseStatusOk(response)
 
 		cleanup:
@@ -289,7 +289,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
-		def response = appService.yonaServer.getNonJsonResource(richardPhotoUrl)
+		def response = appService.yonaServer.getData(richardPhotoUrl)
 		assertResponseStatusOk(response)
 
 		cleanup:

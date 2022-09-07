@@ -609,7 +609,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 	{
 		int expectedNumMessages = expectedData.size
 		int expectedNumMessagesInPage = Math.min(expectedNumMessages, pageSize)
-		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password, ["size": pageSize])
+		def response = appService.yonaServer.getJsonWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password, ["size": pageSize])
 
 		assertResponseStatusOk(response)
 		def messages = response.responseData?._embedded?."yona:messages"
@@ -642,7 +642,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 	private static void assertNextPage(AppService appService, responseGetActivityDetails, User user)
 	{
 		int defaultPageSize = 4
-		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links.next.href, user.password)
+		def response = appService.yonaServer.getJsonWithPassword(responseGetActivityDetails.responseData._links.next.href, user.password)
 
 		assertResponseStatusOk(response)
 		assert response.responseData?._embedded?."yona:messages"?.size() == 1

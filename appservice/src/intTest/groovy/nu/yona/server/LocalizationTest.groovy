@@ -18,8 +18,8 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		given:
 		def wrongNumber = "NotANumber"
 		when:
-		def successResponse = appService.yonaServer.getResource(GAMBLING_ACT_CAT_URL)
-		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Yona-NewDeviceRequestPassword": ""])
+		def successResponse = appService.yonaServer.getJson(GAMBLING_ACT_CAT_URL)
+		def errorResponse = appService.yonaServer.getJson("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Yona-NewDeviceRequestPassword": ""])
 
 		then:
 		assertResponseStatusOk(successResponse)
@@ -38,8 +38,8 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		given:
 		def wrongNumber = "NotANumber"
 		when:
-		def successResponse = appService.yonaServer.getResource(GAMBLING_ACT_CAT_URL, [:], ["Accept-Language": "nl-NL"])
-		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Accept-Language": "nl-NL", "Yona-NewDeviceRequestPassword": ""])
+		def successResponse = appService.yonaServer.getJson(GAMBLING_ACT_CAT_URL, [:], ["Accept-Language": "nl-NL"])
+		def errorResponse = appService.yonaServer.getJson("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Accept-Language": "nl-NL", "Yona-NewDeviceRequestPassword": ""])
 
 		then:
 		assertResponseStatusOk(successResponse)
@@ -58,8 +58,8 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		given:
 		def wrongNumber = "NotANumber"
 		when:
-		def successResponse = appService.yonaServer.getResource(GAMBLING_ACT_CAT_URL, [:], ["Accept-Language": "la"])
-		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Accept-Language": "la", "Yona-NewDeviceRequestPassword": ""])
+		def successResponse = appService.yonaServer.getJson(GAMBLING_ACT_CAT_URL, [:], ["Accept-Language": "la"])
+		def errorResponse = appService.yonaServer.getJson("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [:], ["Accept-Language": "la", "Yona-NewDeviceRequestPassword": ""])
 
 		then:
 		assertResponseStatusOk(successResponse)
