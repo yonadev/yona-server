@@ -18,5 +18,5 @@ class AdminService extends Service
 	def postSystemMessage(String messageText)
 	{
 		yonaServer.postData(SYSTEM_MESSAGES_PATH, "application/x-www-form-urlencoded", null, "message=" + URLEncoder.encode(messageText, "UTF-8"))
-
+	}
 }
