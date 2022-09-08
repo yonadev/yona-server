@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -181,27 +181,27 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 		def responseMarkRead = appService.postMessageActionWithPassword(message._links."yona:markRead".href as String, [:], user.password)
 		assertResponseStatusOk(responseMarkRead)
-		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?.isRead == true
-		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl
-		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?."yona:markUnread"?.href?.startsWith(messageUrl)
+		assert responseMarkRead.json._embedded?."yona:affectedMessages"[0]?.isRead == true
+		assert responseMarkRead.json._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl
+		assert responseMarkRead.json._embedded?."yona:affectedMessages"[0]?._links?."yona:markUnread"?.href?.startsWith(messageUrl)
 
 		def responseGetAfterMarkRead = appService.getResourceWithPassword(messageUrl, user.password)
 		assertResponseStatusOk(responseGetAfterMarkRead)
-		assert responseGetAfterMarkRead.responseData.isRead == true
-		assert responseGetAfterMarkRead.responseData._links?.self?.href == messageUrl
-		assert responseGetAfterMarkRead.responseData._links?."yona:markUnread"?.href?.startsWith(messageUrl)
+		assert responseGetAfterMarkRead.json.isRead == true
+		assert responseGetAfterMarkRead.json._links?.self?.href == messageUrl
+		assert responseGetAfterMarkRead.json._links?."yona:markUnread"?.href?.startsWith(messageUrl)
 
-		def responseMarkUnread = appService.postMessageActionWithPassword(responseGetAfterMarkRead.responseData._links?."yona:markUnread"?.href as String, [:], user.password)
+		def responseMarkUnread = appService.postMessageActionWithPassword(responseGetAfterMarkRead.json._links?."yona:markUnread"?.href as String, [:], user.password)
 		assertResponseStatusOk(responseMarkUnread)
-		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?.isRead == false
-		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl
-		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?._links?."yona:markRead"?.href?.startsWith(messageUrl)
+		assert responseMarkUnread.json._embedded?."yona:affectedMessages"[0]?.isRead == false
+		assert responseMarkUnread.json._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl
+		assert responseMarkUnread.json._embedded?."yona:affectedMessages"[0]?._links?."yona:markRead"?.href?.startsWith(messageUrl)
 
 		def responseGetAfterMarkUnread = appService.getResourceWithPassword(messageUrl, user.password)
 		assertResponseStatusOk(responseGetAfterMarkUnread)
-		assert responseGetAfterMarkUnread.responseData.isRead == false
-		assert responseGetAfterMarkUnread.responseData._links?.self?.href == messageUrl
-		assert responseGetAfterMarkUnread.responseData._links?."yona:markRead"?.href?.startsWith(messageUrl)
+		assert responseGetAfterMarkUnread.json.isRead == false
+		assert responseGetAfterMarkUnread.json._links?.self?.href == messageUrl
+		assert responseGetAfterMarkUnread.json._links?."yona:markRead"?.href?.startsWith(messageUrl)
 	}
 
 	def updateLastStatusChangeTime(User user, Buddy buddy, relativeLastStatusChangeTimeString)
@@ -212,13 +212,13 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def findActiveGoal(def response, def activityCategoryUrl)
 	{
-		response.responseData._embedded."yona:goals".find { it._links."yona:activityCategory".href == activityCategoryUrl && !it.historyItem }
+		response.json._embedded."yona:goals".find { it._links."yona:activityCategory".href == activityCategoryUrl && !it.historyItem }
 	}
 
 	def findGoalsIncludingHistoryItems(def response, def activityCategoryUrl)
 	{
 		assertResponseStatusOk(response)
-		response.responseData._embedded."yona:goals".findAll { it._links."yona:activityCategory".href == activityCategoryUrl }
+		response.json._embedded."yona:goals".findAll { it._links."yona:activityCategory".href == activityCategoryUrl }
 	}
 
 	void setGoalCreationTime(User user, activityCategoryUrl, relativeCreationDateTimeString)
@@ -337,19 +337,19 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void assertWeekOverviewBasics(response, numberOfReportedGoals, expectedTotalElements, expectedPageSize = 2)
 	{
 		assertResponseStatusOk(response)
-		assert response.responseData.page
-		assert response.responseData.page.size == expectedPageSize
-		assert response.responseData.page.totalElements == expectedTotalElements
-		assert response.responseData._links?.self?.href != null
+		assert response.json.page
+		assert response.json.page.size == expectedPageSize
+		assert response.json.page.totalElements == expectedTotalElements
+		assert response.json._links?.self?.href != null
 
 		if (numberOfReportedGoals != null)
 		{
-			assert response.responseData._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
+			assert response.json._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
 			numberOfReportedGoals.eachWithIndex { numberOfGoals, weekIndex ->
-				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]?.date =~ /\d{4}-W\d{2}/
-				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].timeZoneId == "Europe/Amsterdam"
-				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].weekActivities?.size() == numberOfGoals
-				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]._links?.self?.href
+				assert response.json._embedded."yona:weekActivityOverviews"[weekIndex]?.date =~ /\d{4}-W\d{2}/
+				assert response.json._embedded."yona:weekActivityOverviews"[weekIndex].timeZoneId == "Europe/Amsterdam"
+				assert response.json._embedded."yona:weekActivityOverviews"[weekIndex].weekActivities?.size() == numberOfGoals
+				assert response.json._embedded."yona:weekActivityOverviews"[weekIndex]._links?.self?.href
 			}
 		}
 	}
@@ -404,7 +404,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def responseWeekOverviews = appService.getWeekActivityOverviews(user)
 		assertWeekOverviewBasics(responseWeekOverviews, null, expectedTotalWeeks)
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[weeksBack]
 		user.getGoals().each {
 			def goal = it
 			assertWeekDetailForGoal(user, weekOverviewLastWeek, goal, expectedValuesInWeek)
@@ -433,7 +433,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
 		Map<String, Object> expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
-		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		def dayActivityOverview = response.json._embedded."yona:dayActivityOverviews"[dayOffset]
 		assert dayActivityOverview?.date =~ /\d{4}-\d{2}-\d{2}/
 		assert dayActivityOverview.timeZoneId == "Europe/Amsterdam"
 		assert dayActivityOverview.dayActivities?.size() == expectedValues[shortDay].size()
@@ -464,11 +464,11 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void assertDayOverviewBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
 	{
 		assertResponseStatusOk(response)
-		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
-		assert response.responseData.page
-		assert response.responseData.page.size == expectedPageSize
-		assert response.responseData.page.totalElements == expectedTotalElements
-		assert response.responseData._links?.self?.href
+		assert response.json._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
+		assert response.json.page
+		assert response.json.page.size == expectedPageSize
+		assert response.json.page.totalElements == expectedTotalElements
+		assert response.json._links?.self?.href
 	}
 
 	void assertWeekDetailForGoal(User user, weekActivityOverview, Goal goal, Map<String, Object> expectedValues)
@@ -486,25 +486,25 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)
 		assertResponseStatusOk(response)
-		assert response.responseData.spread?.size() == 96
+		assert response.json.spread?.size() == 96
 		List<Integer> expectedSpread = (0..95).collect { 0 }
 		expectedValues.each { it.value.findAll { it.goal.url == goal.url }.each { it.data.spread.each { expectedSpread[it.key] += it.value } } }
-		assert response.responseData.spread == expectedSpread
-		assert response.responseData.totalActivityDurationMinutes == totalDurationMinutes
-		assert response.responseData.date =~ /\d{4}-W\d{2}/
-		assert response.responseData.timeZoneId == "Europe/Amsterdam"
-		assert response.responseData._links?."yona:goal"
+		assert response.json.spread == expectedSpread
+		assert response.json.totalActivityDurationMinutes == totalDurationMinutes
+		assert response.json.date =~ /\d{4}-W\d{2}/
+		assert response.json.timeZoneId == "Europe/Amsterdam"
+		assert response.json._links?."yona:goal"
 		boolean isForBuddy = weekActivityDetailUrl.startsWith(YonaServer.stripQueryString(user.url) + "/buddies/")
-		assert (response.responseData._links?."yona:buddy" != null) == isForBuddy
+		assert (response.json._links?."yona:buddy" != null) == isForBuddy
 		def activeDays = 0
 		expectedValues.each { activeDays += it.value.findAll { it.goal.activityCategoryUrl == goal.activityCategoryUrl }.size() }
-		assert response.responseData.dayActivities?.size() == activeDays
+		assert response.json.dayActivities?.size() == activeDays
 		expectedValues.each {
 			def day = it.key
 			it.value.findAll { it.goal.activityCategoryUrl == goal.activityCategoryUrl }.each {
 				def expectedDataForGoalOnDay = it.data
-				assert response.responseData.dayActivities[fullDay[day]]
-				def dayActivityForGoal = response.responseData.dayActivities[fullDay[day]]
+				assert response.json.dayActivities[fullDay[day]]
+				def dayActivityForGoal = response.json.dayActivities[fullDay[day]]
 				assert dayActivityForGoal.spread == null // Only in detail
 				def expectedDayDurationMinutes = calculateExpectedDurationFromSpread(expectedDataForGoalOnDay.spread)
 				assert dayActivityForGoal.totalActivityDurationMinutes == expectedDayDurationMinutes
@@ -525,7 +525,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)
 		assertResponseStatusOk(response)
 
-		return response.responseData
+		return response.json
 	}
 
 	def getDayDetail(User user, dayActivityOverviewResponse, Goal goal, weeksBack, shortDay)
@@ -536,14 +536,14 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def getDayDetail(User user, dayActivityOverviewResponse, Goal goal, dayOffset)
 	{
-		def dayActivityOverview = dayActivityOverviewResponse.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		def dayActivityOverview = dayActivityOverviewResponse.json._embedded."yona:dayActivityOverviews"[dayOffset]
 		def dayActivityForGoal = dayActivityOverview.dayActivities.find { it._links."yona:goal".href == goal.url }
 		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def dayActivityDetailUrl = dayActivityForGoal._links."yona:dayDetails".href
 		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
 		assertResponseStatusOk(response)
 
-		return response.responseData
+		return response.json
 	}
 
 	void assertDayDetail(User user, dayActivityOverviewResponse, Goal goal, expectedValues, int weeksBack, String shortDay)
@@ -566,22 +566,22 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assertResponseStatusOk(response)
 		if (expectedSize == 0)
 		{
-			assert response.responseData._embedded?."yona:dayActivityOverviews" == null
+			assert response.json._embedded?."yona:dayActivityOverviews" == null
 		}
 		else
 		{
-			assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
+			assert response.json._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
 		}
-		assert response.responseData.page
-		assert response.responseData.page.size == expectedPageSize
-		assert response.responseData.page.totalElements == expectedTotalElements
-		assert response.responseData._links?.self?.href
+		assert response.json.page
+		assert response.json.page.size == expectedPageSize
+		assert response.json.page.totalElements == expectedTotalElements
+		assert response.json._links?.self?.href
 	}
 
 	void assertDayOverviewWithBuddies(response, User actingUser, activityCategoryUrl, expectedValues, weeksBack, shortDay)
 	{
 		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
-		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		def dayActivityOverview = response.json._embedded."yona:dayActivityOverviews"[dayOffset]
 		int expectedUsersWithGoalInThisCategory = expectedValues.findAll { it.expectedValues[shortDay].find { it.goal.activityCategoryUrl == activityCategoryUrl } }.size()
 		assert dayActivityOverview.date =~ /\d{4}-\d{2}-\d{2}/
 		assert dayActivityOverview.timeZoneId == "Europe/Amsterdam"

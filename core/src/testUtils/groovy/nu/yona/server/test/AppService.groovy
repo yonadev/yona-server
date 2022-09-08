@@ -33,7 +33,7 @@ class AppService extends Service
 	{
 		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"1234" }""", user.password)
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:], headers = [:])
@@ -41,7 +41,7 @@ class AppService extends Service
 		def json = User.makeUserJson(firstName, lastName, nickname, mobileNumber)
 		def response = addUser(json, parameters, headers)
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	def addLegacyUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:], headers = [:]) // YD-623
@@ -49,7 +49,7 @@ class AppService extends Service
 		def json = User.makeLegacyUserJson(firstName, lastName, nickname, mobileNumber)
 		def response = addUser(json, parameters, headers)
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId = null, parameters = [:], headers = [:])
@@ -57,7 +57,7 @@ class AppService extends Service
 		def json = User.makeUserJson(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion, deviceAppVersionCode, firebaseInstanceId)
 		def response = addUser(json, parameters, headers)
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	def addUser(json, parameters = [:], headers = [:])
@@ -78,7 +78,7 @@ class AppService extends Service
 		}
 		asserter(response)
 		assertBuddyUsers(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	def getUser(userUrl, password = null)
@@ -90,7 +90,7 @@ class AppService extends Service
 	{
 		def response = yonaServer.getJsonWithPassword(userUrl, password)
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	User reloadUser(User user, Closure asserter = null)
@@ -114,7 +114,7 @@ class AppService extends Service
 			response = yonaServer.getJsonWithPassword(user.url, user.password)
 			asserter(response)
 		}
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	User updateUser(Closure asserter, User user)
@@ -122,14 +122,14 @@ class AppService extends Service
 		def response = updateUser(user.url, user.convertToJson(), user.password)
 		asserter(response)
 		assertBuddyUsers(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	User updateUserCreatedOnBuddyRequest(Closure asserter, User user, inviteUrl)
 	{
 		def response = updateUser(inviteUrl, user.convertToJson())
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
+		return (isSuccess(response)) ? new User(response.json) : null
 	}
 
 	def updateUser(userUrl, jsonString, password)
@@ -195,9 +195,9 @@ class AppService extends Service
 		// Have the other user fetch the buddy connect request
 		def response = getMessages(user)
 		assertResponseStatusOk(response)
-		assert response.responseData._embedded
+		assert response.json._embedded
 
-		def buddyConnectRequestMessages = response.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyConnectRequestMessage" }
+		def buddyConnectRequestMessages = response.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyConnectRequestMessage" }
 		def selfUrl = buddyConnectRequestMessages[0]?._links?.self?.href ?: null
 		def message = buddyConnectRequestMessages[0]?.message ?: null
 		def acceptUrl = buddyConnectRequestMessages[0]?._links?."yona:accept"?.href ?: null
@@ -229,9 +229,9 @@ class AppService extends Service
 		// Have the requesting user fetch the buddy connect response
 		def response = getMessages(user)
 		assertResponseStatusOk(response)
-		assert response.responseData._embedded
+		assert response.json._embedded
 
-		def buddyConnectResponseMessages = response.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyConnectResponseMessage" }
+		def buddyConnectResponseMessages = response.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyConnectResponseMessage" }
 		assert buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
 		def selfUrl = buddyConnectResponseMessages[0]?._links?.self?.href
 		def message = buddyConnectResponseMessages[0]?.message ?: null
@@ -298,13 +298,13 @@ class AppService extends Service
 	{
 		def response = yonaServer.getJsonWithPassword(user.buddiesUrl, user.password)
 		assertResponseStatusOk(response)
-		assert response.responseData._links?.self?.href == user.buddiesUrl
+		assert response.json._links?.self?.href == user.buddiesUrl
 
-		if (!response.responseData._embedded?."yona:buddies")
+		if (!response.json._embedded?."yona:buddies")
 		{
 			return []
 		}
-		response.responseData._embedded."yona:buddies".collect { new Buddy(it) }
+		response.json._embedded."yona:buddies".collect { new Buddy(it) }
 	}
 
 	def getMessages(User user, parameters = [:], headers = [:])
@@ -349,7 +349,7 @@ class AppService extends Service
 	def getDayDetailsFromOverview(responseDayOverviewsAll, User user, Goal goal, int weeksBack, String shortDay)
 	{
 		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
-		def dayActivityOverview = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		def dayActivityOverview = responseDayOverviewsAll.json._embedded."yona:dayActivityOverviews"[dayOffset]
 		def dayActivityForGoal = dayActivityOverview.dayActivities.find { it._links."yona:goal".href == goal.url }
 		return getDayDetailsForDayFromOverviewItem(user, dayActivityForGoal)
 	}
@@ -363,7 +363,7 @@ class AppService extends Service
 
 	def getWeekDetailsFromOverview(responseWeekOverviewsAll, User user, Goal goal, int weeksBack)
 	{
-		def weekActivityOverview = responseWeekOverviewsAll.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
+		def weekActivityOverview = responseWeekOverviewsAll.json._embedded."yona:weekActivityOverviews"[weeksBack]
 		def weekActivityForGoal = weekActivityOverview.weekActivities.find { it._links."yona:goal".href == goal.url }
 		return getWeekDetailsForWeekFromOverviewItem(user, weekActivityForGoal)
 	}
@@ -427,17 +427,17 @@ class AppService extends Service
 		def getResponse = getNewDeviceRequest(user.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatusSuccess(getResponse)
 
-		def registerResponse = registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion, appVersionCode)
+		def registerResponse = registerNewDevice(getResponse.json._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion, appVersionCode)
 		assertResponseStatusSuccess(registerResponse)
 
-		new User(registerResponse.responseData)
+		new User(registerResponse.json)
 	}
 
 	Goal addGoal(Closure asserter, User user, Goal goal, message = "")
 	{
 		def response = addGoal(user, goal, message)
 		asserter(response)
-		return (isSuccess(response)) ? Goal.fromJson(response.responseData) : null
+		return (isSuccess(response)) ? Goal.fromJson(response.json) : null
 	}
 
 	def addGoal(User user, Goal goal, message = "")
@@ -449,7 +449,7 @@ class AppService extends Service
 	{
 		def response = updateGoal(user, url, goal, message)
 		asserter(response)
-		return (isSuccess(response)) ? Goal.fromJson(response.responseData) : null
+		return (isSuccess(response)) ? Goal.fromJson(response.json) : null
 	}
 
 	def updateGoal(User user, String url, Goal goal, message = "")
@@ -462,7 +462,7 @@ class AppService extends Service
 		def lastStatusChangeTimeStr = yonaServer.toIsoDateTimeString(lastStatusChangeTime)
 		def response = yonaServer.putJson(buddy.editUrl, """{"lastStatusChangeTime":"$lastStatusChangeTimeStr"}""", [:], ["Yona-Password": user.password])
 		assertResponseStatusOk(response)
-		return new Buddy(response.responseData)
+		return new Buddy(response.json)
 	}
 
 	def removeGoal(User user, Goal goal, message = "")

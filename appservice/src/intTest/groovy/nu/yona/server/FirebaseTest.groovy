@@ -34,24 +34,24 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
-		def messageUrlRichard = appService.getMessages(richard).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }[0]._links.self.href
+		def messageUrlRichard = appService.getMessages(richard).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }[0]._links.self.href
 		def responseRichard = appService.getLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
 
 		then:
 		assertResponseStatusOk(responseRichard)
-		responseRichard.responseData.title == "Message received"
-		responseRichard.responseData.body == "Tap to open message"
-		messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
+		responseRichard.json.title == "Message received"
+		responseRichard.json.body == "Tap to open message"
+		messageUrlRichard.endsWith(responseRichard.json.data.messageId.toString())
 
 		when:
-		def messageUrlBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
+		def messageUrlBob = appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
 		def responseBob = appService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
 
 		then:
 		assertResponseStatusOk(responseBob)
-		responseBob.responseData.title == "Message received"
-		responseBob.responseData.body == "Tap to open message"
-		messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
+		responseBob.json.title == "Message received"
+		responseBob.json.body == "Tap to open message"
+		messageUrlBob.endsWith(responseBob.json.data.messageId.toString())
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -72,30 +72,30 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bobAndroid, true, [:], headers)
 
 		when:
-		def messageUrlBobAndroid = appService.getMessages(bobAndroid, [:], headers).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
+		def messageUrlBobAndroid = appService.getMessages(bobAndroid, [:], headers).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
 		def responseBobAndroid = appService.getLastFirebaseMessage(bobAndroid.requestingDevice.firebaseInstanceId)
 
 		then:
 		assertResponseStatusOk(responseBobAndroid)
-		responseBobAndroid.responseData.title == "Bericht ontvangen"
-		responseBobAndroid.responseData.body == "Tik om het bericht te openen"
-		messageUrlBobAndroid.endsWith(responseBobAndroid.responseData.data.messageId.toString())
-		responseBobAndroid.responseData.appOs == richardAppOs
-		responseBobAndroid.responseData.appVersionCode == richardAppVersionCode
-		responseBobAndroid.responseData.appVersionName == richardAppVersionName
+		responseBobAndroid.json.title == "Bericht ontvangen"
+		responseBobAndroid.json.body == "Tik om het bericht te openen"
+		messageUrlBobAndroid.endsWith(responseBobAndroid.json.data.messageId.toString())
+		responseBobAndroid.json.appOs == richardAppOs
+		responseBobAndroid.json.appVersionCode == richardAppVersionCode
+		responseBobAndroid.json.appVersionName == richardAppVersionName
 
 		when:
-		def messageUrlBobIos = appService.getMessages(bobIos).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
+		def messageUrlBobIos = appService.getMessages(bobIos).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
 		def responseBobIos = appService.getLastFirebaseMessage(bobIos.requestingDevice.firebaseInstanceId)
 
 		then:
 		assertResponseStatusOk(responseBobIos)
-		responseBobIos.responseData.title == "Message received"
-		responseBobIos.responseData.body == "Tap to open message"
-		messageUrlBobIos.endsWith(responseBobIos.responseData.data.messageId.toString())
-		responseBobIos.responseData.appOs == richardAppOs
-		responseBobIos.responseData.appVersionCode == richardAppVersionCode
-		responseBobIos.responseData.appVersionName == richardAppVersionName
+		responseBobIos.json.title == "Message received"
+		responseBobIos.json.body == "Tap to open message"
+		messageUrlBobIos.endsWith(responseBobIos.json.data.messageId.toString())
+		responseBobIos.json.appOs == richardAppOs
+		responseBobIos.json.appVersionCode == richardAppVersionCode
+		responseBobIos.json.appVersionName == richardAppVersionName
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -114,27 +114,27 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		when:
 		device.postOpenAppEvent(appService, device.operatingSystem) // Defaults to US-English
 		appService.sendBuddyConnectRequest(richard, bob)
-		def messageUrlBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
+		def messageUrlBob = appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
 		def response = appService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
 
 		then:
 		assertResponseStatusOk(response)
-		response.responseData.title == "Message received"
-		response.responseData.body == "Tap to open message"
-		messageUrlBob.endsWith(response.responseData.data.messageId.toString())
+		response.json.title == "Message received"
+		response.json.body == "Tap to open message"
+		messageUrlBob.endsWith(response.json.data.messageId.toString())
 
 		when:
 		appService.postMessageActionWithPassword(messageUrlBob, [:], bob.password)
 		device.postOpenAppEvent(appService, device.operatingSystem, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE, "nl-NL")
 		appService.sendBuddyConnectRequest(bea, bob)
-		messageUrlBob = appService.getMessages(bob, ["onlyUnreadMessages": true]).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
+		messageUrlBob = appService.getMessages(bob, ["onlyUnreadMessages": true]).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
 		response = appService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
 
 		then:
 		assertResponseStatusOk(response)
-		response.responseData.title == "Bericht ontvangen"
-		response.responseData.body == "Tik om het bericht te openen"
-		messageUrlBob.endsWith(response.responseData.data.messageId.toString())
+		response.json.title == "Bericht ontvangen"
+		response.json.body == "Tik om het bericht te openen"
+		messageUrlBob.endsWith(response.json.data.messageId.toString())
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -153,25 +153,25 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		def responseRichard = analysisService.getLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
-		def messageUrlRichard = appService.getMessages(richard).responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
+		def messageUrlRichard = appService.getMessages(richard).json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
 		assertResponseStatusOk(responseRichard)
-		responseRichard.responseData.title == "Message received"
-		responseRichard.responseData.body == "Tap to open message"
-		messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
-		responseRichard.responseData.appOs == null
-		responseRichard.responseData.appVersionCode == 0
-		responseRichard.responseData.appVersionName == null
+		responseRichard.json.title == "Message received"
+		responseRichard.json.body == "Tap to open message"
+		messageUrlRichard.endsWith(responseRichard.json.data.messageId.toString())
+		responseRichard.json.appOs == null
+		responseRichard.json.appVersionCode == 0
+		responseRichard.json.appVersionName == null
 
 
 		def responseBob = analysisService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
-		def messageUrlBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
+		def messageUrlBob = appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
 		assertResponseStatusOk(responseBob)
-		responseBob.responseData.title == "Message received"
-		responseBob.responseData.body == "Tap to open message"
-		messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
-		responseBob.responseData.appOs == null
-		responseBob.responseData.appVersionCode == 0
-		responseBob.responseData.appVersionName == null
+		responseBob.json.title == "Message received"
+		responseBob.json.body == "Tap to open message"
+		messageUrlBob.endsWith(responseBob.json.data.messageId.toString())
+		responseBob.json.appOs == null
+		responseBob.json.appVersionCode == 0
+		responseBob.json.appVersionName == null
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -202,25 +202,25 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		def responseRichard = analysisService.getLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
-		def messageUrlRichard = appService.getMessages(richard).responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
+		def messageUrlRichard = appService.getMessages(richard).json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
 		assertResponseStatusOk(responseRichard)
-		responseRichard.responseData.title == "Message received"
-		responseRichard.responseData.body == "Tap to open message"
-		messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
-		responseRichard.responseData.appOs == richardAppOs
-		responseRichard.responseData.appVersionCode == richardAppVersionCode
-		responseRichard.responseData.appVersionName == richardAppVersionName
+		responseRichard.json.title == "Message received"
+		responseRichard.json.body == "Tap to open message"
+		messageUrlRichard.endsWith(responseRichard.json.data.messageId.toString())
+		responseRichard.json.appOs == richardAppOs
+		responseRichard.json.appVersionCode == richardAppVersionCode
+		responseRichard.json.appVersionName == richardAppVersionName
 
 
 		def responseBob = analysisService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
-		def messageUrlBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
+		def messageUrlBob = appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.self.href
 		assertResponseStatusOk(responseBob)
-		responseBob.responseData.title == "Message received"
-		responseBob.responseData.body == "Tap to open message"
-		messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
-		responseBob.responseData.appOs == richardAppOs
-		responseBob.responseData.appVersionCode == richardAppVersionCode
-		responseBob.responseData.appVersionName == richardAppVersionName
+		responseBob.json.title == "Message received"
+		responseBob.json.body == "Tap to open message"
+		messageUrlBob.endsWith(responseBob.json.data.messageId.toString())
+		responseBob.json.appOs == richardAppOs
+		responseBob.json.appVersionCode == richardAppVersionCode
+		responseBob.json.appVersionName == richardAppVersionName
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -241,8 +241,8 @@ class FirebaseTest extends AbstractAppServiceIntegrationTest
 		def response2 = task2.get()
 
 		then:
-		response1.responseData.passThroughHeaders."Yona-App-Version" == appHeader1
-		response2.responseData.passThroughHeaders."Yona-App-Version" == appHeader2
+		response1.json.passThroughHeaders."Yona-App-Version" == appHeader1
+		response2.json.passThroughHeaders."Yona-App-Version" == appHeader2
 	}
 
 	Future getResource(ExecutorService executorService, path, headers = [:])

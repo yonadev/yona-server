@@ -33,16 +33,16 @@ class YonaServer
 	static class Response
 	{
 		int status
-		def responseData
-		def data
+		def json
+		def rawData
 		def contentType
 		def headers
 
-		Response(int status, responseData, message, contentType, headers)
+		Response(int status, json, rawData, contentType, headers)
 		{
 			this.status = status
-			this.responseData = responseData
-			this.data = message
+			this.json = json
+			this.rawData = rawData
 			this.contentType = contentType
 			this.headers = headers
 		}
@@ -236,11 +236,11 @@ class YonaServer
 
 	private Response buildResponseObject(URLConnection urlConnection, isJson = true)
 	{
-		int responseCode = urlConnection.getResponseCode()
-		def data = isSuccessCode(responseCode) ? urlConnection.getInputStream()?.getText() : urlConnection.getErrorStream()?.getText()
-		def parsedData = data ? (isSuccessCode(responseCode) && isJson ? jsonSlurper.parseText(data) : tryParseErrorText(data)) : null
-		logResponse(responseCode, data, parsedData)
-		return new Response(responseCode, parsedData, data, urlConnection.getContentType(), urlConnection.getHeaderFields())
+		int responseStatusCode = urlConnection.getResponseCode()
+		def rawData = isSuccessCode(responseStatusCode) ? urlConnection.getInputStream()?.getText() : urlConnection.getErrorStream()?.getText()
+		def json = rawData ? (isSuccessCode(responseStatusCode) && isJson ? jsonSlurper.parseText(rawData) : tryParseTextToJson(rawData)) : null
+		logResponse(responseStatusCode, rawData, json)
+		return new Response(responseStatusCode, json, rawData, urlConnection.getContentType(), urlConnection.getHeaderFields())
 	}
 
 	private static void logRequest(URLConnection urlConnection, Object body = null)
@@ -256,11 +256,11 @@ class YonaServer
 		System.err.println "Response status: $responseCode"
 	}
 
-	def tryParseErrorText(def data)
+	def tryParseTextToJson(def rawData)
 	{
 		try
 		{
-			return jsonSlurper.parseText(data)
+			return jsonSlurper.parseText(rawData)
 		}
 		catch (Throwable ignored)
 		{

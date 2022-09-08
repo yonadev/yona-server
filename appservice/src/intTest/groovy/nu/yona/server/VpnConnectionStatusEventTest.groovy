@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Stichting Yona Foundation
+ * Copyright (c) 2018, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -38,7 +38,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
+		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
 
 		vpnConnectionStatusChangeMessages.size() == 1
 		vpnConnectionStatusChangeMessages[0]._links.keySet() == ["self", "edit", "yona:buddy", "yona:user", "yona:markRead"] as Set
@@ -75,7 +75,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
+		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
 
 		vpnConnectionStatusChangeMessages.size() == 2
 		vpnConnectionStatusChangeMessages[0]._links.self != null
@@ -155,7 +155,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
+		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
 
 		def expectedDeviceName = (lastToggledDevice == 0) ? richardFirstDevice.name : richardSecondDevice.name
 		def expectedStatus = (lastToggledDevice == 0) ? firstDeviceStatus : secondDeviceStatus
@@ -172,12 +172,12 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		def getResponseAfter = appService.getNewDeviceRequest(user.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
 
-		def registerUrl = getResponseAfter.responseData._links."yona:registerDevice".href
+		def registerUrl = getResponseAfter.json._links."yona:registerDevice".href
 
 		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs)
 		assertResponseStatusCreated(registerResponse)
 
-		def devices = registerResponse.responseData._embedded."yona:devices"._embedded."yona:devices"
+		def devices = registerResponse.json._embedded."yona:devices"._embedded."yona:devices"
 
 		assert devices.size == 2
 		def newDeviceJson = (devices[0].name == newDeviceName) ? devices[0] : devices[1]
@@ -195,7 +195,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		bob = appService.reloadUser(bob)
 		def bobInitialMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobInitialMessagesResponse)
-		def initialVpnConnectionStatusChangeMessages = bobInitialMessagesResponse.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
+		def initialVpnConnectionStatusChangeMessages = bobInitialMessagesResponse.json._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
 
 		when:
 		def response = richard.requestingDevice.postVpnStatus(appService, false)
@@ -212,7 +212,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
+		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
 
 		vpnConnectionStatusChangeMessages == initialVpnConnectionStatusChangeMessages
 
@@ -232,7 +232,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 		bob = appService.reloadUser(bob)
 		def bobInitialMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobInitialMessagesResponse)
-		def initialVpnConnectionStatusChangeMessages = bobInitialMessagesResponse.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
+		def initialVpnConnectionStatusChangeMessages = bobInitialMessagesResponse.json._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
 
 		when:
 		def response = richard.requestingDevice.postVpnStatus(appService, true)
@@ -249,7 +249,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
+		def vpnConnectionStatusChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages".findAll { it."@type" == "BuddyVpnConnectionStatusChangeMessage" }
 
 		vpnConnectionStatusChangeMessages == initialVpnConnectionStatusChangeMessages
 

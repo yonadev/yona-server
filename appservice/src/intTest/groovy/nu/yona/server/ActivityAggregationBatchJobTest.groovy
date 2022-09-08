@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2020 Stichting Yona Foundation
+ * Copyright (c) 2017, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -57,13 +57,13 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 		int nrGoals = 3
-		response.responseData.writeCountPerStep?.aggregateWeekActivities == nrGoals
-		response.responseData.writeCountPerStep?.aggregateDayActivities == 6 + 6 + 4 + YonaServer.getCurrentDayOfWeek() * nrGoals
+		response.json.writeCountPerStep?.aggregateWeekActivities == nrGoals
+		response.json.writeCountPerStep?.aggregateDayActivities == 6 + 6 + 4 + YonaServer.getCurrentDayOfWeek() * nrGoals
 		assertActivityValues(richard, 1, expectedValuesRichardLastWeek, 2)
 
 		def secondAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assertResponseStatusOk(secondAggregationResponse)
-		secondAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 0
+		secondAggregationResponse.json.writeCountPerStep?.aggregateWeekActivities == 0
 		// Do not assert aggregateDayActivities; inactivity for past days of current week is suddenly added on second retrieval of week overview, one per loaded goal.
 
 		cleanup:
@@ -85,8 +85,8 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:49")
 		def firstAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assertResponseStatusOk(firstAggregationResponse)
-		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 1
-		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateDayActivities == 1
+		assert firstAggregationResponse.json.writeCountPerStep?.aggregateWeekActivities == 1
+		assert firstAggregationResponse.json.writeCountPerStep?.aggregateDayActivities == 1
 
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -116,8 +116,8 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		def response = batchService.triggerActivityAggregationBatchJob()
 		assertResponseStatusOk(response)
 		int nrGoals = 2
-		response.responseData.writeCountPerStep?.aggregateWeekActivities == nrGoals
-		response.responseData.writeCountPerStep?.aggregateDayActivities == nrGoals * (6 + YonaServer.getCurrentDayOfWeek()) //days are initialized with inactivity, side effect of retrieving and asserting activity
+		response.json.writeCountPerStep?.aggregateWeekActivities == nrGoals
+		response.json.writeCountPerStep?.aggregateDayActivities == nrGoals * (6 + YonaServer.getCurrentDayOfWeek()) //days are initialized with inactivity, side effect of retrieving and asserting activity
 		assertActivityValues(richard, 1, expectedValuesSecondAggregation, 2)
 
 		cleanup:
@@ -139,8 +139,8 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(richard, richard.requestingDevice, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:05")
 		def firstAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assertResponseStatusOk(firstAggregationResponse)
-		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 1
-		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateDayActivities == 1
+		assert firstAggregationResponse.json.writeCountPerStep?.aggregateWeekActivities == 1
+		assert firstAggregationResponse.json.writeCountPerStep?.aggregateDayActivities == 1
 
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -168,8 +168,8 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		def response = batchService.triggerActivityAggregationBatchJob()
 		assertResponseStatusOk(response)
 		int nrGoals = 2
-		response.responseData.writeCountPerStep?.aggregateWeekActivities == nrGoals
-		response.responseData.writeCountPerStep?.aggregateDayActivities == nrGoals * (6 + YonaServer.getCurrentDayOfWeek()) //days are initialized with inactivity, side effect of retrieving and asserting activity
+		response.json.writeCountPerStep?.aggregateWeekActivities == nrGoals
+		response.json.writeCountPerStep?.aggregateDayActivities == nrGoals * (6 + YonaServer.getCurrentDayOfWeek()) //days are initialized with inactivity, side effect of retrieving and asserting activity
 		assertActivityValues(richard, 1, expectedValuesSecondAggregation, 2)
 
 		cleanup:

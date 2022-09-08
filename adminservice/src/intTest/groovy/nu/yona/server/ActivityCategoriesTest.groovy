@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -40,9 +40,9 @@ class ActivityCategoriesTest extends Specification
 		String gardeningActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Tuinieren", "en-US": "Gardening"], false, ["gardening"], [], ["nl-NL": "Raadplegen van websites over tuinieren", "en-US": "Reading about gardening"])
 
 		when:
-		def updateResponse = adminService.yonaServer.updateResource(createProgrammingResponse.responseData._links.self.href, chessActivityCategoryJson)
+		def updateResponse = adminService.yonaServer.updateResource(createProgrammingResponse.json._links.self.href, chessActivityCategoryJson)
 		assertResponseStatusOk(updateResponse)
-		def deleteResponse = adminService.yonaServer.deleteResource(createCookingResponse.responseData._links.self.href)
+		def deleteResponse = adminService.yonaServer.deleteResource(createCookingResponse.json._links.self.href)
 		assertResponseStatusNoContent(deleteResponse)
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, gardeningActivityCategoryJson)
 		assertResponseStatusOk(createResponse)
@@ -62,15 +62,15 @@ class ActivityCategoriesTest extends Specification
 		cleanup:
 		if (createCookingResponse?.status == 200)
 		{
-			adminService.yonaServer.deleteResource(createCookingResponse.responseData._links.self.href)
+			adminService.yonaServer.deleteResource(createCookingResponse.json._links.self.href)
 		}
 		if (createProgrammingResponse?.status == 200)
 		{
-			adminService.yonaServer.deleteResource(createProgrammingResponse.responseData._links.self.href)
+			adminService.yonaServer.deleteResource(createProgrammingResponse.json._links.self.href)
 		}
 		if (createResponse?.status == 200)
 		{
-			adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
+			adminService.yonaServer.deleteResource(createResponse.json._links.self.href)
 		}
 	}
 
@@ -81,10 +81,10 @@ class ActivityCategoriesTest extends Specification
 
 		then:
 		assertResponseStatusOk(response)
-		response.responseData._links.self.href == adminService.url + AdminService.ACTIVITY_CATEGORIES_PATH
-		response.responseData._embedded?."yona:activityCategories" != null
-		response.responseData._embedded."yona:activityCategories".size() > 0
-		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find {
+		response.json._links.self.href == adminService.url + AdminService.ACTIVITY_CATEGORIES_PATH
+		response.json._embedded?."yona:activityCategories" != null
+		response.json._embedded."yona:activityCategories".size() > 0
+		def gamblingCategory = response.json._embedded."yona:activityCategories".find {
 			it._links.self.href ==~ /.*192d69f4-8d3e-499b-983c-36ca97340ba9.*/
 		}
 		gamblingCategory._links.self.href.startsWith(adminService.url)
@@ -108,35 +108,35 @@ class ActivityCategoriesTest extends Specification
 		String englishDescription = "Programming computers"
 		String dutchDescription = "Programmeren van computers"
 		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US": englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US": englishDescription])
-		def numActivityCategoriesBeforeAdd = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
+		def numActivityCategoriesBeforeAdd = adminService.getAllActivityCategories().json._embedded."yona:activityCategories".size()
 
 		when:
 		def response = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 
 		then:
 		assertResponseStatusOk(response)
-		response.responseData._links.self.href.startsWith(adminService.url)
-		response.responseData.localizableName["en-US"] == englishName
-		response.responseData.localizableName["nl-NL"] == dutchName
-		response.responseData.mandatoryNoGo == isNoGo
-		response.responseData.smoothwallCategories as Set == smoothwallCategories as Set
-		response.responseData.applications as Set == apps as Set
-		response.responseData.localizableDescription["en-US"] == englishDescription
-		response.responseData.localizableDescription["nl-NL"] == dutchDescription
+		response.json._links.self.href.startsWith(adminService.url)
+		response.json.localizableName["en-US"] == englishName
+		response.json.localizableName["nl-NL"] == dutchName
+		response.json.mandatoryNoGo == isNoGo
+		response.json.smoothwallCategories as Set == smoothwallCategories as Set
+		response.json.applications as Set == apps as Set
+		response.json.localizableDescription["en-US"] == englishDescription
+		response.json.localizableDescription["nl-NL"] == dutchDescription
 
-		def getResponse = adminService.yonaServer.getJson(response.responseData._links.self.href)
+		def getResponse = adminService.yonaServer.getJson(response.json._links.self.href)
 		assertResponseStatusOk(getResponse)
-		getResponse.responseData._links.self.href.startsWith(adminService.url)
-		getResponse.responseData.localizableName["en-US"] == englishName
-		getResponse.responseData.localizableName["nl-NL"] == dutchName
-		getResponse.responseData.mandatoryNoGo == isNoGo
-		getResponse.responseData.smoothwallCategories as Set == smoothwallCategories as Set
-		getResponse.responseData.applications as Set == apps as Set
-		getResponse.responseData.localizableDescription["en-US"] == englishDescription
-		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
+		getResponse.json._links.self.href.startsWith(adminService.url)
+		getResponse.json.localizableName["en-US"] == englishName
+		getResponse.json.localizableName["nl-NL"] == dutchName
+		getResponse.json.mandatoryNoGo == isNoGo
+		getResponse.json.smoothwallCategories as Set == smoothwallCategories as Set
+		getResponse.json.applications as Set == apps as Set
+		getResponse.json.localizableDescription["en-US"] == englishDescription
+		getResponse.json.localizableDescription["nl-NL"] == dutchDescription
 
 		def getAllResponse = adminService.getAllActivityCategories()
-		getAllResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
+		getAllResponse.json._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeAdd + 1
 		def programmingCategory = findActivityCategoryByName(getAllResponse, englishName)
 		programmingCategory != null
 		programmingCategory.applications as Set == apps as Set
@@ -145,7 +145,7 @@ class ActivityCategoriesTest extends Specification
 		cleanup:
 		if (response?.status == 200)
 		{
-			adminService.yonaServer.deleteResource(response.responseData._links.self.href)
+			adminService.yonaServer.deleteResource(response.json._links.self.href)
 		}
 	}
 
@@ -166,32 +166,32 @@ class ActivityCategoriesTest extends Specification
 		def programmingCategory = findActivityCategoryByName(adminService.getAllActivityCategories(), "Programming")
 
 		when:
-		def response = adminService.yonaServer.updateResource(createResponse.responseData._links.self.href, chessActivityCategoryJson)
+		def response = adminService.yonaServer.updateResource(createResponse.json._links.self.href, chessActivityCategoryJson)
 
 		then:
 		assertResponseStatusOk(response)
-		response.responseData._links.self.href == createResponse.responseData._links.self.href
-		response.responseData.localizableName["en-US"] == englishName
-		response.responseData.localizableName["nl-NL"] == dutchName
-		response.responseData.mandatoryNoGo == isNoGo
-		response.responseData.smoothwallCategories as Set == smoothwallCategories as Set
-		response.responseData.applications as Set == apps as Set
-		response.responseData.localizableDescription["en-US"] == englishDescription
-		response.responseData.localizableDescription["nl-NL"] == dutchDescription
+		response.json._links.self.href == createResponse.json._links.self.href
+		response.json.localizableName["en-US"] == englishName
+		response.json.localizableName["nl-NL"] == dutchName
+		response.json.mandatoryNoGo == isNoGo
+		response.json.smoothwallCategories as Set == smoothwallCategories as Set
+		response.json.applications as Set == apps as Set
+		response.json.localizableDescription["en-US"] == englishDescription
+		response.json.localizableDescription["nl-NL"] == dutchDescription
 
-		def getResponse = adminService.yonaServer.getJson(createResponse.responseData._links.self.href)
+		def getResponse = adminService.yonaServer.getJson(createResponse.json._links.self.href)
 		assertResponseStatusOk(getResponse)
-		getResponse.responseData._links.self.href == createResponse.responseData._links.self.href
-		getResponse.responseData.localizableName["en-US"] == englishName
-		getResponse.responseData.localizableName["nl-NL"] == dutchName
-		getResponse.responseData.mandatoryNoGo == isNoGo
-		getResponse.responseData.smoothwallCategories as Set == smoothwallCategories as Set
-		getResponse.responseData.applications as Set == apps as Set
-		getResponse.responseData.localizableDescription["en-US"] == englishDescription
-		getResponse.responseData.localizableDescription["nl-NL"] == dutchDescription
+		getResponse.json._links.self.href == createResponse.json._links.self.href
+		getResponse.json.localizableName["en-US"] == englishName
+		getResponse.json.localizableName["nl-NL"] == dutchName
+		getResponse.json.mandatoryNoGo == isNoGo
+		getResponse.json.smoothwallCategories as Set == smoothwallCategories as Set
+		getResponse.json.applications as Set == apps as Set
+		getResponse.json.localizableDescription["en-US"] == englishDescription
+		getResponse.json.localizableDescription["nl-NL"] == dutchDescription
 
 		def getAllResponse = adminService.getAllActivityCategories()
-		def chessCategory = getAllResponse.responseData._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
+		def chessCategory = getAllResponse.json._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
 		chessCategory != null
 		chessCategory._links.self.href == programmingCategory._links.self.href
 		chessCategory.applications as Set == apps as Set
@@ -200,7 +200,7 @@ class ActivityCategoriesTest extends Specification
 		cleanup:
 		if (createResponse?.status == 200)
 		{
-			adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
+			adminService.yonaServer.deleteResource(createResponse.json._links.self.href)
 		}
 	}
 
@@ -210,16 +210,16 @@ class ActivityCategoriesTest extends Specification
 		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": "Programmeren", "en-US": "Programming"], false, ["programming", "scripting"], ["Eclipse", "Visual Studio"], ["nl-NL": "Programmeren van computers", "en-US": "Programming computers"])
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 		assertResponseStatusOk(createResponse)
-		def numActivityCategoriesBeforeDelete = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
+		def numActivityCategoriesBeforeDelete = adminService.getAllActivityCategories().json._embedded."yona:activityCategories".size()
 
 		when:
-		def response = adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
+		def response = adminService.yonaServer.deleteResource(createResponse.json._links.self.href)
 
 		then:
 		assertResponseStatusNoContent(response)
 
 		def getAllResponse = adminService.getAllActivityCategories()
-		getAllResponse.responseData._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1
+		getAllResponse.json._embedded."yona:activityCategories".size() == numActivityCategoriesBeforeDelete - 1
 		findActivityCategoryByName(getAllResponse, "Programming") == null
 	}
 
@@ -232,7 +232,7 @@ class ActivityCategoriesTest extends Specification
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.activitycategory.duplicate.name"
+		response.json.code == "error.activitycategory.duplicate.name"
 	}
 
 	def 'Try update to duplicate Dutch name'()
@@ -249,16 +249,16 @@ class ActivityCategoriesTest extends Specification
 		String dutchDescription = "Programmeren van computers"
 		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US": englishName], isNoGo, smoothwallCategories, apps, ["nl-NL": dutchDescription, "en-US": englishDescription])
 		when:
-		def response = adminService.yonaServer.updateResource(createResponse.responseData._links.self.href, chessActivityCategoryJson)
+		def response = adminService.yonaServer.updateResource(createResponse.json._links.self.href, chessActivityCategoryJson)
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.activitycategory.duplicate.name"
+		response.json.code == "error.activitycategory.duplicate.name"
 
 		cleanup:
 		if (createResponse?.status == 200)
 		{
-			adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
+			adminService.yonaServer.deleteResource(createResponse.json._links.self.href)
 		}
 	}
 
@@ -280,12 +280,12 @@ class ActivityCategoriesTest extends Specification
 
 	private static findActivityCategoryByName(getAllResponse, englishName)
 	{
-		getAllResponse.responseData._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
+		getAllResponse.json._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
 	}
 
 	private static appServicefindActivityCategoryByName(getAllResponse, englishName)
 	{
-		getAllResponse.responseData._embedded."yona:activityCategories".find { it.name == englishName }
+		getAllResponse.json._embedded."yona:activityCategories".find { it.name == englishName }
 	}
 
 	private void waitForCachePropagation(englishName, englishDescription)

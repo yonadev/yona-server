@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation
+ * Copyright (c) 2017, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -31,14 +31,14 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(messagesRichardResponse)
 		assertResponseStatusOk(messagesBobResponse)
-		def systemMessagesRichard = messagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
+		def systemMessagesRichard = messagesRichardResponse.json._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
 		systemMessagesRichard.size() == 1
 		systemMessagesRichard[0].message == "Hi there!"
 		systemMessagesRichard[0].nickname == "Yona"
 		systemMessagesRichard[0]._links.keySet() == ["self", "edit", "yona:markRead"] as Set
 		systemMessagesRichard[0]._links?.self?.href?.startsWith(richard.messagesUrl)
 		def messageUrlRichard = systemMessagesRichard[0]._links?.self?.href
-		def systemMessagesBob = messagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
+		def systemMessagesBob = messagesBobResponse.json._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
 		systemMessagesBob.size() == 1
 		systemMessagesBob[0].message == "Hi there!"
 		systemMessagesBob[0].nickname == "Yona"
@@ -48,15 +48,15 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 
 		def responseBob = batchService.getLastFirebaseMessage(bob.requestingDevice.firebaseInstanceId)
 		assertResponseStatusOk(responseBob)
-		assert responseBob.responseData.title == "Message received"
-		assert responseBob.responseData.body == "Tap to open message"
-		assert messageUrlBob.endsWith(responseBob.responseData.data.messageId.toString())
+		assert responseBob.json.title == "Message received"
+		assert responseBob.json.body == "Tap to open message"
+		assert messageUrlBob.endsWith(responseBob.json.data.messageId.toString())
 
 		def responseRichard = batchService.getLastFirebaseMessage(richard.requestingDevice.firebaseInstanceId)
 		assertResponseStatusOk(responseRichard)
-		assert responseRichard.responseData.title == "Message received"
-		assert responseRichard.responseData.body == "Tap to open message"
-		assert messageUrlRichard.endsWith(responseRichard.responseData.data.messageId.toString())
+		assert responseRichard.json.title == "Message received"
+		assert responseRichard.json.body == "Tap to open message"
+		assert messageUrlRichard.endsWith(responseRichard.json.data.messageId.toString())
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -74,7 +74,7 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		sleepTillSystemMessagesAreSent(bob)
 		def getMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesResponse)
-		def systemMessagesBob = getMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
+		def systemMessagesBob = getMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }
 		assert systemMessagesBob.size() == 1
 		def messageDeleteUrl = systemMessagesBob[0]._links?.edit?.href
 
@@ -83,8 +83,8 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		appService.getMessages(richard).responseData._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }.size() == 1
-		appService.getMessages(bob).responseData._embedded == null
+		appService.getMessages(richard).json._embedded."yona:messages".findAll { it."@type" == "SystemMessage" }.size() == 1
+		appService.getMessages(bob).json._embedded == null
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -99,7 +99,7 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 																		  "page"              : 0,
 																		  "size"              : 1])
 			assertResponseStatusOk(getUnreadMessagesResponse)
-			if (getUnreadMessagesResponse.responseData.page.totalElements > 0)
+			if (getUnreadMessagesResponse.json.page.totalElements > 0)
 			{
 				return
 			}
