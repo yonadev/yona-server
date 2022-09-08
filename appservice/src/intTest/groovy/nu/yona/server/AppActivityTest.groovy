@@ -40,7 +40,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.decrypting.data"
+		response.json.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -65,7 +65,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def goalConflictMessagesRichard = getMessagesRichardResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
 		assertEquals(goalConflictMessagesRichard[0].creationTime as String, goalConflictTime)
@@ -73,7 +73,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def goalConflictMessagesBob = getMessagesBobResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
 		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
@@ -110,7 +110,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def goalConflictMessagesRichard = getMessagesRichardResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
@@ -118,7 +118,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def goalConflictMessagesBob = getMessagesBobResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
 		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
@@ -152,12 +152,12 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def goalConflictMessagesRichard = getMessagesRichardResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def goalConflictMessagesBob = getMessagesBobResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 
 		cleanup:
@@ -187,7 +187,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		ZonedDateTime goalConflictTime = YonaServer.now
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def goalConflictMessagesRichard = getMessagesRichardResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
@@ -195,7 +195,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def goalConflictMessagesBob = getMessagesBobResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
@@ -224,7 +224,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" } == null
+		getMessagesRichardResponse.json._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" } == null
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -245,7 +245,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.analysis.invalid.app.activity.data.end.before.start"
+		response.json.code == "error.analysis.invalid.app.activity.data.end.before.start"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -267,7 +267,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.analysis.invalid.app.activity.data.ends.in.future"
+		response.json.code == "error.analysis.invalid.app.activity.data.ends.in.future"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -289,7 +289,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.analysis.invalid.app.activity.data.starts.in.future"
+		response.json.code == "error.analysis.invalid.app.activity.data.starts.in.future"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -309,7 +309,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(responseNoActivities, 400)
-		responseNoActivities.responseData.message ==~ /(?s).*Missing required creator property 'activities'.*/
+		responseNoActivities.json.message ==~ /(?s).*Missing required creator property 'activities'.*/
 
 		when:
 		def requestJsonNoDeviceDateTime = """{
@@ -319,7 +319,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(responseNoDeviceDateTime, 400)
-		responseNoDeviceDateTime.responseData.message ==~ /(?s).*Missing required creator property 'deviceDateTime'.*/
+		responseNoDeviceDateTime.json.message ==~ /(?s).*Missing required creator property 'deviceDateTime'.*/
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -347,7 +347,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" }?.size()
+		getMessagesRichardResponse.json._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" }?.size()
 		// Don't poke into the messages. The app activity spans many days and we only support activities spanning at most two days
 
 		cleanup:
@@ -374,7 +374,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def response = appService.getDayDetails(richard, GAMBLING_ACT_CAT_URL, appActStartTime)
 		assertResponseStatusOk(response)
-		assert response.responseData.totalActivityDurationMinutes == Duration.between(appActStartTime, appActEndTime).toMinutes()
+		assert response.json.totalActivityDurationMinutes == Duration.between(appActStartTime, appActEndTime).toMinutes()
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -405,7 +405,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def response = appService.getDayDetails(richard, GAMBLING_ACT_CAT_URL, appActOneStartTime)
 		assertResponseStatusOk(response)
-		assert response.responseData.totalActivityDurationMinutes == Duration.between(appActOneStartTime, appActTwoEndTime).toMinutes() + netActDuration
+		assert response.json.totalActivityDurationMinutes == Duration.between(appActOneStartTime, appActTwoEndTime).toMinutes() + netActDuration
 
 		cleanup:
 		appService.deleteUser(richard)

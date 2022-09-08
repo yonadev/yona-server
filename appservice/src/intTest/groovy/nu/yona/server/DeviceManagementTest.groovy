@@ -37,22 +37,22 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
-		getResponseAfter.responseData.yonaPassword == null
-		getResponseAfter.responseData._links.self.href == richard.newDeviceRequestUrl
-		getResponseAfter.responseData._links.edit.href == richard.newDeviceRequestUrl
-		getResponseAfter.responseData._links."yona:user".href
+		getResponseAfter.json.yonaPassword == null
+		getResponseAfter.json._links.self.href == richard.newDeviceRequestUrl
+		getResponseAfter.json._links.edit.href == richard.newDeviceRequestUrl
+		getResponseAfter.json._links."yona:user".href
 		def baseUserUrl = YonaServer.stripQueryString(richard.url)
-		YonaServer.stripQueryString(getResponseAfter.responseData._links."yona:user".href) == baseUserUrl
+		YonaServer.stripQueryString(getResponseAfter.json._links."yona:user".href) == baseUserUrl
 		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
-		getResponseAfter.responseData._links."yona:registerDevice".href == baseUserUrl + "/devices/"
+		getResponseAfter.json._links."yona:registerDevice".href == baseUserUrl + "/devices/"
 
 		def getWithPasswordResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatusOk(getWithPasswordResponseAfter)
-		getWithPasswordResponseAfter.responseData.yonaPassword == richard.password
-		getWithPasswordResponseAfter.responseData._links.self.href == richard.newDeviceRequestUrl
-		getWithPasswordResponseAfter.responseData._links.edit.href == richard.newDeviceRequestUrl
-		getWithPasswordResponseAfter.responseData._links."yona:user".href
-		YonaServer.stripQueryString(getWithPasswordResponseAfter.responseData._links."yona:user".href) == YonaServer.stripQueryString(richard.url)
+		getWithPasswordResponseAfter.json.yonaPassword == richard.password
+		getWithPasswordResponseAfter.json._links.self.href == richard.newDeviceRequestUrl
+		getWithPasswordResponseAfter.json._links.edit.href == richard.newDeviceRequestUrl
+		getWithPasswordResponseAfter.json._links."yona:user".href
+		YonaServer.stripQueryString(getWithPasswordResponseAfter.json._links."yona:user".href) == YonaServer.stripQueryString(richard.url)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -75,13 +75,13 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
-		getResponseAfter.responseData.yonaPassword == null
-		getResponseAfter.responseData._links.self.href == richard.newDeviceRequestUrl
-		getResponseAfter.responseData._links.edit.href == richard.newDeviceRequestUrl
-		getResponseAfter.responseData._links."yona:user".href
+		getResponseAfter.json.yonaPassword == null
+		getResponseAfter.json._links.self.href == richard.newDeviceRequestUrl
+		getResponseAfter.json._links.edit.href == richard.newDeviceRequestUrl
+		getResponseAfter.json._links."yona:user".href
 		def baseUserUrl = YonaServer.stripQueryString(richard.url)
-		YonaServer.stripQueryString(getResponseAfter.responseData._links."yona:user".href) == baseUserUrl
-		def registerUrl = getResponseAfter.responseData._links."yona:registerDevice".href
+		YonaServer.stripQueryString(getResponseAfter.json._links."yona:user".href) == baseUserUrl
+		def registerUrl = getResponseAfter.json._links."yona:registerDevice".href
 		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
 		registerUrl == baseUserUrl + "/devices/"
 
@@ -92,7 +92,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusCreated(registerResponse)
 		assertUserGetResponseDetails(registerResponse, false)
 
-		def devices = registerResponse.responseData._embedded."yona:devices"._embedded."yona:devices"
+		def devices = registerResponse.json._embedded."yona:devices"._embedded."yona:devices"
 		devices.size == 2
 
 		def defaultDevice = (devices[0].name == newDeviceName) ? devices[1] : devices[0]
@@ -107,11 +107,11 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		// User self-link uses the new device as "requestingDeviceId"
 		def idOfNewDevice = extractDeviceId(newDevice._links.self.href)
-		registerResponse.responseData._links.self.href ==~ /.*requestingDeviceId=$idOfNewDevice.*/
+		registerResponse.json._links.self.href ==~ /.*requestingDeviceId=$idOfNewDevice.*/
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.keySet() == ["self", "edit", "yona:markRead", "yona:buddy", "yona:user"] as Set
@@ -140,7 +140,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(setResponse)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
-		def registerUrl = getResponseAfter.responseData._links."yona:registerDevice".href
+		def registerUrl = getResponseAfter.json._links."yona:registerDevice".href
 
 		when:
 		def newDeviceName = "My iPhone"
@@ -149,7 +149,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.device.request.invalid.password"
+		response.json.code == "error.device.request.invalid.password"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -168,7 +168,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.no.device.request.present"
+		response.json.code == "error.no.device.request.present"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -186,36 +186,36 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def response
-		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, null, "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
+		response = appService.registerNewDevice(getResponse.json._links."yona:registerDevice".href, newDeviceRequestPassword, null, "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.request.missing.property"
-		response.responseData.message ==~ /^Mandatory property 'name'.*/
+		response.json.code == "error.request.missing.property"
+		response.json.message ==~ /^Mandatory property 'name'.*/
 
 		when:
-		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", null, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
+		response = appService.registerNewDevice(getResponse.json._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", null, Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.request.missing.property"
-		response.responseData.message ==~ /^Mandatory property 'operatingSystem'.*/
+		response.json.code == "error.request.missing.property"
+		response.json.message ==~ /^Mandatory property 'operatingSystem'.*/
 
 		when:
-		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", "IOS", null, Device.SUPPORTED_APP_VERSION_CODE)
+		response = appService.registerNewDevice(getResponse.json._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", "IOS", null, Device.SUPPORTED_APP_VERSION_CODE)
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.request.missing.property"
-		response.responseData.message ==~ /^Mandatory property 'appVersion'.*/
+		response.json.code == "error.request.missing.property"
+		response.json.message ==~ /^Mandatory property 'appVersion'.*/
 
 		when:
-		response = appService.registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", "IOS", Device.SOME_APP_VERSION, null)
+		response = appService.registerNewDevice(getResponse.json._links."yona:registerDevice".href, newDeviceRequestPassword, "TheName", "IOS", Device.SOME_APP_VERSION, null)
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.request.missing.property"
-		response.responseData.message ==~ /^Mandatory property 'appVersionCode'.*/
+		response.json.code == "error.request.missing.property"
+		response.json.message ==~ /^Mandatory property 'appVersionCode'.*/
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -235,7 +235,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, expectedStatus)
-		response.responseData.code == expectedCode
+		response.json.code == expectedCode
 
 		cleanup:
 		appService.deleteUser(user)
@@ -265,12 +265,12 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(responseWrongPassword, 400)
-		responseWrongPassword.responseData.code == "error.decrypting.data"
+		responseWrongPassword.json.code == "error.decrypting.data"
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatusOk(getResponseAfter)
-		getResponseAfter.responseData.yonaPassword == richard.password
+		getResponseAfter.json.yonaPassword == richard.password
 		assertResponseStatus(responseWrongMobileNumber, 400)
-		responseWrongMobileNumber.responseData.code == "error.decrypting.data"
+		responseWrongMobileNumber.json.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -290,7 +290,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(response)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatusOk(getResponseAfter)
-		getResponseAfter.responseData.yonaPassword == richard.password
+		getResponseAfter.json.yonaPassword == richard.password
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -311,11 +311,11 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(response)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatus(getResponseAfter, 400)
-		getResponseAfter.responseData.code == "error.no.device.request.present"
+		getResponseAfter.json.code == "error.no.device.request.present"
 
 		def getWithPasswordResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatus(getWithPasswordResponseAfter, 400)
-		getWithPasswordResponseAfter.responseData.code == "error.no.device.request.present"
+		getWithPasswordResponseAfter.json.code == "error.no.device.request.present"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -335,12 +335,12 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(responseWrongPassword, 400)
-		responseWrongPassword.responseData.code == "error.decrypting.data"
+		responseWrongPassword.json.code == "error.decrypting.data"
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatusOk(getResponseAfter)
-		getResponseAfter.responseData.yonaPassword == richard.password
+		getResponseAfter.json.yonaPassword == richard.password
 		assertResponseStatus(responseWrongMobileNumber, 400)
-		responseWrongMobileNumber.responseData.code == "error.decrypting.data"
+		responseWrongMobileNumber.json.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -368,7 +368,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null
@@ -406,7 +406,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 0
 
@@ -443,7 +443,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
+		def deviceChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null
@@ -473,8 +473,8 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.request.missing.property"
-		response.responseData.message ==~ /^Mandatory property 'name'.*/
+		response.json.code == "error.request.missing.property"
+		response.json.message ==~ /^Mandatory property 'name'.*/
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -491,7 +491,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.invalid.device.name"
+		assert response.json.code == "error.device.invalid.device.name"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -510,7 +510,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.name.already.exists"
+		assert response.json.code == "error.device.name.already.exists"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -558,7 +558,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertWeekOverviewBasics(responseWeekOverviews, [2, 2], expectedTotalWeeks)
 
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichard, 6)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek, "Mon")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek, "Tue")
@@ -591,7 +591,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" && it.message ==~ /^User deleted.*/ }
+		def deviceChangeMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyDeviceChangeMessage" && it.message ==~ /^User deleted.*/ }
 
 		deviceChangeMessages.size() == 1
 		deviceChangeMessages[0]._links.self != null
@@ -619,7 +619,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.cannot.delete.last.one"
+		assert response.json.code == "error.device.cannot.delete.last.one"
 
 		cleanup:
 		appService.deleteUser(richard)

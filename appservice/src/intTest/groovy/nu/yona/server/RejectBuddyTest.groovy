@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -27,11 +27,11 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(rejectResponse)
-		rejectResponse.responseData._embedded."yona:affectedMessages".size() == 1
-		rejectResponse.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectRequestMessage.selfUrl
-		rejectResponse.responseData._embedded."yona:affectedMessages"[0].status == "REJECTED"
-		rejectResponse.responseData._embedded."yona:affectedMessages"[0]._links."yona:accept" == null
-		rejectResponse.responseData._embedded."yona:affectedMessages"[0]._links."yona:reject" == null
+		rejectResponse.json._embedded."yona:affectedMessages".size() == 1
+		rejectResponse.json._embedded."yona:affectedMessages"[0]._links.self.href == connectRequestMessage.selfUrl
+		rejectResponse.json._embedded."yona:affectedMessages"[0].status == "REJECTED"
+		rejectResponse.json._embedded."yona:affectedMessages"[0]._links."yona:accept" == null
+		rejectResponse.json._embedded."yona:affectedMessages"[0]._links."yona:reject" == null
 
 		// Verify connect message doesn't have actions anymore
 		def actionUrls = appService.fetchBuddyConnectRequestMessage(bob).rejectUrl

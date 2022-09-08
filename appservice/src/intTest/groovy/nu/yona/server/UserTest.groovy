@@ -43,7 +43,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesResponse = appService.yonaServer.getJsonWithPassword(baseUserUrl + "/messages/", john.password)
 		assertResponseStatus(getMessagesResponse, 400)
-		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+		getMessagesResponse.json.code == "error.mobile.number.not.confirmed"
 
 		cleanup:
 		appService.deleteUser(john)
@@ -111,19 +111,19 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response1TimeWrong, 400)
 		assertResponseStatus(response1TimeWrong, 400)
-		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
-		response1TimeWrong.responseData.remainingAttempts == 4
+		response1TimeWrong.json.code == "error.mobile.number.confirmation.code.mismatch"
+		response1TimeWrong.json.remainingAttempts == 4
 		assertResponseStatus(response4TimesWrong, 400)
-		response4TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
-		response4TimesWrong.responseData.remainingAttempts == 1
+		response4TimesWrong.json.code == "error.mobile.number.confirmation.code.mismatch"
+		response4TimesWrong.json.remainingAttempts == 1
 		assertResponseStatus(response5TimesWrong, 400)
-		response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
-		response5TimesWrong.responseData.remainingAttempts == 0
+		response5TimesWrong.json.code == "error.mobile.number.confirmation.code.mismatch"
+		response5TimesWrong.json.remainingAttempts == 0
 		assertResponseStatus(response6TimesWrong, 400)
-		response6TimesWrong.responseData.code == "error.mobile.number.confirmation.code.too.many.failed.attempts"
-		response6TimesWrong.responseData.remainingAttempts == null
+		response6TimesWrong.json.code == "error.mobile.number.confirmation.code.too.many.failed.attempts"
+		response6TimesWrong.json.remainingAttempts == null
 		assertResponseStatus(response7thTimeRight, 400)
-		response7thTimeRight.responseData.code == "error.mobile.number.confirmation.code.too.many.failed.attempts"
+		response7thTimeRight.json.code == "error.mobile.number.confirmation.code.too.many.failed.attempts"
 
 		cleanup:
 		appService.deleteUser(john)
@@ -141,15 +141,15 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response1TimeWrong, 400)
-		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
-		response1TimeWrong.responseData.remainingAttempts == 4
+		response1TimeWrong.json.code == "error.mobile.number.confirmation.code.mismatch"
+		response1TimeWrong.json.remainingAttempts == 4
 
 		assertResponseStatusNoContent(responseRequestResend)
 
 		def response1TimeWrongAgain = confirmMobileNumber(john, "12341")
 		assertResponseStatus(response1TimeWrongAgain, 400)
-		response1TimeWrongAgain.responseData.code == "error.mobile.number.confirmation.code.mismatch"
-		response1TimeWrongAgain.responseData.remainingAttempts == 4
+		response1TimeWrongAgain.json.code == "error.mobile.number.confirmation.code.mismatch"
+		response1TimeWrongAgain.json.remainingAttempts == 4
 		def responseRight = confirmMobileNumber(john, "1234")
 		assertResponseStatusOk(responseRight)
 
@@ -184,7 +184,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.decrypting.data"
+		response.json.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -201,7 +201,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.message ==~ /.*'requestingUserId'.* is not present.*/
+		response.json.message ==~ /.*'requestingUserId'.* is not present.*/
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -218,7 +218,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.missing.password.header"
+		response.json.code == "error.missing.password.header"
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -239,9 +239,9 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(userUpdateResponse)
-		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href == null
-		userUpdateResponse.responseData.nickname == newNickname
-		assertDateTimeFormat(userUpdateResponse.responseData.creationTime)
+		userUpdateResponse.json._links?."yona:confirmMobileNumber"?.href == null
+		userUpdateResponse.json.nickname == newNickname
+		assertDateTimeFormat(userUpdateResponse.json.creationTime)
 
 		cleanup:
 		appService.deleteUser(john)
@@ -262,7 +262,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(userUpdateResponse)
-		User johnAfterUpdate = new User(userUpdateResponse.responseData)
+		User johnAfterUpdate = new User(userUpdateResponse.json)
 		johnAfterUpdate.mobileNumberConfirmationUrl != null
 		johnAfterUpdate.mobileNumber == newMobileNumber
 
@@ -272,7 +272,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(getMessagesResponse, 400)
-		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+		getMessagesResponse.json.code == "error.mobile.number.not.confirmed"
 
 		when:
 		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertUserGetResponseDetails, johnAfterUpdate)
@@ -301,7 +301,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.exists"
+		response.json.code == "error.user.exists"
 
 		cleanup:
 		appService.deleteUser(john)
@@ -322,8 +322,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.request.missing.request.parameter"
-		response.responseData.message ==~ /^Request parameter 'requestingDeviceId' is mandatory in this context.*/
+		response.json.code == "error.request.missing.request.parameter"
+		response.json.message ==~ /^Request parameter 'requestingDeviceId' is mandatory in this context.*/
 
 		cleanup:
 		appService.deleteUser(john)
@@ -347,8 +347,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.request.extra.property"
-		response.responseData.message ==~ /^Property 'deviceName' is not supported in this context.*/
+		response.json.code == "error.request.extra.property"
+		response.json.message ==~ /^Property 'deviceName' is not supported in this context.*/
 
 		cleanup:
 		appService.deleteUser(john)
@@ -364,7 +364,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.invalid.uuid"
+		assert response.json.code == "error.invalid.uuid"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -382,7 +382,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.user.not.found.id"
+		assert response.json.code == "error.user.not.found.id"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -399,7 +399,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.user.not.found.id"
+		assert response.json.code == "error.user.not.found.id"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -415,7 +415,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(responseAppleAppSiteAssociation)
 		responseAppleAppSiteAssociation.contentType == "application/json"
-		responseAppleAppSiteAssociation.responseData.applinks.details[0].appID ==~ /.*\.yona/
+		responseAppleAppSiteAssociation.json.applinks.details[0].appID ==~ /.*\.yona/
 	}
 
 	def 'Last monitored activity date is not present when there were no activities'()

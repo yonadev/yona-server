@@ -162,7 +162,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def responseAppleMobileConfig = appService.yonaServer.getData(johnAfterNumberConfirmation.requestingDevice.appleMobileConfig, [:], ["Yona-Password": johnAfterNumberConfirmation.password])
 		assertResponseStatusOk(responseAppleMobileConfig)
 		assert responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
-		def appleMobileConfig = responseAppleMobileConfig.data
+		def appleMobileConfig = responseAppleMobileConfig.rawData
 		assert appleMobileConfig.contains("<string>${johnAfterNumberConfirmation.requestingDevice.vpnProfile.vpnLoginId}\\n${johnAfterNumberConfirmation.requestingDevice.vpnProfile.vpnPassword}</string>")
 	}
 
@@ -174,7 +174,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		when:
 		User johnAsCreated = appService.addUser({
 			assertResponseStatus(it, 400)
-			assert it.responseData.code == "error.device.unknown.operating.system"
+			assert it.json.code == "error.device.unknown.operating.system"
 		}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "My Raspberry", "RASPBIAN", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
@@ -190,7 +190,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		when:
 		User johnAsCreated = appService.addUser({
 			assertResponseStatus(it, 400)
-			assert it.responseData.code == "error.device.unknown.operating.system"
+			assert it.json.code == "error.device.unknown.operating.system"
 		}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "First device", "UNKNOWN", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
@@ -206,7 +206,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		when:
 		User johnAsCreated = appService.addUser({
 			assertResponseStatus(it, 400)
-			assert it.responseData.code == "error.device.invalid.device.name"
+			assert it.json.code == "error.device.invalid.device.name"
 		}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "012345678901234567891", "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
@@ -247,7 +247,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		when:
 		User johnAsCreated = appService.addUser({
 			assertResponseStatus(it, 400)
-			assert it.responseData.code == "error.device.invalid.device.name"
+			assert it.json.code == "error.device.invalid.device.name"
 		}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "some:thing", "IOS", Device.SOME_APP_VERSION, Device.SUPPORTED_APP_VERSION_CODE)
 
@@ -280,7 +280,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.cannot.switch.operating.system"
+		assert response.json.code == "error.device.cannot.switch.operating.system"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -297,8 +297,8 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.app.version.not.supported"
-		assert response.responseData.message == "Yona app is out of date and must be updated. Actual version is '$appVersion' but oldest supported version for 'IOS' is '1.2'"
+		assert response.json.code == "error.device.app.version.not.supported"
+		assert response.json.message == "Yona app is out of date and must be updated. Actual version is '$appVersion' but oldest supported version for 'IOS' is '1.2'"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -314,7 +314,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.invalid.version.code"
+		assert response.json.code == "error.device.invalid.version.code"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -374,7 +374,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, expectedStatus)
-		expectedStatus == 200 || response.responseData.message ==~ /$expectedMessagePattern/
+		expectedStatus == 200 || response.json.message ==~ /$expectedMessagePattern/
 
 
 		cleanup:

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2020 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -26,7 +26,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		User bobAfterUpdate = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assertResponseStatusOk(richardMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 
 		then:
 		bobAfterUpdate.nickname == "Bobby"
@@ -60,7 +60,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assertResponseStatusOk(richardMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 
 		then:
 		buddyInfoUpdateMessages.size() == 1
@@ -101,11 +101,11 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 
-		def buddyInfoUpdateMessages = response.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = response.json._embedded."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0].nickname == updatedBobJson.nickname
 
-		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
+		def buddyConnectResponseMessages = response.json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		buddyConnectResponseMessages.size() == 1
 		buddyConnectResponseMessages[0].nickname == updatedBobJson.nickname
 		buddyConnectResponseMessages[0].status == "ACCEPTED"

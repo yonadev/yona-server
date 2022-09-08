@@ -39,7 +39,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.firstname"
+		response.json.code == "error.user.firstname"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -56,7 +56,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.lastname"
+		response.json.code == "error.user.lastname"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -73,7 +73,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.mobile.number"
+		response.json.code == "error.user.mobile.number"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -90,7 +90,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.mobile.number.invalid"
+		response.json.code == "error.user.mobile.number.invalid"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -107,7 +107,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.email.address"
+		response.json.code == "error.user.email.address"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -128,11 +128,11 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response1, 400)
-		response1.responseData.code == "error.user.email.address.invalid"
+		response1.json.code == "error.user.email.address.invalid"
 		assertResponseStatus(response2, 400)
-		response2.responseData.code == "error.user.email.address.invalid"
+		response2.json.code == "error.user.email.address.invalid"
 		assertResponseStatus(response3, 400)
-		response3.responseData.code == "error.user.email.address.invalid"
+		response3.json.code == "error.user.email.address.invalid"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -149,7 +149,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.buddy.cannot.invite.self"
+		response.json.code == "error.buddy.cannot.invite.self"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -168,7 +168,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.buddy.cannot.invite.existing.buddy"
+		response.json.code == "error.buddy.cannot.invite.existing.buddy"
 
 		cleanup:
 		appService.deleteUser(richard)

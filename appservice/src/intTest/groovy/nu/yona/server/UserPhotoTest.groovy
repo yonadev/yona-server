@@ -35,7 +35,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 		response.contentType == "application/json"
-		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
+		def newUserPhotoUrl = response.json?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
 
 		def richardAfterUpdate = appService.reloadUser(richard)
@@ -57,7 +57,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 		response.contentType == "application/json"
-		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
+		def newUserPhotoUrl = response.json?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
 
 		def downloadResponse = appService.yonaServer.getData(newUserPhotoUrl)
@@ -80,7 +80,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 		response.contentType == "application/json"
-		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
+		def newUserPhotoUrl = response.json?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
 
 		def downloadResponse = appService.yonaServer.getData(newUserPhotoUrl)
@@ -102,7 +102,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 413)
-		response.responseData.code == null // As the app should take care for uploading a resized photo, this is not a user error, so it does not need to have a code
+		response.json.code == null // As the app should take care for uploading a resized photo, this is not a user error, so it does not need to have a code
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -208,7 +208,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
+		def bobMessagesFromRichard = bobMessagesResponse.json._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
@@ -232,7 +232,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
+		def bobMessagesFromRichard = bobMessagesResponse.json._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
@@ -259,7 +259,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
+		def bobMessagesFromRichard = bobMessagesResponse.json._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
@@ -285,7 +285,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesResponse)
-		def bobMessagesFromRichard = bobMessagesResponse.responseData._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
+		def bobMessagesFromRichard = bobMessagesResponse.json._embedded?."yona:messages"?.findAll { it."nickname" == "RQ" }
 		bobMessagesFromRichard.each {
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
@@ -309,7 +309,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -344,7 +344,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -378,7 +378,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
-		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyInfoChangeMessage" }
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -409,7 +409,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.decrypting.data"
+		response.json.code == "error.decrypting.data"
 
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == null
@@ -429,7 +429,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.decrypting.data"
+		response.json.code == "error.decrypting.data"
 
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == userPhotoUrlBefore
@@ -453,9 +453,9 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatusOk(response)
 		response.contentType == "application/json"
-		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
+		def newUserPhotoUrl = response.json?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
-		response.responseData.nickname == newNickname
+		response.json.nickname == newNickname
 
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
@@ -470,7 +470,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def multipartEntity = createMultipartEntity(EXAMPLE_PNG_DATA_BASE64, "image/png", "MyPhoto.png")
 		def response = putPhoto(user, multipartEntity)
 		assertResponseStatusOk(response)
-		response.responseData?._links?."yona:userPhoto"?.href
+		response.json?._links?."yona:userPhoto"?.href
 	}
 
 	private static HttpEntity createMultipartEntity(String base64String, mimeType, filename)

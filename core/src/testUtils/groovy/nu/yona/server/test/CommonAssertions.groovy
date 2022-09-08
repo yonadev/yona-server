@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Stichting Yona Foundation
+ * Copyright (c) 2017, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -52,50 +52,50 @@ class CommonAssertions
 	static void assertUserCreationResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
-		assertUser(response.responseData, false)
+		assertUser(response.json, false)
 	}
 
 	static void assertUserUpdateResponseDetails(def response)
 	{
 		assertResponseStatusOk(response)
-		assertUser(response.responseData, false)
+		assertUser(response.json, false)
 	}
 
 	static void assertUserGetResponseDetailsIgnoreDefaultDevice(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUser(response.responseData, false, false, false)
+		assertUser(response.json, false, false, false)
 	}
 
 	static void assertUserGetResponseDetails(def response, assertDefaultDevice = true)
 	{
 		assertResponseStatusSuccess(response)
-		assertUser(response.responseData, false, false, assertDefaultDevice)
+		assertUser(response.json, false, false, assertDefaultDevice)
 	}
 
 	static void assertUserGetResponseDetailsPinResetRequestedNotGenerated(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUser(response.responseData, true)
-		assert response.responseData.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
-		assert response.responseData._links.keySet() == USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED
-		assert response.responseData._embedded.keySet() == USER_EMBEDDED
+		assertUser(response.json, true)
+		assert response.json.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
+		assert response.json._links.keySet() == USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED
+		assert response.json._embedded.keySet() == USER_EMBEDDED
 	}
 
 	static void assertUserGetResponseDetailsPinResetRequestedAndGenerated(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUser(response.responseData, true)
-		assert response.responseData.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
-		assert response.responseData._links.keySet() == USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED
-		assert response.responseData._embedded.keySet() == USER_EMBEDDED
+		assertUser(response.json, true)
+		assert response.json.keySet() == USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
+		assert response.json._links.keySet() == USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED
+		assert response.json._embedded.keySet() == USER_EMBEDDED
 	}
 
 	static void assertUserGetResponseDetailsCreatedOnBuddyRequest(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUser(response.responseData, true, true)
-		assert response.responseData.keySet() == USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST
+		assertUser(response.json, true, true)
+		assert response.json.keySet() == USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST
 	}
 
 	static void assertUser(user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest = false, assertDefaultDevice = true)
@@ -161,13 +161,13 @@ class CommonAssertions
 	static void assertUserGetResponseDetailsWithBuddyDataEstablishedRelationship(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertBuddyUser(response.responseData, true)
+		assertBuddyUser(response.json, true)
 	}
 
 	static void assertUserGetResponseDetailsWithBuddyDataNotYetEstablishedRelationship(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertBuddyUser(response.responseData, false)
+		assertBuddyUser(response.json, false)
 	}
 
 	static void assertVpnProfile(def vpnProfile)
@@ -275,19 +275,19 @@ class CommonAssertions
 
 	static void assertResponseStatus(def response, int status)
 	{
-		assert response.status == status, "Invalid status: $response.status (expecting $status). Response: $response.data"
+		assert response.status == status, "Invalid status: $response.status (expecting $status). Response: $response.rawData"
 	}
 
 	static void assertResponseStatusSuccess(def response)
 	{
-		assert response.status >= 200 && response.status < 300, "Invalid status: $response.status (expecting 2xx). Response: $response.data"
+		assert response.status >= 200 && response.status < 300, "Invalid status: $response.status (expecting 2xx). Response: $response.rawData"
 	}
 
 	static assertBuddyUsers(response)
 	{
-		if (response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies")
+		if (response.json._embedded?."yona:buddies"?._embedded?."yona:buddies")
 		{
-			response.responseData._embedded."yona:buddies"._embedded."yona:buddies".each { assertBuddyUser(it._embedded."yona:user", it.sendingStatus == "ACCEPTED") }
+			response.json._embedded."yona:buddies"._embedded."yona:buddies".each { assertBuddyUser(it._embedded."yona:user", it.sendingStatus == "ACCEPTED") }
 		}
 	}
 

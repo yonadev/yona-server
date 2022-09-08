@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2019 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -34,31 +34,31 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(allMessagesResponse)
-		allMessagesResponse.responseData._links.self.href.startsWith(richard.messagesUrl)
-		allMessagesResponse.responseData._links.self.href.contains("page=0")
-		allMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }.size() == 1
-		allMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 3
-		allMessagesResponse.responseData._embedded."yona:messages".size() == 4
+		allMessagesResponse.json._links.self.href.startsWith(richard.messagesUrl)
+		allMessagesResponse.json._links.self.href.contains("page=0")
+		allMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }.size() == 1
+		allMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 3
+		allMessagesResponse.json._embedded."yona:messages".size() == 4
 
 		assertResponseStatusOk(firstPageMessagesResponse)
-		firstPageMessagesResponse.responseData._links.self.href.contains("page=0")
-		firstPageMessagesResponse.responseData._links.self.href.contains("size=2")
-		firstPageMessagesResponse.responseData._links.self.href.contains("sort=creationTime")
-		!firstPageMessagesResponse.responseData._links.prev
-		firstPageMessagesResponse.responseData._links.next
-		firstPageMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }.size() == 0
-		firstPageMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 2
-		firstPageMessagesResponse.responseData.page.totalElements == 4
+		firstPageMessagesResponse.json._links.self.href.contains("page=0")
+		firstPageMessagesResponse.json._links.self.href.contains("size=2")
+		firstPageMessagesResponse.json._links.self.href.contains("sort=creationTime")
+		!firstPageMessagesResponse.json._links.prev
+		firstPageMessagesResponse.json._links.next
+		firstPageMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }.size() == 0
+		firstPageMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 2
+		firstPageMessagesResponse.json.page.totalElements == 4
 
 		assertResponseStatusOk(secondPageMessagesResponse)
-		secondPageMessagesResponse.responseData._links.self.href.contains("page=1")
-		secondPageMessagesResponse.responseData._links.self.href.contains("size=2")
-		secondPageMessagesResponse.responseData._links.self.href.contains("sort=creationTime")
-		secondPageMessagesResponse.responseData._links.prev
-		!secondPageMessagesResponse.responseData._links.next
-		secondPageMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }.size() == 1
-		secondPageMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 1
-		secondPageMessagesResponse.responseData.page.totalElements == 4
+		secondPageMessagesResponse.json._links.self.href.contains("page=1")
+		secondPageMessagesResponse.json._links.self.href.contains("size=2")
+		secondPageMessagesResponse.json._links.self.href.contains("sort=creationTime")
+		secondPageMessagesResponse.json._links.prev
+		!secondPageMessagesResponse.json._links.next
+		secondPageMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }.size() == 1
+		secondPageMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 1
+		secondPageMessagesResponse.json.page.totalElements == 4
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -78,34 +78,34 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 
 		def initialGetMessagesResponse = appService.getMessages(richard)
 		assertResponseStatusOk(initialGetMessagesResponse)
-		assert initialGetMessagesResponse.responseData.page.totalElements == 5
+		assert initialGetMessagesResponse.json.page.totalElements == 5
 
-		markRead(richard, initialGetMessagesResponse.responseData._embedded."yona:messages"[0])
-		markRead(richard, initialGetMessagesResponse.responseData._embedded."yona:messages"[2])
-		markRead(richard, initialGetMessagesResponse.responseData._embedded."yona:messages"[3])
+		markRead(richard, initialGetMessagesResponse.json._embedded."yona:messages"[0])
+		markRead(richard, initialGetMessagesResponse.json._embedded."yona:messages"[2])
+		markRead(richard, initialGetMessagesResponse.json._embedded."yona:messages"[3])
 
 		when:
 		def getUnreadMessagesResponse = appService.getMessages(richard, ["onlyUnreadMessages": true])
 
 		then:
 		assertResponseStatusOk(getUnreadMessagesResponse)
-		getUnreadMessagesResponse.responseData.page.totalElements == 2
+		getUnreadMessagesResponse.json.page.totalElements == 2
 
-		getUnreadMessagesResponse.responseData._embedded."yona:messages"[0]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[1]._links.self.href
-		getUnreadMessagesResponse.responseData._embedded."yona:messages"[1]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[4]._links.self.href
+		getUnreadMessagesResponse.json._embedded."yona:messages"[0]._links.self.href == initialGetMessagesResponse.json._embedded."yona:messages"[1]._links.self.href
+		getUnreadMessagesResponse.json._embedded."yona:messages"[1]._links.self.href == initialGetMessagesResponse.json._embedded."yona:messages"[4]._links.self.href
 
 		def secondGetMessagesResponse = appService.getMessages(richard, ["onlyUnreadMessages": false])
-		secondGetMessagesResponse.responseData.page.totalElements == 5
+		secondGetMessagesResponse.json.page.totalElements == 5
 
-		markUnread(richard, secondGetMessagesResponse.responseData._embedded."yona:messages"[2])
+		markUnread(richard, secondGetMessagesResponse.json._embedded."yona:messages"[2])
 
 		def secondGetUnreadMessagesResponse = appService.getMessages(richard, ["onlyUnreadMessages": true])
 		assertResponseStatusOk(secondGetUnreadMessagesResponse)
-		secondGetUnreadMessagesResponse.responseData.page.totalElements == 3
+		secondGetUnreadMessagesResponse.json.page.totalElements == 3
 
-		secondGetUnreadMessagesResponse.responseData._embedded."yona:messages"[0]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[1]._links.self.href
-		secondGetUnreadMessagesResponse.responseData._embedded."yona:messages"[1]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[2]._links.self.href
-		secondGetUnreadMessagesResponse.responseData._embedded."yona:messages"[2]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[4]._links.self.href
+		secondGetUnreadMessagesResponse.json._embedded."yona:messages"[0]._links.self.href == initialGetMessagesResponse.json._embedded."yona:messages"[1]._links.self.href
+		secondGetUnreadMessagesResponse.json._embedded."yona:messages"[1]._links.self.href == initialGetMessagesResponse.json._embedded."yona:messages"[2]._links.self.href
+		secondGetUnreadMessagesResponse.json._embedded."yona:messages"[2]._links.self.href == initialGetMessagesResponse.json._embedded."yona:messages"[4]._links.self.href
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -119,15 +119,15 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
-		def messageUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
+		def messageUrl = appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.self.href
 
 		when:
 		def response = appService.deleteResourceWithPassword(messageUrl, bob.password)
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData?.code == "error.cannot.delete.unprocessed.message"
-		def buddyConnectRequestMessages = appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }
+		response.json?.code == "error.cannot.delete.unprocessed.message"
+		def buddyConnectRequestMessages = appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }
 		buddyConnectRequestMessages.size() == 1
 		!buddyConnectRequestMessages[0]._links.edit
 
@@ -145,14 +145,14 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		String acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
-		def messageDeleteUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.edit.href
+		def messageDeleteUrl = appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }[0]._links.edit.href
 
 		when:
 		def response = appService.deleteResourceWithPassword(messageDeleteUrl, bob.password)
 
 		then:
 		assertResponseStatusOk(response)
-		!appService.getMessages(bob).responseData._embedded?."yona:messages"?.size()
+		!appService.getMessages(bob).json._embedded?."yona:messages"?.size()
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -169,14 +169,14 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		String acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message": "Yes, great idea!"], bob.password)
 		appService.fetchBuddyConnectResponseMessage(richard).processUrl == null // Processing happens automatically these days
-		def messageDeleteUrl = appService.getMessages(richard).responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }[0]._links.edit.href
+		def messageDeleteUrl = appService.getMessages(richard).json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }[0]._links.edit.href
 
 		when:
 		def response = appService.deleteResourceWithPassword(messageDeleteUrl, richard.password)
 
 		then:
 		assertResponseStatusOk(response)
-		!appService.getMessages(richard).responseData._embedded?."yona:messages"?.size()
+		!appService.getMessages(richard).json._embedded?."yona:messages"?.size()
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -190,16 +190,16 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
-		def messageDeleteUrl = appService.getMessages(richard).responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.edit.href
+		def messageDeleteUrl = appService.getMessages(richard).json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.edit.href
 
 		when:
 		def response = appService.deleteResourceWithPassword(messageDeleteUrl, richard.password)
 
 		then:
 		assertResponseStatusOk(response)
-		appService.getMessages(richard).responseData._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" }?.size() == 0
+		appService.getMessages(richard).json._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" }?.size() == 0
 
-		appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 0
+		appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -213,16 +213,16 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard.requestingDevice, ["news/media"], "http://www.refdag.nl")
-		def messageDeleteUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.edit.href
+		def messageDeleteUrl = appService.getMessages(bob).json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }[0]._links.edit.href
 
 		when:
 		def response = appService.deleteResourceWithPassword(messageDeleteUrl, bob.password)
 
 		then:
 		assertResponseStatusOk(response)
-		appService.getMessages(richard).responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 1
+		appService.getMessages(richard).json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }.size() == 1
 
-		appService.getMessages(bob).responseData._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" }?.size() == 0
+		appService.getMessages(bob).json._embedded?."yona:messages"?.findAll { it."@type" == "GoalConflictMessage" }?.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)

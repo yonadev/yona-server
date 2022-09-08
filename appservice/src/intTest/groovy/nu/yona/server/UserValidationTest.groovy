@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2022 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -33,7 +33,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.firstname"
+		response.json.code == "error.user.firstname"
 	}
 
 	def 'AddUser - empty last name'()
@@ -45,7 +45,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.lastname"
+		response.json.code == "error.user.lastname"
 	}
 
 	def 'AddUser - empty nickname'()
@@ -57,7 +57,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.nickname"
+		response.json.code == "error.user.nickname"
 	}
 
 	def 'AddUser - empty mobile number'()
@@ -69,7 +69,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.mobile.number"
+		response.json.code == "error.user.mobile.number"
 	}
 
 	def 'AddUser - invalid mobile number format'()
@@ -81,7 +81,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.mobile.number.invalid"
+		response.json.code == "error.user.mobile.number.invalid"
 	}
 
 	def 'AddUser - invalid mobile number (fixed line)'()
@@ -93,6 +93,6 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.mobile.number.not.mobile"
+		response.json.code == "error.user.mobile.number.not.mobile"
 	}
 }

@@ -34,7 +34,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.mobile.number.not.confirmed"
+		response.json.code == "error.mobile.number.not.confirmed"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -50,11 +50,11 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 201)
-		response.responseData._embedded."yona:user".firstName == "Bobby"
-		response.responseData._embedded."yona:user".lastName == "Dun"
-		response.responseData._embedded."yona:user".appLastOpenedDate == null
-		response.responseData._links."yona:user" == null
-		response.responseData._links.self.href.startsWith(YonaServer.stripQueryString(richard.url))
+		response.json._embedded."yona:user".firstName == "Bobby"
+		response.json._embedded."yona:user".lastName == "Dun"
+		response.json._embedded."yona:user".appLastOpenedDate == null
+		response.json._links."yona:user" == null
+		response.json._links.self.href.startsWith(YonaServer.stripQueryString(richard.url))
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -112,7 +112,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getUserResponse = appService.getUser(inviteUrl, null)
 		assertResponseStatus(getUserResponse, 400)
-		getUserResponse.responseData.code == "error.decrypting.data"
+		getUserResponse.json.code == "error.decrypting.data"
 
 		User bobFromGetAfterUpdate = appService.reloadUser(updatedBob)
 		bobFromGetAfterUpdate.firstName == newFirstName
@@ -125,7 +125,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesResponse = appService.yonaServer.getJsonWithPassword(YonaServer.stripQueryString(bobFromGetAfterUpdate.url) + "/messages/", bobFromGetAfterUpdate.password)
 		assertResponseStatus(getMessagesResponse, 400)
-		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+		getMessagesResponse.json.code == "error.mobile.number.not.confirmed"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -216,11 +216,11 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getUserResponse = appService.getUser(updatedBob.url, updatedBob.password)
 		assertResponseStatusOk(getUserResponse)
-		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:goals"
-		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:goals".size() == 1 //mandatory goal
+		getUserResponse.json._embedded."yona:goals"._embedded."yona:goals"
+		getUserResponse.json._embedded."yona:goals"._embedded."yona:goals".size() == 1 //mandatory goal
 		def getMessagesResponse = appService.getMessages(updatedBob)
 		assertResponseStatusOk(getMessagesResponse)
-		getMessagesResponse.responseData._embedded."yona:messages".size() == 1 // The buddy request from Richard
+		getMessagesResponse.json._embedded."yona:messages".size() == 1 // The buddy request from Richard
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -292,7 +292,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
+		def buddyConnectResponseMessages = response.json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		buddyConnectResponseMessages[0]._links?."yona:user"?.href?.startsWith(YonaServer.stripQueryString(bob.url))
 		buddyConnectResponseMessages[0]._embedded?."yona:user" == null
 		buddyConnectResponseMessages[0].nickname == newNickname
@@ -341,7 +341,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def richardGoalConflictMessages = getMessagesRichardResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
@@ -349,7 +349,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(updatedBob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def bobGoalConflictMessages = getMessagesBobResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
@@ -391,7 +391,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.decrypting.data"
+		response.json.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -415,7 +415,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.decrypting.data"
+		response.json.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -432,7 +432,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.not.created.on.buddy.request"
+		response.json.code == "error.user.not.created.on.buddy.request"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -453,7 +453,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.created.on.buddy.request"
+		response.json.code == "error.user.created.on.buddy.request"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -475,7 +475,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.not.created.on.buddy.request"
+		response.json.code == "error.user.not.created.on.buddy.request"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -512,10 +512,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesResponse)
-		getMessagesResponse.responseData._embedded
-		getMessagesResponse.responseData._embedded."yona:messages".size() == 1
+		getMessagesResponse.json._embedded
+		getMessagesResponse.json._embedded."yona:messages".size() == 1
 
-		def buddyConnectResponseMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
+		def buddyConnectResponseMessages = getMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectResponseMessage" }
 		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
 		buddyConnectResponseMessage.message == "User account was deleted"
 		buddyConnectResponseMessage.nickname == "Bobby Dun"
@@ -557,7 +557,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
-		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def richardGoalConflictMessages = getMessagesRichardResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
@@ -565,7 +565,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesBobResponse)
-		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
+		def bobGoalConflictMessages = getMessagesBobResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
@@ -599,8 +599,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatus(response, expectedStatus)
 		if (expectedStatus == 400)
 		{
-			response.responseData.code == "error.request.missing.property"
-			response.responseData.message ==~ /^Mandatory property '$propertyToRemove'.*/
+			response.json.code == "error.request.missing.property"
+			response.json.message ==~ /^Mandatory property '$propertyToRemove'.*/
 		}
 
 		cleanup:
@@ -632,7 +632,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.exists"
+		response.json.code == "error.user.exists"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -642,13 +642,13 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	def assertUserCreationFailedBecauseOfDuplicate(response)
 	{
 		assertResponseStatus(response, 400)
-		response.responseData.code == "error.user.exists.created.on.buddy.request"
+		response.json.code == "error.user.exists.created.on.buddy.request"
 	}
 
 	def assertUserOverwriteResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
-		assertUser(response.responseData)
+		assertUser(response.json)
 	}
 
 	def sendBuddyRequestForBobby(User user, String mobileNumber)
@@ -672,10 +672,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		def response = appService.getLastEmail()
 		assertResponseStatusOk(response)
-		assert response.responseData.from == "Richard Quinn <noreply@yona.nu>"
-		assert response.responseData.to == "Bobby Dun <bobdunn325@gmail.com>"
-		assert response.responseData.subject == "Become friend of Richard Quinn on Yona!"
-		assert response.responseData.body ==~ /(?s).*Return to this mail and click <a href="http.*/
+		assert response.json.from == "Richard Quinn <noreply@yona.nu>"
+		assert response.json.to == "Bobby Dun <bobdunn325@gmail.com>"
+		assert response.json.subject == "Become friend of Richard Quinn on Yona!"
+		assert response.json.body ==~ /(?s).*Return to this mail and click <a href="http.*/
 		String inviteUrl = getInviteUrl(response)
 		assert inviteUrl ==~ /.*$ENCODED_TEST_TEMP_PASSWORD.*/
 	}
@@ -689,7 +689,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 	String getInviteUrl(response)
 	{
-		def matcher = response.responseData.body =~ /(?s).*Return to this mail and click <a href="([^"]*)".*/
+		def matcher = response.json.body =~ /(?s).*Return to this mail and click <a href="([^"]*)".*/
 		assert matcher.matches()
 		matcher[0][1]
 	}

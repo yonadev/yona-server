@@ -51,7 +51,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(responseDayOverviewWithBuddies, 404)
-		responseDayOverviewWithBuddies.responseData.code == "error.buddy.list.empty"
+		responseDayOverviewWithBuddies.json.code == "error.buddy.list.empty"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -71,19 +71,19 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewBasics(responseDayOverviews, 1, 1)
 		assertWeekOverviewBasics(responseWeekOverviews, [2], 1)
 
-		def weekActivityOverviewForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == goal.url }
+		def weekActivityOverviewForGoal = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == goal.url }
 		weekActivityOverviewForGoal?._links?."yona:weekDetails"?.href
 		weekActivityOverviewForGoal?._links?."next"?.href == null
 		weekActivityOverviewForGoal?._links?."prev"?.href == null
 		def weekActivityDetailUrl = weekActivityOverviewForGoal?._links?."yona:weekDetails"?.href
 		def responseWeekDetails = appService.getResourceWithPassword(weekActivityDetailUrl, richard.password)
 		assertResponseStatusOk(responseWeekDetails)
-		def weekActivityDetails = responseWeekDetails.responseData
+		def weekActivityDetails = responseWeekDetails.json
 		weekActivityDetails._links."yona:goal".href == weekActivityOverviewForGoal._links."yona:goal".href
 		weekActivityDetails?._links?."next"?.href == null
 		weekActivityDetails?._links?."prev"?.href == null
 
-		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[0]
+		def dayActivityOverview = responseDayOverviews.json._embedded."yona:dayActivityOverviews"[0]
 		def dayActivityOverviewForGoal = dayActivityOverview.dayActivities.find { it._links."yona:goal".href == goal.url }
 		dayActivityOverviewForGoal?._links?."yona:dayDetails"?.href
 		dayActivityOverviewForGoal?._links?."next"?.href == null
@@ -91,7 +91,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def dayActivityDetailUrl = dayActivityOverviewForGoal?._links?."yona:dayDetails"?.href
 		def responseDayDetail = appService.getResourceWithPassword(dayActivityDetailUrl, richard.password)
 		assertResponseStatusOk(responseDayDetail)
-		def dayActivityDetails = responseDayDetail.responseData
+		def dayActivityDetails = responseDayDetail.json
 		dayActivityDetails._links."yona:goal".href == dayActivityOverviewForGoal._links."yona:goal".href
 		dayActivityDetails?._links?."next"?.href == null
 		dayActivityDetails?._links?."prev"?.href == null
@@ -133,11 +133,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviewsPage3, [2, 1], expectedTotalWeeks)
 		assertWeekOverviewBasics(responseWeekOverviewsPage4, [1], expectedTotalWeeks)
 
-		def week5ForGoal = responseWeekOverviewsPage3.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
-		def week4ForGoal = responseWeekOverviewsPage2.responseData._embedded."yona:weekActivityOverviews"[1].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
-		def week3ForGoal = responseWeekOverviewsPage2.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
-		def week2ForGoal = responseWeekOverviewsPage1.responseData._embedded."yona:weekActivityOverviews"[1].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
-		def week1ForGoal = responseWeekOverviewsPage1.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week5ForGoal = responseWeekOverviewsPage3.json._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week4ForGoal = responseWeekOverviewsPage2.json._embedded."yona:weekActivityOverviews"[1].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week3ForGoal = responseWeekOverviewsPage2.json._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week2ForGoal = responseWeekOverviewsPage1.json._embedded."yona:weekActivityOverviews"[1].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def week1ForGoal = responseWeekOverviewsPage1.json._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
 		assertWeekDetailPrevNextLinks(richard, week5ForGoal, null, week4ForGoal)
 		assertWeekDetailPrevNextLinks(richard, week4ForGoal, week5ForGoal, week3ForGoal)
 		assertWeekDetailPrevNextLinks(richard, week1ForGoal, week2ForGoal, null)
@@ -145,11 +145,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewBasics(responseDayOverviewsPage1, 3, expectedTotalDays)
 		assertDayOverviewBasics(responseDayOverviewsPage2, 3, expectedTotalDays)
 
-		def day1ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
-		def day2ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[1].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
-		def day3ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[2].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
-		def secondToLastDayForGoal = responseDayOverviewsAllOnOnePage.responseData._embedded."yona:dayActivityOverviews"[expectedDaysNews - 2].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
-		def lastDayForGoal = responseDayOverviewsAllOnOnePage.responseData._embedded."yona:dayActivityOverviews"[expectedDaysNews - 1].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def day1ForGoal = responseDayOverviewsPage1.json._embedded."yona:dayActivityOverviews"[0].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def day2ForGoal = responseDayOverviewsPage1.json._embedded."yona:dayActivityOverviews"[1].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def day3ForGoal = responseDayOverviewsPage1.json._embedded."yona:dayActivityOverviews"[2].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def secondToLastDayForGoal = responseDayOverviewsAllOnOnePage.json._embedded."yona:dayActivityOverviews"[expectedDaysNews - 2].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
+		def lastDayForGoal = responseDayOverviewsAllOnOnePage.json._embedded."yona:dayActivityOverviews"[expectedDaysNews - 1].dayActivities.find { it._links."yona:goal".href == budgetGoalNews.url }
 		assertDayDetailPrevNextLinks(richard, lastDayForGoal, null, secondToLastDayForGoal)
 		assertDayDetailPrevNextLinks(richard, day2ForGoal, day3ForGoal, day1ForGoal)
 		assertDayDetailPrevNextLinks(richard, day1ForGoal, day2ForGoal, null)
@@ -223,7 +223,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 3], expectedTotalWeeks)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichard, 6)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek, "Mon")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek, "Tue")
@@ -284,7 +284,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
 
-		def buddyWeekOverviewLastWeek = responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def buddyWeekOverviewLastWeek = responseBuddyWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewLastWeek, budgetGoalSocialBob, 3)
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek, "Thu")
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek, "Fri")
@@ -307,30 +307,30 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def weekOverviewLink = weekOverviewLastWeek._links.self.href
 		def weekOverviewResponse = appService.getResourceWithPassword(weekOverviewLink, richard.password)
 		assertResponseStatusOk(weekOverviewResponse)
-		assert weekOverviewResponse.responseData.date == weekOverviewLastWeek.date
+		assert weekOverviewResponse.json.date == weekOverviewLastWeek.date
 
 		def dayOverviewOffset = YonaServer.relativeDateStringToDaysOffset(1, "Thu")
-		def dayOverviewLink = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOverviewOffset]._links.self.href
+		def dayOverviewLink = responseDayOverviewsAll.json._embedded."yona:dayActivityOverviews"[dayOverviewOffset]._links.self.href
 		def dayOverviewResponse = appService.getResourceWithPassword(dayOverviewLink, richard.password)
 		assertResponseStatusOk(dayOverviewResponse)
-		assert dayOverviewResponse.responseData.date == responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOverviewOffset].date
+		assert dayOverviewResponse.json.date == responseDayOverviewsAll.json._embedded."yona:dayActivityOverviews"[dayOverviewOffset].date
 
 		def dayOverviewWithBuddiesOffset = YonaServer.relativeDateStringToDaysOffset(1, "Fri")
-		def dayOverviewWithBuddiesLink = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset]._links.self.href
+		def dayOverviewWithBuddiesLink = responseDayOverviewsWithBuddies.json._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset]._links.self.href
 		def dayOverviewWithBuddiesResponse = appService.getResourceWithPassword(dayOverviewWithBuddiesLink, richard.password)
 		assertResponseStatusOk(dayOverviewWithBuddiesResponse)
-		assert dayOverviewWithBuddiesResponse.responseData.date == responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset].date
+		assert dayOverviewWithBuddiesResponse.json.date == responseDayOverviewsWithBuddies.json._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset].date
 
 		def buddyWeekOverviewLink = buddyWeekOverviewLastWeek._links.self.href
 		def responseBuddyWeekOverview = appService.getResourceWithPassword(buddyWeekOverviewLink, richard.password)
 		assertResponseStatusOk(responseBuddyWeekOverview)
-		assert responseBuddyWeekOverview.responseData.date == buddyWeekOverviewLastWeek.date
+		assert responseBuddyWeekOverview.json.date == buddyWeekOverviewLastWeek.date
 
 		def buddyDayOverviewOffset = YonaServer.relativeDateStringToDaysOffset(1, "Sat")
-		def buddyDayOverviewLink = responseBuddyDayOverviews.responseData._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset]._links.self.href
+		def buddyDayOverviewLink = responseBuddyDayOverviews.json._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset]._links.self.href
 		def responseBuddyDayOverview = appService.getResourceWithPassword(buddyDayOverviewLink, richard.password)
 		assertResponseStatusOk(responseBuddyDayOverview)
-		assert responseBuddyDayOverview.responseData.date == responseBuddyDayOverviews.responseData._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset].date
+		assert responseBuddyDayOverview.json.date == responseBuddyDayOverviews.json._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset].date
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -386,9 +386,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		dayDetailBobSocialToday._links.prev != null
 		dayDetailBobSocialToday._links.next == null
 
-		def weekDetailRichardGamblingFirstWeek = getWeekDetail(richard, responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2], noGoGoalGamblingRichard)
-		def weekDetailRichardGamblingSecondWeek = getWeekDetail(richard, responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1], noGoGoalGamblingRichard)
-		def weekDetailRichardGamblingThisWeek = getWeekDetail(richard, responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0], noGoGoalGamblingRichard)
+		def weekDetailRichardGamblingFirstWeek = getWeekDetail(richard, responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[2], noGoGoalGamblingRichard)
+		def weekDetailRichardGamblingSecondWeek = getWeekDetail(richard, responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1], noGoGoalGamblingRichard)
+		def weekDetailRichardGamblingThisWeek = getWeekDetail(richard, responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[0], noGoGoalGamblingRichard)
 		weekDetailRichardGamblingFirstWeek._links.prev == null
 		weekDetailRichardGamblingFirstWeek._links.next != null
 		weekDetailRichardGamblingSecondWeek._links.prev != null
@@ -396,9 +396,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		weekDetailRichardGamblingThisWeek._links.prev != null
 		weekDetailRichardGamblingThisWeek._links.next == null
 
-		def weekDetailBobSocialFirstWeek = getWeekDetail(richard, responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2], budgetGoalSocialBob)
-		def weekDetailBobSocialSecondWeek = getWeekDetail(richard, responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1], budgetGoalSocialBob)
-		def weekDetailBobSocialThisWeek = getWeekDetail(richard, responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0], budgetGoalSocialBob)
+		def weekDetailBobSocialFirstWeek = getWeekDetail(richard, responseBuddyWeekOverviews.json._embedded."yona:weekActivityOverviews"[2], budgetGoalSocialBob)
+		def weekDetailBobSocialSecondWeek = getWeekDetail(richard, responseBuddyWeekOverviews.json._embedded."yona:weekActivityOverviews"[1], budgetGoalSocialBob)
+		def weekDetailBobSocialThisWeek = getWeekDetail(richard, responseBuddyWeekOverviews.json._embedded."yona:weekActivityOverviews"[0], budgetGoalSocialBob)
 		weekDetailBobSocialFirstWeek._links.prev == null
 		weekDetailBobSocialFirstWeek._links.next != null
 		weekDetailBobSocialSecondWeek._links.prev != null
@@ -440,7 +440,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 2], expectedTotalWeeks, expectedTotalWeeks)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, 2)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, "Fri")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, "Sat")
@@ -465,7 +465,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def initialResponseWeekOverviews = appService.getWeekActivityOverviews(richard)
 		def initialResponseDayOverviews = appService.getDayActivityOverviews(richard)
 		assertResponseStatusOk(initialResponseWeekOverviews)
-		def initialCurrentWeekOverview = initialResponseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0]
+		def initialCurrentWeekOverview = initialResponseWeekOverviews.json._embedded."yona:weekActivityOverviews"[0]
 		assertDayInWeekOverviewForGoal(initialCurrentWeekOverview, budgetGoalNews, initialExpectedValues, currentShortDay)
 		assertWeekDetailForGoal(richard, initialCurrentWeekOverview, budgetGoalNews, initialExpectedValues)
 		assertDayOverviewForBudgetGoal(initialResponseDayOverviews, budgetGoalNews, initialExpectedValues, 0, currentShortDay)
@@ -477,7 +477,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def expectedValuesAfterActivity = [(currentShortDay): [[goal: budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [(getCurrentSpreadCell(now)): 1]]], [goal: budgetGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]]]
 		def responseWeekOverviewsAfterActivity = appService.getWeekActivityOverviews(richard)
-		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.responseData._embedded."yona:weekActivityOverviews"[0]
+		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.json._embedded."yona:weekActivityOverviews"[0]
 		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesAfterActivity, currentShortDay)
 		assertWeekDetailForGoal(richard, currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesAfterActivity)
 
@@ -506,7 +506,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def initialResponseWeekOverviews = appService.getWeekActivityOverviews(richard)
 		def initialResponseDayOverviews = appService.getDayActivityOverviews(richard, ["size": 14])
 		assertResponseStatusOk(initialResponseWeekOverviews)
-		def initialCurrentWeekOverviewLastWeek = initialResponseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def initialCurrentWeekOverviewLastWeek = initialResponseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertDayInWeekOverviewForGoal(initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesRichardLastWeek, "Wed")
 		assertWeekDetailForGoal(richard, initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesRichardLastWeek)
 		assertDayOverviewForBudgetGoal(initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesRichardLastWeek, 1, "Wed")
@@ -523,7 +523,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 														  "Fri": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],
 														  "Sat": [[goal: noGoGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]], [goal: budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [:]]]],]
 		def responseWeekOverviewsAfterActivity = appService.getWeekActivityOverviews(richard)
-		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.responseData._embedded."yona:weekActivityOverviews"[1]
+		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.json._embedded."yona:weekActivityOverviews"[1]
 		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, "Tue")
 		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, "Wed")
 		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, "Thu")
@@ -574,7 +574,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviewsAllBeforeDelete = appService.getDayActivityOverviews(richard, ["size": 14])
 
 		assertWeekOverviewBasics(responseWeekOverviewsBeforeDelete, expectedGoalsPerWeekBeforeDelete, expectedTotalWeeksBeforeDelete)
-		def weekOverviewLastWeekBeforeDelete = responseWeekOverviewsBeforeDelete.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeekBeforeDelete = responseWeekOverviewsBeforeDelete.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekBeforeDelete, budgetGoalNews, 6)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, "Mon")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, "Tue")
@@ -620,7 +620,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseWeekOverviewsAfterDelete = appService.getWeekActivityOverviews(richard)
 		assertWeekOverviewBasics(responseWeekOverviewsAfterDelete, expectedGoalsPerWeekAfterDelete, expectedTotalWeeksAfterDelete)
 
-		def weekOverviewLastWeekAfterDelete = responseWeekOverviewsAfterDelete.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeekAfterDelete = responseWeekOverviewsAfterDelete.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, 4)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, "Wed")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, "Thu")
@@ -639,7 +639,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseWeekOverviewsNewActivity = appService.getWeekActivityOverviews(richard)
 		assertWeekOverviewBasics(responseWeekOverviewsNewActivity, expectedGoalsPerWeekAfterDelete, expectedTotalWeeksAfterDelete)
 
-		def weekOverviewLastWeekAfterNewActivity = responseWeekOverviewsNewActivity.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeekAfterNewActivity = responseWeekOverviewsNewActivity.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekAfterNewActivity, timeZoneGoalSocial, 4)
 
 		def responseDayOverviewsAllAfterNewActivity = appService.getDayActivityOverviews(richard, ["size": 14])
@@ -742,7 +742,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 2, 2], expectedTotalWeeks, expectedTotalWeeks)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
-		def weekOverviewWeekBeforeLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2]
+		def weekOverviewWeekBeforeLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[2]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, 5)
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Tue")
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Wed")
@@ -750,7 +750,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Fri")
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Sat")
 
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, 7)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardLastWeek, "Sun")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, "Mon")
@@ -900,7 +900,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 3, 2], expectedTotalWeeks, expectedTotalWeeks)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
-		def weekOverviewWeekBeforeLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2]
+		def weekOverviewWeekBeforeLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[2]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, 6)
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Mon")
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Tue")
@@ -909,7 +909,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Fri")
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Sat")
 
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichardAfterUpdate, 7)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, "Sun")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, "Mon")
@@ -980,7 +980,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
 
-		def weekOverviewBuddyWeekBeforeLastWeek = responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2]
+		def weekOverviewBuddyWeekBeforeLastWeek = responseBuddyWeekOverviews.json._embedded."yona:weekActivityOverviews"[2]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, 3)
 		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Thu")
 		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Fri")
@@ -1023,7 +1023,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
 
-		def weekOverviewBuddyLastWeek = responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewBuddyLastWeek = responseBuddyWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyLastWeek, budgetGoalSocialBobAfterUpdate, 7)
 		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Sun")
 		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Mon")
@@ -1172,7 +1172,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviews, [2, 2, 1], expectedTotalWeeksRichard, expectedTotalWeeksRichard)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialRichardAfterUpdate, 3)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialRichardBeforeUpdate, expectedValuesRichardLastWeek, "Thu")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialRichardAfterUpdate, expectedValuesRichardLastWeek, "Fri")
@@ -1197,7 +1197,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
 
-		def weekOverviewBuddyWeekBeforeLastWeek = responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2]
+		def weekOverviewBuddyWeekBeforeLastWeek = responseBuddyWeekOverviews.json._embedded."yona:weekActivityOverviews"[2]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, 3)
 		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Thu")
 		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Fri")
@@ -1232,7 +1232,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
 
-		def weekOverviewBuddyLastWeek = responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewBuddyLastWeek = responseBuddyWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyLastWeek, budgetGoalSocialBobAfterUpdate, 7)
 		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Sun")
 		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Mon")
@@ -1289,7 +1289,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		richard.buddies[0].dailyActivityReportsUrl == null
 		richard.buddies[0].weeklyActivityReportsUrl == null
 		assertResponseStatusOk(responseDayOverviewsWithBuddies)
-		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals yet
+		responseDayOverviewsWithBuddies.json?._embedded == null // Richard doesn't know Bob's goals yet
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1315,11 +1315,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(responseDayOverviewsWithBuddies)
-		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find { it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL }.dayActivitiesForUsers.size() == 2
+		responseDayOverviewsWithBuddies.json._embedded."yona:dayActivityOverviews"[0].dayActivities.find { it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL }.dayActivitiesForUsers.size() == 2
 		def responseWeekOverviews = appService.getWeekActivityOverviews(bob, bob.buddies[0])
 		assertResponseStatusOk(responseWeekOverviews)
-		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalGamblingRichard.url }
-		def weekActivityForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalGamblingRichard.url }
+		responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalGamblingRichard.url }
+		def weekActivityForGoal = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[0].weekActivities.find { it._links."yona:goal".href == budgetGoalGamblingRichard.url }
 		def dayActivityInWeekForGoal = weekActivityForGoal.dayActivities[YonaServer.now.dayOfWeek.toString()]
 		dayActivityInWeekForGoal.totalActivityDurationMinutes == 0
 
@@ -1357,13 +1357,13 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		response.responseData._embedded."yona:activities".size == 2
-		response.responseData._embedded."yona:activities"[0].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActStartTime))
-		response.responseData._embedded."yona:activities"[0].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActEndTime))
-		response.responseData._embedded."yona:activities"[0].app == app
-		response.responseData._embedded."yona:activities"[1].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(netActStartTime))
-		response.responseData._embedded."yona:activities"[1].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(netActStartTime).plusMinutes(1))
-		response.responseData._embedded."yona:activities"[1].app == ""
+		response.json._embedded."yona:activities".size == 2
+		response.json._embedded."yona:activities"[0].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActStartTime))
+		response.json._embedded."yona:activities"[0].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActEndTime))
+		response.json._embedded."yona:activities"[0].app == app
+		response.json._embedded."yona:activities"[1].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(netActStartTime))
+		response.json._embedded."yona:activities"[1].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(netActStartTime).plusMinutes(1))
+		response.json._embedded."yona:activities"[1].app == ""
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1388,7 +1388,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.invalid.date"
+		assert response.json.code == "error.invalid.date"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1466,7 +1466,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
 
-		def thu2 = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[YonaServer.relativeDateStringToDaysOffset(2, "Thu")]
+		def thu2 = responseDayOverviewsWithBuddies.json._embedded."yona:dayActivityOverviews"[YonaServer.relativeDateStringToDaysOffset(2, "Thu")]
 		thu2.dayActivities.find { it._links."yona:activityCategory".href == SOCIAL_ACT_CAT_URL } == null // Richard has social but none of his buddies has it, so it's not included
 		thu2.dayActivities.find { it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL } != null // Buddy has multimedia, so it's included, though Richard doesn't have it
 		thu2.dayActivities.find { it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL }.dayActivitiesForUsers.size() == 1 // Only Bob
@@ -1483,7 +1483,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
 		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
 
-		def mon1 = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[YonaServer.relativeDateStringToDaysOffset(1, "Mon")]
+		def mon1 = responseDayOverviewsWithBuddies.json._embedded."yona:dayActivityOverviews"[YonaServer.relativeDateStringToDaysOffset(1, "Mon")]
 		mon1.dayActivities.find { it._links."yona:activityCategory".href == SOCIAL_ACT_CAT_URL } == null // Nobody has social, so it's not included
 		mon1.dayActivities.find { it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL } != null // Buddy has multimedia, so it's included
 		mon1.dayActivities.find { it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL }.dayActivitiesForUsers.size() == 1 // Only Bob
@@ -1515,7 +1515,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(responseDayOverviewsWithBuddies)
-		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals anymore
+		responseDayOverviewsWithBuddies.json?._embedded == null // Richard doesn't know Bob's goals anymore
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1609,7 +1609,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 3], expectedTotalWeeks)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichard, 6)
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialRichard, 6)
@@ -1628,10 +1628,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayDetail(richardDefault, responseDayOverviewsAll, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
 
 		def responseRawDataNews = getRawActivityData(richardDefault, "W-1 Mon 00:00", budgetGoalNewsRichard)
-		assertRawActivityData(responseRawDataNews.responseData._embedded."yona:activities", expectedRawValuesNewsMon)
+		assertRawActivityData(responseRawDataNews.json._embedded."yona:activities", expectedRawValuesNewsMon)
 
 		def responseRawDataSocial = getRawActivityData(richardDefault, "W-1 Mon 00:00", timeZoneGoalSocialRichard)
-		assertRawActivityData(responseRawDataSocial.responseData._embedded."yona:activities", expectedRawValuesSocialMon)
+		assertRawActivityData(responseRawDataSocial.json._embedded."yona:activities", expectedRawValuesSocialMon)
 
 		richardDefault.requestingDevice.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Mon 00:00").toLocalDate()
 		richardIphone.requestingDevice.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Tue 00:00").toLocalDate()
@@ -1676,7 +1676,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 2], expectedTotalWeeks)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekOverviewLastWeek = responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[1]
 
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalSocialRichard, 6)
 
@@ -1782,10 +1782,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseBuddyWeekOverviewsBea, [2, 2, 2], 3, 100)
 
 		// W-3
-		responseBuddyWeekOverviewsBea.responseData._embedded."yona:weekActivityOverviews".size() == 3 // No data for W-3
+		responseBuddyWeekOverviewsBea.json._embedded."yona:weekActivityOverviews".size() == 3 // No data for W-3
 
 		// W-2
-		def buddyWeekOverviewWeekM2Bea = responseBuddyWeekOverviewsBea.responseData._embedded."yona:weekActivityOverviews"[2]
+		def buddyWeekOverviewWeekM2Bea = responseBuddyWeekOverviewsBea.json._embedded."yona:weekActivityOverviews"[2]
 		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewWeekM2Bea, budgetGoalSocialBea, 4)
 		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewWeekM2Bea, noGoGoalGamblingBea, 4)
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, budgetGoalSocialBea, expectedValuesBeaWeekM2, "Wed")
@@ -1797,10 +1797,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, "Fri")
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM2Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM2, "Sat")
 
-		responseBuddyWeekOverviewsBob.responseData._embedded."yona:weekActivityOverviews".size() == 2 // No data for W-2
+		responseBuddyWeekOverviewsBob.json._embedded."yona:weekActivityOverviews".size() == 2 // No data for W-2
 
 		// W-1
-		def buddyWeekOverviewWeekM1Bea = responseBuddyWeekOverviewsBea.responseData._embedded."yona:weekActivityOverviews"[1]
+		def buddyWeekOverviewWeekM1Bea = responseBuddyWeekOverviewsBea.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, 7)
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Sun")
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, budgetGoalSocialBea, expectedValuesBeaWeekM1, "Mon")
@@ -1817,7 +1817,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Fri")
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bea, noGoGoalGamblingBea, expectedValuesBeaWeekM1, "Sat")
 
-		def buddyWeekOverviewWeekM1Bob = responseBuddyWeekOverviewsBob.responseData._embedded."yona:weekActivityOverviews"[1]
+		def buddyWeekOverviewWeekM1Bob = responseBuddyWeekOverviewsBob.json._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(buddyWeekOverviewWeekM1Bob, budgetGoalNewsBob, 3)
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bob, budgetGoalNewsBob, expectedValuesBobWeekM1, "Thu")
 		assertDayInWeekOverviewForGoal(buddyWeekOverviewWeekM1Bob, budgetGoalNewsBob, expectedValuesBobWeekM1, "Fri")
@@ -1831,8 +1831,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseBuddyDayOverviewsBob = appService.getDayActivityOverviews(richard, buddyBob, ["size": 100])
 
 		then:
-		responseBuddyDayOverviewsBea.responseData._embedded."yona:dayActivityOverviews".size() == expectedTotalDaysBea
-		responseBuddyDayOverviewsBob.responseData._embedded."yona:dayActivityOverviews".size() == expectedTotalDaysBob
+		responseBuddyDayOverviewsBea.json._embedded."yona:dayActivityOverviews".size() == expectedTotalDaysBea
+		responseBuddyDayOverviewsBob.json._embedded."yona:dayActivityOverviews".size() == expectedTotalDaysBob
 
 		// W-2
 		assertDayDetail(richard, responseBuddyDayOverviewsBea, budgetGoalSocialBea, expectedValuesBeaWeekM2, 2, "Wed")
@@ -2079,20 +2079,20 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 				.toFormatter(YonaServer.EN_US_LOCALE)
 
 		String currentWeek = weekFormatter.format(YonaServer.now)
-		assert responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].date == currentWeek || isSunday
+		assert responseWeekOverviews.json._embedded."yona:weekActivityOverviews"[0].date == currentWeek || isSunday
 	}
 
 	private void assertWeekDetailPrevNextLinks(User user, weekActivityForGoal, expectedPrevWeekForGoal, expectedNextWeekForGoal)
 	{
 		def weekDetails = appService.getWeekDetailsForWeekFromOverviewItem(user, weekActivityForGoal)
-		assert weekDetails?.responseData?._links?."prev"?.href == expectedPrevWeekForGoal?._links?."yona:weekDetails"?.href
-		assert weekDetails?.responseData?._links?."next"?.href == expectedNextWeekForGoal?._links?."yona:weekDetails"?.href
+		assert weekDetails?.json?._links?."prev"?.href == expectedPrevWeekForGoal?._links?."yona:weekDetails"?.href
+		assert weekDetails?.json?._links?."next"?.href == expectedNextWeekForGoal?._links?."yona:weekDetails"?.href
 	}
 
 	private void assertDayDetailPrevNextLinks(User user, dayActivityForGoal, expectedPrevDayForGoal, expectedNextDayForGoal)
 	{
 		def dayDetails = appService.getDayDetailsForDayFromOverviewItem(user, dayActivityForGoal)
-		assert dayDetails?.responseData?._links?."prev"?.href == expectedPrevDayForGoal?._links?."yona:dayDetails"?.href
-		assert dayDetails?.responseData?._links?."next"?.href == expectedNextDayForGoal?._links?."yona:dayDetails"?.href
+		assert dayDetails?.json?._links?."prev"?.href == expectedPrevDayForGoal?._links?."yona:dayDetails"?.href
+		assert dayDetails?.json?._links?."next"?.href == expectedNextDayForGoal?._links?."yona:dayDetails"?.href
 	}
 }
