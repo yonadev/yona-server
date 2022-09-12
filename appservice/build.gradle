@@ -29,7 +29,7 @@ dependencies {
 	testImplementation project.deps.apacheHttpMime
 	testImplementation "org.mockito:mockito-core"
 
-	intTestImplementation "org.apache.groovy:groovy-all:4.0.4"
+	intTestImplementation "org.apache.groovy:groovy-all:4.0.5"
 	intTestImplementation project.deps.spockCore
 	intTestImplementation "org.apache.commons:commons-lang3:3.12.0"
 }
