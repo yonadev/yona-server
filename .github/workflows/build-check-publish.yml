@@ -50,19 +50,20 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
       - name: Build and analyze
+        uses: gradle/gradle-build-action@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew check sonarqube --info
+        arguments: |
+            check
+            sonarqube
+            --info
       - name: Build Docker images
-        run: ./gradlew -PdockerUrl=unix:///var/run/docker.sock buildDockerImage
+        uses: gradle/gradle-build-action@v2.3.0
+        arguments: |
+            -PdockerUrl=unix:///var/run/docker.sock
+            buildDockerImage
       - name: Checkout Helm chart repo for PR
         if: ${{ inputs.is-pr-build }}
         uses: actions/checkout@v3
@@ -150,7 +151,14 @@ jobs:
 
           ./scripts/wait-for-services.sh
       - name: Run integration tests
-        run: ./gradlew --no-daemon -Pyona_adminservice_url=http://localhost:31000 -Pyona_analysisservice_url=http://localhost:31001 -Pyona_appservice_url=http://localhost:31002 -Pyona_batchservice_url=http://localhost:31003 intTest
+        uses: gradle/gradle-build-action@v2.3.0
+        arguments: |
+            --no-daemon
+            -Pyona_adminservice_url=http://localhost:31000
+            -Pyona_analysisservice_url=http://localhost:31001
+            -Pyona_appservice_url=http://localhost:31002
+            -Pyona_batchservice_url=http://localhost:31003
+            intTest
       - name: Gather logs
         if: always()
         run: |
