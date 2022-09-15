@@ -50,6 +50,12 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+      - name: Debugging
+        run: |
+            echo "*** Begin debug output"
+            pwd
+            ls -l
+            echo "*** End debug output"
       - name: Build and analyze
         uses: gradle/gradle-build-action@v2.3.0
         env:
