@@ -62,9 +62,10 @@ jobs:
               --info
       - name: Build Docker images
         uses: gradle/gradle-build-action@v2.3.0
-        arguments: |
-            -PdockerUrl=unix:///var/run/docker.sock
-            buildDockerImage
+        with:
+          arguments: |
+              -PdockerUrl=unix:///var/run/docker.sock
+              buildDockerImage
       - name: Checkout Helm chart repo for PR
         if: ${{ inputs.is-pr-build }}
         uses: actions/checkout@v3
@@ -153,13 +154,14 @@ jobs:
           ./scripts/wait-for-services.sh
       - name: Run integration tests
         uses: gradle/gradle-build-action@v2.3.0
-        arguments: |
-            --no-daemon
-            -Pyona_adminservice_url=http://localhost:31000
-            -Pyona_analysisservice_url=http://localhost:31001
-            -Pyona_appservice_url=http://localhost:31002
-            -Pyona_batchservice_url=http://localhost:31003
-            intTest
+        with:
+          arguments: |
+              --no-daemon
+              -Pyona_adminservice_url=http://localhost:31000
+              -Pyona_analysisservice_url=http://localhost:31001
+              -Pyona_appservice_url=http://localhost:31002
+              -Pyona_batchservice_url=http://localhost:31003
+              intTest
       - name: Gather logs
         if: always()
         run: |
