@@ -14,7 +14,7 @@ final Map<String, String> libraries = [
 	springSecurityWeb		: "org.springframework.security:spring-security-web:5.7.3",
 	mariadbClient			: "org.mariadb.jdbc:mariadb-java-client:3.0.7",
 	jmockit					: "org.jmockit:jmockit:1.49",
-	junitJupiter			: "org.junit.jupiter:junit-jupiter:5.9.0",
+	junitJupiter			: "org.junit.jupiter:junit-jupiter:5.9.1",
 	hamcrestJdk8Time		: "com.spencerwi:hamcrest-jdk8-time:0.7.1",
 	equalsverifier			: "nl.jqno.equalsverifier:equalsverifier:3.10.1",
 	spockCore				: "org.spockframework:spock-core:2.2-groovy-4.0",
