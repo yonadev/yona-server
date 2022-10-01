@@ -17,6 +17,7 @@ import nu.yona.server.device.entities.VpnStatusChangeEvent;
 public class DeviceAnonymizedDto implements Serializable
 {
 	private static final long serialVersionUID = 5735844031070742651L;
+	private static final Locale DEFAULT_LOCALE = Locale.forLanguageTag("nl-NL");
 
 	private final UUID id;
 	private final int deviceIndex;
@@ -100,6 +101,7 @@ public class DeviceAnonymizedDto implements Serializable
 
 	public Locale getLocale()
 	{
-		return locale;
+		// Legacy devices don't have this property initialized. Fix it here, as the cache currently contains such legacy DTO instances
+		return (locale == null) ? DEFAULT_LOCALE : locale;
 	}
 }
