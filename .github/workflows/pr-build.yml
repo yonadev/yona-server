@@ -15,7 +15,7 @@ jobs:
         id: set-build-id
         run: |
           build_id="pr${{ github.event.number }}"
-          echo "::set-output name=build-id::${build_id}"
+          echo "name=build-id::${build_id}" >> $GITHUB_ENV
 
   build-check-publish:
     needs: determine-build-id
