@@ -22,7 +22,7 @@ jobs:
         working-directory: '${{ env.HELM_REPO }}'
         run: |
           build_id=$(($GITHUB_RUN_NUMBER+1500))
-          echo "build-id=${build_id}"
+          echo "build-id=${build_id}" >> $GITHUB_OUTPUT
 
   build-check-publish:
     needs:
