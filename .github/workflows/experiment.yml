@@ -1,47 +1,16 @@
 name: Experiment
 
-on: workflow_dispatch
-
-defaults:
-  run:
-    working-directory: yona-server
+on:
+  workflow_dispatch:
+    inputs:
+      selected-environment:
+        description: 'Environment to use for this workflow'
+        type: environment
+        required: true 
 
 jobs:
-  deploy-load-test-server:
-    name: Deploy load test server
-    environment: load-test
+  print-environment:
     runs-on: ubuntu-latest
-    env:
-      KUBECONFIG: /home/bert.roos/.kube/config
     steps:
-      - name: Checkout src repo
-        uses: actions/checkout@v3
-      - name: Install Yona
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.DEPLOYMENT_HOST }}
-          username: ${{ secrets.DEPLOYMENT_USERNAME }}
-          key: ${{ secrets.DEPLOYMENT_SSH_KEY }}
-          proxy_host: ${{ secrets.PROXY_HOST }}
-          proxy_username: ${{ secrets.PROXY_USERNAME }}
-          proxy_key: ${{ secrets.PROXY_SSH_KEY }}
-          script: |
-            set -x
-            helm repo update --debug
-            export KUBECONFIG=${{ env.KUBECONFIG }} # Used in Helm and wait-for-services.sh
-            export NAMESPACE=loadtest # Used in wait-for-services.sh
-            export VALUES_PATH=helm/values_loadtest.yaml
-            ENCODED_VALUES_PATH=${VALUES_PATH//\//\%2F} # Replace / with %2F throughout the string
-            kubectl config use-context beta
-            URL="https://git.ops.yona.nu/api/v4/projects/2/repository/files/${ENCODED_VALUES_PATH}/raw?ref=master"
-            wget --no-verbose --header='PRIVATE-TOKEN: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}' --output-document=- ${URL} | helm upgrade --wait --install --values - --namespace loadtest --version 1.2.1675 loadtest yona/yona
-            kubectl config set-context --current --namespace=loadtest
-            kubectl get deployments
-            kubectl get pods
-            kubectl get pods --field-selector=status.phase=Pending
-            kubectl describe pods `kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep liquibase`
-            kubectl get StorageClasses
-            kubectl get PersistentVolumes
-            kubectl get PersistentVolumeClaims
-
-            wget --no-verbose --output-document=- https://raw.githubusercontent.com/yonadev/yona-server/build-1675/scripts/wait-for-services.sh | bash
+      - name: Print the environment name to STDOUT
+        run: echo  Environment is {{ inputs.selected-environment.name }}
