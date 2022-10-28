@@ -243,6 +243,14 @@ jobs:
             done
             echo "ERROR: Helm chart is NOT available after ${totalSleepDuration} seconds"
             exit 1
+      - name: Notify regular build success through Slack
+        if: ${{ success() && !inputs.is-pr-build }}
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: '#devops'
+          slack-message: "Build ${{ needs.determine-build-id.outputs.build-id }} completed successfully"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify PR build success through Slack
         if: ${{ success() && inputs.is-pr-build }}
         uses: slackapi/slack-github-action@v1.23.0

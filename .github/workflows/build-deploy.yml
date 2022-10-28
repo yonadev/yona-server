@@ -39,6 +39,7 @@ jobs:
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   deploy-load-test-server:
+    if: ${{ false }} # Load test server not available anymore
     name: Deploy load test server
     environment: load-test
     runs-on: ubuntu-latest
@@ -88,6 +89,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   deploy-beta-test-server:
+    if: ${{ false }} # Beta test server not available anymore
     name: Deploy beta test server
     environment: beta-test
     runs-on: ubuntu-latest
@@ -128,5 +130,50 @@ jobs:
         with:
           channel-id: '#devops'
           slack-message: "Beta test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+deploy-prod-server:
+    if: ${{ false }} # Production server not available anymore
+    name: Deploy production server
+    environment: prod
+    runs-on: ubuntu-latest
+    env:
+      KUBECONFIG: /home/bert.roos/.kube/config
+    needs:
+      - determine-build-id
+      - build-check-publish
+      - deploy-beta-test-server
+    steps:
+      - name: Checkout src repo
+        uses: actions/checkout@v3
+      - name: Deploy Yona
+        uses: ./.github/workflows/actions/deploy
+        with:
+          host-name: ${{ secrets.DEPLOYMENT_HOST }}
+          ssh-user-name: ${{ secrets.DEPLOYMENT_USERNAME }}
+          ssh-key: ${{ secrets.DEPLOYMENT_SSH_KEY }}
+          proxy-host-name: ${{ secrets.PROXY_HOST }}
+          proxy-ssh-user-name: ${{ secrets.PROXY_USERNAME }}
+          proxy-ssh-key: ${{ secrets.PROXY_SSH_KEY }}
+          kube-config: ${{ env.KUBECONFIG }}
+          kube-context: prod
+          build-id: ${{ needs.determine-build-id.outputs.build-id }}
+          repo-number: 1
+          helm-values-path: helm/values.yaml
+          gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
+      - name: Notify deployment success through Slack
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          channel-id: '#devops'
+          slack-message: "Build ${{ needs.determine-build-id.outputs.build-id }} successfully deployed to production"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - name: Notify failure through Slack
+        if: failure()
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          channel-id: '#devops'
+          slack-message: "Production deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
