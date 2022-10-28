@@ -248,7 +248,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.23.0
         with:
           channel-id: '#devops'
-          slack-message: "Build ${{ needs.determine-build-id.outputs.build-id }} completed successfully"
+          slack-message: "Build ${{ inputs.build-id }} completed successfully"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify PR build success through Slack
