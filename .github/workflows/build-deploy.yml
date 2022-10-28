@@ -133,7 +133,7 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
-deploy-prod-server:
+  deploy-prod-server:
     if: ${{ false }} # Production server not available anymore
     name: Deploy production server
     environment: prod
