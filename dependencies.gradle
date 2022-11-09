@@ -12,7 +12,7 @@ final Map<String, String> libraries = [
 	// version parsing is simply regex matching and never actually evaluates a gradle script.
 	springBatchCore 		: "org.springframework.batch:spring-batch-core:4.3.7",
 	springSecurityWeb		: "org.springframework.security:spring-security-web:5.7.5",
-	mariadbClient			: "org.mariadb.jdbc:mariadb-java-client:3.0.8",
+	mariadbClient			: "org.mariadb.jdbc:mariadb-java-client:3.0.9",
 	jmockit					: "org.jmockit:jmockit:1.49",
 	junitJupiter			: "org.junit.jupiter:junit-jupiter:5.9.1",
 	hamcrestJdk8Time		: "com.spencerwi:hamcrest-jdk8-time:0.7.1",
