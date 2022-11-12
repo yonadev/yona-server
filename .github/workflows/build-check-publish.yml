@@ -225,7 +225,7 @@ jobs:
           git config --global user.email "${GIT_AUTHOR_EMAIL}"
           git config --global user.name "${GIT_AUTHOR_NAME}"
           git tag --force --annotate build-${{ inputs.build-id }} -m "GitHub build"
-          git push https://github.com/yonadev/yona-server.git --tags
+          git push -f https://github.com/yonadev/yona-server.git :refs/tags/build-${{ inputs.build-id }}
       - name : Wait for Helm package to become available on GitHub pages
         if: ${{ !inputs.is-pr-build }}
         run: |
