@@ -130,7 +130,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 	private void assertInitialDeviceDetails(User johnAfterNumberConfirmation, name, operatingSystem, firebaseInstanceId = null)
 	{
-		assert johnAfterNumberConfirmation.devices.size == 1
+		assert johnAfterNumberConfirmation.devices.size() == 1
 		assert johnAfterNumberConfirmation.requestingDevice.name == name
 		assert johnAfterNumberConfirmation.requestingDevice.operatingSystem == operatingSystem
 		assert johnAfterNumberConfirmation.requestingDevice.sslRootCertCn == "smoothwall003.yona"
@@ -220,7 +220,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 		def john = createJohnDoe(ts)
 		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
-		assert john.devices.size == 1
+		assert john.devices.size() == 1
 		assert john.requestingDevice.name == "First device"
 		assert john.requestingDevice.operatingSystem == "UNKNOWN"
 
@@ -231,7 +231,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(response)
 
 		def johnAfterAppActivity = appService.reloadUser(john, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
-		johnAfterAppActivity.devices.size == 1
+		johnAfterAppActivity.devices.size() == 1
 		johnAfterAppActivity.requestingDevice.name == "First device"
 		johnAfterAppActivity.requestingDevice.operatingSystem == "ANDROID"
 

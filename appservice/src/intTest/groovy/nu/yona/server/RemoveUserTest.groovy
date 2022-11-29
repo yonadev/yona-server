@@ -78,7 +78,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
 
 		def goalConflictMessages = getMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
-		goalConflictMessages.size == 1
+		goalConflictMessages.size() == 1
 		goalConflictMessages[0].nickname == "BD (me)"
 		goalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		goalConflictMessages[0].url =~ /poker/
@@ -210,20 +210,20 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
 
 		def goalConflictMessages = getMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalConflictMessage" }
-		goalConflictMessages.size == 1
+		goalConflictMessages.size() == 1
 		goalConflictMessages[0].nickname == "BD (me)"
 		goalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		goalConflictMessages[0].url =~ /poker/
 		getMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "BuddyConnectRequestMessage" }.size() == 0
 
 		def goalChangeMessages = getMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "GoalChangeMessage" }
-		goalChangeMessages.size == 0
+		goalChangeMessages.size() == 0
 
 		def activityCommentMessages = getMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "ActivityCommentMessage" }
-		activityCommentMessages.size == 0
+		activityCommentMessages.size() == 0
 
 		def buddyInfoChangeMessages = getMessagesResponse.json._embedded."yona:messages".findAll { it."@type" == "BuddyInfoChangeMessage" }
-		buddyInfoChangeMessages.size == 0
+		buddyInfoChangeMessages.size() == 0
 
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 0

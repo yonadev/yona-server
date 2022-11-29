@@ -607,7 +607,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 
 	private static getActivityDetailMessages(AppService appService, responseGetActivityDetails, User user, List expectedData, int pageSize = 4)
 	{
-		int expectedNumMessages = expectedData.size
+		int expectedNumMessages = expectedData.size()
 		int expectedNumMessagesInPage = Math.min(expectedNumMessages, pageSize)
 		def response = appService.yonaServer.getJsonWithPassword(responseGetActivityDetails.json._links."yona:messages".href, user.password, ["size": pageSize])
 
