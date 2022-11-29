@@ -93,7 +93,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertUserGetResponseDetails(registerResponse, false)
 
 		def devices = registerResponse.json._embedded."yona:devices"._embedded."yona:devices"
-		devices.size == 2
+		devices.size() == 2
 
 		def defaultDevice = (devices[0].name == newDeviceName) ? devices[1] : devices[0]
 		def newDevice = (devices[0].name == newDeviceName) ? devices[0] : devices[1]
@@ -362,7 +362,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(response)
 		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
-		richardAfterReload.devices.size == 1
+		richardAfterReload.devices.size() == 1
 		richardAfterReload.requestingDevice.name == updatedName
 		richardAfterReload.requestingDevice.operatingSystem == "IOS"
 
@@ -400,7 +400,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(response)
 		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
-		richardAfterReload.devices.size == 1
+		richardAfterReload.devices.size() == 1
 		richardAfterReload.requestingDevice.name == existingName
 		richardAfterReload.requestingDevice.firebaseInstanceId == updatedFirebaseInstanceId
 
@@ -437,7 +437,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusOk(response)
 		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
-		richardAfterReload.devices.size == 1
+		richardAfterReload.devices.size() == 1
 		richardAfterReload.requestingDevice.name == updatedName
 		richardAfterReload.requestingDevice.firebaseInstanceId == existingFirebaseInstanceId
 
@@ -544,7 +544,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(response)
 		def richardAfterReload = appService.reloadUser(richardOnFirstDevice, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
-		richardAfterReload.devices.size == 1
+		richardAfterReload.devices.size() == 1
 		richardAfterReload.devices[0].name == remainingDevice.name
 		richardAfterReload.devices[0].operatingSystem == remainingDevice.operatingSystem
 
@@ -585,7 +585,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertResponseStatusNoContent(response)
 		User richardAfterReload = appService.reloadUser(richardOnFirstDevice, CommonAssertions.&assertUserGetResponseDetailsIgnoreDefaultDevice)
 
-		richardAfterReload.devices.size == 1
+		richardAfterReload.devices.size() == 1
 		richardAfterReload.requestingDevice.name == remainingDevice.name
 		richardAfterReload.requestingDevice.operatingSystem == remainingDevice.operatingSystem
 
@@ -600,7 +600,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		deviceChangeMessages[0].message == "User deleted device '$deletedDeviceName'"
 
 		User bobAfterReload = appService.reloadUser(bob)
-		bobAfterReload.buddies[0].user.devices.size == 1
+		bobAfterReload.buddies[0].user.devices.size() == 1
 		bobAfterReload.buddies[0].user.devices[0].name == remainingDevice.name
 
 		cleanup:

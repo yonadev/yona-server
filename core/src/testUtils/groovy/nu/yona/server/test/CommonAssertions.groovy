@@ -152,7 +152,7 @@ class CommonAssertions
 			assert skipPropertySetAssertion || user._links.self.href ==~ /(?i)^.*\/$UUID_PATTERN\?requestingUserId=$UUID_PATTERN\&requestingDeviceId=$UUID_PATTERN$/
 			if (!mobileNumberToBeConfirmed && assertDefaultDevice)
 			{
-				assert user._embedded."yona:devices"._embedded."yona:devices".size == 1
+				assert user._embedded."yona:devices"._embedded."yona:devices".size() == 1
 				assertDefaultOwnDevice(user._embedded."yona:devices"._embedded."yona:devices"[0])
 			}
 		}

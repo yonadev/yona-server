@@ -179,7 +179,7 @@ class VpnConnectionStatusEventTest extends AbstractAppServiceIntegrationTest
 
 		def devices = registerResponse.json._embedded."yona:devices"._embedded."yona:devices"
 
-		assert devices.size == 2
+		assert devices.size() == 2
 		def newDeviceJson = (devices[0].name == newDeviceName) ? devices[0] : devices[1]
 
 		new Device(user.password, newDeviceJson)

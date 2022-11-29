@@ -1,4 +1,4 @@
-FROM openjdk:11.0.16-jre-slim
+FROM eclipse-temurin:17.0.5_8-jre-alpine
 
 WORKDIR /opt/app
 

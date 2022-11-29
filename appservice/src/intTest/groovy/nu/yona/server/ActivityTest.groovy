@@ -1357,7 +1357,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		response.json._embedded."yona:activities".size == 2
+		response.json._embedded."yona:activities".size() == 2
 		response.json._embedded."yona:activities"[0].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActStartTime))
 		response.json._embedded."yona:activities"[0].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActEndTime))
 		response.json._embedded."yona:activities"[0].app == app
