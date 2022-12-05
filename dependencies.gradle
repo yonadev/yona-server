@@ -16,7 +16,7 @@ final Map<String, String> libraries = [
 	jmockit					: "org.jmockit:jmockit:1.49",
 	junitJupiter			: "org.junit.jupiter:junit-jupiter:5.9.1",
 	hamcrestJdk8Time		: "com.spencerwi:hamcrest-jdk8-time:0.7.1",
-	equalsverifier			: "nl.jqno.equalsverifier:equalsverifier:3.12",
+	equalsverifier			: "nl.jqno.equalsverifier:equalsverifier:3.12.1",
 	spockCore				: "org.spockframework:spock-core:2.3-groovy-4.0",
 	apacheHttpMime			: "org.apache.httpcomponents:httpmime:4.5.13",
 	bcprov					: "org.bouncycastle:bcprov-jdk15on:1.70",
