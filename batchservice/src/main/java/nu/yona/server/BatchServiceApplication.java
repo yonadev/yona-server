@@ -4,9 +4,8 @@
  *******************************************************************************/
 package nu.yona.server;
 
-import java.util.List;
-
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,7 +44,7 @@ public class BatchServiceApplication
 		{
 
 			@Override
-			public void write(List<? extends Object> items) throws Exception
+			public void write(Chunk<? extends Object> items) throws Exception
 			{
 				// Noop-implementation, so nothing to do here
 			}

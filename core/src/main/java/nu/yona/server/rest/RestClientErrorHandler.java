@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
 
@@ -50,10 +50,10 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 	@Override
 	public boolean hasError(ClientHttpResponse response) throws IOException
 	{
-		return RestUtil.isError(getStatusCode(response));
+		return getStatusCode(response).isError();
 	}
 
-	private HttpStatus getStatusCode(ClientHttpResponse response)
+	private HttpStatusCode getStatusCode(ClientHttpResponse response)
 	{
 		try
 		{
@@ -69,7 +69,7 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 	{
 		try
 		{
-			if (getStatusCode(response).series() == HttpStatus.Series.CLIENT_ERROR)
+			if (getStatusCode(response).is4xxClientError())
 			{
 				return Optional.ofNullable(objectMapper.readValue(responseBody, ErrorResponseDto.class));
 			}

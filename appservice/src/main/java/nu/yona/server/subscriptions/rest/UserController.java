@@ -18,8 +18,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +53,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nu.yona.server.DOSProtectionService;
 import nu.yona.server.analysis.rest.ActivityControllerBase;
 import nu.yona.server.analysis.rest.UserActivityController;

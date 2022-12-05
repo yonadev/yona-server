@@ -14,13 +14,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
 
-import org.hibernate.annotations.Type;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import nu.yona.server.crypto.pubkey.Decryptor;
 import nu.yona.server.crypto.pubkey.Encryptor;
 import nu.yona.server.entities.EntityWithId;
@@ -30,11 +31,12 @@ import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "MESSAGES")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class Message extends EntityWithId
 {
 	private byte[] decryptionInfo;
 
-	@Type(type = "uuid-char")
+	@JdbcTypeCode(java.sql.Types.VARCHAR)
 	private final UUID relatedUserAnonymizedId;
 
 	@ManyToOne

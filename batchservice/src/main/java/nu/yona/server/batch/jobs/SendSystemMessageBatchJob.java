@@ -8,18 +8,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -31,7 +30,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.SystemMessage;
 import nu.yona.server.messaging.service.MessageService;
@@ -47,10 +49,10 @@ public class SendSystemMessageBatchJob
 	private static final int USERS_CHUNK_SIZE = 50;
 
 	@Autowired
-	private JobBuilderFactory jobBuilderFactory;
+	private JobRepository jobRepository;
 
 	@Autowired
-	private StepBuilderFactory stepBuilderFactory;
+	private PlatformTransactionManager transactionManager;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -79,14 +81,14 @@ public class SendSystemMessageBatchJob
 	@Bean("sendSystemMessageJob")
 	public Job sendSystemMessagesBatchJob()
 	{
-		return jobBuilderFactory.get("sendSystemMessagesBatchJob").listener(new ErrorLoggingListener())
+		return new JobBuilder("sendSystemMessagesBatchJob", jobRepository).listener(new ErrorLoggingListener())
 				.incrementer(new RunIdIncrementer()).flow(sendSystemMessages()).end().build();
 	}
 
 	private Step sendSystemMessages()
 	{
-		return stepBuilderFactory.get("sendSystemMessages").<UUID, Void>chunk(USERS_CHUNK_SIZE).reader(userAnonymizedReader)
-				.processor(userAnonymizedProcessor).writer(noopItemWriter).build();
+		return new StepBuilder("sendSystemMessages", jobRepository).<UUID, Void>chunk(USERS_CHUNK_SIZE, transactionManager)
+				.reader(userAnonymizedReader).processor(userAnonymizedProcessor).writer(noopItemWriter).build();
 	}
 
 	@Bean(name = "sendSystemMessageJobUserAnonymizedReader", destroyMethod = "")

@@ -9,13 +9,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
 
-import org.hibernate.annotations.Type;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import nu.yona.server.crypto.seckey.DateFieldEncryptor;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
@@ -26,7 +25,7 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "USER_DEVICES")
 public class UserDevice extends DeviceBase
 {
-	@Type(type = "uuid-char")
+	@JdbcTypeCode(java.sql.Types.VARCHAR)
 	@Column(name = "user_private_id")
 	private UUID userPrivateId;
 

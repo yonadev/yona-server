@@ -7,8 +7,8 @@ package nu.yona.server.crypto.seckey;
 import java.util.Base64;
 import java.util.UUID;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 public class UUIDFieldEncryptor implements AttributeConverter<UUID, String>

@@ -1,16 +1,12 @@
-import java.nio.charset.StandardCharsets
-
-import org.gradle.internal.util.PropertiesUtils
-
 plugins {
 	id "java"
 	id "eclipse"
 	id "groovy"
 	id "io.spring.dependency-management" version "1.1.0"
-	id "org.springframework.boot" version "2.7.5" apply false
+	id "org.springframework.boot" version "3.0.0" apply false
 	id "com.bmuschko.docker-remote-api" version "9.0.1" apply false
 	id "project-report"
-    id "org.sonarqube" version "3.5.0.2730"
+	id "org.sonarqube" version "3.5.0.2730"
 }
 
 description = "Yona server"
@@ -77,16 +73,6 @@ subprojects {
 				time = null
 				additional = [buildId: project.ext.build_id]
 			}
-			doLast {
-				// Can be removed when we upgrade to a Spring Boot build that has this issue fixed:
-				// https://github.com/spring-projects/spring-boot/issues/14494
-				File propertiesFile = new File(destinationDir, 'build-info.properties')
-				Properties props = new Properties()
-				propertiesFile.withInputStream { props.load(it) }
-				OutputStream out = new BufferedOutputStream(new FileOutputStream(propertiesFile))
-				PropertiesUtils.store(props, out, "Custom generated to ensure repeatability", StandardCharsets.UTF_8, "\n");
-				out.close()
-			}
 		}
 	}
 
@@ -120,12 +106,12 @@ wrapper {
 }
 
 sonarqube {
-  properties {
-    property "sonar.projectKey", "yonadev_yona-server"
-    property "sonar.organization", "yonadev"
-    property "sonar.host.url", "https://sonarcloud.io"
+	properties {
+		property "sonar.projectKey", "yonadev_yona-server"
+		property "sonar.organization", "yonadev"
+		property "sonar.host.url", "https://sonarcloud.io"
 //sonar.sources=src/main
 //sonar.java.binaries=build/classes
 //sonar.modules=adminservice, analysisservice, appservice, batchservice, core, dbinit
-  }
+	}
 }

@@ -14,12 +14,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-
 import org.hibernate.annotations.BatchSize;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.entities.Goal;

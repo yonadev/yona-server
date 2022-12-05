@@ -8,9 +8,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.Convert;
-import javax.persistence.MappedSuperclass;
-
+import jakarta.persistence.Convert;
+import jakarta.persistence.MappedSuperclass;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 

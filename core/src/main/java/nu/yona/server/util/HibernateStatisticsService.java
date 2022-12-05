@@ -4,13 +4,10 @@
  *******************************************************************************/
 package nu.yona.server.util;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceException;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
@@ -26,6 +23,9 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceException;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
 @Service
@@ -164,7 +164,7 @@ public class HibernateStatisticsService
 		private final long secondLevelCachePutCount;
 		private final long sessionCloseCount;
 		private final long sessionOpenCount;
-		private final long startTime;
+		private final Instant startTime;
 		private final long successfulTransactionCount;
 		private final long transactionCount;
 		private final List<String> sqlStatements;
@@ -196,7 +196,7 @@ public class HibernateStatisticsService
 			this.secondLevelCachePutCount = statistics.getSecondLevelCachePutCount();
 			this.sessionCloseCount = statistics.getSessionCloseCount();
 			this.sessionOpenCount = statistics.getSessionOpenCount();
-			this.startTime = statistics.getStartTime();
+			this.startTime = statistics.getStart();
 			this.successfulTransactionCount = statistics.getSuccessfulTransactionCount();
 			this.transactionCount = statistics.getTransactionCount();
 			this.sqlStatements = sqlStatements;
@@ -327,7 +327,7 @@ public class HibernateStatisticsService
 			return sessionOpenCount;
 		}
 
-		public long getStartTime()
+		public Instant getStartTime()
 		{
 			return startTime;
 		}

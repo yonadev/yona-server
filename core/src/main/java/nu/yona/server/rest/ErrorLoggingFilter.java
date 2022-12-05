@@ -13,15 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -30,6 +21,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.stereotype.Component;
 
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import nu.yona.server.Constants;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
@@ -170,7 +169,7 @@ public class ErrorLoggingFilter implements Filter
 		{
 			response.sendError(e.getStatusCode().value(), e.getMessage());
 			logger.error("Invalid header", e);
-			logResponseStatus(request, response, e.getStatusCode().series());
+			logResponseStatus(request, response, Series.resolve(e.getStatusCode().value()));
 			return;
 		}
 
@@ -183,24 +182,24 @@ public class ErrorLoggingFilter implements Filter
 		try (LoggingContext loggingContext = LoggingContext.createInstance(request))
 		{
 			chain.doFilter(request, response);
-			Series responseStatus = HttpStatus.Series.valueOf(response.getStatus());
-			if (responseStatus == Series.SUCCESSFUL)
+			Series responseSeries = HttpStatus.Series.resolve(response.getStatus());
+			if (responseSeries == Series.SUCCESSFUL)
 			{
 				return;
 			}
 
-			logResponseStatus(request, response, responseStatus);
+			logResponseStatus(request, response, responseSeries);
 		}
 	}
 
-	private void logResponseStatus(HttpServletRequest request, HttpServletResponse response, Series responseStatus)
+	private void logResponseStatus(HttpServletRequest request, HttpServletResponse response, Series responseSeries)
 	{
-		LogMethod logMethod = seriesToLoggerMap.get(responseStatus);
+		LogMethod logMethod = seriesToLoggerMap.get(responseSeries);
 		if (logMethod == null)
 		{
-			throw new IllegalStateException("Status " + responseStatus + " is not supported");
+			throw new IllegalStateException("Status " + responseSeries + " is not supported");
 		}
-		Marker marker = seriesToMarkerMap.get(responseStatus);
+		Marker marker = seriesToMarkerMap.get(responseSeries);
 		logMethod.log(marker, "Status {} returned from {} (request content length: {})", response.getStatus(),
 				GlobalExceptionMapping.buildRequestInfo(request), request.getContentLength());
 	}

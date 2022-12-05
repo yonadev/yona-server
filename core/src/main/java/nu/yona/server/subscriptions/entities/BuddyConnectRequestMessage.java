@@ -7,9 +7,8 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.service.BuddyServiceException;

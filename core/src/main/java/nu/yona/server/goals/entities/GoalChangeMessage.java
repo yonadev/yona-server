@@ -4,10 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity

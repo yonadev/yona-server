@@ -4,9 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 

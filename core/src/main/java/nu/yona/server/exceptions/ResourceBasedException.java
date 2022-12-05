@@ -7,6 +7,7 @@ package nu.yona.server.exceptions;
 import java.io.Serializable;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 import nu.yona.server.Translator;
 
@@ -28,7 +29,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	/**
 	 * Holds the HTTP response code to be used.
 	 */
-	private final HttpStatus statusCode;
+	private final HttpStatusCode statusCode;
 
 	/**
 	 * Constructor.
@@ -37,7 +38,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	 * @param messageId  The ID of the exception in the resource bundle
 	 * @param parameters The parameters for the message
 	 */
-	protected ResourceBasedException(HttpStatus statusCode, String messageId, Serializable... parameters)
+	protected ResourceBasedException(HttpStatusCode statusCode, String messageId, Serializable... parameters)
 	{
 		super(messageId);
 
@@ -77,7 +78,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	 * @param messageId  The ID of the exception in the resource bundle
 	 * @param parameters The parameters for the message
 	 */
-	protected ResourceBasedException(HttpStatus statusCode, Throwable t, String messageId, Serializable... parameters)
+	protected ResourceBasedException(HttpStatusCode statusCode, Throwable t, String messageId, Serializable... parameters)
 	{
 		super(messageId, t);
 
@@ -118,7 +119,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	 *
 	 * @return The HTTP response code to be used.
 	 */
-	public HttpStatus getStatusCode()
+	public HttpStatusCode getStatusCode()
 	{
 		return statusCode;
 	}

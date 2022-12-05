@@ -16,8 +16,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -26,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import nu.yona.server.LocaleContextHelper;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.device.service.DeviceAnonymizedDto;

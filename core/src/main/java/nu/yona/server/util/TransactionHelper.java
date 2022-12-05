@@ -6,10 +6,10 @@ package nu.yona.server.util;
 
 import java.util.function.Supplier;
 
-import javax.transaction.Transactional;
-import javax.transaction.Transactional.TxType;
-
 import org.springframework.stereotype.Service;
+
+import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
 
 /*
  * Triggers the use of new subtransactions. See

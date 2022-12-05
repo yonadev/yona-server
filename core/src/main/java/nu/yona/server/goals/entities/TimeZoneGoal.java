@@ -16,9 +16,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Entity
