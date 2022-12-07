@@ -30,6 +30,8 @@ subprojects {
 	apply plugin: "org.springframework.boot"
 	apply plugin: "com.bmuschko.docker-remote-api"
 
+	ext["hibernate.version"] = project.versions["hibernate"]
+
 	project.ext {
 		build_id = System.getenv().BUILD_ID ?: "local"
 		docker_tag = "build-${build_id}"

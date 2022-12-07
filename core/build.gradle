@@ -25,8 +25,6 @@ artifacts {
 	testUtils testUtilsJar
 }
 
-ext["thymeleaf.version"] = project.versions["thymeleaf"]
-
 dependencies {
 	implementation project.deps.hazelcast
 	implementation project.deps.hazelcastSpring
@@ -39,6 +37,7 @@ dependencies {
 	implementation "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
 	implementation "io.micrometer:micrometer-registry-prometheus:1.10.2"
 	api "org.springframework:spring-context-support"
+	implementation project.deps.hibernate
 	implementation "org.atteo:evo-inflector:1.3"
 	implementation "commons-validator:commons-validator:1.7"
 	implementation "commons-lang:commons-lang:2.6"
