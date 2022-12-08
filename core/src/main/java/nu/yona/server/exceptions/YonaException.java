@@ -42,6 +42,6 @@ public class YonaException extends ResourceBasedException
 
 	public static YonaException illegalState(String description)
 	{
-		return new YonaException(HttpStatus.INTERNAL_SERVER_ERROR, "error.illegal.state", description);
+		return new YonaException("error.illegal.state", description);
 	}
 }
