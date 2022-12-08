@@ -47,7 +47,6 @@ jobs:
       - name: Gradle Dependency Submission
         uses: mikepenz/gradle-dependency-submission@v0.8.3
         with:
-          gradle-project-path: gradle-example
           gradle-build-module: |-
             :core
             :dbinit
