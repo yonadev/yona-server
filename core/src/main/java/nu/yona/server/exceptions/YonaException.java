@@ -37,11 +37,11 @@ public class YonaException extends ResourceBasedException
 
 	public static YonaException unexpected(Throwable e)
 	{
-		return new YonaException(e, "error.unexpected");
+		return new YonaException(HttpStatus.INTERNAL_SERVER_ERROR, e, "error.unexpected");
 	}
 
 	public static YonaException illegalState(String description)
 	{
-		return new YonaException("error.illegal.state", description);
+		return new YonaException(HttpStatus.INTERNAL_SERVER_ERROR, "error.illegal.state", description);
 	}
 }
