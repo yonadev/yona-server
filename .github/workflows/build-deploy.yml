@@ -38,6 +38,26 @@ jobs:
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
+  publish-dependencies:
+    name: Publish Gradle dependencies
+    runs-on: ubuntu-latest
+    permissions: # The Dependency Submission API requires write permission
+      contents: write
+    steps:
+      - name: Gradle Dependency Submission
+        uses: mikepenz/gradle-dependency-submission@v0.8.3
+        with:
+          gradle-project-path: gradle-example
+          gradle-build-module: |-
+            :core
+            :dbinit
+            :analysisservice
+            :adminservice
+            :appservice
+            :batchservice'
+            :app
+            :simple-app
+      
   deploy-load-test-server:
     if: ${{ false }} # Load test server not available anymore
     name: Deploy load test server
