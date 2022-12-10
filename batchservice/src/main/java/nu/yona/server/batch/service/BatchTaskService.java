@@ -13,7 +13,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
@@ -102,7 +102,7 @@ public class BatchTaskService
 	{
 		try
 		{
-			SimpleJobLauncher launcher = new SimpleJobLauncher();
+			TaskExecutorJobLauncher launcher = new TaskExecutorJobLauncher();
 			launcher.setJobRepository(jobRepository);
 			launcher.setTaskExecutor(taskExecutor);
 			return launcher.run(job, jobParameters);
