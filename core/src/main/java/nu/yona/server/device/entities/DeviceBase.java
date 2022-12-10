@@ -8,11 +8,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.subscriptions.entities.EntityWithUuidAndTouchVersion;

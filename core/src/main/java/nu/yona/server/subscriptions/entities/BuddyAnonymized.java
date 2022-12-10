@@ -8,14 +8,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
 
-import org.hibernate.annotations.Type;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -44,7 +43,7 @@ public class BuddyAnonymized extends EntityWithUuid
 	 * The anonymized user of the buddy. This is kept as UUID rather than an entity, as the ID is still needed even if the entity
 	 * has been deleted, to clean up the messages sent by this user.
 	 */
-	@Type(type = "uuid-char")
+	@JdbcTypeCode(java.sql.Types.VARCHAR)
 	@Column(name = "user_anonymized_id")
 	private UUID userAnonymizedId;
 

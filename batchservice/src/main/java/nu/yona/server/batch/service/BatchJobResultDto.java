@@ -30,6 +30,6 @@ public class BatchJobResultDto
 	static BatchJobResultDto createInstance(JobExecution jobExecution)
 	{
 		return new BatchJobResultDto(jobExecution.getStepExecutions().stream()
-				.collect(Collectors.toMap(StepExecution::getStepName, StepExecution::getWriteCount)));
+				.collect(Collectors.toMap(StepExecution::getStepName, e -> (int) e.getWriteCount())));
 	}
 }

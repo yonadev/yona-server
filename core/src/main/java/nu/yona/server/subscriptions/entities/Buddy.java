@@ -13,18 +13,17 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.springframework.core.annotation.Order;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
@@ -42,7 +41,7 @@ public class Buddy extends PrivateUserProperties
 {
 	private static final int VERSION_OF_NAME_MIGRATION = EncryptFirstAndLastName.class.getAnnotation(Order.class).value() + 1;
 
-	@Type(type = "uuid-char")
+	@JdbcTypeCode(java.sql.Types.VARCHAR)
 	@Column(name = "owning_user_private_id")
 	private UUID owningUserPrivateId;
 

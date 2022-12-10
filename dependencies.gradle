@@ -10,8 +10,8 @@ final Map<String, String> libraries = [
 	//
 	// DO NOT interpolate version variables here because Dependabot is not smart enough to understand those. Dependabot's
 	// version parsing is simply regex matching and never actually evaluates a gradle script.
-	springBatchCore 		: "org.springframework.batch:spring-batch-core:4.3.7",
-	springSecurityWeb		: "org.springframework.security:spring-security-web:5.7.5",
+	springBatchCore			: "org.springframework.batch:spring-batch-core:5.0.0",
+	springSecurityWeb		: "org.springframework.security:spring-security-web:6.0.0",
 	mariadbClient			: "org.mariadb.jdbc:mariadb-java-client:3.1.0",
 	jmockit					: "org.jmockit:jmockit:1.49",
 	junitJupiter			: "org.junit.jupiter:junit-jupiter:5.9.1",
@@ -23,7 +23,8 @@ final Map<String, String> libraries = [
 	// When updating the below version number, also update
 	// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 	hazelcast				: "com.hazelcast:hazelcast:5.2.1",
-	thymeleaf               : "org.thymeleaf:thymeleaf-spring5:3.1.0.RELEASE"
+	thymeleaf               : "org.thymeleaf:thymeleaf-spring5:3.1.0.RELEASE",
+	hibernate               : "org.hibernate:hibernate-core:6.1.6.Final",
 ]
 
 // Export versions that are needed outside of this file (and elsewhere within)
@@ -31,7 +32,7 @@ final Map<String, String> v = [
 	springSecurityWeb		: versionOf(libraries.springSecurityWeb),
 	bcprov					: versionOf(libraries.bcprov),
 	hazelcast				: versionOf(libraries.hazelcast),
-	thymeleaf				: versionOf(libraries.thymeleaf),
+	hibernate				: versionOf(libraries.hibernate),
 ]
 
 // While Dependabot won't be able to parse these deps, these will get upgraded for free anyway since they share versions

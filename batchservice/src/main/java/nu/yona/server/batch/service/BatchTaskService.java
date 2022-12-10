@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.batch.service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +13,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
@@ -58,7 +58,8 @@ public class BatchTaskService
 	public BatchJobResultDto aggregateActivities()
 	{
 		logger.info("Triggering activity aggregation");
-		JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
+		JobParameters jobParameters = new JobParametersBuilder().addString("uniqueInstanceId", LocalDateTime.now().toString())
+				.toJobParameters();
 		// NOTICE: executes the job synchronously, on purpose, because the tests rely on this (they assert on job execution
 		// results) and this is normally not scheduled manually
 		JobExecution jobExecution = launchImmediatelySynchronously(activityAggregationJob, jobParameters);
@@ -81,7 +82,7 @@ public class BatchTaskService
 	{
 		logger.info("Received request to send system message with text {}", request.getMessageText());
 
-		JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date())
+		JobParameters jobParameters = new JobParametersBuilder().addString("uniqueInstanceId", LocalDateTime.now().toString())
 				.addString("messageText", request.getMessageText()).toJobParameters();
 		launchImmediately(sendSystemMessageJob, jobParameters);
 	}
@@ -101,12 +102,13 @@ public class BatchTaskService
 	{
 		try
 		{
-			SimpleJobLauncher launcher = new SimpleJobLauncher();
+			TaskExecutorJobLauncher launcher = new TaskExecutorJobLauncher();
 			launcher.setJobRepository(jobRepository);
 			launcher.setTaskExecutor(taskExecutor);
 			return launcher.run(job, jobParameters);
 		}
-		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException | JobParametersInvalidException e)
+		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
+			   JobParametersInvalidException e)
 		{
 			logger.error("Unexpected exception", e);
 			throw YonaException.unexpected(e);

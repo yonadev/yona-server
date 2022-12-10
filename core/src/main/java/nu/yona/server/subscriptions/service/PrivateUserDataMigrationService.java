@@ -6,14 +6,13 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.transaction.Transactional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import nu.yona.server.subscriptions.entities.User;
 
 @Service

@@ -9,18 +9,17 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
@@ -31,7 +30,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
@@ -51,10 +53,10 @@ public class ActivityAggregationBatchJob
 	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 
 	@Autowired
-	private JobBuilderFactory jobBuilderFactory;
+	private JobRepository jobRepository;
 
 	@Autowired
-	private StepBuilderFactory stepBuilderFactory;
+	private PlatformTransactionManager transactionManager;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -79,20 +81,22 @@ public class ActivityAggregationBatchJob
 	@Bean("activityAggregationJob")
 	public Job activityAggregationBatchJob()
 	{
-		return jobBuilderFactory.get("activityAggregationBatchJob").listener(new ErrorLoggingListener())
+		return new JobBuilder("activityAggregationBatchJob", jobRepository).listener(new ErrorLoggingListener())
 				.incrementer(new RunIdIncrementer()).flow(aggregateDayActivities()).next(aggregateWeekActivities()).end().build();
 	}
 
 	private Step aggregateDayActivities()
 	{
-		return stepBuilderFactory.get("aggregateDayActivities").<Long, DayActivity>chunk(DAY_ACTIVITY_CHUNK_SIZE)
-				.reader(dayActivityReader).processor(dayActivityProcessor()).writer(dayActivityWriter()).build();
+		return new StepBuilder("aggregateDayActivities", jobRepository).<Long, DayActivity>chunk(DAY_ACTIVITY_CHUNK_SIZE,
+						transactionManager).reader(dayActivityReader).processor(dayActivityProcessor()).writer(dayActivityWriter())
+				.build();
 	}
 
 	private Step aggregateWeekActivities()
 	{
-		return stepBuilderFactory.get("aggregateWeekActivities").<Long, WeekActivity>chunk(WEEK_ACTIVITY_CHUNK_SIZE)
-				.reader(weekActivityReader).processor(weekActivityProcessor()).writer(weekActivityWriter()).build();
+		return new StepBuilder("aggregateWeekActivities", jobRepository).<Long, WeekActivity>chunk(WEEK_ACTIVITY_CHUNK_SIZE,
+						transactionManager).reader(weekActivityReader).processor(weekActivityProcessor()).writer(weekActivityWriter())
+				.build();
 	}
 
 	@Bean(name = "activityAggregationJobDayActivityReader", destroyMethod = "")

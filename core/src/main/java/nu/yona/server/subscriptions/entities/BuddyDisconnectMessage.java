@@ -4,9 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @Entity

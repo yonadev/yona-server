@@ -6,13 +6,12 @@ package nu.yona.server.messaging.service;
 
 import java.time.LocalDateTime;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import jakarta.annotation.PostConstruct;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.SystemMessage;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;

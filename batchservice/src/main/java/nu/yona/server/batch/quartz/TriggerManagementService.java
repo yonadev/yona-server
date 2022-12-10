@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
-import javax.annotation.PostConstruct;
-import javax.transaction.Transactional;
-
 import org.quartz.CronTrigger;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -29,6 +26,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import nu.yona.server.Constants;
 import nu.yona.server.exceptions.YonaException;
 

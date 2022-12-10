@@ -9,13 +9,12 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.transaction.Transactional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import nu.yona.server.batch.client.BatchProxyService;
 import nu.yona.server.exceptions.PinResetRequestConfirmationException;
 import nu.yona.server.properties.YonaProperties;

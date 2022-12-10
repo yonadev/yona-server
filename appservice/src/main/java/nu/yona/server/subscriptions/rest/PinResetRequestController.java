@@ -12,8 +12,6 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +30,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.properties.YonaProperties;

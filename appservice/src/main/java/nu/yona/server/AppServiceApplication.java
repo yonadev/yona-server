@@ -19,8 +19,6 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
-import javax.annotation.PostConstruct;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +35,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 
+import jakarta.annotation.PostConstruct;
 import nu.yona.server.exceptions.ConfigurationException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.PropertyInitializer;

@@ -7,12 +7,11 @@ package nu.yona.server.batch.client;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import jakarta.annotation.PostConstruct;
 import nu.yona.server.properties.YonaProperties;
 
 @Service

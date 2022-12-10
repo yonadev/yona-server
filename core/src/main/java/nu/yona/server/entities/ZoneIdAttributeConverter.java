@@ -6,8 +6,8 @@ package nu.yona.server.entities;
 
 import java.time.ZoneId;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter // Autoapply fails with Liquibase, so do not use that
 public class ZoneIdAttributeConverter implements AttributeConverter<ZoneId, String>

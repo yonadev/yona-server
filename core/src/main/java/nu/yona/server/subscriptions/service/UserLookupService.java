@@ -10,13 +10,12 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.persistence.LockModeType;
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.LockModeType;
+import jakarta.transaction.Transactional;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.Buddy;

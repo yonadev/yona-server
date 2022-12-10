@@ -7,8 +7,7 @@ package nu.yona.server.goals.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import javax.persistence.Entity;
-
+import jakarta.persistence.Entity;
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Entity

@@ -6,8 +6,6 @@ package nu.yona.server.rest;
 
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
-
 import nu.yona.server.exceptions.InvalidDataException;
 
 public class RestUtil
@@ -15,12 +13,6 @@ public class RestUtil
 	private RestUtil()
 	{
 		// No instances
-	}
-
-	public static boolean isError(HttpStatus status)
-	{
-		HttpStatus.Series series = status.series();
-		return (series == HttpStatus.Series.CLIENT_ERROR || series == HttpStatus.Series.SERVER_ERROR);
 	}
 
 	public static UUID parseUuid(String uuid)

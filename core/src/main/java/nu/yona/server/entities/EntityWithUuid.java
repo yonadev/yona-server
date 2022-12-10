@@ -6,17 +6,17 @@ package nu.yona.server.entities;
 
 import java.util.UUID;
 
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.proxy.HibernateProxy;
+
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
 public abstract class EntityWithUuid
 {
 	@Id
-	@Type(type = "uuid-char")
+	@JdbcTypeCode(java.sql.Types.VARCHAR)
 	private final UUID id;
 
 	/**

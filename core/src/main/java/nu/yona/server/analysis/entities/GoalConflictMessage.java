@@ -9,15 +9,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
-
 import org.hibernate.annotations.BatchSize;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;

@@ -13,12 +13,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Transient;
-
 import org.apache.commons.lang.StringUtils;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;

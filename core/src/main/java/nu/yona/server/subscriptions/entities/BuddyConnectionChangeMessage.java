@@ -8,9 +8,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.messaging.entities.BuddyMessage;
 

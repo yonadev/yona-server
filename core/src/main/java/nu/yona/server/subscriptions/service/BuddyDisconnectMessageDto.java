@@ -8,8 +8,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import jakarta.annotation.PostConstruct;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDto;
 import nu.yona.server.messaging.service.MessageActionDto;

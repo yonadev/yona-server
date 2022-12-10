@@ -6,10 +6,9 @@ package nu.yona.server.device.entities;
 
 import java.util.UUID;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.Buddy;
 

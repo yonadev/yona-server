@@ -7,14 +7,13 @@ package nu.yona.server.batch.quartz.jobs;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 
-import javax.mail.internet.InternetAddress;
-
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.mail.internet.InternetAddress;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.properties.YonaProperties;

@@ -7,8 +7,6 @@ package nu.yona.server.goals.service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.stereotype.Component;
@@ -16,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import jakarta.annotation.PostConstruct;
 import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.goals.entities.GoalChangeMessage.Change;
 import nu.yona.server.messaging.entities.Message;

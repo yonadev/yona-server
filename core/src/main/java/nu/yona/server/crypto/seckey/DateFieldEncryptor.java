@@ -7,8 +7,8 @@ package nu.yona.server.crypto.seckey;
 import java.time.LocalDate;
 import java.util.Base64;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 public class DateFieldEncryptor implements AttributeConverter<LocalDate, String>

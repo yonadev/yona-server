@@ -8,7 +8,7 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +24,7 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 
 @Configuration
-public class CacheConfiguration extends CachingConfigurerSupport
+public class CacheConfiguration implements CachingConfigurer
 {
 	@Autowired
 	private YonaProperties yonaProperties;

@@ -7,13 +7,12 @@ package nu.yona.server.util;
 
 import java.io.Serializable;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
 import org.hibernate.LockMode;
 import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import nu.yona.server.exceptions.YonaException;
 
 @Service

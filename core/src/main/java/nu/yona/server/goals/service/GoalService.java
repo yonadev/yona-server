@@ -10,13 +10,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.ActivityCategory;

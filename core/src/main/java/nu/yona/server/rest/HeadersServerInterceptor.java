@@ -4,12 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.rest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Intercept all incoming HTTP requests, with the intent to store headers that are to be passed through in outgoing HTTP requests.

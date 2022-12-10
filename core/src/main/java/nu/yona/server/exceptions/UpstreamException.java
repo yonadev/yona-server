@@ -7,7 +7,7 @@ package nu.yona.server.exceptions;
 import java.io.Serializable;
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 /**
  * This exception is thrown for various issues that can occur during analysis of app or network activity.
@@ -17,13 +17,13 @@ public class UpstreamException extends YonaException
 	private static final long serialVersionUID = 3472480838017894334L;
 	private final Optional<String> message;
 
-	private UpstreamException(HttpStatus statusCode, String messageId, String message)
+	private UpstreamException(HttpStatusCode statusCode, String messageId, String message)
 	{
 		super(statusCode, messageId);
 		this.message = Optional.of(message);
 	}
 
-	private UpstreamException(HttpStatus statusCode, String messageId, Serializable... parameters)
+	private UpstreamException(HttpStatusCode statusCode, String messageId, Serializable... parameters)
 	{
 		super(statusCode, messageId, parameters);
 		message = Optional.empty();
@@ -35,12 +35,12 @@ public class UpstreamException extends YonaException
 		return message.orElse(super.getLocalizedMessage());
 	}
 
-	public static UpstreamException yonaException(HttpStatus statusCode, String messageId, String message)
+	public static UpstreamException yonaException(HttpStatusCode statusCode, String messageId, String message)
 	{
 		return new UpstreamException(statusCode, messageId, message);
 	}
 
-	public static UpstreamException remoteServiceError(HttpStatus statusCode, String body)
+	public static UpstreamException remoteServiceError(HttpStatusCode statusCode, String body)
 	{
 		return new UpstreamException(statusCode, "error.from.remote.service", statusCode, body);
 	}

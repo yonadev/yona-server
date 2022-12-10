@@ -7,8 +7,6 @@ package nu.yona.server.rest;
 import java.text.MessageFormat;
 import java.util.Locale;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +27,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
 
