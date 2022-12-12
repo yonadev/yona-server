@@ -9,10 +9,10 @@ import org.springframework.hateoas.Link;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 
-public class GoalDtoTest
+class GoalDtoTest
 {
 	@Test
-	public void equalsContract()
+	void equalsContract()
 	{
 		EqualsVerifier.forClass(GoalDto.class).withRedefinedSuperclass().withOnlyTheseFields("id")
 				.withPrefabValues(Link.class, Link.of("edit"), Link.of("self")).withNonnullFields("id").verify();

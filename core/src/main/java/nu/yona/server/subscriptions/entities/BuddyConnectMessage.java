@@ -73,7 +73,7 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 	 *
 	 * @param original Message to copy.
 	 */
-	public BuddyConnectMessage(BuddyConnectMessage original)
+	protected BuddyConnectMessage(BuddyConnectMessage original)
 	{
 		super(original);
 		this.buddyId = original.buddyId;
@@ -104,17 +104,17 @@ public abstract class BuddyConnectMessage extends BuddyConnectionChangeMessage
 
 	public List<String> getDeviceNames()
 	{
-		return splitString(deviceNames).collect(Collectors.toList());
+		return splitString(deviceNames).toList();
 	}
 
 	public List<UUID> getDeviceAnonymizedIds()
 	{
-		return splitString(deviceAnonymizedIds).map(RestUtil::parseUuid).collect(Collectors.toList());
+		return splitString(deviceAnonymizedIds).map(RestUtil::parseUuid).toList();
 	}
 
 	public List<Boolean> getDeviceVpnConnectionStatuses()
 	{
-		return splitString(deviceVpnConnectionStatuses).map(Boolean::parseBoolean).collect(Collectors.toList());
+		return splitString(deviceVpnConnectionStatuses).map(Boolean::parseBoolean).toList();
 	}
 
 	private static Stream<String> splitString(String value)

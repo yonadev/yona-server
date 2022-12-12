@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -32,7 +31,7 @@ public class TimeZoneGoalDto extends GoalDto implements ITimezoneGoal
 {
 	private static final long serialVersionUID = 7479427103494945857L;
 
-	private static Pattern zonePattern = Pattern.compile("[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]");
+	private static final Pattern zonePattern = Pattern.compile("[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]");
 	private final List<String> zones;
 	private final List<Integer> spreadCells;
 	private transient byte[] spreadCellBytes;
@@ -155,8 +154,7 @@ public class TimeZoneGoalDto extends GoalDto implements ITimezoneGoal
 	static TimeZoneGoalDto createInstance(TimeZoneGoal entity)
 	{
 		return new TimeZoneGoalDto(entity.getId(), entity.getActivityCategory().getId(), entity.getZones(),
-				entity.getCreationTime(), entity.getEndTime(),
-				entity.getSpreadCellsIntStream().boxed().collect(Collectors.toList()));
+				entity.getCreationTime(), entity.getEndTime(), entity.getSpreadCellsIntStream().boxed().toList());
 	}
 
 	@Override

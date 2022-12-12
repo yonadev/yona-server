@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
-
 import nu.yona.server.rest.RestUtil;
 import nu.yona.server.subscriptions.service.PinResetRequestService;
 
@@ -38,7 +36,7 @@ public class PinResetConfirmationCodeSenderQuartzJob implements org.quartz.Job
 
 	public static Map<String, Object> buildParameterMap(UUID userId, String localeString)
 	{
-		return ImmutableMap.of(USER_ID_KEY, userId.toString(), LOCALE_STRING_KEY, localeString);
+		return Map.of(USER_ID_KEY, userId.toString(), LOCALE_STRING_KEY, localeString);
 	}
 
 	private static UUID getUserId(Map<String, Object> parameterMap)

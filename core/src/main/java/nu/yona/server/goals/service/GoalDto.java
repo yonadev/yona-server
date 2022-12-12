@@ -172,13 +172,13 @@ public abstract class GoalDto extends PolymorphicDto implements IGoal, Serializa
 	public static GoalDto createInstance(Goal goal)
 	{
 		goal = EntityUtil.enforceLoading(goal);
-		if (goal instanceof BudgetGoal)
+		if (goal instanceof BudgetGoal budgetGoal)
 		{
-			return BudgetGoalDto.createInstance((BudgetGoal) goal);
+			return BudgetGoalDto.createInstance(budgetGoal);
 		}
-		else if (goal instanceof TimeZoneGoal)
+		else if (goal instanceof TimeZoneGoal timeZoneGoal)
 		{
-			return TimeZoneGoalDto.createInstance((TimeZoneGoal) goal);
+			return TimeZoneGoalDto.createInstance(timeZoneGoal);
 		}
 
 		throw new NotImplementedException("GoalDto creation not implemented yet for class " + goal.getClass());

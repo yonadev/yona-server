@@ -23,7 +23,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import nu.yona.server.crypto.CryptoException;
 
-public class CryptoSessionTest
+class CryptoSessionTest
 {
 	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
 	private static final String PASSWORD1 = "secret";
@@ -43,13 +43,13 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void getCurrent_noCurrentSession_throws()
+	void getCurrent_noCurrentSession_throws()
 	{
 		assertThrows(CryptoException.class, () -> CryptoSession.getCurrent());
 	}
 
 	@Test
-	public void start_emptyPassword_throws()
+	void start_emptyPassword_throws()
 	{
 		assertThrows(WrongPasswordException.class, () -> {
 			try (CryptoSession cryptoSession = CryptoSession.start(Optional.empty(), () -> true))
@@ -60,7 +60,7 @@ public class CryptoSessionTest
 
 	@ParameterizedTest
 	@MethodSource("getPlaintextCases")
-	public void encrypt_default_returnsBase64EncryptedDataWithCryptoVariantNumberAsFirstByte(String plaintext)
+	void encrypt_default_returnsBase64EncryptedDataWithCryptoVariantNumberAsFirstByte(String plaintext)
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 
@@ -73,7 +73,7 @@ public class CryptoSessionTest
 
 	@ParameterizedTest
 	@MethodSource("getPlaintextCases")
-	public void decrypt_validPassword_returnsDecryptedData(String plaintext)
+	void decrypt_validPassword_returnsDecryptedData(String plaintext)
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		String ciphertext = encrypt(PASSWORD1, plaintext, initializationVector);
@@ -84,7 +84,7 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void decrypt_invalidCryptoVariantNumber_throws()
+	void decrypt_invalidCryptoVariantNumber_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		byte[] ciphertext = Base64.getDecoder().decode(encrypt(PASSWORD1, PLAINTEXT1, initializationVector));
@@ -95,7 +95,7 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void decrypt_invalidPassword_throws()
+	void decrypt_invalidPassword_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector);
@@ -111,7 +111,7 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void start_passwordCheckerSaysOk_doesNotThrow()
+	void start_passwordCheckerSaysOk_doesNotThrow()
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk))
 		{
@@ -120,7 +120,7 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void start_passwordCheckerSaysNotOk_throws()
+	void start_passwordCheckerSaysNotOk_throws()
 	{
 		assertThrows(CryptoException.class, () -> {
 			try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk))

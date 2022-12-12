@@ -41,7 +41,7 @@ public class BuddyMessageTest
 
 	@ExtendWith(MockitoExtension.class)
 	@InCryptoSession(PASSWORD)
-	public static class BuddyInfoParametersTest
+	static class BuddyInfoParametersTest
 	{
 		private static final String FIRST_NAME_SUBSTITUTE = "FN BD";
 		private static final String LAST_NAME_SUBSTITUTE = "LN BD";
@@ -83,7 +83,7 @@ public class BuddyMessageTest
 		}
 
 		@Test
-		public void createInstance_buddyWithName_nameReturned()
+		void createInstance_buddyWithName_nameReturned()
 		{
 			Buddy buddy = richard.getBuddies().iterator().next();
 			BuddyInfoParameters buddyInfoParameters = BuddyMessage.BuddyInfoParameters.createInstance(buddy, Optional.empty());
@@ -93,7 +93,7 @@ public class BuddyMessageTest
 		}
 
 		@Test
-		public void createInstance_buddyWithoutName_substituteReturned() throws IllegalArgumentException, IllegalAccessException
+		void createInstance_buddyWithoutName_substituteReturned() throws IllegalArgumentException, IllegalAccessException
 		{
 			Buddy buddy = richard.getBuddies().iterator().next();
 			privateUserPropertiesFirstNameField.set(buddy, null);

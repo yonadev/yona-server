@@ -30,12 +30,12 @@ public abstract class PrivateUserProperties extends EntityWithUuidAndTouchVersio
 	private UUID userPhotoId;
 
 	// Default constructor is required for JPA
-	public PrivateUserProperties()
+	protected PrivateUserProperties()
 	{
 		super(null);
 	}
 
-	public PrivateUserProperties(UUID id, String firstName, String lastName, String nickname, Optional<UUID> userPhotoId)
+	protected PrivateUserProperties(UUID id, String firstName, String lastName, String nickname, Optional<UUID> userPhotoId)
 	{
 		super(id);
 		this.firstName = Objects.requireNonNull(firstName);

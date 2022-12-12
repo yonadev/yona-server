@@ -121,7 +121,7 @@ class AddFirstDeviceIntegrationTestConfiguration extends UserRepositoriesConfigu
 @ExtendWith(SpringExtension.class)
 @InCryptoSession(AddFirstDeviceIntegrationTestConfiguration.PASSWORD)
 @ContextConfiguration(classes = { AddFirstDeviceIntegrationTestConfiguration.class })
-public class AddFirstDeviceTest extends BaseSpringIntegrationTest
+class AddFirstDeviceTest extends BaseSpringIntegrationTest
 {
 	private static final String SOME_APP_VERSION = "9.9.9";
 	private static final int SUPPORTED_APP_VERSION_CODE = 999;
@@ -182,7 +182,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void upgrade_addDeviceAnonymizedToUserAnonymized_linkEstablished()
+	void upgrade_addDeviceAnonymizedToUserAnonymized_linkEstablished()
 	{
 		// Add device
 		String deviceName = "Testing";
@@ -221,7 +221,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void upgrade_addFirstDevice_userHasDevice()
+	void upgrade_addFirstDevice_userHasDevice()
 	{
 		UserAnonymizedDto userAnonDto = UserAnonymizedDto.createInstance(richard.getAnonymized());
 		when(mockUserAnonymizedService.getUserAnonymized(richard.getUserAnonymizedId())).thenReturn(userAnonDto);

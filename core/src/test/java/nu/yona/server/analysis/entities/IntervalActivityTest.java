@@ -35,8 +35,8 @@ class IntervalActivityTest
 
 	@ParameterizedTest
 	@MethodSource("provideHasPreviousValues")
-	public void hasPrevious(LocalDate earliestPossibleDate, LocalDate goalCreationTime, LocalDate startTime,
-			TemporalUnit timeUnit, boolean expected)
+	void hasPrevious(LocalDate earliestPossibleDate, LocalDate goalCreationTime, LocalDate startTime, TemporalUnit timeUnit,
+			boolean expected)
 	{
 		Goal goal = BudgetGoal.createNoGoInstance(goalCreationTime.atStartOfDay(), ACTIVITY_CATEGORY);
 		ZonedDateTime startTimeZoned = ZonedDateTime.of(startTime.atStartOfDay(), ZoneId.of("Europe/Amsterdam"));

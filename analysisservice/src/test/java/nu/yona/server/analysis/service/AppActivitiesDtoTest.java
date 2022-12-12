@@ -13,10 +13,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-public class AppActivitiesDtoTest
+class AppActivitiesDtoTest
 {
 	@Test
-	public void getActivitiesSorted_default_returnsActivitiesOrderedByStartTime()
+	void getActivitiesSorted_default_returnsActivitiesOrderedByStartTime()
 	{
 		ZonedDateTime now = ZonedDateTime.now();
 		ZonedDateTime t1 = now;

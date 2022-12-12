@@ -58,7 +58,7 @@ class UserServiceTestConfiguration extends UserRepositoriesConfiguration
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { UserServiceTestConfiguration.class })
-public class UserServiceTest extends BaseSpringIntegrationTest
+class UserServiceTest extends BaseSpringIntegrationTest
 {
 	private User richard;
 
@@ -105,7 +105,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void assertValidUserFields_buddyWithAllowedFields_doesNotThrow()
+	void assertValidUserFields_buddyWithAllowedFields_doesNotThrow()
 	{
 		UserDto user = new UserDto("John", "Doe", "john@doe.net", "+31612345678", "jd");
 
@@ -113,7 +113,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void requestOverwriteUserConfirmationCode_notExisting_sent()
+	void requestOverwriteUserConfirmationCode_notExisting_sent()
 	{
 		service.requestOverwriteUserConfirmationCode(richard.getMobileNumber());
 
@@ -128,7 +128,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void requestOverwriteUserConfirmationCode_justCreated_notSentAgain()
+	void requestOverwriteUserConfirmationCode_justCreated_notSentAgain()
 	{
 		ConfirmationCode confirmationCode = ConfirmationCode.createInstance("9876");
 		richard.setOverwriteUserConfirmationCode(confirmationCode);
@@ -143,7 +143,7 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void requestOverwriteUserConfirmationCode_olderExisting_sentAgain()
+	void requestOverwriteUserConfirmationCode_olderExisting_sentAgain()
 	{
 		LocalDateTime startTime = JUnitUtil.mockCurrentTime("2020-03-19T20:47:00.000");
 		ConfirmationCode confirmationCode = ConfirmationCode.createInstance("9876");

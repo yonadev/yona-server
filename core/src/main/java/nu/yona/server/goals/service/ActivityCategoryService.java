@@ -159,7 +159,7 @@ public class ActivityCategoryService
 	{
 		Iterable<ActivityCategory> allCategories = repository.findAll();
 		List<ActivityCategory> categoriesToConsider = StreamSupport.stream(allCategories.spliterator(), false)
-				.filter(c -> !idsToSkip.contains(c.getId())).collect(Collectors.toList());
+				.filter(c -> !idsToSkip.contains(c.getId())).toList();
 		for (Entry<Locale, String> localeAndName : localizableName.entrySet())
 		{
 			assertNoDuplicateNames(categoriesToConsider, localeAndName);

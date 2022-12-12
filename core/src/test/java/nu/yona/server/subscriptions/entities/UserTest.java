@@ -16,7 +16,7 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.util.TimeUtil;
 
-public class UserTest
+class UserTest
 {
 	private final String password = "password";
 	private User john;
@@ -36,7 +36,7 @@ public class UserTest
 	}
 
 	@Test
-	public void getPrivateDataMigrationVersion_newUser_returnsCurrentVersion()
+	void getPrivateDataMigrationVersion_newUser_returnsCurrentVersion()
 	{
 		assertThat(john.getPrivateDataMigrationVersion(), equalTo(User.getCurrentPrivateDataMigrationVersion()));
 	}

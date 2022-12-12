@@ -87,7 +87,7 @@ class EncryptFirstAndLastNameTestConfiguration extends UserRepositoriesConfigura
 @ExtendWith(SpringExtension.class)
 @InCryptoSession(EncryptFirstAndLastNameTestConfiguration.PASSWORD)
 @ContextConfiguration(classes = { EncryptFirstAndLastNameTestConfiguration.class })
-public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
+class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 {
 	private static final Field firstNameUserField = JUnitUtil.getAccessibleField(User.class, "firstName");
 	private static final Field lastNameUserField = JUnitUtil.getAccessibleField(User.class, "lastName");
@@ -134,7 +134,7 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void upgrade_moveFirstAndLastName_firstAndLastNameMoved() throws IllegalArgumentException, IllegalAccessException
+	void upgrade_moveFirstAndLastName_firstAndLastNameMoved() throws IllegalArgumentException, IllegalAccessException
 	{
 		// First and last name are by default not set on the User entity anymore, so set them explicitly
 		String firstName = "First name";
@@ -161,7 +161,7 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void upgrade_moveFirstAndLastNameTwice_idempotent() throws IllegalArgumentException, IllegalAccessException
+	void upgrade_moveFirstAndLastNameTwice_idempotent() throws IllegalArgumentException, IllegalAccessException
 	{
 		// First and last name are by default not set on the User entity anymore, so set them explicitly
 		String firstName = "First name";

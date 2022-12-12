@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.hibernate.annotations.Where;
 
@@ -26,7 +25,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.entities.EntityUtil;
@@ -59,7 +57,7 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 	private final List<WeekActivity> weekActivities = new ArrayList<>();
 
 	// Default constructor is required for JPA
-	public Goal()
+	protected Goal()
 	{
 		super(null);
 	}
@@ -189,7 +187,7 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 	private void transferHistoryWeekActivities(Goal historyGoal)
 	{
 		List<WeekActivity> historyWeekActivities = weekActivities.stream()
-				.filter(wa -> historyGoal.wasActiveAtInterval(wa.getStartTime(), ChronoUnit.WEEKS)).collect(Collectors.toList());
+				.filter(wa -> historyGoal.wasActiveAtInterval(wa.getStartTime(), ChronoUnit.WEEKS)).toList();
 		historyGoal.setWeekActivities(historyWeekActivities);
 		weekActivities.removeAll(historyWeekActivities);
 	}
@@ -207,12 +205,6 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 	{
 		return getActivityCategory().isMandatoryNoGo();
 	}
-
-	@Override
-	public abstract boolean isGoalAccomplished(DayActivity dayActivity);
-
-	@Override
-	public abstract int computeTotalMinutesBeyondGoal(DayActivity dayActivity);
 
 	public Set<UUID> getIdsIncludingHistoryItems()
 	{

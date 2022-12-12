@@ -42,7 +42,7 @@ public class CryptoSession implements AutoCloseable
 
 	private static final Logger logger = LoggerFactory.getLogger(CryptoSession.class);
 	private static final int ITERATIONS_FOR_MULTIUSE_KEY = 1000;
-	private static ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
+	private static final ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
 	private Cipher encryptionCipher;
 	private Optional<byte[]> initializationVector = Optional.empty();
 	private final SecretKey secretKey;
@@ -60,7 +60,14 @@ public class CryptoSession implements AutoCloseable
 	public void close()
 	{
 		logger.debug("Closing crypto session on thread {}", Thread.currentThread());
-		threadLocal.set(previousCryptoSession);
+		if (previousCryptoSession == null)
+		{
+			threadLocal.remove();
+		}
+		else
+		{
+			threadLocal.set(previousCryptoSession);
+		}
 	}
 
 	private Cipher getEncryptionCipher()

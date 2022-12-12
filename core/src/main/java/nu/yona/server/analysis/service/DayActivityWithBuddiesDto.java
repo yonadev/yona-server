@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -45,7 +44,7 @@ public class DayActivityWithBuddiesDto
 	static DayActivityWithBuddiesDto createInstance(UUID activityCategoryId, Collection<DayActivityDto> dayActivities)
 	{
 		Collection<ActivityForOneUser> activitiesByUser = dayActivities.stream().map(da -> ActivityForOneUser.createInstance(da))
-				.collect(Collectors.toList());
+				.toList();
 		return new DayActivityWithBuddiesDto(activityCategoryId, activitiesByUser);
 	}
 

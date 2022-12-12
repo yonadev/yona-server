@@ -488,9 +488,9 @@ public class DeviceController extends ControllerBase
 		@JsonInclude(Include.NON_EMPTY)
 		public Optional<String> getFirebaseInstanceId()
 		{
-			if (getContent() instanceof UserDeviceDto)
+			if (getContent() instanceof UserDeviceDto userDeviceDto)
 			{
-				return ((UserDeviceDto) getContent()).getFirebaseInstanceId();
+				return userDeviceDto.getFirebaseInstanceId();
 			}
 			return Optional.empty();
 		}
@@ -509,9 +509,9 @@ public class DeviceController extends ControllerBase
 		@JsonInclude(Include.NON_EMPTY)
 		public EntityModel<VPNProfileDto> getVpnProfile()
 		{
-			if (getContent() instanceof UserDeviceDto)
+			if (getContent() instanceof UserDeviceDto userDeviceDto)
 			{
-				return createVpnProfileResource(((UserDeviceDto) getContent()).getVpnProfile());
+				return createVpnProfileResource(userDeviceDto.getVpnProfile());
 			}
 			return null;
 		}

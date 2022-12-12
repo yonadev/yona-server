@@ -14,10 +14,10 @@ import org.junit.jupiter.api.Test;
 
 import nu.yona.server.exceptions.InvalidDataException;
 
-public class DayActivityDtoTest
+class DayActivityDtoTest
 {
 	@Test
-	public void parseDate_iso8601DateFormat_returnsParsedDate()
+	void parseDate_iso8601DateFormat_returnsParsedDate()
 	{
 		LocalDate parsedDate = DayActivityDto.parseDate("2016-01-11");
 
@@ -25,7 +25,7 @@ public class DayActivityDtoTest
 	}
 
 	@Test
-	public void parseDate_invalidDateFormat_throwsInvalidDataException()
+	void parseDate_invalidDateFormat_throwsInvalidDataException()
 	{
 		InvalidDataException ex = assertThrows(InvalidDataException.class, () -> DayActivityDto.parseDate("2016-01-abc"));
 
@@ -34,7 +34,7 @@ public class DayActivityDtoTest
 	}
 
 	@Test
-	public void formatDate_default_returnsInIso8601DateFormat()
+	void formatDate_default_returnsInIso8601DateFormat()
 	{
 		String dayDate = DayActivityDto.formatDate(LocalDate.of(2016, 1, 11));
 

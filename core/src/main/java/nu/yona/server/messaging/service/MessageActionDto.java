@@ -22,15 +22,15 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public class MessageActionDto
 {
 
-	private Map<String, String> properties;
+	private final Map<String, String> properties;
 
-	private Set<MessageDto> affectedMessages;
+	private final Set<MessageDto> affectedMessages;
 
 	@JsonCreator
 	public MessageActionDto(
 			@JsonProperty("properties") @JsonDeserialize(as = HashMap.class, contentAs = String.class) Map<String, String> properties)
 	{
-		this(properties, new HashSet<MessageDto>());
+		this(properties, new HashSet<>());
 	}
 
 	private MessageActionDto(Map<String, String> properties, Set<MessageDto> affectedMessages)

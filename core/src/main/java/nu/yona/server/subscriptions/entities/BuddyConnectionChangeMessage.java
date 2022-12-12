@@ -30,7 +30,7 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 		super();
 	}
 
-	public BuddyConnectionChangeMessage(BuddyInfoParameters buddyInfoParameters, String message)
+	protected BuddyConnectionChangeMessage(BuddyInfoParameters buddyInfoParameters, String message)
 	{
 		super(buddyInfoParameters, message);
 		this.firstName = buddyInfoParameters.firstName;
@@ -42,7 +42,7 @@ public abstract class BuddyConnectionChangeMessage extends BuddyMessage
 	 *
 	 * @param original Message to copy.
 	 */
-	public BuddyConnectionChangeMessage(BuddyConnectionChangeMessage original)
+	protected BuddyConnectionChangeMessage(BuddyConnectionChangeMessage original)
 	{
 		super(original);
 		this.firstName = original.firstName;

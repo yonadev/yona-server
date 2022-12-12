@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -115,13 +114,13 @@ public class MessageDestination extends EntityWithUuid
 	{
 		Optional<UUID> sentByUserAnonymizedIdInOptional = Optional.of(sentByUserAnonymizedId);
 		return messages.stream().filter(message -> sentByUserAnonymizedIdInOptional.equals(message.getRelatedUserAnonymizedId()))
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	public void removeGoalConflictMessages(Goal goal)
 	{
-		messages.removeIf(
-				message -> message instanceof GoalConflictMessage && ((GoalConflictMessage) message).getGoal().equals(goal));
+		messages.removeIf(message -> message instanceof GoalConflictMessage goalConflictMessage && goalConflictMessage.getGoal()
+				.equals(goal));
 	}
 
 	public Page<Message> getActivityRelatedMessages(IntervalActivity intervalActivityEntity, Pageable pageable)

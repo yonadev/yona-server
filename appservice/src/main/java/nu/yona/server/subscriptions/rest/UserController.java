@@ -512,7 +512,7 @@ public class UserController extends ControllerBase
 	enum UserResourceRepresentation
 	{
 		MINIMAL(u -> false, u -> false, u -> false), BUDDY_USER(u -> true, u -> false, u -> false), OWN_USER(
-			u -> u.isMobileNumberConfirmed(), u -> !u.isMobileNumberConfirmed(), u -> u.isMobileNumberConfirmed());
+			UserDto::isMobileNumberConfirmed, u -> !u.isMobileNumberConfirmed(), UserDto::isMobileNumberConfirmed);
 
 		final Predicate<UserDto> includeGeneralContent;
 		final Predicate<UserDto> includeOwnUserNumNotConfirmedContent;

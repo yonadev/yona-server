@@ -26,17 +26,15 @@ public class ApplicationStatusLogger extends AbstractFailureAnalyzer<Throwable>
 
 	public static void addLoggerForContextClosedEvent(ConfigurableApplicationContext context)
 	{
-		context.addApplicationListener(new ApplicationListener<ContextClosedEvent>()
+		context.addApplicationListener((ApplicationListener<ContextClosedEvent>) e -> onApplicationEvent(context, e));
+	}
+
+	private static void onApplicationEvent(ConfigurableApplicationContext context, ContextClosedEvent event)
+	{
+		if (event.getApplicationContext() != context)
 		{
-			@Override
-			public void onApplicationEvent(ContextClosedEvent event)
-			{
-				if (event.getApplicationContext() != context)
-				{
-					return;
-				}
-				logger.info(Constants.ALERT_MARKER, "Application closed");
-			}
-		});
+			return;
+		}
+		logger.info(Constants.ALERT_MARKER, "Application closed");
 	}
 }

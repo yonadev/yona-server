@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,8 +86,7 @@ public class DashboardController
 	private List<HistoryInterval> determineIntervals(List<Integer> intervalEndOffsets)
 	{
 		HistoryInterval.setNextStart(LocalDate.now());
-		List<HistoryInterval> intervals = intervalEndOffsets.stream().map(HistoryInterval::nextInstance)
-				.collect(Collectors.toList());
+		List<HistoryInterval> intervals = intervalEndOffsets.stream().map(HistoryInterval::nextInstance).toList();
 		intervals.add(HistoryInterval.nextInstance(LONG_AGO));
 		return intervals;
 	}
@@ -109,7 +107,7 @@ public class DashboardController
 	{
 		List<Integer> counts = IntStream.range(0, DAYS_APP_OPENED_SCALE.size() - 1).mapToObj(
 				i -> userRepository.countByNumberOfDaysAppOpenedAfterInstallation(DAYS_APP_OPENED_SCALE.get(i),
-						DAYS_APP_OPENED_SCALE.get(i + 1))).collect(Collectors.toList());
+						DAYS_APP_OPENED_SCALE.get(i + 1))).toList();
 		int neverOpenedCount = userRepository.countByAppLastOpenedDateIsNull();
 		counts.add(0, neverOpenedCount);
 		return counts;
@@ -118,7 +116,7 @@ public class DashboardController
 	private List<Integer> calculateCounts(List<HistoryInterval> intervals, Function<HistoryInterval, Integer> countRetriever,
 			int neverUsedCount)
 	{
-		List<Integer> counts = intervals.stream().map(countRetriever).collect(Collectors.toList());
+		List<Integer> counts = intervals.stream().map(countRetriever).toList();
 		counts.add(neverUsedCount);
 
 		return counts;
@@ -139,7 +137,7 @@ public class DashboardController
 	private List<Integer> absoluteValuesToPercentages(List<Integer> values)
 	{
 		int sum = values.stream().reduce(0, (a, b) -> a + b);
-		return values.stream().map(v -> absoluteValueToPercentage(sum, v)).collect(Collectors.toList());
+		return values.stream().map(v -> absoluteValueToPercentage(sum, v)).toList();
 	}
 
 	private int absoluteValueToPercentage(int sum, Integer value)

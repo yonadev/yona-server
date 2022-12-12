@@ -61,7 +61,7 @@ class FirebaseServiceTestConfiguration extends UserRepositoriesConfiguration
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { FirebaseServiceTestConfiguration.class })
-public class FirebaseServiceTest extends BaseSpringIntegrationTest
+class FirebaseServiceTest extends BaseSpringIntegrationTest
 {
 	private static final Constructor<FirebaseMessagingException> firebaseMessagingExceptionConstructor = JUnitUtil.getAccessibleConstructor(
 			FirebaseMessagingException.class, ErrorCode.class, String.class, Throwable.class, IncomingHttpResponse.class,
@@ -104,7 +104,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendMessage_success_sendsFirebaseMessage() throws FirebaseMessagingException
+	void sendMessage_success_sendsFirebaseMessage() throws FirebaseMessagingException
 	{
 		UUID deviceAnonymizedId = UUID.randomUUID();
 		String registrationToken = "token-" + UUID.randomUUID();
@@ -117,7 +117,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendMessage_unregisteredError_clearsFirebaseInstanceId() throws FirebaseMessagingException
+	void sendMessage_unregisteredError_clearsFirebaseInstanceId() throws FirebaseMessagingException
 	{
 		UUID deviceAnonymizedId = UUID.randomUUID();
 		String registrationToken = "token-" + UUID.randomUUID();
@@ -130,7 +130,7 @@ public class FirebaseServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendMessage_unknownError_fails() throws FirebaseMessagingException
+	void sendMessage_unknownError_fails() throws FirebaseMessagingException
 	{
 		UUID deviceAnonymizedId = UUID.randomUUID();
 		String registrationToken = "token-" + UUID.randomUUID();

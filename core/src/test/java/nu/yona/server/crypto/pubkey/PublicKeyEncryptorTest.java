@@ -16,14 +16,14 @@ import org.junit.jupiter.api.Test;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 
-public class PublicKeyEncryptorTest
+class PublicKeyEncryptorTest
 {
 	private static final int MIN_BLOCK_LENGTH = CryptoUtil.CRYPTO_VARIANT_NUMBER_LENGTH + PublicKeyUtil.KEY_LENGTH_BYTES;
 	private static final KeyPair keyPair = PublicKeyUtil.generateKeyPair();
 	private static final String PLAINTEXT1 = "One";
 
 	@Test
-	public void encrypt_default_returnsEncryptedData()
+	void encrypt_default_returnsEncryptedData()
 	{
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
 
@@ -33,7 +33,7 @@ public class PublicKeyEncryptorTest
 	}
 
 	@Test
-	public void encrypt_default_firstByteIsSetToCryptoVariantNumber()
+	void encrypt_default_firstByteIsSetToCryptoVariantNumber()
 	{
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
 
@@ -43,7 +43,7 @@ public class PublicKeyEncryptorTest
 	}
 
 	@Test
-	public void encrypt_null_returnsNull()
+	void encrypt_null_returnsNull()
 	{
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
 
@@ -53,7 +53,7 @@ public class PublicKeyEncryptorTest
 	}
 
 	@Test
-	public void executeInCryptoSession_default_returnsEncryptedDecryptionInfoThatCanBeUsedWithDecryptor()
+	void executeInCryptoSession_default_returnsEncryptedDecryptionInfoThatCanBeUsedWithDecryptor()
 	{
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
 		DataContainer dataContainer = new DataContainer();

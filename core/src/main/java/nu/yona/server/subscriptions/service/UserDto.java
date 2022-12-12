@@ -157,9 +157,9 @@ public class UserDto
 	@JsonIgnore
 	public OwnUserPrivateDataDto getOwnPrivateData()
 	{
-		if (privateData instanceof OwnUserPrivateDataDto)
+		if (privateData instanceof OwnUserPrivateDataDto ownUserPrivateDataDto)
 		{
-			return (OwnUserPrivateDataDto) privateData;
+			return ownUserPrivateDataDto;
 		}
 		throw new IllegalStateException("Cannot fetch own user private data. Private data " + ((privateData == null) ?
 				"is null" :

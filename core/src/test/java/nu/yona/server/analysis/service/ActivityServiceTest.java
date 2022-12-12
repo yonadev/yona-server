@@ -71,7 +71,7 @@ import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
 @ExtendWith(MockitoExtension.class)
-public class ActivityServiceTest
+class ActivityServiceTest
 {
 	private static final Field userIdField = JUnitUtil.getAccessibleField(UserDto.class, "id");
 	private static final Field userPrivateDataAnonymizedIdField = JUnitUtil.getAccessibleField(OwnUserPrivateDataDto.class,
@@ -188,7 +188,7 @@ public class ActivityServiceTest
 	}
 
 	@Test
-	public void getUserDayActivityOverviews_activityPresent_resultsWithActivity()
+	void getUserDayActivityOverviews_activityPresent_resultsWithActivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		ZonedDateTime yesterday = today.minusDays(1);
@@ -236,7 +236,7 @@ public class ActivityServiceTest
 	}
 
 	@Test
-	public void getUserWeekActivityOverviews_activityPresent_resultsWithActivity()
+	void getUserWeekActivityOverviews_activityPresent_resultsWithActivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
@@ -318,7 +318,7 @@ public class ActivityServiceTest
 	}
 
 	@Test
-	public void getUserDayActivityOverviews_noActivityPresent_resultsWithInactivity()
+	void getUserDayActivityOverviews_noActivityPresent_resultsWithInactivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
@@ -338,7 +338,7 @@ public class ActivityServiceTest
 	}
 
 	@Test
-	public void getUserWeekActivityOverviews_noActivityPresent_resultsWithInactivity()
+	void getUserWeekActivityOverviews_noActivityPresent_resultsWithInactivity()
 	{
 		Page<WeekActivityOverviewDto> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userId,
 				PageRequest.of(0, 5));
@@ -358,7 +358,7 @@ public class ActivityServiceTest
 	}
 
 	@Test
-	public void getUserDayActivityDetail_noActivityPresent_resultWithInactivity()
+	void getUserDayActivityDetail_noActivityPresent_resultWithInactivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
@@ -373,7 +373,7 @@ public class ActivityServiceTest
 	}
 
 	@Test
-	public void getUserWeekActivityDetail_noActivityPresent_resultWithInactivity()
+	void getUserWeekActivityDetail_noActivityPresent_resultWithInactivity()
 	{
 		WeekActivityDto inactivityWeek = service.getUserWeekActivityDetail(userId, getWeekStartDate(LocalDate.now(userAnonZone)),
 				gamblingGoal.getId());
@@ -385,7 +385,7 @@ public class ActivityServiceTest
 	}
 
 	@Test
-	public void getUserDayActivityDetail_activityPresent_resultWithActivity()
+	void getUserDayActivityDetail_activityPresent_resultWithActivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		ZonedDateTime yesterday = today.minusDays(1);

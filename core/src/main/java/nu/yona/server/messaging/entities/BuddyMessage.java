@@ -58,7 +58,7 @@ public abstract class BuddyMessage extends Message
 	 *
 	 * @param original Message to copy.
 	 */
-	public BuddyMessage(BuddyMessage original)
+	protected BuddyMessage(BuddyMessage original)
 	{
 		super(original);
 		this.senderUserId = original.senderUserId;

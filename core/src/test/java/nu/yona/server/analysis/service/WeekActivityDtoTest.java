@@ -15,10 +15,10 @@ import org.junit.jupiter.api.Test;
 
 import nu.yona.server.exceptions.InvalidDataException;
 
-public class WeekActivityDtoTest
+class WeekActivityDtoTest
 {
 	@Test
-	public void parseDate_iso8601DateFormat_returnsDateOfFirstDayOfWeek()
+	void parseDate_iso8601DateFormat_returnsDateOfFirstDayOfWeek()
 	{
 		LocalDate parsedDate = WeekActivityDto.parseDate("2016-W02");
 
@@ -27,7 +27,7 @@ public class WeekActivityDtoTest
 	}
 
 	@Test
-	public void parseDate_invalidDateFormat_throwsInvalidDataException()
+	void parseDate_invalidDateFormat_throwsInvalidDataException()
 	{
 		InvalidDataException ex = assertThrows(InvalidDataException.class, () -> WeekActivityDto.parseDate("2016-Wabc"));
 
@@ -36,7 +36,7 @@ public class WeekActivityDtoTest
 	}
 
 	@Test
-	public void formatDate_default_returnsInIso8601WeekDateFormat()
+	void formatDate_default_returnsInIso8601WeekDateFormat()
 	{
 		String weekDate = WeekActivityDto.formatDate(LocalDate.of(2016, 1, 10));
 
@@ -44,7 +44,7 @@ public class WeekActivityDtoTest
 	}
 
 	@Test
-	public void formatDate_dateOnNonFirstDayOfWeek_throws()
+	void formatDate_dateOnNonFirstDayOfWeek_throws()
 	{
 		assertThrows(IllegalArgumentException.class, () -> WeekActivityDto.formatDate(LocalDate.of(2016, 1, 11)));
 	}

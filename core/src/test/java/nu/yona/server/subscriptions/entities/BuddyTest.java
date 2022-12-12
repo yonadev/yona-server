@@ -28,7 +28,7 @@ import nu.yona.server.util.TimeUtil;
 
 @ExtendWith(MockitoExtension.class)
 @InCryptoSession("PASSWORD")
-public class BuddyTest
+class BuddyTest
 {
 	private final Field userUserPrivateField = JUnitUtil.getAccessibleField(User.class, "userPrivate");
 	private final Field privateUserPropertiesFirstNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
@@ -51,7 +51,7 @@ public class BuddyTest
 	}
 
 	@Test
-	public void determineName_buddyNameAvailable_buddyName()
+	void determineName_buddyNameAvailable_buddyName()
 	{
 		String buddyName = "BuddyName";
 
@@ -61,7 +61,7 @@ public class BuddyTest
 	}
 
 	@Test
-	public void determineName_nameNotAvailableInUser_translationUsed() throws IllegalArgumentException, IllegalAccessException
+	void determineName_nameNotAvailableInUser_translationUsed() throws IllegalArgumentException, IllegalAccessException
 	{
 		String nickname = "nickname";
 		String messageId = "message.id";
@@ -74,7 +74,7 @@ public class BuddyTest
 	}
 
 	@Test
-	public void determineName_userTooNewToContainName_translationUsed()
+	void determineName_userTooNewToContainName_translationUsed()
 	{
 		String nickname = "nickname";
 		String messageId = "message.id";
@@ -87,7 +87,7 @@ public class BuddyTest
 	}
 
 	@Test
-	public void determineName_firstNameAvailable_firstName()
+	void determineName_firstNameAvailable_firstName()
 	{
 		String userName = "firstName";
 		User user = createUser(userName, "lastName", "nickName");
@@ -99,7 +99,7 @@ public class BuddyTest
 	}
 
 	@Test
-	public void determineName_userNotAvailable_translationUsed()
+	void determineName_userNotAvailable_translationUsed()
 	{
 		String nickname = "nickname";
 		String messageId = "message.id";

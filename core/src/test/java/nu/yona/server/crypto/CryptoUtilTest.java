@@ -12,10 +12,10 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-public class CryptoUtilTest
+class CryptoUtilTest
 {
 	@Test
-	public void getRandomString_tryTenStrings_onlyValidUrlCharactersUsed()
+	void getRandomString_tryTenStrings_onlyValidUrlCharactersUsed()
 	{
 		for (int i = 0; (i < 10); i++)
 		{
