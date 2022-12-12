@@ -24,7 +24,7 @@ final Map<String, String> libraries = [
 		// When updating the below version number, also update
 		// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 		hazelcast        : "com.hazelcast:hazelcast:5.2.1",
-		thymeleaf        : "org.thymeleaf:thymeleaf-spring5:3.1.0.RELEASE",
+		thymeleaf        : "org.thymeleaf:thymeleaf-spring5:3.1.1.RELEASE",
 		hibernate        : "org.hibernate:hibernate-core:6.1.6.Final",
 ]
 
