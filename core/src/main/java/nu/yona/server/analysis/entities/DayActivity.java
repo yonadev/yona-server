@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.hibernate.annotations.BatchSize;
 
@@ -211,7 +210,7 @@ public class DayActivity extends IntervalActivity
 		if (nonoverlappingActivityIntervals == null)
 		{
 			List<Activity> sortedActivities = activities.stream()
-					.sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime())).collect(Collectors.toList());
+					.sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime())).toList();
 			nonoverlappingActivityIntervals = determineNonoverlappingActivityIntervals(sortedActivities);
 		}
 		return nonoverlappingActivityIntervals;

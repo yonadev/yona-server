@@ -155,9 +155,9 @@ public class GoalService
 
 	private boolean containsPropertyUpdate(Goal existingGoal, GoalDto newGoalDto)
 	{
-		if (existingGoal instanceof BudgetGoal)
+		if (existingGoal instanceof BudgetGoal budgetGoal)
 		{
-			return containsPropertyUpdate((BudgetGoal) existingGoal, (BudgetGoalDto) newGoalDto);
+			return containsPropertyUpdate(budgetGoal, (BudgetGoalDto) newGoalDto);
 		}
 		return containsPropertyUpdate((TimeZoneGoal) existingGoal, (TimeZoneGoalDto) newGoalDto);
 	}

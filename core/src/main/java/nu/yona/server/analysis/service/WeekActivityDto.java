@@ -17,7 +17,7 @@ import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalUnit;
 import java.time.temporal.WeekFields;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -122,7 +122,7 @@ public class WeekActivityDto extends IntervalActivityDto
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WEEK_DETAIL;
 		WeekActivityDto weekActivity = new WeekActivityDto(goal.getId(), startOfWeek, includeDetail,
 				includeDetail ? DayActivityDto.createInactiveSpread() : Collections.emptyList(),
-				includeDetail ? Optional.of(0) : Optional.empty(), new HashMap<>(),
+				includeDetail ? Optional.of(0) : Optional.empty(), new EnumMap<>(DayOfWeek.class),
 				IntervalActivity.hasPrevious(earliestPossibleDate, goal, startOfWeek, ChronoUnit.WEEKS),
 				IntervalActivity.hasNext(startOfWeek, ChronoUnit.WEEKS));
 		weekActivity.createRequiredInactivityDays(userAnonymized, earliestPossibleDate,

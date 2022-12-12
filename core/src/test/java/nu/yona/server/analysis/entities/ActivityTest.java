@@ -27,7 +27,7 @@ import nu.yona.server.Translator;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 
-public class ActivityTest
+class ActivityTest
 {
 	private DeviceAnonymized deviceAnonEntity;
 
@@ -39,7 +39,7 @@ public class ActivityTest
 	}
 
 	@Test
-	public void setEndTime_afterComputeAggregates_resetsAreAggregatesComputed()
+	void setEndTime_afterComputeAggregates_resetsAreAggregatesComputed()
 	{
 		DayActivity dayActivityMock = mock(DayActivity.class);
 		Activity activity = createActivity("21:30", "21:31");
@@ -54,9 +54,8 @@ public class ActivityTest
 	@ParameterizedTest
 	@CsvSource({ "00:00:00, 00:00:59, 0", "00:00, 00:01:59.999, 1", "01:00, 01:05, 5", "01:00:01, 01:05, 4", "01:00, 01:04:59, 4",
 			"01:00, 02:01, 61" })
-	// Note that the analysis service will never create activities shorter than one minute
-	public void getDurationMinutes_various_returnsTotalMinutes(String startTimeString, String endTimeString,
-			int expectedTotalMinutes)
+		// Note that the analysis service will never create activities shorter than one minute
+	void getDurationMinutes_various_returnsTotalMinutes(String startTimeString, String endTimeString, int expectedTotalMinutes)
 	{
 		Activity activity = createActivity(startTimeString, endTimeString);
 
@@ -64,7 +63,7 @@ public class ActivityTest
 	}
 
 	@Test
-	public void getDurationMinutes_fullDay_returnsIncludingLastMinute()
+	void getDurationMinutes_fullDay_returnsIncludingLastMinute()
 	{
 		ZonedDateTime startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
 		Activity activity = Activity.createInstance(deviceAnonEntity, ZoneId.of("Europe/Amsterdam"), startOfDay.toLocalDateTime(),

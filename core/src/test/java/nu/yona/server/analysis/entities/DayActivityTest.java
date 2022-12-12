@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.IGoal;
 
-public class DayActivityTest extends IntervalActivityTestBase
+class DayActivityTest extends IntervalActivityTestBase
 {
 	private DayActivity createDayActivity()
 	{
@@ -57,7 +57,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpread_beforeTransitionIntoDst_noCorrectionApplied()
+	void getSpread_beforeTransitionIntoDst_noCorrectionApplied()
 	{
 		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, testZone));
 		addActivity(d, "01:05:00", "01:07:00");
@@ -66,7 +66,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpread_duringTransitionIntoDst_negativeCorrectionApplied()
+	void getSpread_duringTransitionIntoDst_negativeCorrectionApplied()
 	{
 		// This is a hypothetical situation, as the clock jumps from 2:00 to 3:00
 		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, testZone));
@@ -76,7 +76,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpread_afterTransitionIntoDst_negativeCorrectionApplied()
+	void getSpread_afterTransitionIntoDst_negativeCorrectionApplied()
 	{
 		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, testZone));
 		addActivity(d, "03:05:00", "03:07:00");
@@ -85,7 +85,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpread_beforeTransitionOutOfDst_noCorrectionApplied()
+	void getSpread_beforeTransitionOutOfDst_noCorrectionApplied()
 	{
 		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 10, 28, 0, 0, 0, 0, testZone));
 		addActivity(d, "01:05:00", "01:07:00");
@@ -94,7 +94,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpread_afterTransitionOutOfDst_positiveCorrectionApplied()
+	void getSpread_afterTransitionOutOfDst_positiveCorrectionApplied()
 	{
 		DayActivity d = createDayActivity(ZonedDateTime.of(2018, 10, 28, 0, 0, 0, 0, testZone));
 		addActivity(d, "04:05:00", "04:07:00");
@@ -103,7 +103,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_lessThanAMinute_ignored()
+	void getSpreadGetTotalActivityDurationMinutes_lessThanAMinute_ignored()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "20:05:11", "20:06:08");
@@ -112,7 +112,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_endOfDayIncluded_includesEndOfDay()
+	void getSpreadGetTotalActivityDurationMinutes_endOfDayIncluded_includesEndOfDay()
 	{
 		DayActivity d = createDayActivity();
 		d.addActivity(Activity.createInstance(deviceAnonEntity, testZone, getTimeOnDay(d, "23:50").toLocalDateTime(),
@@ -122,7 +122,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_moreThanAMinute_roundedDownToMinutes()
+	void getSpreadGetTotalActivityDurationMinutes_moreThanAMinute_roundedDownToMinutes()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:55:08", "19:59:03");
@@ -131,7 +131,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItems_resultsInBothSpreadItems()
+	void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItems_resultsInBothSpreadItems()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:55:00", "20:01:00");
@@ -140,7 +140,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_startEdge_isIncluded()
+	void getSpreadGetTotalActivityDurationMinutes_startEdge_isIncluded()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:45:00", "19:50:00");
@@ -149,7 +149,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_endEdge_isNotIncluded()
+	void getSpreadGetTotalActivityDurationMinutes_endEdge_isNotIncluded()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:55:00", "19:59:59");
@@ -157,7 +157,8 @@ public class DayActivityTest extends IntervalActivityTestBase
 		assertSpreadItemsAndTotal(d, "78=0,79=4,80=0", 4);
 	}
 
-	public void getSpreadGetTotalActivityDurationMinutes_startEdgeOfNextSpreadItem_isIncluded()
+	@Test
+	void getSpreadGetTotalActivityDurationMinutes_startEdgeOfNextSpreadItem_isIncluded()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:55:00", "20:00:00");
@@ -166,7 +167,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItemsSecondItemLessThanAMinute_ignoredInSecondItem()
+	void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItemsSecondItemLessThanAMinute_ignoredInSecondItem()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "20:05:08", "20:15:03");
@@ -175,7 +176,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItemsFirstItemLessThanAMinute_upgradedToOneMinuteInFirstItem()
+	void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItemsFirstItemLessThanAMinute_upgradedToOneMinuteInFirstItem()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:59:59", "20:05:03");
@@ -184,7 +185,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_spanThreeSpreadItems_resultsInAllThreeSpreadItems()
+	void getSpreadGetTotalActivityDurationMinutes_spanThreeSpreadItems_resultsInAllThreeSpreadItems()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:55:00", "20:16:00");
@@ -193,7 +194,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_multipleActivitiesOverlappingUnsorted_countsOverlappingActivitiesOnce()
+	void getSpreadGetTotalActivityDurationMinutes_multipleActivitiesOverlappingUnsorted_countsOverlappingActivitiesOnce()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:48:00", "19:50:00");
@@ -204,7 +205,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void addActivity_afterComputeAggregates_resetsAreAggregatesComputed()
+	void addActivity_afterComputeAggregates_resetsAreAggregatesComputed()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:55", "19:59");
@@ -216,7 +217,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void addActivity_afterComputeAggregates_resetsAreAggregatesComputedOnWeek()
+	void addActivity_afterComputeAggregates_resetsAreAggregatesComputedOnWeek()
 	{
 		WeekActivity w = createWeekActivity();
 		DayActivity d1 = createDayActivity(w, 0);
@@ -230,7 +231,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_afterComputeAggregatesAddActivity_returnsRecomputedResults()
+	void getSpreadGetTotalActivityDurationMinutes_afterComputeAggregatesAddActivity_returnsRecomputedResults()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:55", "19:59");
@@ -241,7 +242,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getTotalMinutesBeyondGoalIsGoalAccomplished_afterComputeAggregatesAddActivity_returnsRecomputedResults()
+	void getTotalMinutesBeyondGoalIsGoalAccomplished_afterComputeAggregatesAddActivity_returnsRecomputedResults()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:00", "19:31");
@@ -252,7 +253,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getTotalMinutesBeyondGoalIsGoalAccomplished_budgetGoalBelowBudget_zeroBeyondGoalAndGoalAccomplished()
+	void getTotalMinutesBeyondGoalIsGoalAccomplished_budgetGoalBelowBudget_zeroBeyondGoalAndGoalAccomplished()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:55", "19:59");
@@ -261,7 +262,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getTotalMinutesBeyondGoalIsGoalAccomplished_budgetGoalOnBudget_zeroBeyondGoalAndGoalAccomplished()
+	void getTotalMinutesBeyondGoalIsGoalAccomplished_budgetGoalOnBudget_zeroBeyondGoalAndGoalAccomplished()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:00", "19:30");
@@ -271,7 +272,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getTotalMinutesBeyondGoalIsGoalAccomplished_budgetGoalOutsideBudget_rightNumberBeyondGoalAndGoalNotAccomplished()
+	void getTotalMinutesBeyondGoalIsGoalAccomplished_budgetGoalOutsideBudget_rightNumberBeyondGoalAndGoalNotAccomplished()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:00", "19:31");
@@ -281,7 +282,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getTotalMinutesBeyondGoalIsGoalAccomplished_timeZoneGoalWithinAllowedZones_zeroBeyondGoalAndGoalAccomplished()
+	void getTotalMinutesBeyondGoalIsGoalAccomplished_timeZoneGoalWithinAllowedZones_zeroBeyondGoalAndGoalAccomplished()
 	{
 		DayActivity d = createDayActivityTimeZoneGoal();
 		addActivity(d, "05:00", "08:00");
@@ -291,7 +292,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getTotalMinutesBeyondGoalIsGoalAccomplished_timeZoneGoalCompletelyOutsideAllowedZones_rightNumberBeyondGoalAndGoalNotAccomplished()
+	void getTotalMinutesBeyondGoalIsGoalAccomplished_timeZoneGoalCompletelyOutsideAllowedZones_rightNumberBeyondGoalAndGoalNotAccomplished()
 	{
 		DayActivity d = createDayActivityTimeZoneGoal();
 		addActivity(d, "04:58", "04:59");
@@ -301,7 +302,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getTotalMinutesBeyondGoalIsGoalAccomplished_timeZoneGoalOutsideAndInsideAllowedZones_rightNumberBeyondGoalAndGoalNotAccomplished()
+	void getTotalMinutesBeyondGoalIsGoalAccomplished_timeZoneGoalOutsideAndInsideAllowedZones_rightNumberBeyondGoalAndGoalNotAccomplished()
 	{
 		DayActivity d = createDayActivityTimeZoneGoal();
 		addActivity(d, "04:59", "05:30");
@@ -311,7 +312,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void areAggregatesComputed_default_returnsFalse()
+	void areAggregatesComputed_default_returnsFalse()
 	{
 		DayActivity d = createDayActivity();
 
@@ -321,7 +322,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void areAggregatesComputed_afterComputeAggregates_returnsTrue()
+	void areAggregatesComputed_afterComputeAggregates_returnsTrue()
 	{
 		DayActivity d = createDayActivity();
 		d.computeAggregates();

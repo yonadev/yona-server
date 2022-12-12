@@ -162,7 +162,7 @@ public class GlobalExceptionMapping
 		try
 		{
 			LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
-			logger.error(MessageFormat.format("Request {0} {1} : {2}", requestInfo, message, exception.getMessage()), exception);
+			logger.error("Request {} {} : {}", requestInfo, message, exception.getMessage(), exception);
 		}
 		finally
 		{

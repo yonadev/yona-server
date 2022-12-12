@@ -50,7 +50,7 @@ public class PinResetRequestController extends ControllerBase
 	@Autowired
 	private YonaProperties yonaProperties;
 
-	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+	private static final Logger logger = LoggerFactory.getLogger(PinResetRequestController.class);
 
 	@Autowired
 	private UserService userService;

@@ -21,7 +21,7 @@ import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
 
 @ExtendWith(MockitoExtension.class)
-public class PlivoSmsServiceTest
+class PlivoSmsServiceTest
 {
 	private static final String TEST_ALPHA_ID = "TestId";
 	private static final String TEST_DEFAULT_NUMBER = "+12345678";
@@ -45,13 +45,13 @@ public class PlivoSmsServiceTest
 
 	@ParameterizedTest
 	@ValueSource(strings = { "+31000000000", "+49222222222" })
-	public void determineSender_targetPhoneNumberInAlphaSenderSupportingCountries_returnsAlphaId(String targetPhoneNumber)
+	void determineSender_targetPhoneNumberInAlphaSenderSupportingCountries_returnsAlphaId(String targetPhoneNumber)
 	{
 		assertThat(smsService.determineSender(targetPhoneNumber), equalTo(TEST_ALPHA_ID));
 	}
 
 	@Test
-	public void determineSender_targetPhoneNumberNotInAlphaSenderSupportingCountries_returnsDefaultNumber()
+	void determineSender_targetPhoneNumberNotInAlphaSenderSupportingCountries_returnsDefaultNumber()
 	{
 		assertThat(smsService.determineSender("+32111111111"), equalTo(TEST_DEFAULT_NUMBER));
 	}

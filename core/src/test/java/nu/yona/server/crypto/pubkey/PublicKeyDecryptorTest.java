@@ -16,13 +16,13 @@ import org.junit.jupiter.api.Test;
 
 import nu.yona.server.crypto.CryptoException;
 
-public class PublicKeyDecryptorTest
+class PublicKeyDecryptorTest
 {
 	private static final KeyPair keyPair = PublicKeyUtil.generateKeyPair();
 	private static final String PLAINTEXT1 = "One";
 
 	@Test
-	public void decrypt_validKeyPair_returnsDecryptedData()
+	void decrypt_validKeyPair_returnsDecryptedData()
 	{
 		byte[] ciphertext = encrypt(keyPair.getPublic(), PLAINTEXT1);
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(keyPair.getPrivate());
@@ -34,7 +34,7 @@ public class PublicKeyDecryptorTest
 	}
 
 	@Test
-	public void decrypt_null_returnsNull()
+	void decrypt_null_returnsNull()
 	{
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(keyPair.getPrivate());
 
@@ -44,7 +44,7 @@ public class PublicKeyDecryptorTest
 	}
 
 	@Test
-	public void decrypt_invalidKeyPair_throws()
+	void decrypt_invalidKeyPair_throws()
 	{
 		byte[] ciphertext = encrypt(keyPair.getPublic(), PLAINTEXT1);
 		KeyPair otherKeyPair = PublicKeyUtil.generateKeyPair();
@@ -54,7 +54,7 @@ public class PublicKeyDecryptorTest
 	}
 
 	@Test
-	public void decrypt_unsupportedCryptoVariantNumber_throws()
+	void decrypt_unsupportedCryptoVariantNumber_throws()
 	{
 		byte[] ciphertext = encrypt(keyPair.getPublic(), PLAINTEXT1);
 		ciphertext[0] = 13; // Unsupported crypto variant number

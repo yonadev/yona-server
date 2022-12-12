@@ -168,8 +168,7 @@ public class MessageService
 	public List<Message> getUnprocessedMessages(User user, Predicate<Message> predicate)
 	{
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return getUnprocessedMessageIds(user).stream().map(messageSource::getMessage).filter(predicate)
-				.collect(Collectors.toList());
+		return getUnprocessedMessageIds(user).stream().map(messageSource::getMessage).filter(predicate).toList();
 	}
 
 	public List<Message> getMessagesFromRelatedUserAnonymizedId(User user, UUID relatedUserAnonymizedId)
@@ -279,7 +278,7 @@ public class MessageService
 
 	private List<MessageDto> wrapMessagesAsDtos(User user, List<? extends Message> messageEntities)
 	{
-		return messageEntities.stream().map(m -> messageToDto(user, m)).collect(Collectors.toList());
+		return messageEntities.stream().map(m -> messageToDto(user, m)).toList();
 	}
 
 	public MessageDto messageToDto(User user, Message message)

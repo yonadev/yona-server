@@ -39,7 +39,7 @@ public abstract class EntityWithId
 	@Override
 	public boolean equals(Object that)
 	{
-		return (this == that) || (isIdSet() && (that instanceof EntityWithId) && getId() == ((EntityWithId) that).getId());
+		return (this == that) || (isIdSet() && (that instanceof EntityWithId entityWithId) && getId() == entityWithId.getId());
 	}
 
 	private boolean isIdSet()

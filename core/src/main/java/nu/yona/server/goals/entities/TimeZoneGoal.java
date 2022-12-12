@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -121,7 +120,7 @@ public class TimeZoneGoal extends Goal implements ITimezoneGoal
 			endIndex = (endIndex == 0) ? 24 * 4 : endIndex; // To handle 24:00
 			addIndexes(spreadCells, beginIndex, endIndex);
 		}
-		return spreadCells.stream().sorted().collect(Collectors.toList());
+		return spreadCells.stream().sorted().toList();
 	}
 
 	private static void addIndexes(Set<Integer> spreadCells, int beginIndex, int endIndex)

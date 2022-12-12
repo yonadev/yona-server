@@ -50,7 +50,7 @@ class PrivateUserDataMigrationServiceIntegrationStepSequenceTestConfiguration ex
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { PrivateUserDataMigrationServiceIntegrationStepSequenceTestConfiguration.class })
-public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends BaseSpringIntegrationTest
+class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends BaseSpringIntegrationTest
 {
 	@Autowired
 	private PrivateUserDataMigrationService service;
@@ -85,7 +85,7 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 	}
 
 	@Test
-	public void getSteps_allSteps_stepsReturnedInOrder() throws IllegalArgumentException, IllegalAccessException
+	void getSteps_allSteps_stepsReturnedInOrder() throws IllegalArgumentException, IllegalAccessException
 	{
 		@SuppressWarnings("unchecked") List<MigrationStep> migrationSteps = (List<MigrationStep>) migrationStepsField.get(
 				service);

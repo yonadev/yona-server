@@ -81,7 +81,7 @@ public class AnalysisEngineService
 		Duration deviceTimeOffset = determineDeviceTimeOffset(appActivities);
 		List<ActivityPayload> activityPayloads = appActivities.getActivitiesSorted().stream()
 				.map(appActivity -> createActivityPayload(deviceTimeOffset, appActivity, userAnonymized, deviceAnonymized))
-				.collect(Collectors.toList());
+				.toList();
 		analyze(activityPayloads, userAnonymized);
 	}
 

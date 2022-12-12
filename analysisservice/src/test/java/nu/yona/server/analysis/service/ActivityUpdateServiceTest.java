@@ -79,7 +79,7 @@ import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
 @ExtendWith(MockitoExtension.class)
-public class ActivityUpdateServiceTest
+class ActivityUpdateServiceTest
 {
 	private final Map<String, Goal> goalMap = new HashMap<>();
 
@@ -214,7 +214,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_noLastRegisteredActivity_goalConflictMessageCreated()
+	void addActivity_noLastRegisteredActivity_goalConflictMessageCreated()
 	{
 		ZonedDateTime t1 = now();
 
@@ -224,7 +224,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_timeZoneGoal_noGoalConflictMessagesCreated()
+	void addActivity_timeZoneGoal_noGoalConflictMessagesCreated()
 	{
 		ZonedDateTime t1 = now();
 
@@ -234,7 +234,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_nonZeroBudgetGoal_noGoalConflictMessagesCreated()
+	void addActivity_nonZeroBudgetGoal_noGoalConflictMessagesCreated()
 	{
 		ZonedDateTime t1 = now();
 
@@ -244,7 +244,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_afterConflictIntervalLastRegisteredActivity_goalConflictMessageCreated()
+	void addActivity_afterConflictIntervalLastRegisteredActivity_goalConflictMessageCreated()
 	{
 		ZonedDateTime t1 = now();
 		ActivityDto lastRegisteredActivity = ActivityDto.createInstance(createActivity(t1, t1));
@@ -257,7 +257,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_withinConflictIntervalLastRegisteredActivity_noGoalConflictMessagesCreated()
+	void addActivity_withinConflictIntervalLastRegisteredActivity_noGoalConflictMessagesCreated()
 	{
 		ZonedDateTime t1 = now();
 		ActivityDto lastRegisteredActivity = ActivityDto.createInstance(createActivity(t1, t1));
@@ -270,7 +270,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_completelyPrecedingLastRegisteredActivity_noGoalConflictMessagesCreated()
+	void addActivity_completelyPrecedingLastRegisteredActivity_noGoalConflictMessagesCreated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -283,7 +283,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_default_activityUpdateWithCorrectTimes()
+	void addActivity_default_activityUpdateWithCorrectTimes()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusMinutes(2);
@@ -304,7 +304,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_durationLessThanOneMinute_minimumDurationOneMinute()
+	void addActivity_durationLessThanOneMinute_minimumDurationOneMinute()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(59);
@@ -325,7 +325,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void addActivity_appActivityOnNewDay_newDayActivityButNoGoalConflictMessageCreated()
+	void addActivity_appActivityOnNewDay_newDayActivityButNoGoalConflictMessageCreated()
 	{
 		ZonedDateTime today = now().truncatedTo(ChronoUnit.DAYS);
 		// mock earlier activity at yesterday 23:59:58,
@@ -390,7 +390,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeLastActivity_startTimeEarlier_activityStartTimeUpdated()
+	void updateTimeLastActivity_startTimeEarlier_activityStartTimeUpdated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -406,7 +406,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeLastActivity_endTimeLater_activityEndTimeUpdated()
+	void updateTimeLastActivity_endTimeLater_activityEndTimeUpdated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -422,7 +422,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeLastActivity_default_cacheUpdated()
+	void updateTimeLastActivity_default_cacheUpdated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -437,7 +437,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeLastActivity_default_noGoalConflictMessagesCreated()
+	void updateTimeLastActivity_default_noGoalConflictMessagesCreated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -451,7 +451,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeExistingActivity_startTimeEarlier_activityStartTimeUpdated()
+	void updateTimeExistingActivity_startTimeEarlier_activityStartTimeUpdated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -466,7 +466,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeExistingActivity_endTimeLater_activityEndTimeUpdated()
+	void updateTimeExistingActivity_endTimeLater_activityEndTimeUpdated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -481,7 +481,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeExistingActivity_default_cacheNotUpdated()
+	void updateTimeExistingActivity_default_cacheNotUpdated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -494,7 +494,7 @@ public class ActivityUpdateServiceTest
 	}
 
 	@Test
-	public void updateTimeExistingActivity_default_noGoalConflictMessagesCreated()
+	void updateTimeExistingActivity_default_noGoalConflictMessagesCreated()
 	{
 		ZonedDateTime t1 = now();
 		ZonedDateTime t2 = t1.plusSeconds(1);
@@ -516,8 +516,8 @@ public class ActivityUpdateServiceTest
 		assertThat("Expected right related user set to goal conflict message",
 				messageCaptor.getValue().getRelatedUserAnonymizedId().get(), equalTo(userAnonId));
 		assertThat("Expected right goal set to goal conflict message",
-				messageCaptor.getAllValues().stream().map(m -> m.getGoal().getId()).collect(Collectors.toList()),
-				containsInAnyOrder(Arrays.stream(forGoals).map(Goal::getId).collect(Collectors.toList()).toArray()));
+				messageCaptor.getAllValues().stream().map(m -> m.getGoal().getId()).toList(),
+				containsInAnyOrder(Arrays.stream(forGoals).map(Goal::getId).toList().toArray()));
 	}
 
 	private void verifyNoGoalConflictMessagesCreated()

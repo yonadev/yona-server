@@ -357,7 +357,7 @@ public class BuddyService
 	{
 
 		Stream<BuddyConnectResponseMessage> buddyConnectResponseMessages = messagePage.getContent().stream()
-				.filter(m -> m instanceof BuddyConnectResponseMessage).map(m -> (BuddyConnectResponseMessage) m);
+				.filter(BuddyConnectResponseMessage.class::isInstance).map(BuddyConnectResponseMessage.class::cast);
 		Stream<BuddyConnectResponseMessage> messagesFromBuddy = buddyConnectResponseMessages.filter(
 				m -> buddy.getUserId().equals(getUserId(m).orElse(null)));
 		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> !m.isProcessed()).findFirst();
@@ -368,8 +368,7 @@ public class BuddyService
 
 	public void processPossiblePendingBuddyResponseMessages(User userEntity)
 	{
-		getBuddyEntitiesOfUser(userEntity.getId()).stream()
-				.forEach(b -> processPossiblePendingBuddyResponseMessage(userEntity, b));
+		getBuddyEntitiesOfUser(userEntity.getId()).forEach(b -> processPossiblePendingBuddyResponseMessage(userEntity, b));
 	}
 
 	private Optional<UUID> getUserId(BuddyConnectResponseMessage message)
@@ -377,7 +376,6 @@ public class BuddyService
 		return message.getSenderUser().map(User::getId);
 	}
 
-	@Transactional
 	void removeBuddyInfoForBuddy(User requestingUser, Buddy requestingUserBuddy, Optional<String> message, DropBuddyReason reason)
 	{
 		Require.isNonNull(requestingUserBuddy, BuddyServiceException::requestingUserBuddyIsNull);
@@ -400,7 +398,6 @@ public class BuddyService
 		}
 	}
 
-	@Transactional
 	void removeBuddyInfoForRemovedUser(User user, Buddy buddy)
 	{
 		if (buddy.getSendingStatus() == Status.ACCEPTED || buddy.getReceivingStatus() == Status.ACCEPTED)

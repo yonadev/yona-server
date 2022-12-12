@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -176,7 +177,7 @@ public class ActivityService
 						(g, wa) -> createAndSaveInactivityDays(userAnonymized, earliestPossibleDate,
 								userAnonymized.getGoalsForActivityCategory(g.getActivityCategory()), wa, missingInactivities)));
 		return weekActivityDtosByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
-				.map(e -> WeekActivityOverviewDto.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList());
+				.map(e -> WeekActivityOverviewDto.createInstance(e.getKey(), e.getValue())).toList();
 	}
 
 	private WeekActivityOverviewDto getWeekActivityOverview(UUID userAnonymizedId, LocalDate earliestPossibleDate, LocalDate date,
@@ -464,15 +465,14 @@ public class ActivityService
 			Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate)
 	{
 		return dayActivityDtosByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
-				.map(e -> DayActivityOverviewDto.createInstanceForUser(e.getKey(), e.getValue())).collect(Collectors.toList());
+				.map(e -> DayActivityOverviewDto.createInstanceForUser(e.getKey(), e.getValue())).toList();
 	}
 
 	private List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityEntitiesToOverviewsUserWithBuddies(
 			Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate)
 	{
 		return dayActivityDtosByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
-				.map(e -> DayActivityOverviewDto.createInstanceForUserWithBuddies(e.getKey(), e.getValue()))
-				.collect(Collectors.toList());
+				.map(e -> DayActivityOverviewDto.createInstanceForUserWithBuddies(e.getKey(), e.getValue())).toList();
 	}
 
 	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedId, Set<GoalDto> relevantGoals,
@@ -743,7 +743,7 @@ public class ActivityService
 	public List<ActivityDto> getRawActivities(UUID userId, LocalDate date, UUID goalId)
 	{
 		return dayActivityRepository.findOne(userService.getUserAnonymizedId(userId), date, goalId).getActivities().stream()
-				.map(ActivityDto::createInstance).collect(Collectors.toList());
+				.map(ActivityDto::createInstance).toList();
 	}
 
 	@Transactional
@@ -852,8 +852,8 @@ public class ActivityService
 	@Transactional
 	public void deleteAllDayActivityCommentMessages(Goal goal)
 	{
-		goal.getWeekActivities().forEach(wa -> messageService.deleteMessagesForIntervalActivities(
-				wa.getDayActivities().stream().collect(Collectors.toList())));
+		goal.getWeekActivities()
+				.forEach(wa -> messageService.deleteMessagesForIntervalActivities(new ArrayList<>(wa.getDayActivities())));
 
 		goal.getPreviousVersionOfThisGoal().ifPresent(this::deleteAllDayActivityCommentMessages);
 	}
@@ -861,7 +861,7 @@ public class ActivityService
 	@Transactional
 	public void deleteAllWeekActivityCommentMessages(Goal goal)
 	{
-		messageService.deleteMessagesForIntervalActivities(goal.getWeekActivities().stream().collect(Collectors.toList()));
+		messageService.deleteMessagesForIntervalActivities(new ArrayList<>(goal.getWeekActivities()));
 
 		goal.getPreviousVersionOfThisGoal().ifPresent(this::deleteAllWeekActivityCommentMessages);
 	}

@@ -60,12 +60,12 @@ public class TriggerManagementService
 	public Set<CronTriggerDto> getAllTriggers()
 	{
 		return getTriggerGroupNames().stream().flatMap(gn -> getTriggerKeys(gn).stream()).map(this::getTrigger)
-				.filter(t -> t instanceof CronTrigger).map(CronTriggerDto::createInstance).collect(toSet());
+				.filter(CronTrigger.class::isInstance).map(CronTriggerDto::createInstance).collect(toSet());
 	}
 
 	public Set<CronTriggerDto> getTriggersInGroup(String group)
 	{
-		return getTriggerKeys(group).stream().map(this::getTrigger).filter(t -> t instanceof CronTrigger)
+		return getTriggerKeys(group).stream().map(this::getTrigger).filter(CronTrigger.class::isInstance)
 				.map(CronTriggerDto::createInstance).collect(toSet());
 	}
 

@@ -85,7 +85,7 @@ class MoveVpnPasswordToDeviceTestConfiguration extends UserRepositoriesConfigura
 @ExtendWith(SpringExtension.class)
 @InCryptoSession(MoveVpnPasswordToDeviceTestConfiguration.PASSWORD)
 @ContextConfiguration(classes = { MoveVpnPasswordToDeviceTestConfiguration.class })
-public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
+class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 {
 	private static final Field vpnPasswordField = JUnitUtil.getAccessibleField(UserPrivate.class, "vpnPassword");
 	private static final Field userPrivateField = JUnitUtil.getAccessibleField(User.class, "userPrivate");
@@ -116,7 +116,7 @@ public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void upgrade_movePassword_passwordMoved() throws IllegalArgumentException, IllegalAccessException
+	void upgrade_movePassword_passwordMoved() throws IllegalArgumentException, IllegalAccessException
 	{
 		String vpnPassword = "upgrade_movePassword_passwordMoved";
 		vpnPasswordField.set(userPrivateField.get(richard), vpnPassword);
@@ -130,7 +130,7 @@ public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void upgrade_movePasswordTwice_idemPotent() throws IllegalArgumentException, IllegalAccessException
+	void upgrade_movePasswordTwice_idemPotent() throws IllegalArgumentException, IllegalAccessException
 	{
 		String vpnPassword = "upgrade_movePasswordTwice_idemPotent";
 		vpnPasswordField.set(userPrivateField.get(richard), vpnPassword);

@@ -95,7 +95,7 @@ class BuddyDeviceChangeMessageDtoTestConfiguration extends UserRepositoriesConfi
 @ExtendWith(SpringExtension.class)
 @InCryptoSession(BuddyDeviceChangeMessageDtoTestConfiguration.PASSWORD)
 @ContextConfiguration(classes = { BuddyDeviceChangeMessageDtoTestConfiguration.class })
-public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
+class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 {
 	private static final String MESSAGE_TEXT = "Not relevant to test";
 	private User richard;
@@ -163,7 +163,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void managerHandleAction_deviceAdded_deviceExistsForBuddy()
+	void managerHandleAction_deviceAdded_deviceExistsForBuddy()
 	{
 		// Add device
 		String deviceName = "Testing";
@@ -192,7 +192,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void managerHandleAction_deviceRenamed_deviceIsRenamedForBuddy()
+	void managerHandleAction_deviceRenamed_deviceIsRenamedForBuddy()
 	{
 		// Add device to Richard and Bob
 		String orgDeviceName = "Testing";
@@ -224,7 +224,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void managerHandleAction_oneOfTwoDevicesDeleted_deviceIsDeletedForBuddy()
+	void managerHandleAction_oneOfTwoDevicesDeleted_deviceIsDeletedForBuddy()
 	{
 		// Add devices to Richard and Bob
 		String deviceName1 = "Device1";
@@ -261,7 +261,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void managerHandleAction_deletedTheOneAndOnlyDevice_deviceIsDeletedForBuddy()
+	void managerHandleAction_deletedTheOneAndOnlyDevice_deviceIsDeletedForBuddy()
 	{
 		// Add devices to Richard and Bob
 		String deviceName1 = "Device1";

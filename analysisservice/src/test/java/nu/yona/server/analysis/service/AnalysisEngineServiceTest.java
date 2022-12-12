@@ -89,7 +89,7 @@ import nu.yona.server.util.TimeUtil;
 import nu.yona.server.util.TransactionHelper;
 
 @ExtendWith(MockitoExtension.class)
-public class AnalysisEngineServiceTest
+class AnalysisEngineServiceTest
 {
 	private final Map<String, Goal> goalMap = new HashMap<>();
 
@@ -270,7 +270,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void getRelevantSmoothwallCategories_default_containsExpectedItems()
+	void getRelevantSmoothwallCategories_default_containsExpectedItems()
 	{
 		Set<String> result = service.getRelevantSmoothwallCategories();
 
@@ -278,7 +278,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_secondConflictAfterConflictInterval_addActivity()
+	void analyze_secondConflictAfterConflictInterval_addActivity()
 	{
 		LocalDateTime startTime = JUnitUtil.mockCurrentTime("2020-03-18T20:31:00.000");
 		// Normally there is one conflict message sent.
@@ -301,7 +301,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_secondConflictWithinConflictInterval_noUpdate()
+	void analyze_secondConflictWithinConflictInterval_noUpdate()
 	{
 		mockExistingActivity(gamblingGoal, now());
 
@@ -311,7 +311,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_matchingCategory_addActivity()
+	void analyze_matchingCategory_addActivity()
 	{
 		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
@@ -319,7 +319,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_matchOneCategoryOfMultiple_oneAddActivity()
+	void analyze_matchOneCategoryOfMultiple_oneAddActivity()
 	{
 		service.analyze(userAnonId, createNetworkActivityForCategories("refdag", "lotto"));
 
@@ -327,7 +327,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_multipleMatchingCategories_multipleAddActivity()
+	void analyze_multipleMatchingCategories_multipleAddActivity()
 	{
 		service.analyze(userAnonId, createNetworkActivityForCategories("lotto", "games"));
 
@@ -335,7 +335,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_multipleFollowingCallsWithinConflictInterval_updateTimeLastActivity()
+	void analyze_multipleFollowingCallsWithinConflictInterval_updateTimeLastActivity()
 	{
 		// Normally there is one conflict message sent.
 		// Set update skip window to 0 such that the conflict messages are aggregated immediately.
@@ -361,7 +361,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_noMatchingCategory_noAddOrUpdateActivity()
+	void analyze_noMatchingCategory_noAddOrUpdateActivity()
 	{
 		service.analyze(userAnonId, createNetworkActivityForCategories("refdag"));
 
@@ -373,7 +373,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityOnNewDay_addActivity()
+	void analyze_appActivityOnNewDay_addActivity()
 	{
 		JUnitUtil.skipBefore("Skip shortly after midnight", now(), 0, 15);
 		ZonedDateTime today = now().truncatedTo(ChronoUnit.DAYS);
@@ -394,7 +394,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_unorderedAppActivity_addedOrdered()
+	void analyze_unorderedAppActivity_addedOrdered()
 	{
 		JUnitUtil.skipBefore("Skip shortly after midnignt", now(), 0, 10);
 		String app = "Poker App";
@@ -422,7 +422,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityCompletelyPrecedingLastCachedActivity_addActivity()
+	void analyze_appActivityCompletelyPrecedingLastCachedActivity_addActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
@@ -442,7 +442,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingExistingActivity_updateTimeExistingActivity()
+	void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingExistingActivity_updateTimeExistingActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 30);
@@ -459,7 +459,7 @@ public class AnalysisEngineServiceTest
 			@Override
 			public List<Activity> answer(InvocationOnMock invocation) throws Throwable
 			{
-				return Arrays.asList(existingActivityOne);
+				return List.of(existingActivityOne);
 			}
 		});
 
@@ -477,7 +477,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_networkActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivityOnFirstActivityAndLogsWarning()
+	void analyze_networkActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivityOnFirstActivityAndLogsWarning()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
@@ -489,7 +489,7 @@ public class AnalysisEngineServiceTest
 			@Override
 			public List<Activity> answer(InvocationOnMock invocation) throws Throwable
 			{
-				return existingDayActivity.getActivities().stream().collect(Collectors.toList());
+				return existingDayActivity.getActivities().stream().toList();
 			}
 		});
 		String expectedWarnMessage = MessageFormat.format(
@@ -520,7 +520,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivityOnFirstActivityAndLogsWarning()
+	void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_updateTimeExistingActivityOnFirstActivityAndLogsWarning()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 10);
@@ -533,7 +533,7 @@ public class AnalysisEngineServiceTest
 			@Override
 			public List<Activity> answer(InvocationOnMock invocation) throws Throwable
 			{
-				return existingDayActivity.getActivities().stream().collect(Collectors.toList());
+				return existingDayActivity.getActivities().stream().toList();
 			}
 		});
 		String expectedWarnMessage = MessageFormat.format(
@@ -555,7 +555,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityOverlappingLastCachedActivityBeginAndEnd_updateTimeLastActivity()
+	void analyze_appActivityOverlappingLastCachedActivityBeginAndEnd_updateTimeLastActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 20);
@@ -575,7 +575,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityOverlappingLastCachedActivityBeginOnly_updateTimeLastActivity()
+	void analyze_appActivityOverlappingLastCachedActivityBeginOnly_updateTimeLastActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
@@ -595,7 +595,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityPreviousDayPrecedingCachedDayActivity_addActivity()
+	void analyze_appActivityPreviousDayPrecedingCachedDayActivity_addActivity()
 	{
 		ZonedDateTime now = now();
 		ZonedDateTime yesterdayNoon = now.minusDays(1).withHour(12).withMinute(0).withSecond(0);
@@ -616,7 +616,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_crossDayAppActivity_twoDayActivitiesCreated()
+	void analyze_crossDayAppActivity_twoDayActivitiesCreated()
 	{
 		ZonedDateTime endTime = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", endTime, 0, 5);
@@ -638,7 +638,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityAfterNetworkActivityWithinConflictInterval_addActivity()
+	void analyze_appActivityAfterNetworkActivityWithinConflictInterval_addActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 5);
@@ -652,7 +652,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_networkActivityAfterAppActivityWithinConflictInterval_addActivity()
+	void analyze_networkActivityAfterAppActivityWithinConflictInterval_addActivity()
 	{
 		ZonedDateTime now = now();
 		mockExistingActivity(gamblingGoal, now.minusMinutes(10), now.minusMinutes(5), "Lotto App");
@@ -665,7 +665,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityDifferentAppWithinConflictInterval_addActivity()
+	void analyze_appActivityDifferentAppWithinConflictInterval_addActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
@@ -679,7 +679,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivitySameAppWithinConflictIntervalContinuous_updateTimeLastActivity()
+	void analyze_appActivitySameAppWithinConflictIntervalContinuous_updateTimeLastActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
@@ -695,7 +695,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivitySameAppOverlappingLastCachedActivityEndTime_updateTimeLastActivity()
+	void analyze_appActivitySameAppOverlappingLastCachedActivityEndTime_updateTimeLastActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);
@@ -710,7 +710,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivitySameAppWithinConflictIntervalButNotContinuous_addActivity()
+	void analyze_appActivitySameAppWithinConflictIntervalButNotContinuous_addActivity()
 	{
 		ZonedDateTime now = now();
 		JUnitUtil.skipBefore("Skip shortly after midnight", now, 0, 11);

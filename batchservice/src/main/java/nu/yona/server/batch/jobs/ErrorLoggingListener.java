@@ -31,9 +31,9 @@ class ErrorLoggingListener implements JobExecutionListener
 		{
 			List<Throwable> failureExceptions = jobExecution.getAllFailureExceptions();
 			String jobName = jobExecution.getJobInstance().getJobName();
-			logger.error(Constants.ALERT_MARKER,
-					"Fatal error: Batch job '" + jobName + "' failed with " + failureExceptions.size() + " failure exceptions");
-			failureExceptions.forEach(e -> logger.error("Batch job '" + jobName + "' failed with exception", e));
+			logger.error(Constants.ALERT_MARKER, "Fatal error: Batch job '{}' failed with {} failure exceptions", jobName,
+					failureExceptions.size());
+			failureExceptions.forEach(e -> logger.error("Batch job '{}' failed with exception", jobName, e));
 		}
 	}
 }

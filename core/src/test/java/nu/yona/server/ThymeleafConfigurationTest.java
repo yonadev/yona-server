@@ -28,7 +28,7 @@ import nu.yona.server.util.ThymeleafUtil;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ThymeleafConfiguration.class })
-public class ThymeleafConfigurationTest
+class ThymeleafConfigurationTest
 {
 	private static Locale originalLocale;
 
@@ -58,7 +58,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void otherTemplateEngine_processAppleAppSiteAssociationJson_containsCorrectlyFormattedAppId()
+	void otherTemplateEngine_processAppleAppSiteAssociationJson_containsCorrectlyFormattedAppId()
 	{
 		Context ctx = ThymeleafUtil.createContext();
 		String testAppleAppId = "ADummyTestId";
@@ -70,7 +70,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void smsTemplateEngine_processBuddyInvitationDefault_defaultTemplateFoundAndExpanded()
+	void smsTemplateEngine_processBuddyInvitationDefault_defaultTemplateFoundAndExpanded()
 	{
 		String requestingUserFirstName = "john";
 		String emailAddress = "a@b.c";
@@ -81,7 +81,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void smsTemplateEngine_processBuddyInvitationDutch_dutchTemplateFoundAndExpanded()
+	void smsTemplateEngine_processBuddyInvitationDutch_dutchTemplateFoundAndExpanded()
 	{
 		String requestingUserFirstName = "john";
 		String emailAddress = "a@b.c";
@@ -102,7 +102,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void emailTemplateEngine_processBuddyInvitationSubjectDefault_defaultTemplateFoundAndExpanded()
+	void emailTemplateEngine_processBuddyInvitationSubjectDefault_defaultTemplateFoundAndExpanded()
 	{
 		String result = buildEmailSubject(Optional.empty(), "John Doe");
 
@@ -110,7 +110,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void emailTemplateEngine_processBuddyInvitationSubjectDutch_dutchTemplateFoundAndExpanded()
+	void emailTemplateEngine_processBuddyInvitationSubjectDutch_dutchTemplateFoundAndExpanded()
 	{
 		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")), "John Doe");
 
@@ -127,7 +127,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void emailTemplateEngine_processBuddyInvitationBodyDefault_defaultTemplateFoundAndExpanded()
+	void emailTemplateEngine_processBuddyInvitationBodyDefault_defaultTemplateFoundAndExpanded()
 	{
 		String buddyFirstName = "Richard";
 		String buddyLastName = "Quin";
@@ -150,7 +150,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void emailTemplateEngine_processBuddyInvitationBodyDutch_dutchTemplateFoundAndExpanded()
+	void emailTemplateEngine_processBuddyInvitationBodyDutch_dutchTemplateFoundAndExpanded()
 	{
 		String buddyFirstName = "Richard";
 		String buddyLastName = "Quin";

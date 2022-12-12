@@ -66,15 +66,9 @@ public class LDAPUserService
 		}
 		switch (action)
 		{
-			case CREATE:
-				ldapTemplate.create(user);
-				break;
-			case DELETE:
-				ldapTemplate.delete(user);
-				break;
-			default:
-				throw LDAPUserServiceException.actionUnknown(action.name());
-
+			case CREATE -> ldapTemplate.create(user);
+			case DELETE -> ldapTemplate.delete(user);
+			default -> throw LDAPUserServiceException.actionUnknown(action.name());
 		}
 	}
 

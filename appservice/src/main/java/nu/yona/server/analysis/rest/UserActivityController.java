@@ -665,8 +665,7 @@ public class UserActivityController extends ActivityControllerBase
 				Map<UUID, String> deviceAnonymizedIdToDeviceName, List<ActivityDto> rawActivities)
 		{
 			return rawActivities.stream()
-					.map(dto -> new ActivityWithDeviceDto(dto, getDeviceName(deviceAnonymizedIdToDeviceName, dto)))
-					.collect(Collectors.toList());
+					.map(dto -> new ActivityWithDeviceDto(dto, getDeviceName(deviceAnonymizedIdToDeviceName, dto))).toList();
 		}
 
 		private static String getDeviceName(Map<UUID, String> deviceAnonymizedIdToDeviceName, ActivityDto dto)

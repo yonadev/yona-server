@@ -180,7 +180,7 @@ public class UserPrivate extends PrivateUserProperties
 
 	private void loadAllBuddyUsersAtOnce()
 	{
-		User.getRepository().findAllById(buddies.stream().map(Buddy::getUserId).collect(Collectors.toList()));
+		User.getRepository().findAllById(buddies.stream().map(Buddy::getUserId).toList());
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()

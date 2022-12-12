@@ -408,7 +408,7 @@ public class UserUpdateService
 	private void addDevicesToEntity(UserDto userDto, User userEntity)
 	{
 		userRepository.saveAndFlush(userEntity); // To prevent sequence issues when saving the device
-		userDto.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).stream().map(d -> (UserDeviceDto) d)
+		userDto.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).stream().map(UserDeviceDto.class::cast)
 				.forEach(d -> deviceService.addDeviceToUser(userEntity, d));
 	}
 

@@ -44,7 +44,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 @Component
 public class SendSystemMessageBatchJob
 {
-	private static final Logger logger = LoggerFactory.getLogger(ActivityAggregationBatchJob.class);
+	private static final Logger logger = LoggerFactory.getLogger(SendSystemMessageBatchJob.class);
 
 	private static final int USERS_CHUNK_SIZE = 50;
 

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.goals.service.GoalDto;
 
-public class AnalysisEngineService_determineRelevantGoalsAndroidTest extends AnalysisEngineService_determineRelevantGoalsTest
+class AnalysisEngineService_determineRelevantGoalsAndroidTest extends AnalysisEngineService_determineRelevantGoalsTest
 {
 	@Override
 	protected OperatingSystem getOperatingSystem()
@@ -23,7 +23,7 @@ public class AnalysisEngineService_determineRelevantGoalsAndroidTest extends Ana
 	}
 
 	@Test
-	public void determineRelevantGoals_networkActivityOneOptionalUserGoal_empty()
+	void determineRelevantGoals_networkActivityOneOptionalUserGoal_empty()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(
 				makeNetworkPayload(makeCategorySet(getSocialGoal())));

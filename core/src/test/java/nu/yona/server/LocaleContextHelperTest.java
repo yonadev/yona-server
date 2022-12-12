@@ -13,10 +13,10 @@ import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-public class LocaleContextHelperTest
+class LocaleContextHelperTest
 {
 	@Test
-	public void inLocaleContext_nullLocale_throwsNPE()
+	void inLocaleContext_nullLocale_throwsNPE()
 	{
 		assertThrows(NullPointerException.class, () -> LocaleContextHelper.inLocaleContext(() -> {
 			return;
@@ -24,13 +24,13 @@ public class LocaleContextHelperTest
 	}
 
 	@Test
-	public void inLocaleContext_nullRunnable_throwsNPE()
+	void inLocaleContext_nullRunnable_throwsNPE()
 	{
 		assertThrows(NullPointerException.class, () -> LocaleContextHelper.inLocaleContext(null, Locale.ITALIAN));
 	}
 
 	@Test
-	public void inLocaleContext_defaultlLocale_localeSet()
+	void inLocaleContext_defaultlLocale_localeSet()
 	{
 		Locale setLocale = Locale.ITALIAN;
 		Locale initialLocale = LocaleContextHolder.getLocale();
@@ -39,7 +39,7 @@ public class LocaleContextHelperTest
 	}
 
 	@Test
-	public void inLocaleContext_initializedlLocale_localeSet()
+	void inLocaleContext_initializedlLocale_localeSet()
 	{
 		Locale setLocale = Locale.ITALIAN;
 		Locale initialLocale = Locale.FRENCH;
@@ -49,7 +49,7 @@ public class LocaleContextHelperTest
 	}
 
 	@Test
-	public void inLocaleContext_throwFromRunnable_localeRestored()
+	void inLocaleContext_throwFromRunnable_localeRestored()
 	{
 		Locale setLocale = Locale.ITALIAN;
 		Locale initialLocale = Locale.FRENCH;

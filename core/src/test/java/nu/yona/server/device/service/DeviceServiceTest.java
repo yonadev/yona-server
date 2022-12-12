@@ -129,7 +129,7 @@ class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { DeviceServiceTestConfiguration.class })
 @InCryptoSession(DeviceServiceTestConfiguration.PASSWORD)
-public class DeviceServiceTest extends BaseSpringIntegrationTest
+class DeviceServiceTest extends BaseSpringIntegrationTest
 {
 	private static final String SOME_APP_VERSION = "9.9.9";
 	private static final int SUPPORTED_APP_VERSION_CODE = 999;
@@ -191,7 +191,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDevice_tryGetNonExistingDevice_exception() throws Exception
+	void getDevice_tryGetNonExistingDevice_exception() throws Exception
 	{
 		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
 				() -> service.getDevice(richard.getId(), UUID.randomUUID()));
@@ -199,7 +199,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void addDeviceToUser_addFirstDevice_userHasOneDevice()
+	void addDeviceToUser_addFirstDevice_userHasOneDevice()
 	{
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
@@ -220,7 +220,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void addDeviceToUser_addSecondDevice_userHasTwoDevices()
+	void addDeviceToUser_addSecondDevice_userHasTwoDevices()
 	{
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
@@ -252,7 +252,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void addDeviceToUser_tryAddDuplicateName_exception()
+	void addDeviceToUser_tryAddDuplicateName_exception()
 	{
 		String deviceName = "First";
 		richard.addDevice(createDevice(0, deviceName, OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
@@ -265,7 +265,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void deleteDevice_deleteOneOfTwo_userHasOneDeviceBuddyInformed()
+	void deleteDevice_deleteOneOfTwo_userHasOneDeviceBuddyInformed()
 	{
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String deviceName = "First";
@@ -299,7 +299,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void addDeviceToUser_addAfterDelete_deviceIdReused()
+	void addDeviceToUser_addAfterDelete_deviceIdReused()
 	{
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String deviceName2 = "Second";
@@ -328,7 +328,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void addDeviceToUser_byId_addFirstDevice_userHasOneDevice()
+	void addDeviceToUser_byId_addFirstDevice_userHasOneDevice()
 	{
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
@@ -347,7 +347,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void deleteDevice_tryDeleteOneAndOnlyDevice_exception() throws Exception
+	void deleteDevice_tryDeleteOneAndOnlyDevice_exception() throws Exception
 	{
 
 		richard.addDevice(createDevice(0, "Testing", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
@@ -362,7 +362,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void deleteDevice_tryDeleteNonExistingDevice_exception() throws Exception
+	void deleteDevice_tryDeleteNonExistingDevice_exception() throws Exception
 	{
 		richard.addDevice(createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 		UserDevice notAddedDevice = createDevice(1, "NotAddedDevice", OperatingSystem.IOS, SOME_APP_VERSION,
@@ -391,7 +391,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDefaultDeviceId_oneDevice_deviceReturned()
+	void getDefaultDeviceId_oneDevice_deviceReturned()
 	{
 		UserDevice device = createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device);
@@ -402,7 +402,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void updateDevice_rename_renamedBuddyInformed()
+	void updateDevice_rename_renamedBuddyInformed()
 	{
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String oldName = "Original name";
@@ -434,7 +434,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void updateDevice_unchangedName_noAction()
+	void updateDevice_unchangedName_noAction()
 	{
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String oldName = "original";
@@ -460,7 +460,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void updateDevice_tryDuplicateName_exception()
+	void updateDevice_tryDuplicateName_exception()
 	{
 		String firstDeviceName = "First";
 		UserDevice device1 = createDevice(0, firstDeviceName, OperatingSystem.ANDROID, "Unknown", 0);
@@ -479,7 +479,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDefaultDeviceId_twoDevices_firstDeviceReturned()
+	void getDefaultDeviceId_twoDevices_firstDeviceReturned()
 	{
 		UserDevice device1 = createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device1);
@@ -492,7 +492,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDefaultDeviceId_tryNoDevices_exception() throws Exception
+	void getDefaultDeviceId_tryNoDevices_exception() throws Exception
 	{
 		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
 				() -> service.getDefaultDeviceId(createRichardUserDto()));
@@ -500,7 +500,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymized_byIndex_firstDevice_correctDevice()
+	void getDeviceAnonymized_byIndex_firstDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -525,7 +525,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymized_byIndex_secondDevice_correctDevice()
+	void getDeviceAnonymized_byIndex_secondDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -550,7 +550,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymized_byIndex_defaultDevice_correctDevice()
+	void getDeviceAnonymized_byIndex_defaultDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -575,7 +575,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymized_byIndex_tryGetNonExistingIndex_exception()
+	void getDeviceAnonymized_byIndex_tryGetNonExistingIndex_exception()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -598,7 +598,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymized_byId_firstDevice_correctDevice()
+	void getDeviceAnonymized_byId_firstDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -624,7 +624,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymized_byId_secondDevice_correctDevice()
+	void getDeviceAnonymized_byId_secondDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -650,7 +650,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymized_byId_tryGetNonExistingId_exception()
+	void getDeviceAnonymized_byId_tryGetNonExistingId_exception()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -673,7 +673,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_byId_firstDevice_correctDevice()
+	void getDeviceAnonymizedId_byId_firstDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -697,7 +697,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_byId_secondDevice_correctDevice()
+	void getDeviceAnonymizedId_byId_secondDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -721,7 +721,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_byId_tryGetNonExistingId_exception()
+	void getDeviceAnonymizedId_byId_tryGetNonExistingId_exception()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -747,7 +747,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_appLastOpenedDateOnEarlierDay_appLastOpenedDateUpdated()
+	void postOpenAppEvent_appLastOpenedDateOnEarlierDay_appLastOpenedDateUpdated()
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
@@ -763,7 +763,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
+	void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = currentDateInAmsterdam();
@@ -778,7 +778,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_unsupportedVersionCode_exception()
+	void postOpenAppEvent_unsupportedVersionCode_exception()
 	{
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
@@ -793,7 +793,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_invalidVersionCode_exception()
+	void postOpenAppEvent_invalidVersionCode_exception()
 	{
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		UserDevice device = addDeviceToRichard(0, "First", operatingSystem);
@@ -808,7 +808,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_differentOperatingSystem_exception()
+	void postOpenAppEvent_differentOperatingSystem_exception()
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
@@ -822,7 +822,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_loyalUser_roundedCreationDateUpdated()
+	void postOpenAppEvent_loyalUser_roundedCreationDateUpdated()
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate creationDate = TimeUtil.utcNow().toLocalDate().minusDays(31);
@@ -838,7 +838,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void postOpenAppEvent_newUser_roundedCreationDateNotUpdated()
+	void postOpenAppEvent_newUser_roundedCreationDateNotUpdated()
 	{
 		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID);
 		LocalDate creationDate = TimeUtil.utcNow().toLocalDate().minusDays(30);
@@ -854,7 +854,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void removeDuplicateDefaultDevices_singleDevice_noChange()
+	void removeDuplicateDefaultDevices_singleDevice_noChange()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -872,13 +872,13 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void removeDuplicateDefaultDevices_twoDevicesUseFirst_duplicateRemovedActivitiesMoved()
+	void removeDuplicateDefaultDevices_twoDevicesUseFirst_duplicateRemovedActivitiesMoved()
 	{
 		removeDuplicateDefaultDevicesFirstOrSecond(0);
 	}
 
 	@Test
-	public void removeDuplicateDefaultDevices_twoDevicesUseSecond_duplicateRemovedActivitiesMoved()
+	void removeDuplicateDefaultDevices_twoDevicesUseSecond_duplicateRemovedActivitiesMoved()
 	{
 		removeDuplicateDefaultDevicesFirstOrSecond(1);
 	}
@@ -948,8 +948,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	private Set<Activity> addActivities(UserDevice deviceEntity, LocalDateTime startTime, ActivityData... activityData)
 	{
-		return Arrays.asList(activityData).stream().map(ad -> makeActivity(startTime, ad, deviceEntity))
-				.collect(Collectors.toSet());
+		return Arrays.stream(activityData).map(ad -> makeActivity(startTime, ad, deviceEntity)).collect(Collectors.toSet());
 	}
 
 	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion,

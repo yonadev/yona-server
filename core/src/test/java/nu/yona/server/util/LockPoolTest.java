@@ -17,12 +17,12 @@ import org.junit.jupiter.api.Test;
 
 import nu.yona.server.exceptions.YonaException;
 
-public class LockPoolTest
+class LockPoolTest
 {
 	private final AtomicInteger freeLockId = new AtomicInteger(0);
 
 	@Test
-	public void lock_accessSameLockIdConcurrently_isNotExecutedConcurrently()
+	void lock_accessSameLockIdConcurrently_isNotExecutedConcurrently()
 	{
 		final int numThreads = 10;
 		final int iterations = 100;
@@ -30,7 +30,7 @@ public class LockPoolTest
 	}
 
 	@Test
-	public void lock_reentrantAccess_isNotBlocked()
+	void lock_reentrantAccess_isNotBlocked()
 	{
 		final int numThreads = 10;
 		final int iterations = 100;
@@ -38,7 +38,7 @@ public class LockPoolTest
 	}
 
 	@Test
-	public void lock_accessFreeLockIdsConcurrently_immediateAccess()
+	void lock_accessFreeLockIdsConcurrently_immediateAccess()
 	{
 		final int numThreads = 10;
 		final int iterations = 5;

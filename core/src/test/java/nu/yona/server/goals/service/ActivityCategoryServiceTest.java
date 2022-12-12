@@ -63,7 +63,7 @@ class ActivityCategoryServiceTestConfiguration
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ActivityCategoryServiceTestConfiguration.class })
-public class ActivityCategoryServiceTest
+class ActivityCategoryServiceTest
 {
 	@MockBean
 	private ActivityCategoryRepository mockRepository;
@@ -103,26 +103,26 @@ public class ActivityCategoryServiceTest
 	private ActivityCategoryService service;
 
 	@Test
-	public void getAllActivityCategories_default_returnsDefinedActivityCategories()
+	void getAllActivityCategories_default_returnsDefinedActivityCategories()
 	{
 		assertGetAllActivityCategoriesResult("gambling", "news");
 	}
 
 	@Test
-	public void getActivityCategory_existingId_returnsCorrectActivityCategory()
+	void getActivityCategory_existingId_returnsCorrectActivityCategory()
 	{
 		assertThat(service.getActivityCategory(gambling.getId()).getName(), equalTo("gambling"));
 		assertThat(service.getActivityCategory(news.getId()).getName(), equalTo("news"));
 	}
 
 	@Test
-	public void getActivityCategory_unknownId_throws()
+	void getActivityCategory_unknownId_throws()
 	{
 		assertThrows(ActivityCategoryException.class, () -> service.getActivityCategory(UUID.randomUUID()));
 	}
 
 	@Test
-	public void updateActivityCategorySet_modifiedActivityCategories_setIsUpdatedCorrectly()
+	void updateActivityCategorySet_modifiedActivityCategories_setIsUpdatedCorrectly()
 	{
 		assertGetAllActivityCategoriesResult("gambling", "news");
 
@@ -148,7 +148,7 @@ public class ActivityCategoryServiceTest
 	}
 
 	@Test
-	public void getAllActivityCategories_default_returnsItemsFromCache()
+	void getAllActivityCategories_default_returnsItemsFromCache()
 	{
 		assertGetAllActivityCategoriesResult("gambling", "news");
 
@@ -163,7 +163,7 @@ public class ActivityCategoryServiceTest
 	}
 
 	@Test
-	public void addActivityCategory_default_updatesCache()
+	void addActivityCategory_default_updatesCache()
 	{
 		ActivityCategory gaming = ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
 				new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
@@ -176,7 +176,7 @@ public class ActivityCategoryServiceTest
 	}
 
 	@Test
-	public void updateActivityCategory_default_updatesCache()
+	void updateActivityCategory_default_updatesCache()
 	{
 		news.setLocalizableName(usString("news feeds"));
 
@@ -186,7 +186,7 @@ public class ActivityCategoryServiceTest
 	}
 
 	@Test
-	public void deleteActivityCategory_default_updatesCache()
+	void deleteActivityCategory_default_updatesCache()
 	{
 		service.deleteActivityCategory(news.getId());
 

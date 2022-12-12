@@ -19,7 +19,7 @@ public abstract class EntityWithUuidAndTouchVersion extends EntityWithUuid
 	@Column(nullable = true)
 	private int touchVersion;
 
-	public EntityWithUuidAndTouchVersion(UUID id)
+	protected EntityWithUuidAndTouchVersion(UUID id)
 	{
 		super(id);
 	}

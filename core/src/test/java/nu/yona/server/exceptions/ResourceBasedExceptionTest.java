@@ -41,7 +41,7 @@ class MainContext
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { MainContext.class })
-public class ResourceBasedExceptionTest
+class ResourceBasedExceptionTest
 {
 	private static Locale originalLocale;
 
@@ -70,7 +70,7 @@ public class ResourceBasedExceptionTest
 	}
 
 	@Test
-	public void getMessageGetLocalizedMessage_unparametrized_returnsTranslatedResults()
+	void getMessageGetLocalizedMessage_unparametrized_returnsTranslatedResults()
 	{
 		String messageId = "error.invalid.request";
 		String expectedResult = "Invalid request";
@@ -79,7 +79,7 @@ public class ResourceBasedExceptionTest
 	}
 
 	@Test
-	public void getMessageGetLocalizedMessage_notExistingMessageIdUnparametrized_returnsMessageId()
+	void getMessageGetLocalizedMessage_notExistingMessageIdUnparametrized_returnsMessageId()
 	{
 		String messageId = "non.existing.message.id";
 		String expectedResult = messageId;
@@ -88,7 +88,7 @@ public class ResourceBasedExceptionTest
 	}
 
 	@Test
-	public void getMessageGetLocalizedMessage_parametrized_returnsTranslatedResultsWithParametersSubstituted()
+	void getMessageGetLocalizedMessage_parametrized_returnsTranslatedResultsWithParametersSubstituted()
 	{
 		String messageId = "error.sms.sending.failed.httpStatus";
 		String expectedResult = "Unexpected status code received from SMS service: first. Message: second";
@@ -97,7 +97,7 @@ public class ResourceBasedExceptionTest
 	}
 
 	@Test
-	public void getMessageGetLocalizedMessage_notExistingMessageIdParametrized_returnsMessageIdAndParameters()
+	void getMessageGetLocalizedMessage_notExistingMessageIdParametrized_returnsMessageIdAndParameters()
 	{
 		String messageId = "non.existing.message.id";
 		String expectedResult = messageId + "; parameters: \"first\", \"second\"";

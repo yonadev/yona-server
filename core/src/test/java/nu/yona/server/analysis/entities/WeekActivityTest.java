@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 
 import org.junit.jupiter.api.Test;
 
-public class WeekActivityTest extends IntervalActivityTestBase
+class WeekActivityTest extends IntervalActivityTestBase
 {
 	private WeekActivity createWeekActivity()
 	{
@@ -27,7 +27,7 @@ public class WeekActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_default_sumsSpreadsOfDayActivities()
+	void getSpreadGetTotalActivityDurationMinutes_default_sumsSpreadsOfDayActivities()
 	{
 		WeekActivity w = createWeekActivity();
 		DayActivity d1 = createDayActivity(w, 0);
@@ -42,7 +42,7 @@ public class WeekActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_afterComputeAggregatesAddActivity_returnsRecomputedResults()
+	void getSpreadGetTotalActivityDurationMinutes_afterComputeAggregatesAddActivity_returnsRecomputedResults()
 	{
 		WeekActivity w = createWeekActivity();
 		DayActivity d1 = createDayActivity(w, 0);
@@ -56,7 +56,7 @@ public class WeekActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void addDayActivity_afterComputeAggregates_resetsAreAggregatesComputed()
+	void addDayActivity_afterComputeAggregates_resetsAreAggregatesComputed()
 	{
 		WeekActivity w = createWeekActivity();
 		w.computeAggregates();

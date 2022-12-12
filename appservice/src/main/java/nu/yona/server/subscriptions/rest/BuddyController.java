@@ -46,6 +46,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.analysis.rest.ActivityControllerBase;
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
@@ -322,14 +323,14 @@ public class BuddyController extends ControllerBase
 		{
 			buddyResource.add(
 					BuddyActivityController.getBuddyWeekActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
-							.withRel(BuddyActivityController.WEEK_OVERVIEW_REL));
+							.withRel(ActivityControllerBase.WEEK_OVERVIEW_REL));
 		}
 
 		private void addDayActivityOverviewsLink(BuddyResource buddyResource)
 		{
 			buddyResource.add(
 					BuddyActivityController.getBuddyDayActivityOverviewsLinkBuilder(userId, buddyResource.getContent().getId())
-							.withRel(BuddyActivityController.DAY_OVERVIEW_REL));
+							.withRel(ActivityControllerBase.DAY_OVERVIEW_REL));
 		}
 	}
 }

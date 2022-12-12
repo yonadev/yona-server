@@ -82,7 +82,7 @@ class MockMigrationStep2 implements MigrationStep
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { PrivateUserDataMigrationServiceIntegrationTestConfiguration.class })
-public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIntegrationTest
+class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIntegrationTest
 {
 	@MockBean
 	private BuddyService buddyService;
@@ -134,7 +134,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	}
 
 	@Test
-	public void doPreparationsAndCheckCanAccessPrivateData_twoVersionsBehind_migratesToCurrentVersion()
+	void doPreparationsAndCheckCanAccessPrivateData_twoVersionsBehind_migratesToCurrentVersion()
 	{
 		richard.setPrivateDataMigrationVersion(0);
 
@@ -150,7 +150,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	}
 
 	@Test
-	public void doPreparationsAndCheckCanAccessPrivateData_upToDate_saveNotCalled()
+	void doPreparationsAndCheckCanAccessPrivateData_upToDate_saveNotCalled()
 	{
 		richard.setPrivateDataMigrationVersion(2);
 

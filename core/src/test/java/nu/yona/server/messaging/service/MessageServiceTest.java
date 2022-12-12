@@ -10,10 +10,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -84,7 +84,7 @@ class MessageServiceTestConfiguration extends UserRepositoriesConfiguration
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { MessageServiceTestConfiguration.class })
-public class MessageServiceTest extends BaseSpringIntegrationTest
+class MessageServiceTest extends BaseSpringIntegrationTest
 {
 	private static final String FIREBASE_REGISTRATION_TOKEN = "Firebase-12345";
 
@@ -165,7 +165,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendMessage_anonymousDestination_sendsFirebaseMessage()
+	void sendMessage_anonymousDestination_sendsFirebaseMessage()
 	{
 		Message message = Mockito.mock(Message.class);
 
@@ -175,7 +175,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendDirectMessage_default_sendsSms()
+	void sendDirectMessage_default_sendsSms()
 	{
 		Message message = Mockito.mock(Message.class);
 		MessageDestination namedMessageDestination = Mockito.mock(MessageDestination.class);
@@ -190,7 +190,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void sendDirectMessage_userCreatedOnBuddyRequest_doesNotSendSms()
+	void sendDirectMessage_userCreatedOnBuddyRequest_doesNotSendSms()
 	{
 		Message message = Mockito.mock(Message.class);
 		MessageDestination namedMessageDestination = Mockito.mock(MessageDestination.class);
@@ -204,7 +204,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void prepareMessageCollection_transferringDirectMessagesToAnonymousDestination_sendsFirebaseMessage()
+	void prepareMessageCollection_transferringDirectMessagesToAnonymousDestination_sendsFirebaseMessage()
 	{
 		Message message = Mockito.mock(Message.class);
 		when(message.duplicate()).thenReturn(message);
@@ -222,7 +222,7 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 
 		MessageSource namedMessageSource = Mockito.mock(MessageSource.class);
 		MessageDestination namedMessageDestination = Mockito.mock(MessageDestination.class);
-		when(namedMessageSource.getMessages(null)).thenReturn(new PageImpl<Message>(Arrays.asList(message)));
+		when(namedMessageSource.getMessages(null)).thenReturn(new PageImpl<Message>(List.of(message)));
 		when(namedMessageSource.getDestination()).thenReturn(namedMessageDestination);
 
 		when(mockMessageSourceRepository.findById(namedMessageSourceId)).thenReturn(Optional.of(namedMessageSource));

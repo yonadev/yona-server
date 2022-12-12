@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.JoinColumnOrFormula;
-import org.hibernate.annotations.JoinColumnsOrFormulas;
 import org.hibernate.annotations.JoinFormula;
 
 import jakarta.persistence.CascadeType;
@@ -56,8 +55,7 @@ public class DeviceAnonymized extends EntityWithUuid
 	private Set<VpnStatusChangeEvent> vpnStatusChangeEvents;
 
 	@ManyToOne
-	@JoinColumnsOrFormulas({
-			@JoinColumnOrFormula(formula = @JoinFormula(value = "(SELECT e.id FROM vpn_status_change_events e WHERE e.device_anonymized_id = id ORDER BY e.id DESC LIMIT 1)", referencedColumnName = "id")) })
+	@JoinColumnOrFormula(formula = @JoinFormula(value = "(SELECT e.id FROM vpn_status_change_events e WHERE e.device_anonymized_id = id ORDER BY e.id DESC LIMIT 1)", referencedColumnName = "id"))
 	private VpnStatusChangeEvent lastVpnStatusChangeEvent;
 
 	// Default constructor is required for JPA

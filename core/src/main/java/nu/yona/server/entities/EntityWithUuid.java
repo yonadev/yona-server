@@ -52,6 +52,6 @@ public abstract class EntityWithUuid
 	@Override
 	public boolean equals(Object that)
 	{
-		return (this == that) || ((that instanceof EntityWithUuid) && getId().equals(((EntityWithUuid) that).getId()));
+		return (this == that) || ((that instanceof EntityWithUuid entityWithUuid) && getId().equals(entityWithUuid.getId()));
 	}
 }

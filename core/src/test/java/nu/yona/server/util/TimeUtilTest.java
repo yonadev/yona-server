@@ -17,10 +17,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class TimeUtilTest
+class TimeUtilTest
 {
 	@Test
-	public void getEndOfDay_anyTime_returnsTwelveOClockInGivenZone()
+	void getEndOfDay_anyTime_returnsTwelveOClockInGivenZone()
 	{
 		ZonedDateTime result = TimeUtil.getEndOfDay(ZoneId.of("Europe/Amsterdam"),
 				ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
@@ -28,7 +28,7 @@ public class TimeUtilTest
 	}
 
 	@Test
-	public void getStartOfDay_anyTime_returnsZeroOClockInGivenZone()
+	void getStartOfDay_anyTime_returnsZeroOClockInGivenZone()
 	{
 		ZonedDateTime result = TimeUtil.getStartOfDay(ZoneId.of("Europe/Amsterdam"),
 				ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
@@ -36,7 +36,7 @@ public class TimeUtilTest
 	}
 
 	@Test
-	public void getStartOfWeek_anyTime_returnsSundayZeroOClockInGivenZone()
+	void getStartOfWeek_anyTime_returnsSundayZeroOClockInGivenZone()
 	{
 		ZonedDateTime result = TimeUtil.getStartOfWeek(ZoneId.of("Europe/Amsterdam"),
 				ZonedDateTime.parse("2017-08-22T20:44:11+02:00[Europe/Paris]"));
@@ -44,7 +44,7 @@ public class TimeUtilTest
 	}
 
 	@Test
-	public void getStartOfWeek_anyDate_returnsSunday()
+	void getStartOfWeek_anyDate_returnsSunday()
 	{
 		LocalDate result = TimeUtil.getStartOfWeek(LocalDate.parse("2017-08-22"));
 		assertThat(result, equalTo(LocalDate.parse("2017-08-20")));
@@ -52,7 +52,7 @@ public class TimeUtilTest
 
 	@ParameterizedTest
 	@MethodSource("provideLocalDateValues")
-	public void maxLocalDate(LocalDate a, LocalDate b, LocalDate expected)
+	void maxLocalDate(LocalDate a, LocalDate b, LocalDate expected)
 	{
 		LocalDate result = TimeUtil.max(a, b);
 		assertThat(result, equalTo(expected));
@@ -71,7 +71,7 @@ public class TimeUtilTest
 
 	@ParameterizedTest
 	@MethodSource("provideZonedDateTimeValues")
-	public void maxZonedDateTime(ZonedDateTime a, ZonedDateTime b, ZonedDateTime expected)
+	void maxZonedDateTime(ZonedDateTime a, ZonedDateTime b, ZonedDateTime expected)
 	{
 		ZonedDateTime result = TimeUtil.max(a, b);
 		assertThat(result, equalTo(expected));
