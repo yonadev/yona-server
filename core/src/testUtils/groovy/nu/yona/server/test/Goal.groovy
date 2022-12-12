@@ -46,7 +46,9 @@ abstract class Goal
 			return new TimeZoneGoal(json)
 		}
 		else
+		{
 			throw new RuntimeException("Unknown goal type: " + json["@type"])
+		}
 	}
 
 	protected def buildSelfLinkString()

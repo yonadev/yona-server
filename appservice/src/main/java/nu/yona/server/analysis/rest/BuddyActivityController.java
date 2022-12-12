@@ -63,8 +63,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
 			return getWeekActivityOverviews(password, userId, pagedResourcesAssembler,
@@ -79,8 +79,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
 			return getWeekActivityOverview(password, userId, dateStr,
@@ -96,8 +96,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
 			return getDayActivityOverviews(password, userId, pagedResourcesAssembler,
@@ -112,8 +112,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
 			return getDayActivityOverview(password, userId, dateStr,
@@ -129,8 +129,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
 			return getWeekActivityDetail(password, userId, dateStr,
@@ -148,13 +148,13 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
-			return getActivityDetailMessages(password, userId, pagedResourcesAssembler, () -> activityService
-							.getBuddyWeekActivityDetailMessages(userId, buddy, WeekActivityDto.parseDate(dateStr), goalId, pageable),
-					new BuddyActivityLinkProvider(userId, buddy.getUser().getId(), buddyId));
+			return getActivityDetailMessages(password, userId, pagedResourcesAssembler,
+					() -> activityService.getBuddyWeekActivityDetailMessages(userId, buddy, WeekActivityDto.parseDate(dateStr),
+							goalId, pageable), new BuddyActivityLinkProvider(userId, buddy.getUser().getId(), buddyId));
 		}
 	}
 
@@ -165,11 +165,12 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDto newMessage)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return messageController.createOkResponse(userService.getUserEntityById(userId), activityService
-					.addMessageToWeekActivity(userId, buddyId, WeekActivityDto.parseDate(dateStr), goalId, newMessage));
+			return messageController.createOkResponse(userService.getUserEntityById(userId),
+					activityService.addMessageToWeekActivity(userId, buddyId, WeekActivityDto.parseDate(dateStr), goalId,
+							newMessage));
 		}
 	}
 
@@ -180,8 +181,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
 			return getDayActivityDetail(password, userId, dateStr,
@@ -199,13 +200,13 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
-			return getActivityDetailMessages(password, userId, pagedResourcesAssembler, () -> activityService
-							.getBuddyDayActivityDetailMessages(userId, buddy, DayActivityDto.parseDate(dateStr), goalId, pageable),
-					new BuddyActivityLinkProvider(userId, buddy.getUser().getId(), buddyId));
+			return getActivityDetailMessages(password, userId, pagedResourcesAssembler,
+					() -> activityService.getBuddyDayActivityDetailMessages(userId, buddy, DayActivityDto.parseDate(dateStr),
+							goalId, pageable), new BuddyActivityLinkProvider(userId, buddy.getUser().getId(), buddyId));
 		}
 	}
 
@@ -216,11 +217,12 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDto newMessage)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
-			return messageController.createOkResponse(userService.getUserEntityById(userId), activityService
-					.addMessageToDayActivity(userId, buddyId, DayActivityDto.parseDate(dateStr), goalId, newMessage));
+			return messageController.createOkResponse(userService.getUserEntityById(userId),
+					activityService.addMessageToDayActivity(userId, buddyId, DayActivityDto.parseDate(dateStr), goalId,
+							newMessage));
 		}
 	}
 
@@ -320,8 +322,8 @@ public class BuddyActivityController extends ActivityControllerBase
 		public Optional<WebMvcLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId)
 		{
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-			return Optional.of(linkTo(
-					methodOn.addBuddyDayActivityDetailMessage(Optional.empty(), requestingUserId, buddyId, dateStr, goalId,
+			return Optional.of(
+					linkTo(methodOn.addBuddyDayActivityDetailMessage(Optional.empty(), requestingUserId, buddyId, dateStr, goalId,
 							null)));
 		}
 
@@ -338,9 +340,9 @@ public class BuddyActivityController extends ActivityControllerBase
 		public Optional<WebMvcLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId)
 		{
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-			return Optional.of(linkTo(
-					methodOn.addBuddyWeekActivityDetailMessage(Optional.empty(), requestingUserId, buddyId, dateStr, goalId,
-							null)));
+			return Optional.of(
+					linkTo(methodOn.addBuddyWeekActivityDetailMessage(Optional.empty(), requestingUserId, buddyId, dateStr,
+							goalId, null)));
 		}
 
 		@Override

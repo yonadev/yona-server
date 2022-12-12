@@ -146,8 +146,8 @@ public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 
 	private UserDevice createDevice()
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized
-				.createInstance(0, OperatingSystem.ANDROID, "1.0.0", 2, Optional.empty(), Translator.EN_US_LOCALE);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "1.0.0", 2,
+				Optional.empty(), Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		return UserDevice.createInstance(richard, "Testing", deviceAnonymized.getId(), "toBeOverwritten");
 	}

@@ -100,8 +100,9 @@ public class InactivityManagementService
 
 	private void createDayInactivity(UUID userAnonymizedId, WeekActivity weekActivity, IntervalInactivityDto dayInactivity)
 	{
-		createInactivity(userAnonymizedId, dayInactivity.getGoalId(), () -> dayActivityRepository
-						.findOne(userAnonymizedId, dayInactivity.getStartTime().toLocalDate(), dayInactivity.getGoalId()),
+		createInactivity(userAnonymizedId, dayInactivity.getGoalId(),
+				() -> dayActivityRepository.findOne(userAnonymizedId, dayInactivity.getStartTime().toLocalDate(),
+						dayInactivity.getGoalId()),
 				(ua, g) -> DayActivity.createInstance(ua, g, dayInactivity.getStartTime().getZone(),
 						dayInactivity.getStartTime().toLocalDate()), weekActivity::addDayActivity);
 	}

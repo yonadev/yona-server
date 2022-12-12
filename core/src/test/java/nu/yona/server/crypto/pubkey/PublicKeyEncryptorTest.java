@@ -58,8 +58,8 @@ public class PublicKeyEncryptorTest
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
 		DataContainer dataContainer = new DataContainer();
 
-		byte[] decryptionInfo = encryptor
-				.executeInCryptoSession(() -> dataContainer.ciphertext = SecretKeyUtil.encryptString(PLAINTEXT1));
+		byte[] decryptionInfo = encryptor.executeInCryptoSession(
+				() -> dataContainer.ciphertext = SecretKeyUtil.encryptString(PLAINTEXT1));
 
 		assertThat(decryptionInfo.length, equalTo(MIN_BLOCK_LENGTH));
 		assertThat(dataContainer.ciphertext.length, lessThan(MIN_BLOCK_LENGTH));

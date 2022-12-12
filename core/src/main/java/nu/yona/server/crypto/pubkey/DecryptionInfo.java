@@ -31,8 +31,8 @@ public class DecryptionInfo
 	public DecryptionInfo(byte[] bytes)
 	{
 		initializationVector = Arrays.copyOfRange(bytes, 0, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
-		secretKey = CryptoUtil
-				.secretKeyFromBytes(Arrays.copyOfRange(bytes, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH, bytes.length));
+		secretKey = CryptoUtil.secretKeyFromBytes(
+				Arrays.copyOfRange(bytes, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH, bytes.length));
 	}
 
 	public SecretKey getSecretKey()

@@ -66,8 +66,8 @@ public class PinResetRequestController extends ControllerBase
 	public ResponseEntity<ConfirmationCodeDelayDto> requestPinReset(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.requestPinReset(userId);
 			return new ResponseEntity<>(
@@ -81,8 +81,8 @@ public class PinResetRequestController extends ControllerBase
 	public ResponseEntity<Void> verifyPinResetConfirmationCode(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody ConfirmationCodeDto confirmationCode)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 
 			pinResetRequestService.verifyPinResetConfirmationCode(userId, confirmationCode.getCode());
@@ -95,8 +95,8 @@ public class PinResetRequestController extends ControllerBase
 	public ResponseEntity<Void> resendPinResetConfirmationCode(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.resendPinResetConfirmationCode(userId);
 			return createNoContentResponse();
@@ -108,8 +108,8 @@ public class PinResetRequestController extends ControllerBase
 	public ResponseEntity<Void> clearPinResetRequest(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession
-				.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+		try (CryptoSession cryptoSession = CryptoSession.start(password,
+				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.clearPinResetRequest(userId);
 			return createNoContentResponse();

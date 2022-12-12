@@ -110,8 +110,8 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return BuddyConnectResponseMessageDto
-					.createInstance((BuddyConnectResponseMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
+			return BuddyConnectResponseMessageDto.createInstance((BuddyConnectResponseMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -153,8 +153,8 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 
 			logHandledAction_Process(actingUser, connectResponseMessageEntity);
 
-			return MessageActionDto
-					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectResponseMessageEntity));
+			return MessageActionDto.createInstanceActionDone(
+					theDtoFactory.createInstance(actingUser, connectResponseMessageEntity));
 		}
 
 		private void logHandledAction_Process(User actingUser, BuddyConnectResponseMessage connectResponseMessageEntity)

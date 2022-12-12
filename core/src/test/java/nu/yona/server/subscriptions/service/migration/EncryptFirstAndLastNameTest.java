@@ -149,8 +149,8 @@ public class EncryptFirstAndLastNameTest extends BaseSpringIntegrationTest
 		assertThat(firstNameUserField.get(richard), is(nullValue()));
 		assertThat(lastNameUserField.get(richard), is(nullValue()));
 
-		verify(mockMessageService, times(1))
-				.broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), messageSupplierCaptor.capture());
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(),
+				messageSupplierCaptor.capture());
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyInfoChangeMessage.class));
 		BuddyInfoChangeMessage buddyInfoChangeMessage = (BuddyInfoChangeMessage) message;

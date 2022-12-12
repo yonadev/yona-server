@@ -118,8 +118,8 @@ public class YonaProperties
 
 	public void setSupportedLocales(String supportedLocales)
 	{
-		this.supportedLocales.addAll(Arrays.asList(supportedLocales.split(",")).stream().map(Locale::forLanguageTag)
-				.collect(Collectors.toSet()));
+		this.supportedLocales.addAll(
+				Arrays.asList(supportedLocales.split(",")).stream().map(Locale::forLanguageTag).collect(Collectors.toSet()));
 	}
 
 	public Set<Locale> getSupportedLocales()
@@ -129,8 +129,8 @@ public class YonaProperties
 
 	public void setSupportedCountryCodes(String supportedCountryCodes)
 	{
-		this.supportedCountryCodes.addAll(Arrays.asList(supportedCountryCodes.split(",")).stream().map(Integer::parseInt)
-				.collect(Collectors.toSet()));
+		this.supportedCountryCodes.addAll(
+				Arrays.asList(supportedCountryCodes.split(",")).stream().map(Integer::parseInt).collect(Collectors.toSet()));
 	}
 
 	public Set<Integer> getSupportedCountryCodes()

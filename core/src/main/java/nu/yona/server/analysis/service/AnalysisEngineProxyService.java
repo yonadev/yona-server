@@ -38,8 +38,8 @@ public class AnalysisEngineProxyService
 
 	public void analyzeAppActivity(UUID userAnonymizedId, UUID deviceAnonyizedId, AppActivitiesDto appActivities)
 	{
-		restTemplate
-				.postForEntity(buildBaseUrl(userAnonymizedId, deviceAnonyizedId) + "/appActivity/", appActivities, String.class);
+		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId, deviceAnonyizedId) + "/appActivity/", appActivities,
+				String.class);
 	}
 
 	private String buildBaseUrl(UUID userAnonymizedId)

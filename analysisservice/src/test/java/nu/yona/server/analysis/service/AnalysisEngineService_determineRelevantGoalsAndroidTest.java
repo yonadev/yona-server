@@ -25,8 +25,8 @@ public class AnalysisEngineService_determineRelevantGoalsAndroidTest extends Ana
 	@Test
 	public void determineRelevantGoals_networkActivityOneOptionalUserGoal_empty()
 	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService
-				.determineRelevantGoals(makeNetworkPayload(makeCategorySet(getSocialGoal())));
+		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(
+				makeNetworkPayload(makeCategorySet(getSocialGoal())));
 		assertThat(relevantGoals, empty());
 	}
 }

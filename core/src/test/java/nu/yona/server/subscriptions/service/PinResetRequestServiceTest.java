@@ -103,9 +103,8 @@ class PinResetRequestServiceTest extends BaseSpringIntegrationTest
 		service.sendPinResetConfirmationCode(richard.getId());
 
 		ArgumentCaptor<ConfirmationCode> confirmationCodeCaptor = ArgumentCaptor.forClass(ConfirmationCode.class);
-		verify(userService, times(1))
-				.sendConfirmationCodeTextMessage(eq(richard.getMobileNumber()), confirmationCodeCaptor.capture(),
-						eq(SmsTemplate.PIN_RESET_REQUEST_CONFIRMATION));
+		verify(userService, times(1)).sendConfirmationCodeTextMessage(eq(richard.getMobileNumber()),
+				confirmationCodeCaptor.capture(), eq(SmsTemplate.PIN_RESET_REQUEST_CONFIRMATION));
 		assertThat("Expected right related user set to goal conflict message", confirmationCodeCaptor.getValue().getCode(),
 				equalTo(code));
 	}

@@ -127,8 +127,8 @@ public class UserAnonymizedDto implements Serializable
 
 	public DeviceAnonymizedDto getDeviceAnonymized(UUID deviceAnonymizedId)
 	{
-		return getDeviceAnonymizedIfExisting(deviceAnonymizedId)
-				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(id, deviceAnonymizedId));
+		return getDeviceAnonymizedIfExisting(deviceAnonymizedId).orElseThrow(
+				() -> DeviceServiceException.notFoundByAnonymizedId(id, deviceAnonymizedId));
 	}
 
 	public Optional<DeviceAnonymizedDto> getDeviceAnonymizedIfExisting(UUID deviceAnonymizedId)

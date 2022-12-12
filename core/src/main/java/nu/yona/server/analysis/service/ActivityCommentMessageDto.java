@@ -112,8 +112,8 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return ActivityCommentMessageDto
-					.createInstance((ActivityCommentMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
+			return ActivityCommentMessageDto.createInstance((ActivityCommentMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

@@ -104,7 +104,7 @@ public class ActivityAggregationBatchJob
 	public ItemReader<Long> dayActivityReader()
 	{
 		return intervalActivityIdReader(Date.valueOf(
-				TimeUtil.getStartOfDay(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusDays(1).toLocalDate()),
+						TimeUtil.getStartOfDay(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusDays(1).toLocalDate()),
 				DayActivity.class, DAY_ACTIVITY_CHUNK_SIZE);
 	}
 
@@ -138,7 +138,7 @@ public class ActivityAggregationBatchJob
 	public ItemReader<Long> weekActivityReader()
 	{
 		return intervalActivityIdReader(Date.valueOf(
-				TimeUtil.getStartOfWeek(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusWeeks(1).toLocalDate()),
+						TimeUtil.getStartOfWeek(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusWeeks(1).toLocalDate()),
 				WeekActivity.class, WEEK_ACTIVITY_CHUNK_SIZE);
 	}
 

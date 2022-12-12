@@ -337,8 +337,8 @@ public class User extends EntityWithUuid
 
 	public Buddy getBuddyByUserAnonymizedId(UUID relatedUserAnonymizedId)
 	{
-		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedId().isPresent() && relatedUserAnonymizedId
-				.equals(buddy.getUserAnonymizedId().get())).findAny().orElseThrow(
+		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedId().isPresent() && relatedUserAnonymizedId.equals(
+				buddy.getUserAnonymizedId().get())).findAny().orElseThrow(
 				() -> new IllegalStateException("Buddy for user anonymized ID " + relatedUserAnonymizedId + " not found"));
 	}
 
@@ -355,7 +355,8 @@ public class User extends EntityWithUuid
 		Objects.requireNonNull(overwriteUserConfirmationCode);
 		if (this.overwriteUserConfirmationCode != null)
 		{
-			logger.info("DEBUG: mobile number {} replace overwrite confirmation code with ID {} with a new one with ID {}", this.getMobileNumber(), this.overwriteUserConfirmationCode.getId(), overwriteUserConfirmationCode.getId());
+			logger.info("DEBUG: mobile number {} replace overwrite confirmation code with ID {} with a new one with ID {}",
+					this.getMobileNumber(), this.overwriteUserConfirmationCode.getId(), overwriteUserConfirmationCode.getId());
 		}
 		this.overwriteUserConfirmationCode = overwriteUserConfirmationCode;
 	}

@@ -1,23 +1,23 @@
 [
-	{
-		"name": "ActivityAggregationTrigger",
-		"description": "Triggers ActivityAggregation every day early in the morning",
-		"cronExpression": "0 0 3 ? * *",
-		"timeZone": "Europe/Amsterdam",
-		"jobName": "ActivityAggregation"
-	},
-	{
-		"name": "NewDeviceRequestCleanUpTrigger",
-		"description": "Triggers NewDeviceRequestCleanUp every night",
-		"cronExpression": "0 0 2 ? * *",
-		"timeZone": "Europe/Amsterdam",
-		"jobName": "NewDeviceRequestCleanUp"
-	},
-	{
-		"name": "EmailTestTrigger",
-		"description": "Triggers EmailTest every 30 minutes",
-		"cronExpression": "0 0/30 * ? * *",
-		"timeZone": "Europe/Amsterdam",
-		"jobName": "EmailTest"
-	}
+  {
+    "name": "ActivityAggregationTrigger",
+    "description": "Triggers ActivityAggregation every day early in the morning",
+    "cronExpression": "0 0 3 ? * *",
+    "timeZone": "Europe/Amsterdam",
+    "jobName": "ActivityAggregation"
+  },
+  {
+    "name": "NewDeviceRequestCleanUpTrigger",
+    "description": "Triggers NewDeviceRequestCleanUp every night",
+    "cronExpression": "0 0 2 ? * *",
+    "timeZone": "Europe/Amsterdam",
+    "jobName": "NewDeviceRequestCleanUp"
+  },
+  {
+    "name": "EmailTestTrigger",
+    "description": "Triggers EmailTest every 30 minutes",
+    "cronExpression": "0 0/30 * ? * *",
+    "timeZone": "Europe/Amsterdam",
+    "jobName": "EmailTest"
+  }
 ]

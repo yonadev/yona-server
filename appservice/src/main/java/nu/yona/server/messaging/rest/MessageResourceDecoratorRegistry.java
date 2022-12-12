@@ -22,8 +22,8 @@ import nu.yona.server.messaging.service.MessageDto;
 @Component
 public class MessageResourceDecoratorRegistry
 {
-	private Map<Class<?>, MessageResourceDecorator> decoratorByType = new HashMap<>();
-	private Map<Class<?>, Set<MessageResourceDecorator>> decoratorsByConcreteType = new HashMap<>();
+	private final Map<Class<?>, MessageResourceDecorator> decoratorByType = new HashMap<>();
+	private final Map<Class<?>, Set<MessageResourceDecorator>> decoratorsByConcreteType = new HashMap<>();
 
 	@PostConstruct
 	private void initializeDecoratorCollection()
@@ -39,14 +39,15 @@ public class MessageResourceDecoratorRegistry
 	{
 		try
 		{
-			@SuppressWarnings("unchecked") Class<? extends MessageResourceDecorator> decoratorClass = (Class<? extends MessageResourceDecorator>) Class
-					.forName(bd.getBeanClassName());
+			@SuppressWarnings("unchecked") Class<? extends MessageResourceDecorator> decoratorClass = (Class<? extends MessageResourceDecorator>) Class.forName(
+					bd.getBeanClassName());
 			MessageResourceDecorator decorator = decoratorClass.getDeclaredConstructor().newInstance();
 			Class<? extends MessageDto> decoratedClass = decoratorClass.getAnnotation(Decorates.class).value();
 			assertNoDecoratorExists(decoratedClass, decorator);
 			decoratorByType.put(decoratedClass, decorator);
 		}
-		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e)
+		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException |
+			   InvocationTargetException | NoSuchMethodException | SecurityException e)
 		{
 			throw YonaException.unexpected(e);
 		}

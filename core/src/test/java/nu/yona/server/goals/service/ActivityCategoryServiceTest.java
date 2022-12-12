@@ -77,12 +77,10 @@ public class ActivityCategoryServiceTest
 	public void setUpPerTest()
 	{
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
-		gambling = ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("gambling"), false, new HashSet<>(Arrays.asList("poker", "lotto")),
-						Collections.emptySet(), usString("Descr"));
-		news = ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("news"), false, new HashSet<>(Arrays.asList("refdag", "bbc")),
-						Collections.emptySet(), usString("Descr"));
+		gambling = ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
+				new HashSet<>(Arrays.asList("poker", "lotto")), Collections.emptySet(), usString("Descr"));
+		news = ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
+				new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr"));
 
 		mockRepositoryFindAllResult = new ArrayList<>();
 		mockRepositoryFindAllResult.add(gambling);
@@ -154,9 +152,8 @@ public class ActivityCategoryServiceTest
 	{
 		assertGetAllActivityCategoriesResult("gambling", "news");
 
-		ActivityCategory gaming = ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("gaming"), false, new HashSet<>(Arrays.asList("games")),
-						Collections.emptySet(), usString("Descr"));
+		ActivityCategory gaming = ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
+				new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
 		// Add to collection, so it appears as if it is in the database
 		// It hasn't been loaded, so should not be in the cache
 		mockRepositoryFindAllResult.add(gaming);
@@ -168,9 +165,8 @@ public class ActivityCategoryServiceTest
 	@Test
 	public void addActivityCategory_default_updatesCache()
 	{
-		ActivityCategory gaming = ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("gaming"), false, new HashSet<>(Arrays.asList("games")),
-						Collections.emptySet(), usString("Descr"));
+		ActivityCategory gaming = ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
+				new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
 		when(mockRepository.findById(gaming.getId())).thenReturn(Optional.of(gaming));
 
 		service.addActivityCategory(ActivityCategoryDto.createInstance(gaming));

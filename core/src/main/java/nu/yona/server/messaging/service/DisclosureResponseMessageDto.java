@@ -93,8 +93,8 @@ public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return DisclosureResponseMessageDto
-					.createInstance((DisclosureResponseMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
+			return DisclosureResponseMessageDto.createInstance((DisclosureResponseMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

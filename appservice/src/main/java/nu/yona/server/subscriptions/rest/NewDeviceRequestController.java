@@ -69,11 +69,11 @@ public class NewDeviceRequestController extends ControllerBase
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			try (CryptoSession cryptoSession = CryptoSession
-					.start(Optional.of(password), () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+			try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
+					() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 			{
-				newDeviceRequestService
-						.setNewDeviceRequestForUser(userId, password, newDeviceRequestCreation.getNewDeviceRequestPassword());
+				newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
+						newDeviceRequestCreation.getNewDeviceRequestPassword());
 			}
 		}
 		catch (UserServiceException e)
@@ -115,8 +115,8 @@ public class NewDeviceRequestController extends ControllerBase
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			try (CryptoSession cryptoSession = CryptoSession
-					.start(password, () -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
+			try (CryptoSession cryptoSession = CryptoSession.start(password,
+					() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 			{
 				newDeviceRequestService.clearNewDeviceRequestForUser(userId);
 			}
@@ -179,8 +179,8 @@ public class NewDeviceRequestController extends ControllerBase
 
 		private void addSelfLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource
-					.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber()).withSelfRel());
+			newDeviceRequestResource.add(
+					NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber()).withSelfRel());
 		}
 
 		private void addEditLink(EntityModel<NewDeviceRequestDto> newDeviceRequestResource)

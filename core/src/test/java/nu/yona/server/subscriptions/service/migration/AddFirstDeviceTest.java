@@ -187,9 +187,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		// Add device
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized
-				.createInstance(0, operatingSystem, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE, Optional.empty(),
-						Translator.EN_US_LOCALE);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE, Optional.empty(), Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice device = UserDevice.createInstance(richard, deviceName, deviceAnonymized.getId(), "topSecret");
 		richard.addDevice(device);
@@ -199,8 +198,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		assertThat(devices.size(), equalTo(1));
 
 		// Remove all devices from user anonymized
-		new ArrayList<>(richard.getAnonymized().getDevicesAnonymized())
-				.forEach(d -> richard.getAnonymized().removeDeviceAnonymized(d));
+		new ArrayList<>(richard.getAnonymized().getDevicesAnonymized()).forEach(
+				d -> richard.getAnonymized().removeDeviceAnonymized(d));
 		assertThat(richard.getAnonymized().getDevicesAnonymized().size(), equalTo(0));
 
 		// Verify they're gone
@@ -226,8 +225,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	{
 		UserAnonymizedDto userAnonDto = UserAnonymizedDto.createInstance(richard.getAnonymized());
 		when(mockUserAnonymizedService.getUserAnonymized(richard.getUserAnonymizedId())).thenReturn(userAnonDto);
-		when(mockUserAnonymizedService.updateUserAnonymized(richard.getUserAnonymizedId()))
-				.thenAnswer(new Answer<UserAnonymizedDto>()
+		when(mockUserAnonymizedService.updateUserAnonymized(richard.getUserAnonymizedId())).thenAnswer(
+				new Answer<UserAnonymizedDto>()
 				{
 					@Override
 					public UserAnonymizedDto answer(InvocationOnMock invocation)
@@ -250,8 +249,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		assertThat(device.getDeviceAnonymized().getOperatingSystem(), equalTo(OperatingSystem.UNKNOWN));
 		assertThat(richard.getAnonymized().getDevicesAnonymized().size(), equalTo(1));
 
-		verify(mockMessageService, times(1))
-				.broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(), messageSupplierCaptor.capture());
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(ArgumentMatchers.<UserAnonymizedDto>any(),
+				messageSupplierCaptor.capture());
 
 		Message message = messageSupplierCaptor.getValue().get();
 		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));

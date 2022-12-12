@@ -28,8 +28,8 @@ public class UserTest
 		{
 			byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 			MessageSource namedMessageSource = MessageSource.createInstance();
-			UserPrivate userPrivate = UserPrivate
-					.createInstance(TimeUtil.utcNow(), "John", "Doe", "jd", null, null, namedMessageSource);
+			UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), "John", "Doe", "jd", null, null,
+					namedMessageSource);
 			john = new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), "+31612345678", userPrivate,
 					namedMessageSource.getDestination());
 		}

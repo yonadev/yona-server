@@ -242,8 +242,8 @@ public class CryptoSession implements AutoCloseable
 		}
 		if (initializationVector.length != SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH)
 		{
-			throw CryptoException
-					.initializationVectorWrongSize(initializationVector.length, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
+			throw CryptoException.initializationVectorWrongSize(initializationVector.length,
+					SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{
