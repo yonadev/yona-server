@@ -84,7 +84,7 @@ public class EmailProperties
 		{
 			this.sslProtocols = sslProtocols;
 		}
-		
+
 		public String getUsername()
 		{
 			return username;

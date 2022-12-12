@@ -122,8 +122,8 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return DisclosureRequestMessageDto
-					.createInstance((DisclosureRequestMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
+			return DisclosureRequestMessageDto.createInstance((DisclosureRequestMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -166,8 +166,8 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 
 			sendResponseMessageToRequestingUser(actingUser, disclosureRequestMessageEntity, message);
 
-			return MessageActionDto
-					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, disclosureRequestMessageEntity));
+			return MessageActionDto.createInstanceActionDone(
+					theDtoFactory.createInstance(actingUser, disclosureRequestMessageEntity));
 		}
 
 		private DisclosureRequestMessage updateMessageStatus(DisclosureRequestMessage disclosureRequestMessageEntity,
@@ -183,9 +183,9 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 			UserAnonymizedDto toUser = userAnonymizedService.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedId()
 					.orElseThrow(() -> new IllegalStateException(
 							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")));
-			messageService.sendMessage(DisclosureResponseMessage
-							.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
-									requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
+			messageService.sendMessage(
+					DisclosureResponseMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
+							requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
 					toUser);
 		}
 	}

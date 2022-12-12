@@ -50,18 +50,18 @@ public abstract class IntervalActivityTestBase
 	public void setUp()
 	{
 		testZone = ZoneId.of("Europe/Amsterdam");
-		ActivityCategory activityCategory = ActivityCategory
-				.createInstance(UUID.randomUUID(), Collections.singletonMap(Locale.US, "being bored"), false,
-						Collections.emptySet(), Collections.emptySet(), Collections.singletonMap(Locale.US, "Descr"));
+		ActivityCategory activityCategory = ActivityCategory.createInstance(UUID.randomUUID(),
+				Collections.singletonMap(Locale.US, "being bored"), false, Collections.emptySet(), Collections.emptySet(),
+				Collections.singletonMap(Locale.US, "Descr"));
 		budgetGoal = BudgetGoal.createInstance(TimeUtil.utcNow(), activityCategory, 60);
-		timeZoneGoal = TimeZoneGoal
-				.createInstance(TimeUtil.utcNow(), activityCategory, Arrays.asList("05:00-12:30", "13:00-24:00"));
+		timeZoneGoal = TimeZoneGoal.createInstance(TimeUtil.utcNow(), activityCategory,
+				Arrays.asList("05:00-12:30", "13:00-24:00"));
 		// Set up UserAnonymized instance.
-		MessageDestination anonMessageDestinationEntity = MessageDestination
-				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
+		MessageDestination anonMessageDestinationEntity = MessageDestination.createInstance(
+				PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(budgetGoal));
-		deviceAnonEntity = DeviceAnonymized
-				.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty(), Translator.EN_US_LOCALE);
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 0, Optional.empty(),
+				Translator.EN_US_LOCALE);
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 	}

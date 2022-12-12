@@ -202,9 +202,8 @@ public class UserDto
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.isCreatedOnBuddyRequest(),
 				userEntity.getNamedMessageSourceId(), userEntity.getAnonymousMessageSourceId(),
 				userAnonymizedDto.getGoalsIncludingHistoryItems(), buddies, userEntity.getUserAnonymizedId(),
-				userEntity.getDevices().stream().map(d -> UserDeviceDto
-						.createInstance(userAnonymizedDto, d, userAnonymizedDto.getDeviceAnonymized(d.getDeviceAnonymizedId())))
-						.collect(Collectors.toSet()));
+				userEntity.getDevices().stream().map(d -> UserDeviceDto.createInstance(userAnonymizedDto, d,
+						userAnonymizedDto.getDeviceAnonymized(d.getDeviceAnonymizedId()))).collect(Collectors.toSet()));
 	}
 
 	public static UserDto createInstance(User userEntity, BuddyUserPrivateDataDto buddyData)

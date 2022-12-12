@@ -33,8 +33,8 @@ public class MoveVpnPasswordToDevice implements MigrationStep
 
 	private UserDevice getDefaultDevice(User user)
 	{
-		return user.getDevices().stream().sorted((d1, d2) -> Integer
-				.compare(d1.getDeviceAnonymized().getDeviceIndex(), d2.getDeviceAnonymized().getDeviceIndex())).findFirst()
+		return user.getDevices().stream().sorted((d1, d2) -> Integer.compare(d1.getDeviceAnonymized().getDeviceIndex(),
+						d2.getDeviceAnonymized().getDeviceIndex())).findFirst()
 				.orElseThrow(() -> DeviceServiceException.noDevicesFound(user.getAnonymized().getId()));
 	}
 }

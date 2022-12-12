@@ -67,8 +67,8 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 
 	public DeviceAnonymized getDeviceAnonymized()
 	{
-		return getDeviceAnonymizedIfExisting()
-				.orElseThrow(() -> new IllegalStateException("DeviceAnonymized with ID " + deviceAnonymizedId + " not found"));
+		return getDeviceAnonymizedIfExisting().orElseThrow(
+				() -> new IllegalStateException("DeviceAnonymized with ID " + deviceAnonymizedId + " not found"));
 	}
 
 	private Optional<DeviceAnonymized> getDeviceAnonymizedIfExisting()

@@ -117,8 +117,9 @@ public class TestController extends ControllerBase
 
 	private ResponseEntity<EntityModel<FirebaseMessageDto>> createResponse(Optional<MessageData> lastMessage)
 	{
-		return lastMessage.map(m -> createOkResponse(FirebaseMessageDto.createInstance(m),
-				createFirebaseMessageRepresentationModelAssembler())).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+		return lastMessage.map(
+						m -> createOkResponse(FirebaseMessageDto.createInstance(m), createFirebaseMessageRepresentationModelAssembler()))
+				.orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
 
 	private FirebaseMessageRepresentationModelAssembler createFirebaseMessageRepresentationModelAssembler()

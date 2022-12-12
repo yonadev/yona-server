@@ -18,7 +18,7 @@ configurations {
 }
 
 dependencies {
-	implementation  project(":core")
+	implementation project(":core")
 	runtimeClasspath project.deps.mariadbClient
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 

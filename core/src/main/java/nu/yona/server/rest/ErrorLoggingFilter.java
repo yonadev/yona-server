@@ -47,9 +47,8 @@ public class ErrorLoggingFilter implements Filter
 	{
 		private static final String TRACE_ID_HEADER = "x-b3-traceid";
 		private static final String CORRELATION_ID_MDC_KEY = "yona.correlation.id";
-		private static final List<String> MDC_KEYS = Arrays
-				.asList(CORRELATION_ID_MDC_KEY, RestConstants.APP_OS_MDC_KEY, RestConstants.APP_VERSION_CODE_MDC_KEY,
-						RestConstants.APP_VERSION_NAME_MDC_KEY);
+		private static final List<String> MDC_KEYS = Arrays.asList(CORRELATION_ID_MDC_KEY, RestConstants.APP_OS_MDC_KEY,
+				RestConstants.APP_VERSION_CODE_MDC_KEY, RestConstants.APP_VERSION_NAME_MDC_KEY);
 
 		private LoggingContext()
 		{

@@ -4,13 +4,17 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=yonadev_yona-server&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=yonadev_yona-server)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyonadev%2Fyona-server.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyonadev%2Fyona-server?ref=badge_shield)
 
-Yona Server 
+Yona Server
 ==================================
 
-The Yona Server backs the Yona mobile app, providing user management, buddy relationship management, web traffic classification and buddy messaging.
+The Yona Server backs the Yona mobile app, providing user management, buddy relationship management, web traffic classification
+and buddy messaging.
 
-For more information, check [our wiki](https://wiki.yona.nu/display/DEV/Development) or [our JIRA](https://jira.yona.nu/secure/RapidBoard.jspa?rapidView=5).
+For more information, check [our wiki](https://wiki.yona.nu/display/DEV/Development)
+or [our JIRA](https://jira.yona.nu/secure/RapidBoard.jspa?rapidView=5).
 
 ==================================
+
 ## License
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyonadev%2Fyona-server.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyonadev%2Fyona-server?ref=badge_large)

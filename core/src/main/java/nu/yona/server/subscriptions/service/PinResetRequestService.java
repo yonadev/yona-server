@@ -101,8 +101,8 @@ public class PinResetRequestService
 		if (!userProvidedConfirmationCode.equals(confirmationCode.getCode()))
 		{
 			confirmationCode.incrementAttempts();
-			throw PinResetRequestConfirmationException
-					.confirmationCodeMismatch(user.getMobileNumber(), userProvidedConfirmationCode, remainingAttempts - 1);
+			throw PinResetRequestConfirmationException.confirmationCodeMismatch(user.getMobileNumber(),
+					userProvidedConfirmationCode, remainingAttempts - 1);
 		}
 	}
 

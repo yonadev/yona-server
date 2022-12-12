@@ -51,8 +51,8 @@ public class WeekActivity extends IntervalActivity
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)
 	{
-		Require.that(startOfWeek.getDayOfWeek() == DayOfWeek.SUNDAY, () -> YonaException
-				.illegalState("Date " + startOfWeek + " is wrong. In Yona, Sunday is the first day of the week"));
+		Require.that(startOfWeek.getDayOfWeek() == DayOfWeek.SUNDAY, () -> YonaException.illegalState(
+				"Date " + startOfWeek + " is wrong. In Yona, Sunday is the first day of the week"));
 		return new WeekActivity(userAnonymized, goal, timeZone, startOfWeek);
 	}
 
@@ -92,8 +92,8 @@ public class WeekActivity extends IntervalActivity
 		{
 			throw new IllegalStateException(
 					"Week starting at " + getStartDate() + " for goal with ID " + getGoal().getId() + " is already full ("
-							+ dayActivities.size() + " days present) while trying to add day activity for " + dayActivity
-							.getStartDate());
+							+ dayActivities.size() + " days present) while trying to add day activity for "
+							+ dayActivity.getStartDate());
 		}
 
 		dayActivity.setWeekActivity(this);

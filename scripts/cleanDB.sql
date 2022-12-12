@@ -1,4 +1,8 @@
-update messages set buddy_message_id = null, origin_goal_conflict_message_id = null, thread_head_message_id = null, replied_message_id = null;
+update messages
+set buddy_message_id                = null,
+    origin_goal_conflict_message_id = null,
+    thread_head_message_id          = null,
+    replied_message_id              = null;
 delete from messages;
 delete from message_sources;
 delete from activities;

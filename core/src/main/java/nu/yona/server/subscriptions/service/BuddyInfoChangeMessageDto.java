@@ -92,8 +92,8 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return BuddyInfoChangeMessageDto
-					.createInstance((BuddyInfoChangeMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
+			return BuddyInfoChangeMessageDto.createInstance((BuddyInfoChangeMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

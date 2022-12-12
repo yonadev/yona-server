@@ -1,137 +1,137 @@
 [
-   {
-      "id": "1f088f0b-9952-4ac7-bdc0-fd242238bc1d",
-      "localizableName": {
-         "en-US": "Adult content",
-         "nl-NL": "Adult"
-      },
-      "mandatoryNoGo": false,
-      "smoothwallCategories": [
-         "Adult Sites",
-         "Adult Themes",
-         "KS-Adult",
-         "KS-Sexuality",
-         "Sexuality Sites"
-      ],
-      "applications": [
-         "Bad app"
-      ],
-      "localizableDescription": {
-         "en-US": "This challenge includes apps and sites with adult and porn",
-         "nl-NL": "Deze challenge bevat apps en sites met adult content en porno"
-      }
-   },
-   {
-      "id": "90b9838f-1430-484b-94c1-e169318091cb",
-      "localizableName": {
-         "en-US": "Communication",
-         "nl-NL": "Communicatie"
-      },
-      "mandatoryNoGo": false,
-      "smoothwallCategories": [
-         "Chat",
-         "Webmail"
-      ],
-      "applications": [
-         "com.whatsapp",
-         "com.google.android.gm",
-         "com.skype.raider",
-         "com.facebook.orca",
-         "com.snapchat.android"
-      ],
-      "localizableDescription": {
-         "en-US": "This challenge includes apps and sites like WhatsApp and Snapchat",
-         "nl-NL": "Deze challenge bevat apps en sites zoals WhatsApp en Snapchat"
-      }
-   },
-   {
-      "id": "192d69f4-8d3e-499b-983c-36ca97340ba9",
-      "localizableName": {
-         "en-US": "Gambling",
-         "nl-NL": "Gokken"
-      },
-      "mandatoryNoGo": true,
-      "smoothwallCategories": [
-         "Gambling",
-         "KS-Gokken",
-         "lotto"
-      ],
-      "applications": [
-         "Poker App",
-         "Lotto App"
-      ],
-      "localizableDescription": {
-         "en-US": "This challenge includes apps and sites like Poker and Blackjack",
-         "nl-NL": "Deze challenge bevat apps en sites zoals Poker en Blackjack"
-      }
-   },
-   {
-      "id": "eb7be352-b449-4d30-98fe-3be6ad555b43",
-      "localizableName": {
-         "en-US": "Multimedia",
-         "nl-NL": "Multimedia"
-      },
-      "mandatoryNoGo": false,
-      "smoothwallCategories": [
-         "YouTube",
-         "Netflix"
-      ],
-      "applications": [
-         "nl.uitzendinggemist",
-         "com.google.android.youtube",
-         "com.netflix.mediaclient"
-      ],
-      "localizableDescription": {
-         "en-US": "This challenge includes apps and sites like Youtube and Netflix",
-         "nl-NL": "Deze challenge bevat apps en sites zoals Youtube en Netflix"
-      }
-   },
-   {
-      "id": "743738fd-052f-4532-a2a3-ba60dcb1adbf",
-      "localizableName": {
-         "en-US": "News",
-         "nl-NL": "Nieuws"
-      },
-      "mandatoryNoGo": false,
-      "smoothwallCategories": [
-         "News",
-         "KS-Nieuws",
-         "KS-Radio En Tv",
-         "news/media",
-         "newsgroups/forums"
-      ],
-      "applications": [
-         "nl.sanomamedia.android.nu",
-         "nl.nos.app",
-         "NU.nl"
-      ],
-      "localizableDescription": {
-         "en-US": "This challenge includes apps and sites like NU.nl and NOS",
-         "nl-NL": "Deze challenge bevat apps en sites zoals NU.nl en NOS"
-      }
-   },
-   {
-      "id": "27395d17-7022-4f71-9daf-f431ff4f11e8",
-      "localizableName": {
-         "en-US": "Social",
-         "nl-NL": "Social media"
-      },
-      "mandatoryNoGo": false,
-      "smoothwallCategories": [
-         "Facebook",
-         "Social Media",
-         "Social Networking Sites",
-         "social"
-      ],
-      "applications": [
-         "com.facebook.katana",
-         "com.instagram.android",
-         "com.twitter.android",
-         "Facebook"
-      ],
-      "localizableDescription": {
-         "en-US": "This challenge includes apps and sites like Facebook and Instagram",
-         "nl-NL": "Deze challenge bevat apps en sites zoals Facebook en Instagram"
-      }
-   }
+  {
+    "id": "1f088f0b-9952-4ac7-bdc0-fd242238bc1d",
+    "localizableName": {
+      "en-US": "Adult content",
+      "nl-NL": "Adult"
+    },
+    "mandatoryNoGo": false,
+    "smoothwallCategories": [
+      "Adult Sites",
+      "Adult Themes",
+      "KS-Adult",
+      "KS-Sexuality",
+      "Sexuality Sites"
+    ],
+    "applications": [
+      "Bad app"
+    ],
+    "localizableDescription": {
+      "en-US": "This challenge includes apps and sites with adult and porn",
+      "nl-NL": "Deze challenge bevat apps en sites met adult content en porno"
+    }
+  },
+  {
+    "id": "90b9838f-1430-484b-94c1-e169318091cb",
+    "localizableName": {
+      "en-US": "Communication",
+      "nl-NL": "Communicatie"
+    },
+    "mandatoryNoGo": false,
+    "smoothwallCategories": [
+      "Chat",
+      "Webmail"
+    ],
+    "applications": [
+      "com.whatsapp",
+      "com.google.android.gm",
+      "com.skype.raider",
+      "com.facebook.orca",
+      "com.snapchat.android"
+    ],
+    "localizableDescription": {
+      "en-US": "This challenge includes apps and sites like WhatsApp and Snapchat",
+      "nl-NL": "Deze challenge bevat apps en sites zoals WhatsApp en Snapchat"
+    }
+  },
+  {
+    "id": "192d69f4-8d3e-499b-983c-36ca97340ba9",
+    "localizableName": {
+      "en-US": "Gambling",
+      "nl-NL": "Gokken"
+    },
+    "mandatoryNoGo": true,
+    "smoothwallCategories": [
+      "Gambling",
+      "KS-Gokken",
+      "lotto"
+    ],
+    "applications": [
+      "Poker App",
+      "Lotto App"
+    ],
+    "localizableDescription": {
+      "en-US": "This challenge includes apps and sites like Poker and Blackjack",
+      "nl-NL": "Deze challenge bevat apps en sites zoals Poker en Blackjack"
+    }
+  },
+  {
+    "id": "eb7be352-b449-4d30-98fe-3be6ad555b43",
+    "localizableName": {
+      "en-US": "Multimedia",
+      "nl-NL": "Multimedia"
+    },
+    "mandatoryNoGo": false,
+    "smoothwallCategories": [
+      "YouTube",
+      "Netflix"
+    ],
+    "applications": [
+      "nl.uitzendinggemist",
+      "com.google.android.youtube",
+      "com.netflix.mediaclient"
+    ],
+    "localizableDescription": {
+      "en-US": "This challenge includes apps and sites like Youtube and Netflix",
+      "nl-NL": "Deze challenge bevat apps en sites zoals Youtube en Netflix"
+    }
+  },
+  {
+    "id": "743738fd-052f-4532-a2a3-ba60dcb1adbf",
+    "localizableName": {
+      "en-US": "News",
+      "nl-NL": "Nieuws"
+    },
+    "mandatoryNoGo": false,
+    "smoothwallCategories": [
+      "News",
+      "KS-Nieuws",
+      "KS-Radio En Tv",
+      "news/media",
+      "newsgroups/forums"
+    ],
+    "applications": [
+      "nl.sanomamedia.android.nu",
+      "nl.nos.app",
+      "NU.nl"
+    ],
+    "localizableDescription": {
+      "en-US": "This challenge includes apps and sites like NU.nl and NOS",
+      "nl-NL": "Deze challenge bevat apps en sites zoals NU.nl en NOS"
+    }
+  },
+  {
+    "id": "27395d17-7022-4f71-9daf-f431ff4f11e8",
+    "localizableName": {
+      "en-US": "Social",
+      "nl-NL": "Social media"
+    },
+    "mandatoryNoGo": false,
+    "smoothwallCategories": [
+      "Facebook",
+      "Social Media",
+      "Social Networking Sites",
+      "social"
+    ],
+    "applications": [
+      "com.facebook.katana",
+      "com.instagram.android",
+      "com.twitter.android",
+      "Facebook"
+    ],
+    "localizableDescription": {
+      "en-US": "This challenge includes apps and sites like Facebook and Instagram",
+      "nl-NL": "Deze challenge bevat apps en sites zoals Facebook en Instagram"
+    }
+  }
 ]

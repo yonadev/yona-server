@@ -54,8 +54,8 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 {
 	@Autowired
 	private PrivateUserDataMigrationService service;
-	private final Field migrationStepsField = JUnitUtil
-			.getAccessibleField(PrivateUserDataMigrationService.class, "migrationSteps");
+	private final Field migrationStepsField = JUnitUtil.getAccessibleField(PrivateUserDataMigrationService.class,
+			"migrationSteps");
 
 	@MockBean
 	private DeviceService mockDeviceService;
@@ -87,8 +87,8 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 	@Test
 	public void getSteps_allSteps_stepsReturnedInOrder() throws IllegalArgumentException, IllegalAccessException
 	{
-		@SuppressWarnings("unchecked") List<MigrationStep> migrationSteps = (List<MigrationStep>) migrationStepsField
-				.get(service);
+		@SuppressWarnings("unchecked") List<MigrationStep> migrationSteps = (List<MigrationStep>) migrationStepsField.get(
+				service);
 		assertThat(migrationSteps, contains(step1, step2, step3, step4, step5));
 	}
 }

@@ -112,8 +112,8 @@ public class UserService
 
 			userAddService.assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 					() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
-					r -> MobileNumberConfirmationException
-							.confirmationCodeMismatch(userEntity.getMobileNumber(), userProvidedConfirmationCode, r),
+					r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
+							userProvidedConfirmationCode, r),
 					() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
 			if (userEntity.isMobileNumberConfirmed())

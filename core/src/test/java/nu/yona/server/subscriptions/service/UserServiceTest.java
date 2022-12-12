@@ -121,8 +121,8 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 		assertTrue(overwriteUserConfirmationCode.isPresent(), "Overwrite user confirmation code not set");
 
 		ArgumentCaptor<Map<String, Object>> messageParamCaptor = makeMapArgumentCaptor(String.class, Object.class);
-		verify(smsService, times(1))
-				.send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION), messageParamCaptor.capture());
+		verify(smsService, times(1)).send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION),
+				messageParamCaptor.capture());
 		assertThat("Correct confirmation code in message", messageParamCaptor.getValue().get("confirmationCode"),
 				equalTo(overwriteUserConfirmationCode.get().getCode()));
 	}
@@ -159,8 +159,8 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 		assertThat(overwriteUserConfirmationCode, not(equalTo(initialOverwriteUserConfirmationCode)));
 
 		ArgumentCaptor<Map<String, Object>> messageParamCaptor = makeMapArgumentCaptor(String.class, Object.class);
-		verify(smsService, times(1))
-				.send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION), messageParamCaptor.capture());
+		verify(smsService, times(1)).send(eq(richard.getMobileNumber()), eq(SmsTemplate.OVERWRITE_USER_CONFIRMATION),
+				messageParamCaptor.capture());
 		assertThat("Correct confirmation code in message", messageParamCaptor.getValue().get("confirmationCode"),
 				equalTo(overwriteUserConfirmationCode.get().getCode()));
 	}

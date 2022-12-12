@@ -101,9 +101,8 @@ public class CryptoUtil
 		{
 			assertValidCryptoVariantNumber(cryptoVariantNumber, ciphertext);
 			byte[] plaintext = new byte[cipher.getOutputSize(ciphertext.length)];
-			int bytesStored = cipher
-					.doFinal(ciphertext, CRYPTO_VARIANT_NUMBER_LENGTH, ciphertext.length - CRYPTO_VARIANT_NUMBER_LENGTH,
-							plaintext, 0);
+			int bytesStored = cipher.doFinal(ciphertext, CRYPTO_VARIANT_NUMBER_LENGTH,
+					ciphertext.length - CRYPTO_VARIANT_NUMBER_LENGTH, plaintext, 0);
 			if (bytesStored != plaintext.length)
 			{
 				plaintext = Arrays.copyOf(plaintext, bytesStored);

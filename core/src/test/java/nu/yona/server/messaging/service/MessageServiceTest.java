@@ -133,23 +133,22 @@ public class MessageServiceTest extends BaseSpringIntegrationTest
 		when(mockUserService.generatePassword()).thenReturn("topSecret");
 
 		// Set up UserAnonymized instance.
-		MessageDestination anonMessageDestinationEntity = MessageDestination
-				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
+		MessageDestination anonMessageDestinationEntity = MessageDestination.createInstance(
+				PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>();
-		deviceAnonEntity = DeviceAnonymized
-				.createInstance(0, OperatingSystem.ANDROID, "Unknown", 5, Optional.of(FIREBASE_REGISTRATION_TOKEN),
-						Translator.EN_US_LOCALE);
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown", 5,
+				Optional.of(FIREBASE_REGISTRATION_TOKEN), Translator.EN_US_LOCALE);
 		deviceAnonymizedRepository.save(deviceAnonEntity);
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
 		userAnonId = userAnon.getId();
 
-		when(mockUserAnonymizedService.getUserAnonymized(userAnonId))
-				.thenReturn(UserAnonymizedDto.createInstance(userAnonEntity));
+		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(
+				UserAnonymizedDto.createInstance(userAnonEntity));
 
-		when(mockMessageDestinationRepository.findById(anonMessageDestinationEntity.getId()))
-				.thenReturn(Optional.of(anonMessageDestinationEntity));
+		when(mockMessageDestinationRepository.findById(anonMessageDestinationEntity.getId())).thenReturn(
+				Optional.of(anonMessageDestinationEntity));
 	}
 
 	@Override

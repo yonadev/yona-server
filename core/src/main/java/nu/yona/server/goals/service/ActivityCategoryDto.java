@@ -165,8 +165,8 @@ public class ActivityCategoryDto implements Serializable
 
 	public ActivityCategory createActivityCategoryEntity()
 	{
-		return ActivityCategory
-				.createInstance(id, localizableName, mandatoryNoGo, smoothwallCategories, applications, localizableDescription);
+		return ActivityCategory.createInstance(id, localizableName, mandatoryNoGo, smoothwallCategories, applications,
+				localizableDescription);
 	}
 
 	public ActivityCategory updateActivityCategory(ActivityCategory originalActivityCategoryEntity)

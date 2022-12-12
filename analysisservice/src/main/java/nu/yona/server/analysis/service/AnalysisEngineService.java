@@ -97,12 +97,13 @@ public class AnalysisEngineService
 			return;
 		}
 
-		DeviceAnonymizedDto deviceAnonymized = deviceService
-				.getDeviceAnonymized(userAnonymized, networkActivity.getDeviceIndex());
-		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
-				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
-		analyze(Arrays.asList(ActivityPayload
-				.createInstance(userAnonymized, deviceAnonymized, networkActivity, matchingActivityCategories)), userAnonymized);
+		DeviceAnonymizedDto deviceAnonymized = deviceService.getDeviceAnonymized(userAnonymized,
+				networkActivity.getDeviceIndex());
+		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(
+				networkActivity.getCategories());
+		analyze(Arrays.asList(
+						ActivityPayload.createInstance(userAnonymized, deviceAnonymized, networkActivity, matchingActivityCategories)),
+				userAnonymized);
 	}
 
 	private Duration determineDeviceTimeOffset(AppActivitiesDto appActivities)
@@ -120,8 +121,8 @@ public class AnalysisEngineService
 		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
 		String application = appActivity.getApplication();
 		assertValidTimes(userAnonymized, application, correctedStartTime, correctedEndTime);
-		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
-				.getMatchingCategoriesForApp(appActivity.getApplication());
+		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService.getMatchingCategoriesForApp(
+				appActivity.getApplication());
 		return ActivityPayload.createInstance(userAnonymized, deviceAnonymized, correctedStartTime, correctedEndTime, application,
 				matchingActivityCategories);
 	}
@@ -131,8 +132,8 @@ public class AnalysisEngineService
 	{
 		if (correctedEndTime.isBefore(correctedStartTime))
 		{
-			throw AnalysisException
-					.appActivityStartAfterEnd(userAnonymized.getId(), application, correctedStartTime, correctedEndTime);
+			throw AnalysisException.appActivityStartAfterEnd(userAnonymized.getId(), application, correctedStartTime,
+					correctedEndTime);
 		}
 		if (correctedStartTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN)))
 		{
@@ -189,8 +190,8 @@ public class AnalysisEngineService
 			UserAnonymizedEntityHolder userAnonymizedEntityHolder)
 	{
 		Optional<ActivityPayload> lastActivityPayload = payloads.stream().max((p1, p2) -> p1.endTime.compareTo(p2.endTime));
-		lastActivityPayload
-				.ifPresent(p -> updateLastMonitoredActivityDateIfRelevant(p, userAnonymized, userAnonymizedEntityHolder));
+		lastActivityPayload.ifPresent(
+				p -> updateLastMonitoredActivityDateIfRelevant(p, userAnonymized, userAnonymizedEntityHolder));
 	}
 
 	private void updateLastMonitoredActivityDateIfRelevant(ActivityPayload lastActivityPayload, UserAnonymizedDto userAnonymized,
@@ -200,8 +201,8 @@ public class AnalysisEngineService
 		Optional<LocalDate> lastMonitoredActivityDate = userAnonymized.getLastMonitoredActivityDate();
 		if (lastMonitoredActivityDate.map(d -> d.isBefore(lastActivityEndTime)).orElse(true))
 		{
-			DeviceAnonymized deviceAnonymized = deviceService
-					.getDeviceAnonymizedEntity(userAnonymized.getId(), lastActivityPayload.deviceAnonymized.getId());
+			DeviceAnonymized deviceAnonymized = deviceService.getDeviceAnonymizedEntity(userAnonymized.getId(),
+					lastActivityPayload.deviceAnonymized.getId());
 			activityUpdateService.updateLastMonitoredActivityDate(userAnonymizedEntityHolder.getEntity(), deviceAnonymized,
 					lastActivityEndTime);
 		}
@@ -213,10 +214,10 @@ public class AnalysisEngineService
 		if (isCrossDayActivity(payload))
 		{
 			// assumption: activity never crosses 2 days
-			ActivityPayload truncatedPayload = ActivityPayload
-					.copyTillEndTime(payload, TimeUtil.getEndOfDay(payload.userAnonymized.getTimeZone(), payload.startTime));
-			ActivityPayload nextDayPayload = ActivityPayload
-					.copyFromStartTime(payload, TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime));
+			ActivityPayload truncatedPayload = ActivityPayload.copyTillEndTime(payload,
+					TimeUtil.getEndOfDay(payload.userAnonymized.getTimeZone(), payload.startTime));
+			ActivityPayload nextDayPayload = ActivityPayload.copyFromStartTime(payload,
+					TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime));
 
 			addOrUpdateDayTruncatedActivity(truncatedPayload, matchingGoal, userAnonymizedEntityHolder);
 			addOrUpdateDayTruncatedActivity(nextDayPayload, matchingGoal, userAnonymizedEntityHolder);
@@ -266,10 +267,9 @@ public class AnalysisEngineService
 			return Optional.empty();
 		}
 
-		List<Activity> overlappingOfSameApp = activityRepository
-				.findOverlappingOfSameApp(dayActivity.get(), payload.deviceAnonymized.getId(),
-						matchingGoal.getActivityCategoryId(), payload.application.orElse(null),
-						payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime());
+		List<Activity> overlappingOfSameApp = activityRepository.findOverlappingOfSameApp(dayActivity.get(),
+				payload.deviceAnonymized.getId(), matchingGoal.getActivityCategoryId(), payload.application.orElse(null),
+				payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime());
 
 		// The prognosis is that there is no or one overlapping activity of the same app, because we don't expect the mobile app
 		// to post app activity that spans other existing same app activity (that indicates that there is something wrong in the

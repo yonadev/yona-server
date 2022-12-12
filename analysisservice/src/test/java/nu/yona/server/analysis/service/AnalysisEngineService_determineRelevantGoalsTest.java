@@ -77,30 +77,32 @@ public abstract class AnalysisEngineService_determineRelevantGoalsTest
 
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		LocalDateTime dayBeforeYesterday = yesterday.minusDays(1);
-		gamblingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("gambling"), false, new HashSet<>(Arrays.asList("poker", "lotto")),
-						new HashSet<>(Arrays.asList("Poker App", "Lotto App")), usString("Descr")));
-		newsGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("news"), false, new HashSet<>(Arrays.asList("refdag", "bbc")),
-						Collections.emptySet(), usString("Descr")));
-		gamingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("gaming"), false, new HashSet<>(Arrays.asList("games")),
-						Collections.emptySet(), usString("Descr")));
-		socialGoal = TimeZoneGoal.createInstance(dayBeforeYesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("social"), false, new HashSet<>(Arrays.asList("social")),
-						Collections.emptySet(), usString("Descr")), Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(dayBeforeYesterday, ActivityCategory
-				.createInstance(UUID.randomUUID(), usString("shopping"), false, new HashSet<>(Arrays.asList("webshop")),
-						Collections.emptySet(), usString("Descr")), 1);
+		gamblingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
+						new HashSet<>(Arrays.asList("poker", "lotto")), new HashSet<>(Arrays.asList("Poker App", "Lotto App")),
+						usString("Descr")));
+		newsGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
+						new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
+		gamingGoal = BudgetGoal.createNoGoInstance(dayBeforeYesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
+						new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
+		socialGoal = TimeZoneGoal.createInstance(dayBeforeYesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
+						new HashSet<>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
+				Collections.emptyList());
+		shoppingGoal = BudgetGoal.createInstance(dayBeforeYesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
+						new HashSet<>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")), 1);
 		shoppingGoalHistoryItem = shoppingGoal.cloneAsHistoryItem(yesterday);
 
 		// Set up UserAnonymized instance.
-		MessageDestination anonMessageDestinationEntity = MessageDestination
-				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
+		MessageDestination anonMessageDestinationEntity = MessageDestination.createInstance(
+				PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(
 				Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal, shoppingGoalHistoryItem));
-		deviceAnonEntity = DeviceAnonymized
-				.createInstance(0, getOperatingSystem(), "Unknown", 0, Optional.empty(), Translator.EN_US_LOCALE);
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, getOperatingSystem(), "Unknown", 0, Optional.empty(),
+				Translator.EN_US_LOCALE);
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);
@@ -143,40 +145,40 @@ public abstract class AnalysisEngineService_determineRelevantGoalsTest
 	@Test
 	public void determineRelevantGoals_appActivityTwoUserGoals_bothUserGoals()
 	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService
-				.determineRelevantGoals(makeAppPayload(makeCategorySet(socialGoal, gamblingGoal)));
+		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(
+				makeAppPayload(makeCategorySet(socialGoal, gamblingGoal)));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(socialGoal), GoalDto.createInstance(gamblingGoal)));
 	}
 
 	@Test
 	public void determineRelevantGoals_appActivityTwoGoalsOneUserGoal_userGoal()
 	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService
-				.determineRelevantGoals(makeAppPayload(makeCategorySet(newsGoal, gamblingGoal)));
+		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(
+				makeAppPayload(makeCategorySet(newsGoal, gamblingGoal)));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(gamblingGoal)));
 	}
 
 	@Test
 	public void determineRelevantGoals_appActivityBeforeGoalStart_emptySet()
 	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService
-				.determineRelevantGoals(makeAppPayload(makeCategorySet(socialGoal), Duration.ofDays(3)));
+		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(
+				makeAppPayload(makeCategorySet(socialGoal), Duration.ofDays(3)));
 		assertThat(relevantGoals, empty());
 	}
 
 	@Test
 	public void determineRelevantGoals_appActivityOnGoalWithHistory_oneGoalReturned()
 	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService
-				.determineRelevantGoals(makeAppPayload(makeCategorySet(shoppingGoal), Duration.ofDays(1)));
+		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(
+				makeAppPayload(makeCategorySet(shoppingGoal), Duration.ofDays(1)));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(shoppingGoal)));
 	}
 
 	@Test
 	public void determineRelevantGoals_networkActivityOneNoGoUserGoal_userGoal()
 	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService
-				.determineRelevantGoals(makeNetworkPayload(makeCategorySet(gamingGoal)));
+		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(
+				makeNetworkPayload(makeCategorySet(gamingGoal)));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(gamingGoal)));
 	}
 

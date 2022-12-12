@@ -361,8 +361,8 @@ public class HibernateStatisticsService
 
 		static LogAppender initialize()
 		{
-			ch.qos.logback.classic.Logger sqlStatementLogger = (ch.qos.logback.classic.Logger) LoggerFactory
-					.getLogger("org.hibernate.SQL");
+			ch.qos.logback.classic.Logger sqlStatementLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(
+					"org.hibernate.SQL");
 			LogAppender logAppender = new LogAppender(sqlStatementLogger);
 			sqlStatementLogger.addAppender(logAppender);
 			return logAppender;

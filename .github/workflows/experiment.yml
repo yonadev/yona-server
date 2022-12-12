@@ -6,7 +6,7 @@ on:
       selected-environment:
         description: 'Environment to use for this workflow'
         type: environment
-        required: true 
+        required: true
 
 jobs:
   print-environment:

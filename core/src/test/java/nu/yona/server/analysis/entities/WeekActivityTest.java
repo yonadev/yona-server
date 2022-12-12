@@ -22,8 +22,8 @@ public class WeekActivityTest extends IntervalActivityTestBase
 
 	private DayActivity createDayActivity(WeekActivity w, int plusDays)
 	{
-		return DayActivity
-				.createInstance(userAnonEntity, w.getGoal(), testZone, w.getStartTime().plusDays(plusDays).toLocalDate());
+		return DayActivity.createInstance(userAnonEntity, w.getGoal(), testZone,
+				w.getStartTime().plusDays(plusDays).toLocalDate());
 	}
 
 	@Test

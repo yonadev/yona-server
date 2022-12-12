@@ -214,8 +214,8 @@ public abstract class Message extends EntityWithId
 	{
 		Set<Message> messagesToBeCascadinglyDeleted = new HashSet<>();
 		messagesToBeCascadinglyDeleted.addAll(replies);
-		messagesToBeCascadinglyDeleted.addAll(replies.stream().flatMap(m -> m.getMessagesToBeCascadinglyDeleted().stream())
-				.collect(Collectors.toSet()));
+		messagesToBeCascadinglyDeleted.addAll(
+				replies.stream().flatMap(m -> m.getMessagesToBeCascadinglyDeleted().stream()).collect(Collectors.toSet()));
 		return messagesToBeCascadinglyDeleted;
 	}
 
@@ -248,7 +248,8 @@ public abstract class Message extends EntityWithId
 		{
 			return message.getClass().getConstructor(message.getClass()).newInstance(message);
 		}
-		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e)
+		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException |
+			   NoSuchMethodException | SecurityException e)
 		{
 			throw YonaException.unexpected(e);
 		}

@@ -115,8 +115,8 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		@Override
 		public MessageDto createInstance(User actingUser, Message messageEntity)
 		{
-			return BuddyConnectRequestMessageDto
-					.createInstance((BuddyConnectRequestMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
+			return BuddyConnectRequestMessageDto.createInstance((BuddyConnectRequestMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -147,8 +147,8 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 
 			logHandledAction_Accept(actingUserEntity, connectRequestMessageEntity.getSenderUser().get());
 
-			return MessageActionDto
-					.createInstanceActionDone(theDtoFactory.createInstance(actingUserEntity, connectRequestMessageEntity));
+			return MessageActionDto.createInstanceActionDone(
+					theDtoFactory.createInstance(actingUserEntity, connectRequestMessageEntity));
 		}
 
 		private void logHandledAction_Accept(User actingUser, User senderUser)
@@ -167,8 +167,8 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 
 			logHandledAction_Reject(actingUser, connectRequestMessageEntity);
 
-			return MessageActionDto
-					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
+			return MessageActionDto.createInstanceActionDone(
+					theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
 		}
 
 		private void logHandledAction_Reject(User actingUser, BuddyConnectRequestMessage connectRequestMessageEntity)

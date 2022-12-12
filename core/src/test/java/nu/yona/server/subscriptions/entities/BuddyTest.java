@@ -31,8 +31,8 @@ import nu.yona.server.util.TimeUtil;
 public class BuddyTest
 {
 	private final Field userUserPrivateField = JUnitUtil.getAccessibleField(User.class, "userPrivate");
-	private final Field privateUserPropertiesFirstNameField = JUnitUtil
-			.getAccessibleField(PrivateUserProperties.class, "firstName");
+	private final Field privateUserPropertiesFirstNameField = JUnitUtil.getAccessibleField(PrivateUserProperties.class,
+			"firstName");
 
 	@Mock
 	private Translator translator;
@@ -112,9 +112,8 @@ public class BuddyTest
 	private User createUser(String firstName, String lastName, String nickname)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		UserPrivate userPrivate = UserPrivate
-				.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname, UUID.randomUUID(), UUID.randomUUID(),
-						messageSource);
+		UserPrivate userPrivate = UserPrivate.createInstance(TimeUtil.utcNow(), firstName, lastName, nickname, UUID.randomUUID(),
+				UUID.randomUUID(), messageSource);
 		return new User(UUID.randomUUID(), initializationVector, TimeUtil.utcNow().toLocalDate(), "+31123456", userPrivate,
 				messageDestination);
 	}
