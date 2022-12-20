@@ -196,4 +196,9 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.request.with.invalid.version.code", versionCodeString);
 	}
+
+	public static InvalidDataException invalidCharacters(String id, String validCharacters)
+	{
+		return new InvalidDataException("error.request.contains.invalid.characters", id, validCharacters);
+	}
 }

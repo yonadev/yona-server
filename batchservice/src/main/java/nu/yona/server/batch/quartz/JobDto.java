@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.util.StringUtil;
+
 @JsonRootName("job")
 public class JobDto
 {
@@ -34,6 +36,9 @@ public class JobDto
 
 	public JobDto(String group, String name, String description, Class<? extends Job> jobClass)
 	{
+		StringUtil.assertPlainTextCharacters(group, "group");
+		StringUtil.assertPlainTextCharacters(name, "name");
+		StringUtil.assertPlainTextCharacters(description, "description");
 		this.setGroup(group);
 		this.name = name;
 		this.description = description;
