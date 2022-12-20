@@ -27,7 +27,6 @@ import nu.yona.server.test.Device
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
@@ -159,7 +158,6 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	@IgnoreRest
 	def 'Retrieve activity report of previous week'()
 	{
 		given:

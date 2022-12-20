@@ -112,27 +112,18 @@ public class UserUpdateService
 
 	private void setOverwriteUserConfirmationCodeIfNotDoneRecently(String mobileNumber, User user)
 	{
-		try
+		if (isOverwriteUserConfirmationCodeStillValid(user.getOverwriteUserConfirmationCode()))
 		{
-			logger.info("DEBUG: begin UserUpdateService.setOverwriteUserConfirmationCodeIfNotDoneRecently for {}", mobileNumber);
-			if (isOverwriteUserConfirmationCodeStillValid(user.getOverwriteUserConfirmationCode()))
-			{
-				logger.info(
-						"User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code, but the current one 'DEBUG {}' is still valid, so no new code is sent",
-						user.getMobileNumber(), user.getId(), user.getOverwriteUserConfirmationCode().get().getId());
-				return;
-			}
-			ConfirmationCode confirmationCode = createConfirmationCode();
-			user.setOverwriteUserConfirmationCode(confirmationCode);
-			sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
 			logger.info(
-					"User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code 'DEBUG created {}'",
-					user.getMobileNumber(), user.getId(), confirmationCode.getId());
+					"User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code, but the current one is still valid, so no new code is sent",
+					user.getMobileNumber(), user.getId());
+			return;
 		}
-		finally
-		{
-			logger.info("DEBUG: end UserUpdateService.setOverwriteUserConfirmationCodeIfNotDoneRecently for {}", mobileNumber);
-		}
+		ConfirmationCode confirmationCode = createConfirmationCode();
+		user.setOverwriteUserConfirmationCode(confirmationCode);
+		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
+		logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
+				user.getMobileNumber(), user.getId());
 	}
 
 	private boolean isOverwriteUserConfirmationCodeStillValid(Optional<ConfirmationCode> overwriteUserConfirmationCode)
