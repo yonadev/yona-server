@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.util.StringUtil;
+
 @JsonRootName("systemMessageSendRequest")
 public class SystemMessageSendRequestDto
 {
@@ -16,6 +18,7 @@ public class SystemMessageSendRequestDto
 	@JsonCreator
 	public SystemMessageSendRequestDto(@JsonProperty("messageText") String messageText)
 	{
+		StringUtil.assertPlainTextCharactersWithUrls(messageText, "messageText");
 		this.messageText = messageText;
 	}
 

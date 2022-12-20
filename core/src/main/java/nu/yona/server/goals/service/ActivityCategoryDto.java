@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.util.StringUtil;
 
 @JsonRootName("activityCategory")
 public class ActivityCategoryDto implements Serializable
@@ -63,12 +64,19 @@ public class ActivityCategoryDto implements Serializable
 	public ActivityCategoryDto(UUID id, Map<Locale, String> localizableName, boolean mandatory, Set<String> smoothwallCategories,
 			Set<String> applications, Map<Locale, String> localizableDescription)
 	{
+		assertValidStrings("localizableName", localizableName);
+		assertValidStrings("localizableDescription", localizableDescription);
 		this.id = id;
 		this.localizableName = localizableName;
 		this.mandatoryNoGo = mandatory;
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 		this.applications = new HashSet<>(applications);
 		this.localizableDescription = localizableDescription;
+	}
+
+	private void assertValidStrings(String id, Map<Locale, String> values)
+	{
+		values.entrySet().forEach(e -> StringUtil.assertPlainTextCharacters(e.getValue(), id + ", locale " + e.getKey()));
 	}
 
 	private static Map<Locale, String> mapToLocaleMap(Map<String, String> localeStringMap)

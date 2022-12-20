@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.util.StringUtil;
+
 @JsonRootName("trigger")
 public class CronTriggerDto
 {
@@ -39,6 +41,10 @@ public class CronTriggerDto
 	public CronTriggerDto(String group, String name, String description, String jobName, String cronExpression, String timeZone,
 			Date nextFireTime)
 	{
+		StringUtil.assertPlainTextCharacters(group, "group");
+		StringUtil.assertPlainTextCharacters(name, "name");
+		StringUtil.assertPlainTextCharacters(description, "description");
+		StringUtil.assertPlainTextCharacters(jobName, "jobName");
 		this.setGroup(group);
 		this.name = name;
 		this.description = description;
