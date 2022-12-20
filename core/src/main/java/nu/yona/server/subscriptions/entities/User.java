@@ -11,9 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,7 +30,6 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "USERS")
 public class User extends EntityWithUuid
 {
-	private static final Logger logger = LoggerFactory.getLogger(User.class);
 	private int privateDataMigrationVersion;
 
 	private String firstName;
@@ -353,11 +349,6 @@ public class User extends EntityWithUuid
 	public void setOverwriteUserConfirmationCode(ConfirmationCode overwriteUserConfirmationCode)
 	{
 		Objects.requireNonNull(overwriteUserConfirmationCode);
-		if (this.overwriteUserConfirmationCode != null)
-		{
-			logger.info("DEBUG: mobile number {} replace overwrite confirmation code with ID {} with a new one with ID {}",
-					this.getMobileNumber(), this.overwriteUserConfirmationCode.getId(), overwriteUserConfirmationCode.getId());
-		}
 		this.overwriteUserConfirmationCode = overwriteUserConfirmationCode;
 	}
 
