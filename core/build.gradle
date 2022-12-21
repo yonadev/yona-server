@@ -47,7 +47,7 @@ dependencies {
 	implementation project.deps.springSecurityWeb
 	implementation project.deps.springSecurityConfig
 	api "com.google.guava:guava:23.0"
-	implementation "com.googlecode.libphonenumber:libphonenumber:8.13.2"
+	implementation "com.googlecode.libphonenumber:libphonenumber:8.13.3"
 	implementation "com.google.firebase:firebase-admin:9.1.1"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
