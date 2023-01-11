@@ -41,7 +41,7 @@ dependencies {
 	implementation "org.atteo:evo-inflector:1.3"
 	implementation "commons-validator:commons-validator:1.7"
 	implementation "commons-lang:commons-lang:2.6"
-	api "org.eclipse.angus:jakarta.mail:1.0.0"
+	api "org.eclipse.angus:jakarta.mail:1.1.0"
 	api project.deps.thymeleaf
 	implementation "org.springframework.ldap:spring-ldap-core:3.0.0"
 	implementation project.deps.springSecurityWeb
