@@ -52,7 +52,7 @@ dependencies {
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.mockito:mockito-junit-jupiter"
-	testImplementation "org.jetbrains:annotations:23.1.0"
+	testImplementation "org.jetbrains:annotations:24.0.0"
 	testImplementation project.deps.jmockit
 	testImplementation project.deps.junitJupiter
 	testImplementation project.deps.hamcrestJdk8Time
