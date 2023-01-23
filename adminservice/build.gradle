@@ -24,7 +24,7 @@ dependencies {
 
 	testImplementation project(path: ":core", configuration: "testUtils")
 
-	intTestImplementation "org.apache.groovy:groovy-all:4.0.7"
+	intTestImplementation "org.apache.groovy:groovy-all:4.0.8"
 	intTestImplementation project.deps.spockCore
 }
 
