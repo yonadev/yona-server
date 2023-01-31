@@ -11,12 +11,19 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 @JsonRootName("confirmationCode")
 public class ConfirmationCodeDto
 {
+	public static final ConfirmationCodeDto DUMMY = new ConfirmationCodeDto();
 	private final String code;
 
 	@JsonCreator
 	public ConfirmationCodeDto(@JsonProperty(value = "code", required = true) String code)
 	{
 		this.code = code;
+	}
+
+	// Only to create dummy instance
+	private ConfirmationCodeDto()
+	{
+		code = null;
 	}
 
 	public String getCode()

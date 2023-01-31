@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DeviceRegistrationRequestDto extends AppOpenEventDto
 {
+	public static final DeviceRegistrationRequestDto DUMMY = new DeviceRegistrationRequestDto();
 	public final String name;
 	public final Optional<String> firebaseInstanceId;
 
@@ -23,5 +24,13 @@ public class DeviceRegistrationRequestDto extends AppOpenEventDto
 		super(operatingSystemStr, appVersion, appVersionCode);
 		this.name = name;
 		this.firebaseInstanceId = firebaseInstanceId;
+	}
+
+	// Only to create a dummy instance
+	private DeviceRegistrationRequestDto()
+	{
+		super();
+		name = null;
+		firebaseInstanceId = Optional.empty();
 	}
 }

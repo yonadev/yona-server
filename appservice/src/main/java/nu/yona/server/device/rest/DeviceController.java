@@ -15,10 +15,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 
@@ -141,7 +143,7 @@ public class DeviceController extends ControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			Optional<UUID> requestingDeviceId = nullableStringToOptionalUuid(requestingDeviceIdStr);
@@ -156,7 +158,7 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.getDevice(userId, deviceId),
@@ -172,8 +174,8 @@ public class DeviceController extends ControllerBase
 	{
 		assertValidDeviceDataForRegister(request);
 		NewDeviceRequestDto newDeviceRequest = newDeviceRequestService.getNewDeviceRequestForUser(userId,
-				Optional.of(newDeviceRequestPassword));
-		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequest.getYonaPassword(),
+				Optional.ofNullable(newDeviceRequestPassword));
+		try (CryptoSession ignored = CryptoSession.start(newDeviceRequest.getYonaPassword(),
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDeviceDto newDevice = deviceService.addDeviceToUser(userId,
@@ -185,7 +187,7 @@ public class DeviceController extends ControllerBase
 
 	private static void assertValidDeviceDataForRegister(DeviceRegistrationRequestDto requestDto)
 	{
-		String hint = "All properties are manadatory, except for the FireBase ID";
+		String hint = "All properties are mandatory, except for the FireBase ID";
 		Require.isNonNull(requestDto.name, () -> InvalidDataException.missingProperty(NAME_PROPERTY, hint));
 		Require.isNonNull(requestDto.operatingSystemStr,
 				() -> InvalidDataException.missingProperty(OPERATING_SYSTEM_PROPERTY, hint));
@@ -196,9 +198,9 @@ public class DeviceController extends ControllerBase
 	@PostMapping(value = "/{deviceId}/openApp")
 	@ResponseBody
 	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = RestConstants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppOpenEventDto request)
+			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody @Nonnull AppOpenEventDto request)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			assertValidOpenAppEvent(request);
@@ -234,7 +236,7 @@ public class DeviceController extends ControllerBase
 	{
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(getDeviceSpecificAppleMobileConfig(deviceService.getDevice(userId, deviceId)), headers,
@@ -251,13 +253,13 @@ public class DeviceController extends ControllerBase
 		return signIfEnabled(templateEngine.process("apple.mobileconfig", ctx).getBytes(StandardCharsets.UTF_8));
 	}
 
-	private byte[] signIfEnabled(byte[] unsignedMobileconfig)
+	private byte[] signIfEnabled(byte[] unsignedMobileConfig)
 	{
 		if (yonaProperties.getAppleMobileConfig().isSigningEnabled())
 		{
-			return appleMobileConfigSigner.sign(unsignedMobileconfig);
+			return appleMobileConfigSigner.sign(unsignedMobileConfig);
 		}
-		return unsignedMobileconfig;
+		return unsignedMobileConfig;
 	}
 
 	@PutMapping(value = "/{deviceId}")
@@ -268,7 +270,7 @@ public class DeviceController extends ControllerBase
 			@RequestBody DeviceUpdateRequestDto request)
 	{
 		assertValidDeviceDataForUpdate(request);
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.updateDevice(userId, deviceId, request),
@@ -289,7 +291,7 @@ public class DeviceController extends ControllerBase
 			@PathVariable UUID deviceId,
 			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.deleteDevice(userId, deviceId);
@@ -312,7 +314,7 @@ public class DeviceController extends ControllerBase
 			logTooLongAppActivityBatch(userId, appActivities);
 			return createOkResponse();
 		}
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			UserDto userDto = userService.getUser(userId);
@@ -348,7 +350,7 @@ public class DeviceController extends ControllerBase
 	{
 		int numAppActivities = appActivities.getActivities().length;
 		List<Activity> appActivityCollection = Arrays.asList(appActivities.getActivities());
-		Comparator<? super Activity> comparator = (a, b) -> a.getStartTime().compareTo(b.getStartTime());
+		Comparator<? super Activity> comparator = Comparator.comparing(Activity::getStartTime);
 		ZonedDateTime minStartTime = Collections.min(appActivityCollection, comparator).getStartTime();
 		ZonedDateTime maxStartTime = Collections.max(appActivityCollection, comparator).getStartTime();
 		logger.error(
@@ -361,7 +363,7 @@ public class DeviceController extends ControllerBase
 	public ResponseEntity<Void> postVpnStatusChangeEvent(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody VpnStatusDto vpnStatus)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			deviceService.registerVpnStatusChangeEvent(userId, deviceId, vpnStatus.vpnConnected);
@@ -372,7 +374,7 @@ public class DeviceController extends ControllerBase
 	public static Link getPostOpenAppEventLink(UUID userId, UUID deviceId)
 	{
 		WebMvcLinkBuilder linkBuilder = linkTo(
-				methodOn(DeviceController.class).postOpenAppEvent(Optional.empty(), userId, deviceId, null));
+				methodOn(DeviceController.class).postOpenAppEvent(Optional.empty(), userId, deviceId, AppOpenEventDto.DUMMY));
 		return linkBuilder.withRel("postOpenAppEvent");
 	}
 
@@ -381,7 +383,7 @@ public class DeviceController extends ControllerBase
 		try
 		{
 			WebMvcLinkBuilder linkBuilder = linkTo(
-					methodOn(DeviceController.class).addAppActivity(Optional.empty(), userId, deviceId, null));
+					methodOn(DeviceController.class).addAppActivity(Optional.empty(), userId, deviceId, AppActivitiesDto.DUMMY));
 			return linkBuilder.withRel("appActivity");
 		}
 		catch (SecurityException e)
@@ -393,7 +395,8 @@ public class DeviceController extends ControllerBase
 	public static Link getPostVpnStatusEventLink(UUID userId, UUID deviceId)
 	{
 		WebMvcLinkBuilder linkBuilder = linkTo(
-				methodOn(DeviceController.class).postVpnStatusChangeEvent(Optional.empty(), userId, deviceId, null));
+				methodOn(DeviceController.class).postVpnStatusChangeEvent(Optional.empty(), userId, deviceId,
+						VpnStatusDto.DUMMY));
 		return linkBuilder.withRel("postVpnStatusEvent");
 	}
 
@@ -405,7 +408,7 @@ public class DeviceController extends ControllerBase
 	public static WebMvcLinkBuilder getAllDevicesLinkBuilder(UUID userId, Optional<UUID> requestingDeviceId)
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
-		return linkTo(methodOn.getAllDevices(null, userId, optionalUuidToNullableString(requestingDeviceId)));
+		return linkTo(methodOn.getAllDevices(Optional.empty(), userId, optionalUuidToNullableString(requestingDeviceId)));
 	}
 
 	private static String optionalUuidToNullableString(Optional<UUID> optionalUuid)
@@ -427,7 +430,7 @@ public class DeviceController extends ControllerBase
 	public static WebMvcLinkBuilder getRegisterDeviceLinkBuilder(UUID userId)
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
-		return linkTo(methodOn.registerDevice(null, userId, null));
+		return linkTo(methodOn.registerDevice(null, userId, DeviceRegistrationRequestDto.DUMMY));
 	}
 
 	public static CollectionModel<DeviceResource> createAllDevicesCollectionResource(UUID userId, Set<DeviceBaseDto> devices,
@@ -453,12 +456,19 @@ public class DeviceController extends ControllerBase
 
 	static class VpnStatusDto
 	{
+		public static final VpnStatusDto DUMMY = new VpnStatusDto();
 		private final boolean vpnConnected;
 
 		@JsonCreator
 		public VpnStatusDto(@JsonProperty("vpnConnected") boolean vpnConnected)
 		{
 			this.vpnConnected = vpnConnected;
+		}
+
+		// Only to create a dummy instance
+		private VpnStatusDto()
+		{
+			vpnConnected = false;
 		}
 	}
 
@@ -467,11 +477,17 @@ public class DeviceController extends ControllerBase
 		private static String sslRootCertificateCn;
 		private final boolean isRequestingDevice;
 
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public DeviceResource(DeviceBaseDto device, boolean isRequestingDevice)
 		{
 			super(device);
 			this.isRequestingDevice = isRequestingDevice;
+		}
+
+		@Override
+		@Nonnull
+		public DeviceBaseDto getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		public static void setSslRootCertificateCn(String sslRootCertificateCn)
@@ -544,7 +560,7 @@ public class DeviceController extends ControllerBase
 		}
 
 		@Override
-		public DeviceResource toModel(DeviceBaseDto device)
+		public @Nonnull DeviceResource toModel(@Nonnull DeviceBaseDto device)
 		{
 			DeviceResource deviceResource = instantiateModel(device);
 			WebMvcLinkBuilder selfLinkBuilder = getSelfLinkBuilder(device.getId());
@@ -562,7 +578,7 @@ public class DeviceController extends ControllerBase
 		}
 
 		@Override
-		protected DeviceResource instantiateModel(DeviceBaseDto device)
+		protected @Nonnull DeviceResource instantiateModel(@Nonnull DeviceBaseDto device)
 		{
 			return new DeviceResource(device, isRequestingDevice(device));
 		}

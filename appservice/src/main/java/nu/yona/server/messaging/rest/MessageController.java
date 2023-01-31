@@ -11,9 +11,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -96,7 +99,7 @@ public class MessageController extends ControllerBase
 			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
 			@PathVariable UUID userId, Pageable pageable, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
@@ -118,7 +121,7 @@ public class MessageController extends ControllerBase
 	public HttpEntity<MessageDto> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable long messageId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
@@ -148,7 +151,7 @@ public class MessageController extends ControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable long id,
 			@PathVariable String action, @RequestBody MessageActionDto requestPayload)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
@@ -164,7 +167,7 @@ public class MessageController extends ControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable long messageId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
@@ -218,7 +221,6 @@ public class MessageController extends ControllerBase
 		private final CurieProvider curieProvider;
 		private final MessageController messageController;
 
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public MessageActionResource(CurieProvider curieProvider, MessageActionDto messageAction, GoalIdMapping goalIdMapping,
 				MessageController messageController)
 		{
@@ -226,6 +228,13 @@ public class MessageController extends ControllerBase
 			this.curieProvider = curieProvider;
 			this.goalIdMapping = goalIdMapping;
 			this.messageController = messageController;
+		}
+
+		@Override
+		@Nonnull
+		public MessageActionDto getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		@JsonProperty("_embedded")
@@ -255,7 +264,7 @@ public class MessageController extends ControllerBase
 		}
 
 		@Override
-		public MessageDto toModel(MessageDto message)
+		public @Nonnull MessageDto toModel(@Nonnull MessageDto message)
 		{
 			message.removeLinks(); // So we are sure the below links are the only ones
 			WebMvcLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), message.getMessageId());
@@ -297,7 +306,7 @@ public class MessageController extends ControllerBase
 		}
 
 		@Override
-		protected MessageDto instantiateModel(MessageDto message)
+		protected @Nonnull MessageDto instantiateModel(@Nonnull MessageDto message)
 		{
 			return message;
 		}
@@ -314,7 +323,7 @@ public class MessageController extends ControllerBase
 
 		private void addActionLinks(WebMvcLinkBuilder selfLinkBuilder, MessageDto messageResource)
 		{
-			messageResource.getPossibleActions().stream().forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
+			messageResource.getPossibleActions().forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
 		}
 
 		private void addSenderBuddyLink(MessageDto message)
@@ -331,7 +340,7 @@ public class MessageController extends ControllerBase
 
 		protected void doDynamicDecoration(MessageDto message)
 		{
-			messageController.getMessageResourceDecorators(message.getClass()).stream().forEach(d -> d.decorate(this, message));
+			messageController.getMessageResourceDecorators(message.getClass()).forEach(d -> d.decorate(this, message));
 		}
 
 		UUID getSenderBuddyId(MessageDto message)
