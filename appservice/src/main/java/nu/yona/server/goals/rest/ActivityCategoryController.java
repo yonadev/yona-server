@@ -9,6 +9,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -74,7 +76,6 @@ public class ActivityCategoryController extends ControllerBase
 
 	public static class ActivityCategoryResource extends EntityModel<ActivityCategoryDto>
 	{
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public ActivityCategoryResource(ActivityCategoryDto activityCategory)
 		{
 			super(activityCategory);
@@ -90,13 +91,13 @@ public class ActivityCategoryController extends ControllerBase
 		}
 
 		@Override
-		public ActivityCategoryResource toModel(ActivityCategoryDto activityCategory)
+		public @Nonnull ActivityCategoryResource toModel(@Nonnull ActivityCategoryDto activityCategory)
 		{
 			return super.createModelWithId(activityCategory.getId(), activityCategory);
 		}
 
 		@Override
-		protected ActivityCategoryResource instantiateModel(ActivityCategoryDto activityCategory)
+		protected @Nonnull ActivityCategoryResource instantiateModel(@Nonnull ActivityCategoryDto activityCategory)
 		{
 			return new ActivityCategoryResource(activityCategory);
 		}

@@ -66,7 +66,7 @@ public class PinResetRequestController extends ControllerBase
 	public ResponseEntity<ConfirmationCodeDelayDto> requestPinReset(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.requestPinReset(userId);
@@ -81,7 +81,7 @@ public class PinResetRequestController extends ControllerBase
 	public ResponseEntity<Void> verifyPinResetConfirmationCode(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody ConfirmationCodeDto confirmationCode)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 
@@ -95,7 +95,7 @@ public class PinResetRequestController extends ControllerBase
 	public ResponseEntity<Void> resendPinResetConfirmationCode(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.resendPinResetConfirmationCode(userId);
@@ -108,7 +108,7 @@ public class PinResetRequestController extends ControllerBase
 	public ResponseEntity<Void> clearPinResetRequest(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			pinResetRequestService.clearPinResetRequest(userId);
@@ -148,28 +148,31 @@ public class PinResetRequestController extends ControllerBase
 	private void addPinResetRequestLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<ConfirmationCodeDelayDto> method = methodOn.requestPinReset(null, userResource.getContent().getId());
+		ResponseEntity<ConfirmationCodeDelayDto> method = methodOn.requestPinReset(Optional.empty(),
+				userResource.getContent().getId());
 		addLink(userResource, method, "yona:requestPinReset");
 	}
 
 	private void addVerifyPinResetLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.verifyPinResetConfirmationCode(null, userResource.getContent().getId(), null);
+		ResponseEntity<Void> method = methodOn.verifyPinResetConfirmationCode(Optional.empty(), userResource.getContent().getId(),
+				ConfirmationCodeDto.DUMMY);
 		addLink(userResource, method, "yona:verifyPinReset");
 	}
 
 	private void addResendPinResetConfirmationCodeLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.resendPinResetConfirmationCode(null, userResource.getContent().getId());
+		ResponseEntity<Void> method = methodOn.resendPinResetConfirmationCode(Optional.empty(),
+				userResource.getContent().getId());
 		addLink(userResource, method, "yona:resendPinResetConfirmationCode");
 	}
 
 	private void addClearPinResetLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.clearPinResetRequest(null, userResource.getContent().getId());
+		ResponseEntity<Void> method = methodOn.clearPinResetRequest(Optional.empty(), userResource.getContent().getId());
 		addLink(userResource, method, "yona:clearPinReset");
 	}
 
@@ -178,7 +181,7 @@ public class PinResetRequestController extends ControllerBase
 		userResource.add(linkTo(method).withRel(rel));
 	}
 
-	public class ConfirmationCodeDelayDto
+	public static class ConfirmationCodeDelayDto
 	{
 		private final Duration delay;
 

@@ -12,9 +12,12 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -50,8 +53,6 @@ import nu.yona.server.analysis.rest.ActivityControllerBase;
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
-import nu.yona.server.goals.rest.GoalController.GoalResourceAssembler;
-import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
@@ -90,7 +91,7 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<CollectionModel<BuddyResource>> getAllBuddies(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(
@@ -104,7 +105,7 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID buddyId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 
@@ -117,7 +118,7 @@ public class BuddyController extends ControllerBase
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody PostBuddyDto postBuddy)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createResponse(buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postBuddy), this::getInviteUrl),
@@ -134,7 +135,7 @@ public class BuddyController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID buddyId,
 			@RequestBody LastStatusChangeTimeUpdateDto lastStatusChangeTimeUpdateDto)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createResponse(
@@ -149,7 +150,7 @@ public class BuddyController extends ControllerBase
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			buddyService.removeBuddy(userId, buddyId, Optional.ofNullable(messageStr));
@@ -177,7 +178,7 @@ public class BuddyController extends ControllerBase
 	static WebMvcLinkBuilder getAllBuddiesLinkBuilder(UUID userId)
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
-		return linkTo(methodOn.getAllBuddies(null, userId));
+		return linkTo(methodOn.getAllBuddies(Optional.empty(), userId));
 	}
 
 	public String getInviteUrl(UUID newUserId, String tempPassword)
@@ -190,14 +191,6 @@ public class BuddyController extends ControllerBase
 		return new BuddyResourceAssembler(curieProvider, userId);
 	}
 
-	public static CollectionModel<GoalDto> createAllGoalsCollectionResource(UUID requestingUserId, UUID userId,
-			Set<GoalDto> allGoalsOfUser)
-	{
-		return CollectionModel.of(
-				new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(requestingUserId, userId, goalId)).toCollectionModel(
-						allGoalsOfUser), getAllGoalsLinkBuilder(requestingUserId, userId).withSelfRel());
-	}
-
 	public static WebMvcLinkBuilder getBuddyLinkBuilder(UUID userId, UUID buddyId)
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
@@ -207,11 +200,6 @@ public class BuddyController extends ControllerBase
 	public static WebMvcLinkBuilder getGoalLinkBuilder(UUID requestingUserId, UUID userId, UUID goalId)
 	{
 		return GoalController.getGoalLinkBuilder(requestingUserId, userId, goalId);
-	}
-
-	private static WebMvcLinkBuilder getAllGoalsLinkBuilder(UUID requestingUserId, UUID userId)
-	{
-		return GoalController.getAllGoalsLinkBuilder(requestingUserId, userId);
 	}
 
 	static class LastStatusChangeTimeUpdateDto
@@ -251,12 +239,18 @@ public class BuddyController extends ControllerBase
 		private final CurieProvider curieProvider;
 		private final UUID userId;
 
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public BuddyResource(CurieProvider curieProvider, UUID userId, BuddyDto buddy)
 		{
 			super(buddy);
 			this.curieProvider = curieProvider;
 			this.userId = userId;
+		}
+
+		@Override
+		@Nonnull
+		public BuddyDto getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		@JsonProperty("_embedded")
@@ -284,7 +278,7 @@ public class BuddyController extends ControllerBase
 		}
 
 		@Override
-		public BuddyResource toModel(BuddyDto buddy)
+		public @Nonnull BuddyResource toModel(@Nonnull BuddyDto buddy)
 		{
 			BuddyResource buddyResource = instantiateModel(buddy);
 			WebMvcLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getId());
@@ -299,7 +293,7 @@ public class BuddyController extends ControllerBase
 		}
 
 		@Override
-		protected BuddyResource instantiateModel(BuddyDto buddy)
+		protected @Nonnull BuddyResource instantiateModel(@Nonnull BuddyDto buddy)
 		{
 			return new BuddyResource(curieProvider, userId, buddy);
 		}

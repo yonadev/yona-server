@@ -13,11 +13,14 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -131,7 +134,7 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		return getActivityDetailMessages(password, userId, pagedResourcesAssembler,
 				() -> activityService.getUserWeekActivityDetailMessages(userId, WeekActivityDto.parseDate(dateStr), goalId,
-						pageable), new UserActivityLinkProvider(userId));
+						pageable));
 	}
 
 	@GetMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT)
@@ -154,7 +157,7 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		return getActivityDetailMessages(password, userId, pagedResourcesAssembler,
 				() -> activityService.getUserDayActivityDetailMessages(userId, DayActivityDto.parseDate(dateStr), goalId,
-						pageable), new UserActivityLinkProvider(userId));
+						pageable));
 	}
 
 	@GetMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT + "/raw/")
@@ -163,7 +166,7 @@ public class UserActivityController extends ActivityControllerBase
 			@PathVariable UUID userId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			Map<UUID, String> deviceAnonymizedIdToDeviceName = buildDeviceAnonymizedIdToDeviceNameMap(userId);
@@ -188,7 +191,7 @@ public class UserActivityController extends ActivityControllerBase
 	@ResponseBody
 	public HttpEntity<PagedModel<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
-			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = true) UUID requestingDeviceId,
+			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM) UUID requestingDeviceId,
 			@PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler)
 	{
@@ -201,7 +204,7 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return getDayActivityOverviewsWithBuddies(userId, requestingDeviceId, pagedResourcesAssembler, activitySupplier);
@@ -241,7 +244,7 @@ public class UserActivityController extends ActivityControllerBase
 	@ResponseBody
 	public HttpEntity<DayActivityOverviewWithBuddiesResource> getDayActivityOverviewWithBuddies(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
-			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = true) UUID requestingDeviceId,
+			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM) UUID requestingDeviceId,
 			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
 		return getDayActivityOverviewWithBuddies(password, userId, requestingDeviceId, dateStr,
@@ -252,7 +255,7 @@ public class UserActivityController extends ActivityControllerBase
 			UUID userId, UUID requestingDeviceId, String dateStr,
 			Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return getDayActivityOverviewWithBuddies(userId, requestingDeviceId, dateStr, activitySupplier);
@@ -278,50 +281,51 @@ public class UserActivityController extends ActivityControllerBase
 	public static WebMvcLinkBuilder getUserDayActivityOverviewsLinkBuilder(UUID userId)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getUserDayActivityOverviews(null, userId, null, null));
+		return linkTo(methodOn.getUserDayActivityOverviews(Optional.empty(), userId, null, null));
 	}
 
 	public static WebMvcLinkBuilder getDayActivityOverviewsWithBuddiesLinkBuilder(UUID userId, UUID requestingDeviceId)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getDayActivityOverviewsWithBuddies(null, userId, requestingDeviceId, (Pageable) null, null));
+		return linkTo(
+				methodOn.getDayActivityOverviewsWithBuddies(Optional.empty(), userId, requestingDeviceId, (Pageable) null, null));
 	}
 
 	public static WebMvcLinkBuilder getUserWeekActivityOverviewsLinkBuilder(UUID userId)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getUserWeekActivityOverviews(null, userId, null, null));
+		return linkTo(methodOn.getUserWeekActivityOverviews(Optional.empty(), userId, null, null));
 	}
 
 	public static WebMvcLinkBuilder getUserWeekActivityOverviewLinkBuilder(UUID userId, String dateStr)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getUserWeekActivityOverview(null, userId, dateStr));
+		return linkTo(methodOn.getUserWeekActivityOverview(Optional.empty(), userId, dateStr));
 	}
 
 	public static WebMvcLinkBuilder getUserDayActivityOverviewLinkBuilder(UUID userId, String dateStr)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getUserDayActivityOverview(null, userId, dateStr));
+		return linkTo(methodOn.getUserDayActivityOverview(Optional.empty(), userId, dateStr));
 	}
 
 	public static WebMvcLinkBuilder getDayActivityOverviewWithBuddiesLinkBuilder(UUID userId, UUID requestingDeviceId,
 			String dateStr)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getDayActivityOverviewWithBuddies(null, userId, requestingDeviceId, dateStr));
+		return linkTo(methodOn.getDayActivityOverviewWithBuddies(Optional.empty(), userId, requestingDeviceId, dateStr));
 	}
 
 	public static WebMvcLinkBuilder getUserDayActivityDetailLinkBuilder(UUID userId, String dateStr, UUID goalId)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getUserDayActivityDetail(null, userId, dateStr, goalId));
+		return linkTo(methodOn.getUserDayActivityDetail(Optional.empty(), userId, dateStr, goalId));
 	}
 
 	static WebMvcLinkBuilder getRawActivitiesLinkBuilder(UUID userId, String dateStr, UUID goalId)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getRawActivities(null, userId, dateStr, goalId));
+		return linkTo(methodOn.getRawActivities(Optional.empty(), userId, dateStr, goalId));
 	}
 
 	static final class UserActivityLinkProvider implements LinkProvider
@@ -355,7 +359,7 @@ public class UserActivityController extends ActivityControllerBase
 		public WebMvcLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalId)
 		{
 			UserActivityController methodOn = methodOn(UserActivityController.class);
-			return linkTo(methodOn.getUserWeekActivityDetail(null, userId, dateStr, goalId));
+			return linkTo(methodOn.getUserWeekActivityDetail(Optional.empty(), userId, dateStr, goalId));
 		}
 
 		@Override
@@ -403,7 +407,6 @@ public class UserActivityController extends ActivityControllerBase
 		private final UUID requestingDeviceId;
 		private final GoalIdMapping goalIdMapping;
 
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public DayActivityOverviewWithBuddiesResource(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
 				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
@@ -411,6 +414,13 @@ public class UserActivityController extends ActivityControllerBase
 			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
 			this.goalIdMapping = goalIdMapping;
+		}
+
+		@Override
+		@Nonnull
+		public DayActivityOverviewDto<DayActivityWithBuddiesDto> getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		public List<DayActivityWithBuddiesResource> getDayActivities()
@@ -438,8 +448,8 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public DayActivityOverviewWithBuddiesResource toModel(
-				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
+		public @Nonnull DayActivityOverviewWithBuddiesResource toModel(
+				@Nonnull DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
 			DayActivityOverviewWithBuddiesResource resource = instantiateModel(dayActivityOverview);
 			addSelfLink(resource);
@@ -447,13 +457,13 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		protected DayActivityOverviewWithBuddiesResource instantiateModel(
-				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
+		protected @Nonnull DayActivityOverviewWithBuddiesResource instantiateModel(
+				@Nonnull DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
 			return new DayActivityOverviewWithBuddiesResource(userId, requestingDeviceId, goalIdMapping, dayActivityOverview);
 		}
 
-		private void addSelfLink(EntityModel<DayActivityOverviewDto<DayActivityWithBuddiesDto>> resource)
+		private void addSelfLink(DayActivityOverviewWithBuddiesResource resource)
 		{
 			resource.add(UserActivityController.getDayActivityOverviewWithBuddiesLinkBuilder(userId, requestingDeviceId,
 					resource.getContent().getDateStr()).withSelfRel());
@@ -467,15 +477,21 @@ public class UserActivityController extends ActivityControllerBase
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
 
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public DayActivityWithBuddiesResource(UUID requestingUserId, UUID requestingDeviceId, GoalIdMapping goalIdMapping,
-				String dateStr, DayActivityWithBuddiesDto dayActivity)
+				String dateStr, @Nonnull DayActivityWithBuddiesDto dayActivity)
 		{
 			super(dayActivity);
 			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
 			this.goalIdMapping = goalIdMapping;
 			this.dateStr = dateStr;
+		}
+
+		@Override
+		@Nonnull
+		public DayActivityWithBuddiesDto getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		public List<ActivityForOneUserResource> getDayActivitiesForUsers()
@@ -506,7 +522,7 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public DayActivityWithBuddiesResource toModel(DayActivityWithBuddiesDto dayActivity)
+		public @Nonnull DayActivityWithBuddiesResource toModel(@Nonnull DayActivityWithBuddiesDto dayActivity)
 		{
 			DayActivityWithBuddiesResource dayActivityResource = instantiateModel(dayActivity);
 			addActivityCategoryLink(dayActivityResource);
@@ -514,12 +530,12 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		protected DayActivityWithBuddiesResource instantiateModel(DayActivityWithBuddiesDto dayActivity)
+		protected @Nonnull DayActivityWithBuddiesResource instantiateModel(@Nonnull DayActivityWithBuddiesDto dayActivity)
 		{
 			return new DayActivityWithBuddiesResource(requestingUserId, requestingDeviceId, goalIdMapping, dateStr, dayActivity);
 		}
 
-		private void addActivityCategoryLink(DayActivityWithBuddiesResource dayActivityResource)
+		private void addActivityCategoryLink(@Nonnull DayActivityWithBuddiesResource dayActivityResource)
 		{
 			dayActivityResource.add(ActivityCategoryController.getActivityCategoryLinkBuilder(
 					dayActivityResource.getContent().getActivityCategoryId()).withRel("activityCategory"));
@@ -528,7 +544,6 @@ public class UserActivityController extends ActivityControllerBase
 
 	static class ActivityForOneUserResource extends EntityModel<ActivityForOneUser>
 	{
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public ActivityForOneUserResource(ActivityForOneUser dayActivity)
 		{
 			super(dayActivity);
@@ -555,7 +570,7 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public ActivityForOneUserResource toModel(ActivityForOneUser dayActivity)
+		public @Nonnull ActivityForOneUserResource toModel(@Nonnull ActivityForOneUser dayActivity)
 		{
 			ActivityForOneUserResource dayActivityResource = instantiateModel(dayActivity);
 
@@ -578,7 +593,7 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		protected ActivityForOneUserResource instantiateModel(ActivityForOneUser dayActivity)
+		protected @Nonnull ActivityForOneUserResource instantiateModel(@Nonnull ActivityForOneUser dayActivity)
 		{
 			return new ActivityForOneUserResource(dayActivity);
 		}
@@ -655,7 +670,6 @@ public class UserActivityController extends ActivityControllerBase
 
 	public static class ActivitiesResource extends CollectionModel<ActivityWithDeviceDto>
 	{
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public ActivitiesResource(Map<UUID, String> deviceAnonymizedIdToDeviceName, List<ActivityDto> rawActivities)
 		{
 			super(wrapEnrichActivitiesWithDeviceName(deviceAnonymizedIdToDeviceName, rawActivities));
@@ -693,7 +707,7 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public ActivitiesResource toModel(List<ActivityDto> rawActivities)
+		public @Nonnull ActivitiesResource toModel(@Nonnull List<ActivityDto> rawActivities)
 		{
 			ActivitiesResource resource = instantiateModel(rawActivities);
 			addSelfLink(resource);
@@ -701,7 +715,7 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		protected ActivitiesResource instantiateModel(List<ActivityDto> rawActivities)
+		protected @Nonnull ActivitiesResource instantiateModel(@Nonnull List<ActivityDto> rawActivities)
 		{
 			return new ActivitiesResource(deviceAnonymizedIdToDeviceName, rawActivities);
 		}

@@ -63,7 +63,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
@@ -79,7 +79,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
@@ -96,7 +96,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
@@ -112,7 +112,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
@@ -129,7 +129,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
@@ -148,13 +148,13 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
 			return getActivityDetailMessages(password, userId, pagedResourcesAssembler,
 					() -> activityService.getBuddyWeekActivityDetailMessages(userId, buddy, WeekActivityDto.parseDate(dateStr),
-							goalId, pageable), new BuddyActivityLinkProvider(userId, buddy.getUser().getId(), buddyId));
+							goalId, pageable));
 		}
 	}
 
@@ -165,7 +165,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDto newMessage)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return messageController.createOkResponse(userService.getUserEntityById(userId),
@@ -181,7 +181,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
@@ -200,13 +200,13 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			BuddyDto buddy = buddyService.getBuddy(buddyId);
 			return getActivityDetailMessages(password, userId, pagedResourcesAssembler,
 					() -> activityService.getBuddyDayActivityDetailMessages(userId, buddy, DayActivityDto.parseDate(dateStr),
-							goalId, pageable), new BuddyActivityLinkProvider(userId, buddy.getUser().getId(), buddyId));
+							goalId, pageable));
 		}
 	}
 
@@ -217,7 +217,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDto newMessage)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return messageController.createOkResponse(userService.getUserEntityById(userId),
@@ -238,31 +238,31 @@ public class BuddyActivityController extends ActivityControllerBase
 	public static WebMvcLinkBuilder getBuddyDayActivityOverviewsLinkBuilder(UUID userId, UUID buddyId)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-		return linkTo(methodOn.getBuddyDayActivityOverviews(null, userId, buddyId, null, null));
+		return linkTo(methodOn.getBuddyDayActivityOverviews(Optional.empty(), userId, buddyId, null, null));
 	}
 
 	public static WebMvcLinkBuilder getBuddyWeekActivityOverviewsLinkBuilder(UUID userId, UUID buddyId)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-		return linkTo(methodOn.getBuddyWeekActivityOverviews(null, userId, buddyId, null, null));
+		return linkTo(methodOn.getBuddyWeekActivityOverviews(Optional.empty(), userId, buddyId, null, null));
 	}
 
 	public static WebMvcLinkBuilder getBuddyWeekActivityOverviewLinkBuilder(UUID userId, UUID buddyId, String dateStr)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-		return linkTo(methodOn.getBuddyWeekActivityOverview(null, userId, buddyId, dateStr));
+		return linkTo(methodOn.getBuddyWeekActivityOverview(Optional.empty(), userId, buddyId, dateStr));
 	}
 
 	public static WebMvcLinkBuilder getBuddyDayActivityOverviewLinkBuilder(UUID userId, UUID buddyId, String dateStr)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-		return linkTo(methodOn.getBuddyDayActivityOverview(null, userId, buddyId, dateStr));
+		return linkTo(methodOn.getBuddyDayActivityOverview(Optional.empty(), userId, buddyId, dateStr));
 	}
 
 	public static WebMvcLinkBuilder getBuddyDayActivityDetailLinkBuilder(UUID userId, UUID buddyId, String dateStr, UUID goalId)
 	{
 		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-		return linkTo(methodOn.getBuddyDayActivityDetail(null, userId, buddyId, dateStr, goalId));
+		return linkTo(methodOn.getBuddyDayActivityDetail(Optional.empty(), userId, buddyId, dateStr, goalId));
 	}
 
 	private static final class BuddyActivityLinkProvider implements LinkProvider
@@ -300,7 +300,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		public WebMvcLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalId)
 		{
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-			return linkTo(methodOn.getBuddyWeekActivityDetail(null, requestingUserId, buddyId, dateStr, goalId));
+			return linkTo(methodOn.getBuddyWeekActivityDetail(Optional.empty(), requestingUserId, buddyId, dateStr, goalId));
 		}
 
 		@Override

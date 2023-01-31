@@ -8,11 +8,14 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -87,7 +90,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
 			Supplier<Page<WeekActivityOverviewDto>> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
@@ -98,7 +101,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<WeekActivityOverviewResource> getWeekActivityOverview(Optional<String> password, UUID userId,
 			String dateStr, Function<LocalDate, WeekActivityOverviewDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = WeekActivityDto.parseDate(dateStr);
@@ -110,7 +113,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
@@ -122,7 +125,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 			String dateStr, Function<LocalDate, DayActivityOverviewDto<DayActivityDto>> activitySupplier,
 			LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = DayActivityDto.parseDate(dateStr);
@@ -133,7 +136,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<WeekActivityResource> getWeekActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, WeekActivityDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = WeekActivityDto.parseDate(dateStr);
@@ -144,7 +147,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 	protected HttpEntity<DayActivityResource> getDayActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, DayActivityDto> activitySupplier, LinkProvider linkProvider)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			LocalDate date = DayActivityDto.parseDate(dateStr);
@@ -153,10 +156,9 @@ public abstract class ActivityControllerBase extends ControllerBase
 	}
 
 	protected HttpEntity<PagedModel<MessageDto>> getActivityDetailMessages(Optional<String> password, UUID userId,
-			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, Supplier<Page<MessageDto>> messageSupplier,
-			LinkProvider linkProvider)
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, Supplier<Page<MessageDto>> messageSupplier)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			User user = userService.getValidatedUserEntity(userId);
@@ -184,11 +186,6 @@ public abstract class ActivityControllerBase extends ControllerBase
 		return new DayActivityResourceAssembler(linkProvider, true, true);
 	}
 
-	protected GoalIdMapping createGoalIdMapping(UUID userId)
-	{
-		return GoalIdMapping.createInstance(userAnonymizedService, userService.getUserEntityById(userId));
-	}
-
 	public abstract void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDto message);
 
 	protected void addStandardLinks(GoalIdMapping goalIdMapping, LinkProvider linkProvider, IntervalActivity activity,
@@ -203,7 +200,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 			addDayDetailsLink(linkProvider, activity, message);
 		}
 		addThreadHeadMessageLink(goalIdMapping.getUserId(), message);
-		message.getRepliedMessageId().ifPresent(rmid -> addRepliedMessageLink(goalIdMapping.getUserId(), message));
+		message.getRepliedMessageId().ifPresent(rmid -> addRepliedMessageLink(goalIdMapping.getUserId(), message, rmid));
 	}
 
 	private void addWeekDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDto message)
@@ -224,44 +221,49 @@ public abstract class ActivityControllerBase extends ControllerBase
 				MessageController.getAnonymousMessageLinkBuilder(userId, message.getThreadHeadMessageId()).withRel("threadHead"));
 	}
 
-	private void addRepliedMessageLink(UUID userId, ActivityCommentMessageDto message)
+	private void addRepliedMessageLink(UUID userId, ActivityCommentMessageDto message, long repliedMessageId)
 	{
-		message.add(MessageController.getAnonymousMessageLinkBuilder(userId, message.getRepliedMessageId().get())
-				.withRel("repliedMessage"));
+		message.add(MessageController.getAnonymousMessageLinkBuilder(userId, repliedMessageId).withRel("repliedMessage"));
 	}
 
 	interface LinkProvider
 	{
-		public WebMvcLinkBuilder getWeekActivityOverviewLinkBuilder(String dateStr);
+		WebMvcLinkBuilder getWeekActivityOverviewLinkBuilder(String dateStr);
 
-		public WebMvcLinkBuilder getDayActivityOverviewLinkBuilder(String dateStr);
+		WebMvcLinkBuilder getDayActivityOverviewLinkBuilder(String dateStr);
 
-		public WebMvcLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalId);
+		WebMvcLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalId);
 
-		public WebMvcLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalId);
+		WebMvcLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalId);
 
-		public WebMvcLinkBuilder getGoalLinkBuilder(UUID goalId);
+		WebMvcLinkBuilder getGoalLinkBuilder(UUID goalId);
 
-		public WebMvcLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId);
+		WebMvcLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId);
 
-		public Optional<WebMvcLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId);
+		Optional<WebMvcLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId);
 
-		public WebMvcLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId);
+		WebMvcLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId);
 
-		public Optional<WebMvcLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId);
+		Optional<WebMvcLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId);
 
-		public Optional<WebMvcLinkBuilder> getBuddyLinkBuilder();
+		Optional<WebMvcLinkBuilder> getBuddyLinkBuilder();
 	}
 
 	static class WeekActivityResource extends EntityModel<WeekActivityDto>
 	{
 		private final LinkProvider linkProvider;
 
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
-		public WeekActivityResource(LinkProvider linkProvider, WeekActivityDto weekActivity)
+		public WeekActivityResource(LinkProvider linkProvider, @Nonnull WeekActivityDto weekActivity)
 		{
 			super(weekActivity);
 			this.linkProvider = linkProvider;
+		}
+
+		@Override
+		@Nonnull
+		public WeekActivityDto getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		@JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -277,11 +279,17 @@ public abstract class ActivityControllerBase extends ControllerBase
 	{
 		private final LinkProvider linkProvider;
 
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
-		public WeekActivityOverviewResource(LinkProvider linkProvider, WeekActivityOverviewDto weekActivityOverview)
+		public WeekActivityOverviewResource(LinkProvider linkProvider, @Nonnull WeekActivityOverviewDto weekActivityOverview)
 		{
 			super(weekActivityOverview);
 			this.linkProvider = linkProvider;
+		}
+
+		@Override
+		@Nonnull
+		public WeekActivityOverviewDto getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		public List<WeekActivityResource> getWeekActivities()
@@ -294,22 +302,36 @@ public abstract class ActivityControllerBase extends ControllerBase
 
 	static class DayActivityResource extends EntityModel<DayActivityDto>
 	{
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public DayActivityResource(DayActivityDto dayActivity)
 		{
 			super(dayActivity);
 		}
+
+		@Override
+		@Nonnull
+		public DayActivityDto getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
+		}
+
 	}
 
 	static class DayActivityOverviewResource extends EntityModel<DayActivityOverviewDto<DayActivityDto>>
 	{
 		private final LinkProvider linkProvider;
 
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
-		public DayActivityOverviewResource(LinkProvider linkProvider, DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
+		public DayActivityOverviewResource(LinkProvider linkProvider,
+				@Nonnull DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
 			super(dayActivityOverview);
 			this.linkProvider = linkProvider;
+		}
+
+		@Override
+		@Nonnull
+		public DayActivityOverviewDto<DayActivityDto> getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		public List<DayActivityResource> getDayActivities()
@@ -332,7 +354,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		public WeekActivityOverviewResource toModel(WeekActivityOverviewDto weekActivityOverview)
+		public @Nonnull WeekActivityOverviewResource toModel(@Nonnull WeekActivityOverviewDto weekActivityOverview)
 		{
 			WeekActivityOverviewResource resource = instantiateModel(weekActivityOverview);
 			addSelfLink(resource);
@@ -340,12 +362,12 @@ public abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		protected WeekActivityOverviewResource instantiateModel(WeekActivityOverviewDto weekActivityOverview)
+		protected @Nonnull WeekActivityOverviewResource instantiateModel(@Nonnull WeekActivityOverviewDto weekActivityOverview)
 		{
 			return new WeekActivityOverviewResource(linkProvider, weekActivityOverview);
 		}
 
-		private void addSelfLink(EntityModel<WeekActivityOverviewDto> resource)
+		private void addSelfLink(@Nonnull WeekActivityOverviewResource resource)
 		{
 			resource.add(linkProvider.getWeekActivityOverviewLinkBuilder(resource.getContent().getDateStr()).withSelfRel());
 		}
@@ -364,7 +386,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		public WeekActivityResource toModel(WeekActivityDto weekActivity)
+		public @Nonnull WeekActivityResource toModel(@Nonnull WeekActivityDto weekActivity)
 		{
 			WeekActivityResource weekActivityResource = instantiateModel(weekActivity);
 			addWeekDetailsLink(weekActivityResource, (isWeekDetail) ? IanaLinkRelations.SELF : WEEK_DETAIL_REL);
@@ -380,38 +402,38 @@ public abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		protected WeekActivityResource instantiateModel(WeekActivityDto weekActivity)
+		protected @Nonnull WeekActivityResource instantiateModel(@Nonnull WeekActivityDto weekActivity)
 		{
 			return new WeekActivityResource(linkProvider, weekActivity);
 		}
 
-		private void addWeekDetailsLink(WeekActivityResource weekActivityResource, LinkRelation rel)
+		private void addWeekDetailsLink(@Nonnull WeekActivityResource weekActivityResource, LinkRelation rel)
 		{
 			weekActivityResource.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getDateStr(),
 					weekActivityResource.getContent().getGoalId()).withRel(rel));
 		}
 
-		private void addGoalLink(WeekActivityResource weekActivityResource)
+		private void addGoalLink(@Nonnull WeekActivityResource weekActivityResource)
 		{
 			weekActivityResource.add(
 					linkProvider.getGoalLinkBuilder(weekActivityResource.getContent().getGoalId()).withRel("goal"));
 		}
 
-		private void addMessagesLink(WeekActivityResource weekActivityResource)
+		private void addMessagesLink(@Nonnull WeekActivityResource weekActivityResource)
 		{
 			weekActivityResource.add(
 					linkProvider.getWeekActivityDetailMessagesLinkBuilder(weekActivityResource.getContent().getDateStr(),
 							weekActivityResource.getContent().getGoalId()).withRel("messages"));
 		}
 
-		private void addAddCommentLink(WeekActivityResource weekActivityResource)
+		private void addAddCommentLink(@Nonnull WeekActivityResource weekActivityResource)
 		{
 			Optional<WebMvcLinkBuilder> linkBuilder = linkProvider.getWeekActivityDetailAddCommentLinkBuilder(
 					weekActivityResource.getContent().getDateStr(), weekActivityResource.getContent().getGoalId());
 			linkBuilder.ifPresent(lb -> weekActivityResource.add(lb.withRel("addComment")));
 		}
 
-		private void addPrevNextLinks(WeekActivityResource weekActivityResource)
+		private void addPrevNextLinks(@Nonnull WeekActivityResource weekActivityResource)
 		{
 			if (weekActivityResource.getContent().hasPrevious())
 			{
@@ -449,7 +471,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		public DayActivityResource toModel(DayActivityDto dayActivity)
+		public @Nonnull DayActivityResource toModel(@Nonnull DayActivityDto dayActivity)
 		{
 			DayActivityResource dayActivityResource = instantiateModel(dayActivity);
 			addDayDetailsLink(dayActivityResource, (isDayDetail) ? IanaLinkRelations.SELF : DAY_DETAIL_REL);
@@ -468,7 +490,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		protected DayActivityResource instantiateModel(DayActivityDto dayActivity)
+		protected @Nonnull DayActivityResource instantiateModel(@Nonnull DayActivityDto dayActivity)
 		{
 			return new DayActivityResource(dayActivity);
 		}
@@ -534,7 +556,7 @@ public abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		public DayActivityOverviewResource toModel(DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
+		public @Nonnull DayActivityOverviewResource toModel(@Nonnull DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
 			DayActivityOverviewResource resource = instantiateModel(dayActivityOverview);
 			addSelfLink(resource);
@@ -542,12 +564,13 @@ public abstract class ActivityControllerBase extends ControllerBase
 		}
 
 		@Override
-		protected DayActivityOverviewResource instantiateModel(DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
+		protected @Nonnull DayActivityOverviewResource instantiateModel(
+				@Nonnull DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
 			return new DayActivityOverviewResource(linkProvider, dayActivityOverview);
 		}
 
-		private void addSelfLink(EntityModel<DayActivityOverviewDto<DayActivityDto>> resource)
+		private void addSelfLink(DayActivityOverviewResource resource)
 		{
 			resource.add(linkProvider.getDayActivityOverviewLinkBuilder(resource.getContent().getDateStr()).withSelfRel());
 		}

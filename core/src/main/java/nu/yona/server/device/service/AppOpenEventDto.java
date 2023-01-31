@@ -13,6 +13,7 @@ import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 
 public class AppOpenEventDto
 {
+	public static final AppOpenEventDto DUMMY = new AppOpenEventDto();
 	public final String operatingSystemStr;
 	public final String appVersion;
 	public final int appVersionCode;
@@ -24,6 +25,14 @@ public class AppOpenEventDto
 		this.operatingSystemStr = operatingSystemStr;
 		this.appVersion = appVersion;
 		this.appVersionCode = appVersionCode;
+	}
+
+	// Only to create a dummy instance
+	protected AppOpenEventDto()
+	{
+		operatingSystemStr = null;
+		appVersion = null;
+		appVersionCode = 0;
 	}
 
 	public Optional<OperatingSystem> getOperatingSystem()

@@ -24,6 +24,8 @@ import nu.yona.server.Constants;
 @JsonRootName("appActivity")
 public class AppActivitiesDto
 {
+	public static final AppActivitiesDto DUMMY = new AppActivitiesDto();
+
 	@JsonRootName("activity")
 	public static class Activity
 	{
@@ -69,6 +71,13 @@ public class AppActivitiesDto
 	{
 		this.deviceDateTime = deviceDateTime;
 		this.activities = activities;
+	}
+
+	// Only to create a dummy instance
+	private AppActivitiesDto()
+	{
+		deviceDateTime = null;
+		activities = null;
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)

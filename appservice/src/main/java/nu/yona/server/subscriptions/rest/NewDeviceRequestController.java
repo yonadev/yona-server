@@ -12,6 +12,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +71,7 @@ public class NewDeviceRequestController extends ControllerBase
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
+			try (CryptoSession ignored = CryptoSession.start(Optional.of(password),
 					() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 			{
 				newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
@@ -115,7 +117,7 @@ public class NewDeviceRequestController extends ControllerBase
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			try (CryptoSession cryptoSession = CryptoSession.start(password,
+			try (CryptoSession ignored = CryptoSession.start(password,
 					() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 			{
 				newDeviceRequestService.clearNewDeviceRequestForUser(userId);
@@ -137,12 +139,11 @@ public class NewDeviceRequestController extends ControllerBase
 	static WebMvcLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)
 	{
 		NewDeviceRequestController methodOn = methodOn(NewDeviceRequestController.class);
-		return linkTo(methodOn.getNewDeviceRequestForUser(null, mobileNumber));
+		return linkTo(methodOn.getNewDeviceRequestForUser(Optional.empty(), mobileNumber));
 	}
 
 	public static class NewDeviceRequestResource extends EntityModel<NewDeviceRequestDto>
 	{
-		@SuppressWarnings("deprecation") // Constructor will become protected, see spring-projects/spring-hateoas#1297
 		public NewDeviceRequestResource(NewDeviceRequestDto newDeviceRequest)
 		{
 			super(newDeviceRequest);
@@ -161,7 +162,7 @@ public class NewDeviceRequestController extends ControllerBase
 		}
 
 		@Override
-		public NewDeviceRequestResource toModel(NewDeviceRequestDto newDeviceRequest)
+		public @Nonnull NewDeviceRequestResource toModel(@Nonnull NewDeviceRequestDto newDeviceRequest)
 		{
 			NewDeviceRequestResource newDeviceRequestResource = instantiateModel(newDeviceRequest);
 			addSelfLink(newDeviceRequestResource);
@@ -172,7 +173,7 @@ public class NewDeviceRequestController extends ControllerBase
 		}
 
 		@Override
-		protected NewDeviceRequestResource instantiateModel(NewDeviceRequestDto newDeviceRequest)
+		protected @Nonnull NewDeviceRequestResource instantiateModel(@Nonnull NewDeviceRequestDto newDeviceRequest)
 		{
 			return new NewDeviceRequestResource(newDeviceRequest);
 		}

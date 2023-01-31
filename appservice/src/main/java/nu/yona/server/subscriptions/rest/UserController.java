@@ -13,10 +13,13 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+
+import javax.annotation.Nonnull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -543,6 +546,13 @@ public class UserController extends ControllerBase
 			this.representation = representation;
 			this.requestingUserId = requestingUserId;
 			this.requestingDeviceId = requestingDeviceId;
+		}
+
+		@Override
+		@Nonnull
+		public UserDto getContent()
+		{
+			return Objects.requireNonNull(super.getContent());
 		}
 
 		@JsonProperty("_embedded")

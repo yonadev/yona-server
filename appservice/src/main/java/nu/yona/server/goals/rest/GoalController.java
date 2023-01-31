@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -72,11 +74,10 @@ public class GoalController extends ControllerBase
 	@GetMapping(value = "/")
 	@ResponseBody
 	public HttpEntity<CollectionModel<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = true) String requestingUserIdStr,
-			@PathVariable UUID userId)
+			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM) String requestingUserIdStr, @PathVariable UUID userId)
 	{
 		UUID requestingUserId = RestUtil.parseUuid(requestingUserIdStr);
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
 			Set<GoalDto> goals = (requestingUserId.equals(userId)) ?
@@ -95,11 +96,11 @@ public class GoalController extends ControllerBase
 	@GetMapping(value = "/{goalId}")
 	@ResponseBody
 	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM, required = true) String requestingUserIdStr,
-			@PathVariable UUID userId, @PathVariable UUID goalId)
+			@RequestParam(value = UserController.REQUESTING_USER_ID_PARAM) String requestingUserIdStr, @PathVariable UUID userId,
+			@PathVariable UUID goalId)
 	{
 		UUID requestingUserId = RestUtil.parseUuid(requestingUserIdStr);
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(requestingUserId)))
 		{
 			GoalDto goal = (requestingUserId.equals(userId)) ?
@@ -121,7 +122,7 @@ public class GoalController extends ControllerBase
 			@PathVariable UUID userId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			setActivityCategoryId(goal);
@@ -136,7 +137,7 @@ public class GoalController extends ControllerBase
 			@PathVariable UUID userId, @PathVariable UUID goalId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			setActivityCategoryId(goal);
@@ -151,7 +152,7 @@ public class GoalController extends ControllerBase
 	public void removeGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID goalId, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password,
+		try (CryptoSession ignored = CryptoSession.start(password,
 				() -> userService.doPreparationsAndCheckCanAccessPrivateData(userId)))
 		{
 			goalService.deleteGoalAndInformBuddies(userId, goalId, Optional.ofNullable(messageStr));
@@ -178,7 +179,7 @@ public class GoalController extends ControllerBase
 	public static WebMvcLinkBuilder getAllGoalsLinkBuilder(UUID requestingUserId, UUID userId)
 	{
 		GoalController methodOn = methodOn(GoalController.class);
-		return linkTo(methodOn.getAllGoals(null, requestingUserId.toString(), userId));
+		return linkTo(methodOn.getAllGoals(Optional.empty(), requestingUserId.toString(), userId));
 	}
 
 	private void setActivityCategoryId(GoalDto goal)
@@ -218,7 +219,7 @@ public class GoalController extends ControllerBase
 		}
 
 		@Override
-		public GoalDto toModel(GoalDto goal)
+		public @Nonnull GoalDto toModel(@Nonnull GoalDto goal)
 		{
 			goal.removeLinks();
 			WebMvcLinkBuilder selfLinkBuilder = selfLinkBuilderSupplier.apply(goal.getGoalId());
@@ -238,7 +239,7 @@ public class GoalController extends ControllerBase
 		}
 
 		@Override
-		protected GoalDto instantiateModel(GoalDto goal)
+		protected @Nonnull GoalDto instantiateModel(@Nonnull GoalDto goal)
 		{
 			return goal;
 		}
