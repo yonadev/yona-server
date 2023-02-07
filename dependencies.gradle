@@ -25,7 +25,7 @@ final Map<String, String> libraries = [
 		// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 		hazelcast        : "com.hazelcast:hazelcast:5.2.1",
 		thymeleaf        : "org.thymeleaf:thymeleaf-spring5:3.1.1.RELEASE",
-		hibernate        : "org.hibernate:hibernate-core:6.1.6.Final",
+		hibernate        : "org.hibernate:hibernate-core:6.1.7.Final",
 ]
 
 // Export versions that are needed outside of this file (and elsewhere within)
