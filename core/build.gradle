@@ -46,7 +46,7 @@ dependencies {
 	implementation "org.springframework.ldap:spring-ldap-core:3.0.0"
 	implementation project.deps.springSecurityWeb
 	implementation project.deps.springSecurityConfig
-	api "com.google.guava:guava:24.1.1-jre"
+	api "com.google.guava:guava:31.1-jre"
 	implementation "com.googlecode.libphonenumber:libphonenumber:8.13.5"
 	implementation "com.google.firebase:firebase-admin:9.1.1"
 
