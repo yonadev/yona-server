@@ -33,7 +33,7 @@ dependencies {
 	api "org.springframework.boot:spring-boot-starter-data-jpa"
 	api "org.springframework.boot:spring-boot-starter-web"
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
-	implementation "org.springframework.cloud:spring-cloud-starter-sleuth:3.1.6"
+	implementation "org.springframework.cloud:spring-cloud-starter-sleuth:3.1.7"
 	implementation "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
 	implementation "io.micrometer:micrometer-registry-prometheus:1.10.4"
 	api "org.springframework:spring-context-support"
