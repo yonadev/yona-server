@@ -31,7 +31,7 @@ dependencies {
 	testImplementation "org.mockito:mockito-junit-jupiter"
 	testImplementation project.deps.jmockit
 
-	intTestImplementation "org.apache.groovy:groovy-all:4.0.9"
+	intTestImplementation "org.apache.groovy:groovy-all:4.0.10"
 	intTestImplementation project.deps.spockCore
 }
 
