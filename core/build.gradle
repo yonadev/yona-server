@@ -58,7 +58,7 @@ dependencies {
 	testImplementation project.deps.hamcrestJdk8Time
 	testImplementation project.deps.equalsverifier
 
-	testUtilsImplementation "org.apache.groovy:groovy-all:4.0.9"
+	testUtilsImplementation "org.apache.groovy:groovy-all:4.0.10"
 	testUtilsImplementation project.deps.apacheHttpMime
 
 	// mandatory dependencies for using Spock
