@@ -17,7 +17,7 @@ configurations {
 dependencies {
 	implementation project(":core")
 	implementation libs.springBatchCore
-	implementation "org.quartz-scheduler:quartz:2.3.2"
+	implementation libs.quartz
 	runtimeClasspath libs.mariadbClient
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 }

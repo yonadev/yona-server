@@ -1,25 +1,73 @@
 [versions]
 bouncycastle = "1.70"
-springSecurity = "6.0.2"
 # When updating the below version number, also update
 # hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 hazelcast      = "5.2.2"
 hibernate      = "6.1.7.Final"
+springSecurity = "6.0.2"
 
 [libraries]
-bcprov                = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
-bcpkix                = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bouncycastle" }
-springSecurityWeb     = { module = "org.springframework.security:spring-security-web", version.ref = "springSecurity" }
-springSecurityConfig  = { module = "org.springframework.security:spring-security-config", version.ref = "springSecurity" }
-hazelcast             = { module = "com.hazelcast:hazelcast", version.ref = "hazelcast" }
-hazelcastSpring       = { module = "com.hazelcast:hazelcast-spring", version.ref = "hazelcast" }
-hibernate             = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
-springBatchCore       = { module = "org.springframework.batch:spring-batch-core", version = "5.0.1" }
-mariadbClient         = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.1.2" }
-jmockit               = { module = "org.jmockit:jmockit", version = "1.49" }
-junitJupiter          = { module = "org.junit.jupiter:junit-jupiter", version = "5.9.2" }
-hamcrestJdk8Time      = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
-equalsverifier        = { module = "nl.jqno.equalsverifier:equalsverifier", version = "3.14" }
-spockCore             = { module = "org.spockframework:spock-core", version = "2.3-groovy-4.0" }
-apacheHttpMime        = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
-thymeleaf             = { module = "org.thymeleaf:thymeleaf-spring5", version = "3.1.1.RELEASE" }
+# Libraries used in multiple projects
+apacheHttpMime                = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
+bcpkix                        = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bouncycastle" }
+bcprov                        = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
+hazelcast                     = { module = "com.hazelcast:hazelcast", version.ref = "hazelcast" }
+hazelcastSpring               = { module = "com.hazelcast:hazelcast-spring", version.ref = "hazelcast" }
+hibernate                     = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
+jackson-datatype-jdk8         = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8" }
+jackson-datatype-jsr310       = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
+mariadbClient                 = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.1.2" }
+springBatchCore               = { module = "org.springframework.batch:spring-batch-core", version = "5.0.1" }
+springSecurityConfig          = { module = "org.springframework.security:spring-security-config", version.ref = "springSecurity" }
+springSecurityWeb             = { module = "org.springframework.security:spring-security-web", version.ref = "springSecurity" }
+test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifier", version = "3.14" }
+test-groovy                   = { module = "org.apache.groovy:groovy-all", version = "4.0.10" }
+test-hamcrestJdk8Time         = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
+test-jmockit                  = { module = "org.jmockit:jmockit", version = "1.49" }
+test-junitJupiter             = { module = "org.junit.jupiter:junit-jupiter", version = "5.9.2" }
+test-mockito-core             = { module = "org.mockito:mockito-core" }
+test-mockito-junit-jupiter    = { module = "org.mockito:mockito-junit-jupiter" }
+test-spockCore                = { module = "org.spockframework:spock-core", version = "2.3-groovy-4.0" }
+test-spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+thymeleaf                     = { module = "org.thymeleaf:thymeleaf-spring5", version = "3.1.1.RELEASE" }
+
+# Libraries used in core
+hazelcast-kubernetes          = { module = "com.hazelcast:hazelcast-kubernetes", version = "2.2.3" }
+spring-boot-starter-hateoas   = { module = "org.springframework.boot:spring-boot-starter-hateoas" }
+spring-boot-starter-data-jpa  = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-web       = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-actuator  = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-cloud-starter-sleuth   = { module = "org.springframework.cloud:spring-cloud-starter-sleuth", version = "3.1.7" }
+spring-metrics                = { module = "org.springframework.metrics:spring-metrics", version = "0.5.1.RELEASE" }
+micrometer-prometheus         = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.10.4" }
+spring-context-support        = { module = "org.springframework:spring-context-support" }
+evo-inflector                 = { module = "org.atteo:evo-inflector", version = "1.3" }
+commons-validator             = { module = "commons-validator:commons-validator", version = "1.7" }
+commons-lang                  = { module = "commons-lang:commons-lang", version = "2.6" }
+jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", version = "2.0.1" }
+spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "3.0.1" }
+guava                         = { module = "com.google.guava:guava", version = "31.1-jre" }
+libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "8.13.7" }
+firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.1.1" }
+
+test-jetbrains-annotations    = { module = "org.jetbrains:annotations", version = "24.0.1" }
+
+# Libraries used in adminservice
+
+# Libraries used in analysisservice
+
+# Libraries used in appservice
+commons-lang3    = { module = "org.apache.commons:commons-lang3", version = "3.12.0" }
+
+# Libraries used in batchservice
+quartz    = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
+
+# Libraries used in dbinit
+liquibase-core       = { module = "org.liquibase:liquibase-core", version = "4.20.0" }
+liquibase-hibernate5 = { module = "org.liquibase.ext:liquibase-hibernate5", version = "4.3.0.1" }
+
+[plugins]
+bmuschko-docker        = { id = "com.bmuschko.docker-remote-api", version = "9.2.1" }
+sonarqube              = { id = "org.sonarqube", version = "4.0.0.2929" }
+spring-boot            = { id = "org.springframework.boot", version = "3.0.4" }
+spring-dependency-mgmt = { id = "io.spring.dependency-management", version = "1.1.0" }

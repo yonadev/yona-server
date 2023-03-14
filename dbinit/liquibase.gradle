@@ -3,7 +3,7 @@ configurations {
 }
 
 dependencies {
-	liquibase "org.liquibase.ext:liquibase-hibernate5:4.3.0.1"
+	liquibase libs.liquibase.hibernate5
 	liquibase libs.mariadbClient
 }
 
