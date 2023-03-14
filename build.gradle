@@ -11,8 +11,6 @@ plugins {
 
 description = "Yona server"
 
-apply from: "dependencies.gradle"
-
 allprojects {
 	group = "yonadev"
 }
@@ -30,7 +28,7 @@ subprojects {
 	apply plugin: "org.springframework.boot"
 	apply plugin: "com.bmuschko.docker-remote-api"
 
-	ext["hibernate.version"] = project.versions["hibernate"]
+	ext["hibernate.version"] = libs.versions.hibernate.get()
 
 	project.ext {
 		build_id = System.getenv().BUILD_ID ?: "local"

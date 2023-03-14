@@ -1,6 +1,25 @@
 [versions]
 bouncycastle = "1.69"
+springSecurity = "6.0.2"
+# When updating the below version number, also update
+# hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
+hazelcast      = "5.2.2"
+hibernate      = "6.1.7.Final"
 
 [libraries]
-bcprov = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
-bcpkix = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bouncycastle" }
+bcprov                = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
+bcpkix                = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bouncycastle" }
+springSecurityWeb     = { module = "org.springframework.security:spring-security-web", version.ref = "springSecurity" }
+springSecurityConfig  = { module = "org.springframework.security:spring-security-config", version.ref = "springSecurity" }
+hazelcast             = { module = "com.hazelcast:hazelcast", version.ref = "hazelcast" }
+hazelcastSpring       = { module = "com.hazelcast:hazelcast-spring", version.ref = "hazelcast" }
+hibernate             = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
+springBatchCore       = { module = "org.springframework.batch:spring-batch-core", version = "5.0.1" }
+mariadbClient         = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.1.2" }
+jmockit               = { module = "org.jmockit:jmockit", version = "1.49" }
+junitJupiter          = { module = "org.junit.jupiter:junit-jupiter", version = "5.9.2" }
+hamcrestJdk8Time      = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
+equalsverifier        = { module = "nl.jqno.equalsverifier:equalsverifier", version = "3.14" }
+spockCore             = { module = "org.spockframework:spock-core", version = "2.3-groovy-4.0" }
+apacheHttpMime        = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
+thymeleaf             = { module = "org.thymeleaf:thymeleaf-spring5", version = "3.1.1.RELEASE" }
