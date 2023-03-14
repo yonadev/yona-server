@@ -26,8 +26,8 @@ artifacts {
 }
 
 dependencies {
-	implementation project.deps.hazelcast
-	implementation project.deps.hazelcastSpring
+	implementation libs.hazelcast
+	implementation libs.hazelcastSpring
 	implementation 'com.hazelcast:hazelcast-kubernetes:2.2.3'
 	api "org.springframework.boot:spring-boot-starter-hateoas"
 	api "org.springframework.boot:spring-boot-starter-data-jpa"
@@ -37,15 +37,15 @@ dependencies {
 	implementation "org.springframework.metrics:spring-metrics:0.5.1.RELEASE"
 	implementation "io.micrometer:micrometer-registry-prometheus:1.10.4"
 	api "org.springframework:spring-context-support"
-	implementation project.deps.hibernate
+	implementation libs.hibernate
 	implementation "org.atteo:evo-inflector:1.3"
 	implementation "commons-validator:commons-validator:1.7"
 	implementation "commons-lang:commons-lang:2.6"
 	api "org.eclipse.angus:jakarta.mail:2.0.1"
-	api project.deps.thymeleaf
+	api libs.thymeleaf
 	implementation "org.springframework.ldap:spring-ldap-core:3.0.1"
-	implementation project.deps.springSecurityWeb
-	implementation project.deps.springSecurityConfig
+	implementation libs.springSecurityWeb
+	implementation libs.springSecurityConfig
 	api "com.google.guava:guava:31.1-jre"
 	implementation "com.googlecode.libphonenumber:libphonenumber:8.13.7"
 	implementation "com.google.firebase:firebase-admin:9.1.1"
@@ -53,16 +53,16 @@ dependencies {
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.mockito:mockito-junit-jupiter"
 	testImplementation "org.jetbrains:annotations:24.0.1"
-	testImplementation project.deps.jmockit
-	testImplementation project.deps.junitJupiter
-	testImplementation project.deps.hamcrestJdk8Time
-	testImplementation project.deps.equalsverifier
+	testImplementation libs.jmockit
+	testImplementation libs.junitJupiter
+	testImplementation libs.hamcrestJdk8Time
+	testImplementation libs.equalsverifier
 
 	testUtilsImplementation "org.apache.groovy:groovy-all:4.0.10"
-	testUtilsImplementation project.deps.apacheHttpMime
+	testUtilsImplementation libs.apacheHttpMime
 
 	// mandatory dependencies for using Spock
-	testUtilsImplementation project.deps.spockCore
+	testUtilsImplementation libs.spockCore
 }
 
 test {
