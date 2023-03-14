@@ -1,11 +1,1 @@
 include 'core', 'dbinit', 'analysisservice', 'adminservice', 'appservice', 'batchservice'
-
-dependencyResolutionManagement {
-	versionCatalogs {
-		libs {
-			version('bouncycastle', '1.69')
-			library('bcprov', 'org.bouncycastle', 'bcprov-jdk15on').versionRef('bouncycastle')
-			library('bcpkix', 'org.bouncycastle', 'bcpkix-jdk15on').versionRef('bouncycastle')
-		}
-	}
-}

@@ -1,0 +1,6 @@
+[versions]
+bouncycastle = "1.69"
+
+[libraries]
+bcprov = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
+bcpkix = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bouncycastle" }
