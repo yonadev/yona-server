@@ -1,5 +1,5 @@
 [versions]
-bouncycastle = "1.69"
+bouncycastle = "1.70"
 springSecurity = "6.0.2"
 # When updating the below version number, also update
 # hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
