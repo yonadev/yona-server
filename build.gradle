@@ -112,8 +112,5 @@ sonarqube {
 		property "sonar.projectKey", "yonadev_yona-server"
 		property "sonar.organization", "yonadev"
 		property "sonar.host.url", "https://sonarcloud.io"
-//sonar.sources=src/main
-//sonar.java.binaries=build/classes
-//sonar.modules=adminservice, analysisservice, appservice, batchservice, core, dbinit
 	}
 }

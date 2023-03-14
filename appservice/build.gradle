@@ -18,8 +18,8 @@ configurations {
 
 dependencies {
 	implementation project(":core")
-	implementation project.deps.bcprov
-	implementation project.deps.bcpkix
+	implementation libs.bcprov
+	implementation libs.bcpkix
 	runtimeClasspath project.deps.mariadbClient
 	runtimeClasspath "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 	runtimeClasspath "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"

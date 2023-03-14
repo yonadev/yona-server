@@ -20,7 +20,6 @@ final Map<String, String> libraries = [
 		equalsverifier   : "nl.jqno.equalsverifier:equalsverifier:3.14",
 		spockCore        : "org.spockframework:spock-core:2.3-groovy-4.0",
 		apacheHttpMime   : "org.apache.httpcomponents:httpmime:4.5.14",
-		bcprov           : "org.bouncycastle:bcprov-jdk15on:1.70",
 		// When updating the below version number, also update
 		// hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 		hazelcast        : "com.hazelcast:hazelcast:5.2.2",
@@ -31,7 +30,6 @@ final Map<String, String> libraries = [
 // Export versions that are needed outside of this file (and elsewhere within)
 final Map<String, String> v = [
 		springSecurityWeb: versionOf(libraries.springSecurityWeb),
-		bcprov           : versionOf(libraries.bcprov),
 		hazelcast        : versionOf(libraries.hazelcast),
 		hibernate        : versionOf(libraries.hibernate),
 ]
@@ -41,7 +39,6 @@ final Map<String, String> v = [
 // benefiting from Dependabot's automatic PR upgrades.
 final Map<String, String> related = [
 		springSecurityConfig: "org.springframework.security:spring-security-config:${v.springSecurityWeb}",
-		bcpkix              : "org.bouncycastle:bcpkix-jdk15on:${v.bcprov}",
 		hazelcastSpring     : "com.hazelcast:hazelcast-spring:${v.hazelcast}",
 ]
 
