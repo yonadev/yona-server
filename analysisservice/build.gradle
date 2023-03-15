@@ -18,7 +18,7 @@ configurations {
 
 dependencies {
 	implementation project(":core")
-	runtimeClasspath libs.mariadbClient
+	runtimeClasspath libs.mariadb.client
 	runtimeClasspath libs.jackson.datatype.jsr310
 	runtimeClasspath libs.jackson.datatype.jdk8
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
@@ -32,7 +32,7 @@ dependencies {
 	testImplementation libs.test.jmockit
 
 	intTestImplementation libs.test.groovy
-	intTestImplementation libs.test.spockCore
+	intTestImplementation libs.test.spock.core
 }
 
 test {

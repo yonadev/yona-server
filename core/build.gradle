@@ -27,7 +27,7 @@ artifacts {
 
 dependencies {
 	implementation libs.hazelcast
-	implementation libs.hazelcastSpring
+	implementation libs.hazelcast.spring
 	implementation libs.hazelcast.kubernetes
 	api libs.spring.boot.starter.hateoas
 	api libs.spring.boot.starter.data.jpa
@@ -44,25 +44,24 @@ dependencies {
 	api libs.jakarta.mail
 	api libs.thymeleaf
 	implementation libs.spring.ldap.core
-	implementation libs.springSecurityWeb
-	implementation libs.springSecurityConfig
+	implementation libs.spring.security.web
+	implementation libs.spring.security.config
 	api libs.guava
 	implementation libs.libphonenumber
 	implementation libs.firebase.admin
 
 	testImplementation libs.test.spring.boot.starter.test
 	testImplementation libs.test.mockito.junit.jupiter
-	testImplementation libs.test.jetbrains.annotations
 	testImplementation libs.test.jmockit
-	testImplementation libs.test.junitJupiter
-	testImplementation libs.test.hamcrestJdk8Time
+	testImplementation libs.test.junit.jupiter
+	testImplementation libs.test.hamcrest.jdk8.time
 	testImplementation libs.test.equalsverifier
 
 	testUtilsImplementation libs.test.groovy
-	testUtilsImplementation libs.apacheHttpMime
+	testUtilsImplementation libs.httpmime
 
 	// mandatory dependencies for using Spock
-	testUtilsImplementation libs.test.spockCore
+	testUtilsImplementation libs.test.spock.core
 }
 
 test {

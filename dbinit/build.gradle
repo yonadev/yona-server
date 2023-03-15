@@ -10,9 +10,9 @@ def dockerImageName = "${project.group}/yona-mariadb-liquibase-update"
 
 dependencies {
 	implementation project(":core")
-	implementation libs.springBatchCore
+	implementation libs.spring.batch.core
 	implementation libs.liquibase.core
-	runtimeClasspath libs.mariadbClient
+	runtimeClasspath libs.mariadb.client
 }
 
 docker {
