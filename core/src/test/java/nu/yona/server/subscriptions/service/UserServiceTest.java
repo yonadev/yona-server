@@ -19,7 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,7 +90,7 @@ class UserServiceTest extends BaseSpringIntegrationTest
 		}
 	}
 
-	@NotNull
+	@Nonnull
 	@SuppressWarnings("unchecked")
 	private static <K, V> ArgumentCaptor<Map<K, V>> makeMapArgumentCaptor(Class<K> k, Class<V> v)
 	{

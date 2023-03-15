@@ -16,9 +16,9 @@ configurations {
 
 dependencies {
 	implementation project(":core")
-	implementation libs.springBatchCore
+	implementation libs.spring.batch.core
 	implementation libs.quartz
-	runtimeClasspath libs.mariadbClient
+	runtimeClasspath libs.mariadb.client
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 }
 

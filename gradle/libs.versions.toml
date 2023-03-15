@@ -1,33 +1,31 @@
 [versions]
-bouncycastle = "1.70"
-# When updating the below version number, also update
-# hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
-hazelcast      = "5.2.2"
-hibernate      = "6.1.7.Final"
-springSecurity = "6.0.2"
+bouncycastle    = "1.70"
+hazelcast       = "5.2.2" # When updating, also update hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
+hibernate       = "6.1.7.Final"
+spring-security = "6.0.2"
 
 [libraries]
 # Libraries used in multiple projects
-apacheHttpMime                = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 bcpkix                        = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bouncycastle" }
 bcprov                        = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
+hazelcast-spring              = { module = "com.hazelcast:hazelcast-spring", version.ref = "hazelcast" }
 hazelcast                     = { module = "com.hazelcast:hazelcast", version.ref = "hazelcast" }
-hazelcastSpring               = { module = "com.hazelcast:hazelcast-spring", version.ref = "hazelcast" }
 hibernate                     = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
+httpmime                      = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 jackson-datatype-jdk8         = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8" }
 jackson-datatype-jsr310       = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
-mariadbClient                 = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.1.2" }
-springBatchCore               = { module = "org.springframework.batch:spring-batch-core", version = "5.0.1" }
-springSecurityConfig          = { module = "org.springframework.security:spring-security-config", version.ref = "springSecurity" }
-springSecurityWeb             = { module = "org.springframework.security:spring-security-web", version.ref = "springSecurity" }
+mariadb-client                = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.1.2" }
+spring-batch-core             = { module = "org.springframework.batch:spring-batch-core", version = "5.0.1" }
+spring-security-config        = { module = "org.springframework.security:spring-security-config", version.ref = "spring-security" }
+spring-security-web           = { module = "org.springframework.security:spring-security-web", version.ref = "spring-security" }
 test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifier", version = "3.14" }
 test-groovy                   = { module = "org.apache.groovy:groovy-all", version = "4.0.10" }
-test-hamcrestJdk8Time         = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
+test-hamcrest-jdk8-time       = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
 test-jmockit                  = { module = "org.jmockit:jmockit", version = "1.49" }
-test-junitJupiter             = { module = "org.junit.jupiter:junit-jupiter", version = "5.9.2" }
+test-junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter", version = "5.9.2" }
 test-mockito-core             = { module = "org.mockito:mockito-core" }
 test-mockito-junit-jupiter    = { module = "org.mockito:mockito-junit-jupiter" }
-test-spockCore                = { module = "org.spockframework:spock-core", version = "2.3-groovy-4.0" }
+test-spock-core               = { module = "org.spockframework:spock-core", version = "2.3-groovy-4.0" }
 test-spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 thymeleaf                     = { module = "org.thymeleaf:thymeleaf-spring5", version = "3.1.1.RELEASE" }
 
@@ -49,8 +47,6 @@ spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap
 guava                         = { module = "com.google.guava:guava", version = "31.1-jre" }
 libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "8.13.7" }
 firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.1.1" }
-
-test-jetbrains-annotations    = { module = "org.jetbrains:annotations", version = "24.0.1" }
 
 # Libraries used in adminservice
 

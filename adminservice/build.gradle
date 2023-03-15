@@ -19,13 +19,13 @@ configurations {
 
 dependencies {
 	implementation project(":core")
-	runtimeClasspath libs.mariadbClient
+	runtimeClasspath libs.mariadb.client
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
 	testImplementation project(path: ":core", configuration: "testUtils")
 
 	intTestImplementation libs.test.groovy
-	intTestImplementation libs.test.spockCore
+	intTestImplementation libs.test.spock.core
 }
 
 test {

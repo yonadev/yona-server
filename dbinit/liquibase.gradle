@@ -4,7 +4,7 @@ configurations {
 
 dependencies {
 	liquibase libs.liquibase.hibernate5
-	liquibase libs.mariadbClient
+	liquibase libs.mariadb.client
 }
 
 //loading properties file.
