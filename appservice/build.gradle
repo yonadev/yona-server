@@ -21,17 +21,17 @@ dependencies {
 	implementation libs.bcprov
 	implementation libs.bcpkix
 	runtimeClasspath libs.mariadbClient
-	runtimeClasspath "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-	runtimeClasspath "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
+	runtimeClasspath libs.jackson.datatype.jsr310
+	runtimeClasspath libs.jackson.datatype.jdk8
 	providedRuntimeClasspath "org.springframework.boot:spring-boot-starter-tomcat"
 
 	testImplementation project(path: ":core", configuration: "testUtils")
 	testImplementation libs.apacheHttpMime
-	testImplementation "org.mockito:mockito-core"
+	testImplementation libs.test.mockito.core
 
-	intTestImplementation "org.apache.groovy:groovy-all:4.0.10"
-	intTestImplementation libs.spockCore
-	intTestImplementation "org.apache.commons:commons-lang3:3.12.0"
+	intTestImplementation libs.test.groovy
+	intTestImplementation libs.test.spockCore
+	intTestImplementation libs.commons.lang3
 }
 
 test {
