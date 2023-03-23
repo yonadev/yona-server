@@ -65,5 +65,5 @@ liquibase-hibernate5 = { module = "org.liquibase.ext:liquibase-hibernate5", vers
 [plugins]
 bmuschko-docker        = { id = "com.bmuschko.docker-remote-api", version = "9.3.0" }
 sonarqube              = { id = "org.sonarqube", version = "4.0.0.2929" }
-spring-boot            = { id = "org.springframework.boot", version = "3.0.4" }
+spring-boot            = { id = "org.springframework.boot", version = "3.0.5" }
 spring-dependency-mgmt = { id = "io.spring.dependency-management", version = "1.1.0" }
