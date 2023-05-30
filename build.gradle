@@ -5,6 +5,7 @@ plugins {
 	alias(libs.plugins.spring.dependency.mgmt)
 	alias(libs.plugins.spring.boot).apply(false)
 	alias(libs.plugins.bmuschko.docker).apply(false)
+	alias(libs.plugins.liquibase).apply(false)
 	id "project-report"
 	alias(libs.plugins.sonarqube)
 }

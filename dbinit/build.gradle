@@ -1,7 +1,5 @@
 description = "Database initializer"
-
-apply from: "liquibase.gradle"
-
+apply plugin: libs.plugins.liquibase.get().pluginId
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
@@ -11,8 +9,10 @@ def dockerImageName = "${project.group}/yona-mariadb-liquibase-update"
 dependencies {
 	implementation project(":core")
 	implementation libs.spring.batch.core
-	implementation libs.liquibase.core
 	runtimeClasspath libs.mariadb.client
+	liquibaseRuntime libs.liquibase.core
+	liquibaseRuntime libs.picocli
+	liquibaseRuntime libs.mariadb.client
 }
 
 docker {
@@ -70,4 +70,16 @@ bootRun {
 
 bootJar {
 	classifier = "full"
+}
+
+liquibase {
+	activities {
+		main {
+			changelogFile 'dbinit/src/main/liquibase/changelog.yml'
+			url "$System.env.YONA_DB_URL"
+			username "$System.env.YONA_DB_USER_NAME"
+			password "$System.env.YONA_DB_PASSWORD"
+			logLevel "info"
+		}
+	}
 }
