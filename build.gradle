@@ -35,6 +35,7 @@ subprojects {
 		build_id = System.getenv().BUILD_ID ?: "local"
 		docker_tag = "build-${build_id}"
 
+		runList = project.properties["runList"] ?: []
 		yona_adminservice_scheme = project.properties["yona_adminservice_scheme"] ?: "http"
 		yona_adminservice_host = project.properties["yona_adminservice_host"] ?: "localhost"
 		yona_adminservice_port = project.properties["yona_adminservice_port"] ?: "8180"

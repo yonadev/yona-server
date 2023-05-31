@@ -5,14 +5,21 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 def dockerImageName = "${project.group}/yona-mariadb-liquibase-update"
+Properties applicationProps = new Properties()
+applicationProps.load(new FileInputStream("core/src/main/resources/application.properties"))
 
 dependencies {
 	implementation project(":core")
 	implementation libs.spring.batch.core
 	runtimeClasspath libs.mariadb.client
 	liquibaseRuntime libs.liquibase.core
+	liquibaseRuntime libs.liquibase.hibernate6
 	liquibaseRuntime libs.picocli
 	liquibaseRuntime libs.mariadb.client
+}
+
+configurations {
+	liquibaseRuntime.extendsFrom runtimeClasspath
 }
 
 docker {
@@ -74,12 +81,27 @@ bootJar {
 
 liquibase {
 	activities {
-		main {
-			changelogFile 'dbinit/src/main/liquibase/changelog.yml'
+		updateMain {
+			changelogFile "dbinit/src/main/liquibase/changelog.yml"
 			url "$System.env.YONA_DB_URL"
 			username "$System.env.YONA_DB_USER_NAME"
 			password "$System.env.YONA_DB_PASSWORD"
 			logLevel "info"
 		}
+		diffMain {
+			changelogFile "dbinit/src/main/liquibase/updates/changelog-0000-yd-000.yml"
+			url "$System.env.YONA_DB_URL"
+			username "$System.env.YONA_DB_USER_NAME"
+			password "$System.env.YONA_DB_PASSWORD"
+			logLevel "info"
+			referenceUrl "hibernate:spring:nu.yona.server" \
+				+ "?dialect=" + applicationProps.getProperty("spring.jpa.database-platform") \
+				+ "&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy"
+			referenceDriver "liquibase.ext.hibernate.database.connection.HibernateDriver"
+			referenceDefaultCatalogName "yona"
+			referenceDefaultSchemaName "yona"
+			excludeObjects "databasechangelog.*,batch_job_.*,batch_step_.*,qrtz_.*"
+		}
 	}
+	runList = project.ext.runList
 }
