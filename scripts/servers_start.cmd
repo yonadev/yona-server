@@ -13,7 +13,7 @@ call mysql --user=%YONA_DB_USER_NAME% --password=%YONA_DB_PASSWORD% < scripts\re
 if ERRORLEVEL 1 goto error
 
 :updateDB
-call gradlew :dbinit:liquibaseUpdate
+call gradlew :dbinit:update -PrunList=updateMain
 if ERRORLEVEL 1 goto error
 
 echo.
