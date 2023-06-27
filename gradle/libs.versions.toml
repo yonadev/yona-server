@@ -2,7 +2,7 @@
 bouncycastle    = "1.70"
 hazelcast       = "5.3.1" # When updating, also update hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 hibernate       = "6.2.5.Final"
-spring-security = "6.1.0"
+spring-security = "6.1.1"
 
 [libraries]
 # Libraries used in multiple projects
@@ -18,7 +18,7 @@ mariadb-client                = { module = "org.mariadb.jdbc:mariadb-java-client
 spring-batch-core             = { module = "org.springframework.batch:spring-batch-core", version = "5.0.2" }
 spring-security-config        = { module = "org.springframework.security:spring-security-config", version.ref = "spring-security" }
 spring-security-web           = { module = "org.springframework.security:spring-security-web", version.ref = "spring-security" }
-test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifier", version = "3.14.2" }
+test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifier", version = "3.14.3" }
 test-groovy                   = { module = "org.apache.groovy:groovy-all", version = "4.0.12" }
 test-hamcrest-jdk8-time       = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
 test-jmockit                  = { module = "org.jmockit:jmockit", version = "1.49" }
@@ -45,8 +45,8 @@ commons-lang                  = { module = "commons-lang:commons-lang", version 
 jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", version = "2.0.2" }
 spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "3.1.0" }
 guava                         = { module = "com.google.guava:guava", version = "32.0.1-jre" }
-libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "8.13.14" }
-firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.1.1" }
+libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "8.13.15" }
+firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.2.0" }
 
 # Libraries used in adminservice
 
@@ -59,13 +59,13 @@ commons-lang3    = { module = "org.apache.commons:commons-lang3", version = "3.1
 quartz    = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
 
 # Libraries used in dbinit
-liquibase-core       = { module = "org.liquibase:liquibase-core", version = "4.22.0" }
-liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version = "4.22.0" }
+liquibase-core       = { module = "org.liquibase:liquibase-core", version = "4.23.0" }
+liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version = "4.23.0" }
 picocli              = { module = "info.picocli:picocli", version = "4.7.4" }
 
 [plugins]
 bmuschko-docker        = { id = "com.bmuschko.docker-remote-api", version = "9.3.1" }
 sonarqube              = { id = "org.sonarqube", version = "4.2.1.3168" }
-spring-boot            = { id = "org.springframework.boot", version = "3.1.0" }
+spring-boot            = { id = "org.springframework.boot", version = "3.1.1" }
 spring-dependency-mgmt = { id = "io.spring.dependency-management", version = "1.1.0" }
 liquibase              = { id = "org.liquibase.gradle", version = "2.2.0" }
