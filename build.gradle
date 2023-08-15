@@ -30,6 +30,7 @@ subprojects {
 	apply plugin: libs.plugins.bmuschko.docker.get().pluginId
 
 	ext["hibernate.version"] = libs.versions.hibernate.get()
+	ext["thymeleaf.version"] = libs.thymeleaf.get().versionConstraint
 
 	project.ext {
 		build_id = System.getenv().BUILD_ID ?: "local"
