@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1692294521972-1
+      author: bert (manually created)
+      changes:
+        - modifyDataType:
+            columnName: receiving_status
+            newDataType: TINYINT
+            tableName: buddies_anonymized
+        - modifyDataType:
+            columnName: sending_status
+            newDataType: TINYINT
+            tableName: buddies_anonymized
+        - modifyDataType:
+            columnName: operating_system
+            newDataType: TINYINT
+            tableName: devices_anonymized
+        - modifyDataType:
+            columnName: status
+            newDataType: TINYINT
+            tableName: messages
+        - modifyDataType:
+            columnName: change
+            newDataType: TINYINT
+            tableName: messages
+        - modifyDataType:
+            columnName: device_change
+            newDataType: TINYINT
+            tableName: messages
+        - modifyDataType:
+            columnName: reason
+            newDataType: TINYINT
+            tableName: messages
