@@ -45,7 +45,7 @@ commons-lang                  = { module = "commons-lang:commons-lang", version 
 jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", version = "2.0.2" }
 spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "3.1.2" }
 guava                         = { module = "com.google.guava:guava", version = "32.1.3-jre" }
-libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "8.13.24" }
+libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "8.13.25" }
 firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.2.0" }
 
 # Libraries used in adminservice
