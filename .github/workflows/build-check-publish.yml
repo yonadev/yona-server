@@ -180,7 +180,7 @@ jobs:
           done
       - name: Upload logs as artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs
           path: /tmp/yona-logs/
