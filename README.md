@@ -10,8 +10,8 @@ Yona Server
 The Yona Server backs the Yona mobile app, providing user management, buddy relationship management, web traffic classification
 and buddy messaging.
 
-For more information, check [our wiki](https://wiki.yona.nu/display/DEV/Development)
-or [our JIRA](https://jira.yona.nu/secure/RapidBoard.jspa?rapidView=5).
+For more information, check [our wiki](https://yonadev.atlassian.net/wiki/spaces/DEV/overview)
+or [our JIRA](https://yonadev.atlassian.net/jira/software/c/projects/YD/boards/5).
 
 ==================================
 
