@@ -245,7 +245,7 @@ jobs:
           exit 1
       - name: Publish Gradle dependencies
         if: ${{ !inputs.is-pr-build }}
-        uses: mikepenz/gradle-dependency-submission@v0.9.1
+        uses: mikepenz/gradle-dependency-submission@v0.9.2
         with:
           gradle-project-path: yona-server
           gradle-build-module: |-
