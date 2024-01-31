@@ -51,20 +51,22 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Build and analyze
-        uses: gradle/gradle-build-action@v2.12.0
+        uses: gradle/actions/setup-gradle@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           build-root-directory: yona-server
+          add-job-summary-as-pr-comment: on-failure
           arguments: |
             check
             sonarqube
             --info
       - name: Build Docker images
-        uses: gradle/gradle-build-action@v2.12.0
+        uses: gradle/actions/setup-gradle@v3
         with:
           build-root-directory: yona-server
+          add-job-summary-as-pr-comment: on-failure
           arguments: |
             -PdockerUrl=unix:///var/run/docker.sock
             buildDockerImage
@@ -155,9 +157,10 @@ jobs:
 
           ./scripts/wait-for-services.sh
       - name: Run integration tests
-        uses: gradle/gradle-build-action@v2.12.0
+        uses: gradle/actions/setup-gradle@v3
         with:
           build-root-directory: yona-server
+          add-job-summary-as-pr-comment: on-failure
           arguments: |
             --no-daemon
             -Pyona_adminservice_url=http://localhost:31000
@@ -193,9 +196,10 @@ jobs:
             **/build/test-results/intTest/*.xml
       - name: Publish Docker images
         if: ${{ !inputs.is-pr-build }}
-        uses: gradle/gradle-build-action@v2.12.0
+        uses: gradle/actions/setup-gradle@v3
         with:
           build-root-directory: yona-server
+          add-job-summary-as-pr-comment: on-failure
           arguments: |
             -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }}
             -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }}
