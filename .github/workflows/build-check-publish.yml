@@ -57,6 +57,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           build-root-directory: yona-server
+          add-job-summary-as-pr-comment: on-failure
           arguments: |
             check
             sonarqube
@@ -65,6 +66,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           build-root-directory: yona-server
+          add-job-summary-as-pr-comment: on-failure
           arguments: |
             -PdockerUrl=unix:///var/run/docker.sock
             buildDockerImage
@@ -158,6 +160,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           build-root-directory: yona-server
+          add-job-summary-as-pr-comment: on-failure
           arguments: |
             --no-daemon
             -Pyona_adminservice_url=http://localhost:31000
@@ -196,6 +199,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           build-root-directory: yona-server
+          add-job-summary-as-pr-comment: on-failure
           arguments: |
             -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }}
             -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }}
