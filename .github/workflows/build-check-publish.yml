@@ -62,6 +62,10 @@ jobs:
             check
             sonarqube
             --info
+      - name: Publish Gradle dependencies
+        uses: gradle/actions/dependency-submission@v3
+      - name: Perform dependency review
+        uses: actions/dependency-review-action@v4.0.0
       - name: Build Docker images
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -247,10 +251,6 @@ jobs:
           done
           echo "ERROR: Helm chart is NOT available after ${totalSleepDuration} seconds"
           exit 1
-      - name: Publish Gradle dependencies
-        uses: gradle/actions/dependency-submission@v3
-      - name: Perform dependency review
-        uses: actions/dependency-review-action@v4.0.0
       - name: Notify regular build success through Slack
         if: ${{ success() && !inputs.is-pr-build }}
         uses: slackapi/slack-github-action@v1.25.0
