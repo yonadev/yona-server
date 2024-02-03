@@ -248,17 +248,9 @@ jobs:
           echo "ERROR: Helm chart is NOT available after ${totalSleepDuration} seconds"
           exit 1
       - name: Publish Gradle dependencies
-        if: ${{ !inputs.is-pr-build }}
-        uses: mikepenz/gradle-dependency-submission@v1.0.0
-        with:
-          gradle-project-path: yona-server
-          gradle-build-module: |-
-            :core
-            :dbinit
-            :analysisservice
-            :adminservice
-            :appservice
-            :batchservice
+        uses: gradle/actions/dependency-submission@v3
+      - name: Perform dependency review
+        uses: actions/dependency-review-action@v4.0.0
       - name: Notify regular build success through Slack
         if: ${{ success() && !inputs.is-pr-build }}
         uses: slackapi/slack-github-action@v1.25.0
