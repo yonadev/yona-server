@@ -39,7 +39,7 @@ jobs:
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   dependency-submission:
-    name: Publish and check dependencies
+    name: Publish dependencies
     needs:
       - build-check-publish
     runs-on: ubuntu-latest

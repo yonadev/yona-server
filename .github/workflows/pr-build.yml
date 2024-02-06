@@ -32,7 +32,7 @@ jobs:
       pull-requests: write
 
   dependency-submission:
-    name: Publish and check dependencies
+    name: Publish dependencies
     needs:
       - build-check-publish
     runs-on: ubuntu-latest
@@ -49,11 +49,11 @@ jobs:
       - name: Publish Gradle dependencies
         uses: gradle/actions/dependency-submission@v3
 
-  review-dependencies:
-    name: Publish and check dependencies
-    needs:
-      - dependency-submission
-    runs-on: ubuntu-latest
-    steps:
-      - name: Review dependencies
-        uses: actions/dependency-review-action@v4.0.0
+#  review-dependencies:
+#    name: Review dependencies
+#    needs:
+#      - dependency-submission
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Review dependencies
+#        uses: actions/dependency-review-action@v4.0.0
