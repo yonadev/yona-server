@@ -39,7 +39,7 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
           path: 'yona-server'
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v4.0.0
         with:
           distribution: 'temurin'
@@ -247,18 +247,6 @@ jobs:
           done
           echo "ERROR: Helm chart is NOT available after ${totalSleepDuration} seconds"
           exit 1
-      - name: Publish Gradle dependencies
-        if: ${{ !inputs.is-pr-build }}
-        uses: mikepenz/gradle-dependency-submission@v1.0.0
-        with:
-          gradle-project-path: yona-server
-          gradle-build-module: |-
-            :core
-            :dbinit
-            :analysisservice
-            :adminservice
-            :appservice
-            :batchservice
       - name: Notify regular build success through Slack
         if: ${{ success() && !inputs.is-pr-build }}
         uses: slackapi/slack-github-action@v1.25.0

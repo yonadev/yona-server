@@ -38,6 +38,25 @@ jobs:
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
+  dependency-submission:
+    name: Publish dependencies
+    needs:
+      - build-check-publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout src repo
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4.0.0
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Publish Gradle dependencies
+        uses: gradle/actions/dependency-submission@v3
+
+
   deploy-load-test-server:
     if: ${{ false }} # Load test server not available anymore
     name: Deploy load test server
