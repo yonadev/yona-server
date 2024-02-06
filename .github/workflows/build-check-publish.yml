@@ -275,6 +275,8 @@ jobs:
     name: Publish and check dependencies
     needs: build-check-and-publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout src repo
         uses: actions/checkout@v4
