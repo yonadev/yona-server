@@ -62,12 +62,6 @@ jobs:
             check
             sonarqube
             --info
-      - name: Publish Gradle dependencies
-        uses: gradle/actions/dependency-submission@v3
-        with:
-          build-root-directory: yona-server
-      - name: Perform dependency review
-        uses: actions/dependency-review-action@v4.0.0
       - name: Build Docker images
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -277,3 +271,13 @@ jobs:
           slack-message: "Build ${{ inputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  publish-dependencies:
+    name: Publish and check dependencies
+    needs: build-check-and-publish
+    runs-on: ubuntu-latest
+      - name: Publish Gradle dependencies
+        uses: gradle/actions/dependency-submission@v3
+        with:
+          build-root-directory: yona-server
+      - name: Perform dependency review
+        uses: actions/dependency-review-action@v4.0.0
