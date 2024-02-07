@@ -56,4 +56,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Review dependencies
-#        uses: actions/dependency-review-action@v4.0.0
+        uses: actions/dependency-review-action@v4.0.0
