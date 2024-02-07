@@ -38,7 +38,6 @@ public class BuddyDeviceChangeMessage extends BuddyMessage
 	private byte[] newNameCiphertext;
 
 	@JdbcType(value = TinyIntJdbcType.class)
-	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
 
 	// Default constructor is required for JPA

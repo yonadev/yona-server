@@ -8,7 +8,6 @@ import org.hibernate.annotations.JdbcType;
 import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
@@ -16,7 +15,6 @@ import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 public class BuddyDisconnectMessage extends BuddyConnectionChangeMessage
 {
 	@JdbcType(value = TinyIntJdbcType.class)
-	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
 	@JdbcType(value = IntegerJdbcType.class)
 	private DropBuddyReason reason;

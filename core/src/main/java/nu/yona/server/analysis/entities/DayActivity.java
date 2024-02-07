@@ -23,7 +23,6 @@ import org.hibernate.annotations.JdbcType;
 import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
@@ -48,7 +47,6 @@ public class DayActivity extends IntervalActivity
 	private List<Activity> activities;
 
 	@JdbcType(value = TinyIntJdbcType.class)
-	@Column(columnDefinition = "bit default false")
 	private boolean goalAccomplished;
 	private int totalMinutesBeyondGoal;
 

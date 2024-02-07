@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -20,7 +19,6 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 {
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 	@JdbcType(value = TinyIntJdbcType.class)
-	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
 
 	// Default constructor is required for JPA

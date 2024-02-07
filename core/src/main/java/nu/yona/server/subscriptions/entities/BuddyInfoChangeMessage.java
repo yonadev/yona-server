@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
@@ -32,7 +31,6 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	private Optional<UUID> newUserPhotoId;
 	private byte[] newUserPhotoIdCiphertext;
 	@JdbcType(value = TinyIntJdbcType.class)
-	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
 
 	public BuddyInfoChangeMessage(BuddyInfoParameters buddyInfoParameters, String message, String newFirstName,
