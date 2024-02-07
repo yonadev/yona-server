@@ -7,6 +7,10 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Set;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import nu.yona.server.device.entities.UserDevice;
@@ -16,11 +20,14 @@ import nu.yona.server.subscriptions.service.BuddyServiceException;
 @Entity
 public class BuddyConnectRequestMessage extends BuddyConnectMessage
 {
+	@JdbcType(value = TinyIntJdbcType.class)
 	@Column(columnDefinition = "bit default false")
 	private boolean isRequestingSending;
+	@JdbcType(value = TinyIntJdbcType.class)
 	@Column(columnDefinition = "bit default false")
 	private boolean isRequestingReceiving;
 
+	@JdbcType(value = IntegerJdbcType.class)
 	private Status status;
 
 	// Default constructor is required for JPA

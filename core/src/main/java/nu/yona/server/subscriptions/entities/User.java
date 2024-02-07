@@ -11,6 +11,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -46,6 +49,7 @@ public class User extends EntityWithUuid
 
 	private byte[] initializationVector;
 
+	@JdbcType(value = TinyIntJdbcType.class)
 	private boolean isCreatedOnBuddyRequest;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)

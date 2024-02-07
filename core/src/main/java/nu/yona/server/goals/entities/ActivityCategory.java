@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -28,6 +30,7 @@ public class ActivityCategory extends EntityWithUuid
 	@ElementCollection
 	private Map<Locale, String> localizableName;
 
+	@JdbcType(value = TinyIntJdbcType.class)
 	private boolean mandatoryNoGo;
 
 	@ElementCollection

@@ -7,6 +7,10 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
@@ -17,6 +21,7 @@ import nu.yona.server.messaging.entities.BuddyMessage;
 @Entity
 public class BuddyDeviceChangeMessage extends BuddyMessage
 {
+	@JdbcType(value = IntegerJdbcType.class)
 	@Column(name = "device_change")
 	private DeviceChange change;
 
@@ -32,6 +37,7 @@ public class BuddyDeviceChangeMessage extends BuddyMessage
 	private Optional<String> newName;
 	private byte[] newNameCiphertext;
 
+	@JdbcType(value = TinyIntJdbcType.class)
 	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
 

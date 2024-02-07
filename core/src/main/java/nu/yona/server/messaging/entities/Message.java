@@ -14,7 +14,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Inheritance;
@@ -56,8 +58,10 @@ public abstract class Message extends EntityWithId
 
 	private final LocalDateTime creationTime;
 
+	@JdbcType(value = TinyIntJdbcType.class)
 	private final boolean isSentItem;
 
+	@JdbcType(value = TinyIntJdbcType.class)
 	private boolean isRead;
 
 	protected Message()

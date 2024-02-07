@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +69,7 @@ public abstract class IntervalActivity extends EntityWithId
 
 	private int totalActivityDurationMinutes;
 
+	@JdbcType(value = TinyIntJdbcType.class)
 	private boolean aggregatesComputed;
 
 	// Default constructor for JPA

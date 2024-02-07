@@ -12,8 +12,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JoinColumnOrFormula;
 import org.hibernate.annotations.JoinFormula;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -39,6 +41,7 @@ public class DeviceAnonymized extends EntityWithUuid
 
 	private int deviceIndex;
 
+	@JdbcType(value = IntegerJdbcType.class)
 	private OperatingSystem operatingSystem;
 
 	private LocalDate lastMonitoredActivityDate;

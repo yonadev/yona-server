@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -45,6 +47,7 @@ public class DayActivity extends IntervalActivity
 	// so you get 4 goals * 1 day = 4 activity collections to be joined
 	private List<Activity> activities;
 
+	@JdbcType(value = TinyIntJdbcType.class)
 	@Column(columnDefinition = "bit default false")
 	private boolean goalAccomplished;
 	private int totalMinutesBeyondGoal;

@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -47,6 +49,7 @@ public class GoalConflictMessage extends Message
 
 	@ManyToOne
 	private Goal goal;
+	@JdbcType(value = IntegerJdbcType.class)
 	private Status status;
 
 	@OneToMany(mappedBy = "disclosureRequestTargetGoalConflictMessage", cascade = { CascadeType.REMOVE })
