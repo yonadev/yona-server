@@ -35,7 +35,7 @@ spring-boot-starter-hateoas   = { module = "org.springframework.boot:spring-boot
 spring-boot-starter-data-jpa  = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring-boot-starter-web       = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-actuator  = { module = "org.springframework.boot:spring-boot-starter-actuator" }
-spring-cloud-starter-sleuth   = { module = "org.springframework.cloud:spring-cloud-starter-sleuth", version = "3.1.10" }
+spring-cloud-starter-sleuth   = { module = "org.springframework.cloud:spring-cloud-starter-sleuth", version = "3.1.11" }
 spring-metrics                = { module = "org.springframework.metrics:spring-metrics", version = "0.5.1.RELEASE" }
 micrometer-prometheus         = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.12.2" }
 spring-context-support        = { module = "org.springframework:spring-context-support" }
