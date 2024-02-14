@@ -133,8 +133,9 @@ jobs:
             imagePullPolicy: Never
 
           mariadb:
-            persistence:
-            enabled: false
+            primary:
+              persistence:
+                enabled: false
 
           ldap:
             enabled: false
@@ -153,7 +154,7 @@ jobs:
             enable_hibernate_stats_allowed: true
           EOF
 
-          helm upgrade --wait --wait-for-jobs --install --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
+          helm upgrade --wait --wait-for-jobs --install --debug --values values.yml --namespace yona yona ${PACKAGE_DIR}/${CHART}-${CHART_VERSION}.tgz
 
           ./scripts/wait-for-services.sh
       - name: Run integration tests
