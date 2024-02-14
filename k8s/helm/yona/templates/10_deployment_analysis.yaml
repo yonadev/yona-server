@@ -57,14 +57,14 @@ spec:
           imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" | quote }}
           env:
             - name: YONA_DB_USER_NAME
-              value: {{ .Values.mariadb.db.user | default "develop" | quote }}
+              value: {{ .Values.mariadb.auth.userName | default "develop" | quote }}
             - name: YONA_DB_PASSWORD
-              value: {{ .Values.mariadb.db.password | default "develop" | quote }}
+              value: {{ .Values.mariadb.auth.password | default "develop" | quote }}
             - name: YONA_DB_URL
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.auth.database }}"
             {{- end }}
           ports:
             - containerPort: 8080

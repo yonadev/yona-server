@@ -64,7 +64,7 @@ spec:
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.auth.database }}"
             {{- end }}
           ports:
             - containerPort: 8080
