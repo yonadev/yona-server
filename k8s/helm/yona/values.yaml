@@ -185,16 +185,15 @@ apple:
   ca_certificate_file: apple/AppleWWDRCA.cer
 
 mariadb:
-  db:
-    user: develop
+  architecture: standalone
+  auth:
+    rootPassword: develop
+    database: yona
+    userName: develop
     password: develop
-    name: yona
-  rootUser:
-    password: develop
-  persistence:
-    enabled: false
-  replication:
-    enabled: false
+  primary:
+    persistence:
+      enabled: false
   volumePermissions:
     enabled: true
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
