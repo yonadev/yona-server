@@ -189,7 +189,7 @@ mariadb:
   auth:
     rootPassword: develop
     database: yona
-    userName: develop
+    username: develop
     password: develop
   primary:
     persistence:
