@@ -7,8 +7,6 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.hibernate.annotations.JdbcType;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;

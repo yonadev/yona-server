@@ -7,8 +7,6 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Set;
 import java.util.UUID;
 
-import org.hibernate.annotations.JdbcType;
-
 import jakarta.persistence.Entity;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;

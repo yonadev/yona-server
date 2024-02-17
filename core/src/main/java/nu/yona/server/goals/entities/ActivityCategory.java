@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.JdbcType;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;

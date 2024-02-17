@@ -11,8 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.hibernate.annotations.JdbcType;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

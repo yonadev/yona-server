@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.JdbcType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
