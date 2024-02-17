@@ -11,7 +11,6 @@ import java.util.UUID;
 
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -31,7 +30,6 @@ public class UserDevice extends DeviceBase
 	@Column(name = "user_private_id")
 	private UUID userPrivateId;
 
-	@JdbcType(value = TinyIntJdbcType.class)
 	private boolean isLegacyVpnAccount;
 
 	@Convert(converter = StringFieldEncryptor.class)

@@ -6,7 +6,6 @@ package nu.yona.server.subscriptions.entities;
 
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
-import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import jakarta.persistence.Entity;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
@@ -14,7 +13,6 @@ import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 @Entity
 public class BuddyDisconnectMessage extends BuddyConnectionChangeMessage
 {
-	@JdbcType(value = TinyIntJdbcType.class)
 	private boolean isProcessed;
 	@JdbcType(value = IntegerJdbcType.class)
 	private DropBuddyReason reason;

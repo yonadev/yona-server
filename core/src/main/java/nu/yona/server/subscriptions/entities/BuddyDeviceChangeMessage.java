@@ -9,7 +9,6 @@ import java.util.UUID;
 
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
-import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,7 +36,6 @@ public class BuddyDeviceChangeMessage extends BuddyMessage
 	private Optional<String> newName;
 	private byte[] newNameCiphertext;
 
-	@JdbcType(value = TinyIntJdbcType.class)
 	private boolean isProcessed;
 
 	// Default constructor is required for JPA

@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.type.descriptor.jdbc.TinyIntJdbcType;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
@@ -30,7 +29,6 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	@Transient
 	private Optional<UUID> newUserPhotoId;
 	private byte[] newUserPhotoIdCiphertext;
-	@JdbcType(value = TinyIntJdbcType.class)
 	private boolean isProcessed;
 
 	public BuddyInfoChangeMessage(BuddyInfoParameters buddyInfoParameters, String message, String newFirstName,
