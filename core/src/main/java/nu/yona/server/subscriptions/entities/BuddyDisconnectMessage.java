@@ -4,15 +4,17 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import jakarta.persistence.Column;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 import jakarta.persistence.Entity;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @Entity
 public class BuddyDisconnectMessage extends BuddyConnectionChangeMessage
 {
-	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
+	@JdbcType(value = IntegerJdbcType.class)
 	private DropBuddyReason reason;
 
 	public BuddyDisconnectMessage(BuddyInfoParameters buddyInfoParameters, String message, DropBuddyReason reason)

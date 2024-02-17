@@ -25,9 +25,9 @@ spec:
           image: craftypenguins/k8s-init-mysql:latest
           env:
             - name: DBUSER
-              value: {{ .Values.mariadb.db.user | default "develop" | quote }}
+              value: {{ .Values.mariadb.auth.userName | default "develop" | quote }}
             - name: DBPASSWORD
-              value: {{ .Values.mariadb.db.password | default "develop" | quote }}
+              value: {{ .Values.mariadb.auth.password | default "develop" | quote }}
             - name: DBHOST
               {{- if .Values.mariadb.hostname_override }}
               value: {{ .Values.mariadb.hostname_override | quote }}
@@ -35,7 +35,7 @@ spec:
               value: {{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local
               {{- end }}
             - name: DBNAME
-              value: {{ .Values.mariadb.db.name | quote }}
+              value: {{ .Values.mariadb.auth.database | quote }}
             - name: TIMEOUT
               value: "10s"
         - name: validateldap
@@ -59,14 +59,14 @@ spec:
           imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" | quote }}
           env:       
             - name: USER
-              value: {{ .Values.mariadb.db.user | default "develop" | quote }}
+              value: {{ .Values.mariadb.auth.userName | default "develop" | quote }}
             - name: PASSWORD
-              value: {{ .Values.mariadb.db.password | default "develop" | quote }}
+              value: {{ .Values.mariadb.auth.password | default "develop" | quote }}
             - name: URL
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.db.name }}"
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.auth.database }}"
             {{- end }}
             - name: RELEASE
             {{- if .Values.mariadb.seed_release}}

@@ -21,7 +21,6 @@ import java.util.UUID;
 import org.hibernate.annotations.BatchSize;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
@@ -45,7 +44,6 @@ public class DayActivity extends IntervalActivity
 	// so you get 4 goals * 1 day = 4 activity collections to be joined
 	private List<Activity> activities;
 
-	@Column(columnDefinition = "bit default false")
 	private boolean goalAccomplished;
 	private int totalMinutesBeyondGoal;
 

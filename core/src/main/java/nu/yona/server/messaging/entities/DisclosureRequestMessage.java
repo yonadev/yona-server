@@ -4,6 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -14,6 +17,7 @@ public class DisclosureRequestMessage extends BuddyMessage
 {
 	@ManyToOne
 	private GoalConflictMessage disclosureRequestTargetGoalConflictMessage;
+	@JdbcType(value = IntegerJdbcType.class)
 	private Status status;
 
 	// Default constructor is required for JPA

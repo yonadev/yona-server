@@ -7,7 +7,6 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Optional;
 import java.util.UUID;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
@@ -28,7 +27,6 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	@Transient
 	private Optional<UUID> newUserPhotoId;
 	private byte[] newUserPhotoIdCiphertext;
-	@Column(columnDefinition = "bit default false")
 	private boolean isProcessed;
 
 	public BuddyInfoChangeMessage(BuddyInfoParameters buddyInfoParameters, String message, String newFirstName,

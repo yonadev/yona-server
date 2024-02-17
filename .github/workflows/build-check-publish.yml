@@ -133,8 +133,9 @@ jobs:
             imagePullPolicy: Never
 
           mariadb:
-            persistence:
-            enabled: false
+            primary:
+              persistence:
+                enabled: false
 
           ldap:
             enabled: false

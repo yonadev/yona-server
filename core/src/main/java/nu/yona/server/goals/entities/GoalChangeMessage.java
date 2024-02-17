@@ -4,6 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -20,6 +23,7 @@ public class GoalChangeMessage extends BuddyMessage
 	@ManyToOne
 	private ActivityCategory activityCategoryOfChangedGoal;
 
+	@JdbcType(value = IntegerJdbcType.class)
 	@Column(name = "`change`") // "change" is a reserved word for MySQL
 	private Change change;
 

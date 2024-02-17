@@ -8,7 +8,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -51,12 +53,14 @@ public class BuddyAnonymized extends EntityWithUuid
 	 * When the sendingStatus is ACCEPTED, the buddy user accepted to send goal conflicts and activity information to the other
 	 * side.
 	 */
+	@JdbcType(value = IntegerJdbcType.class)
 	private Status sendingStatus = Status.NOT_REQUESTED;
 
 	/*
 	 * When the receivingStatus is ACCEPTED, the buddy user accepted to receive goal conflicts and activity information from the
 	 * other side.
 	 */
+	@JdbcType(value = IntegerJdbcType.class)
 	private Status receivingStatus = Status.NOT_REQUESTED;
 
 	// Default constructor is required for JPA

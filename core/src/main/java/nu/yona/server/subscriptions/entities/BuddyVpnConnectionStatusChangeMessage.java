@@ -6,7 +6,6 @@ package nu.yona.server.subscriptions.entities;
 
 import java.util.UUID;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
@@ -17,7 +16,6 @@ import nu.yona.server.messaging.entities.BuddyMessage;
 @DiscriminatorValue("BuddyVpnConnectionStatChngMsg") // Default max length = 31
 public class BuddyVpnConnectionStatusChangeMessage extends BuddyMessage
 {
-	@Column(columnDefinition = "bit default false")
 	private boolean isVpnConnected;
 
 	@Transient
