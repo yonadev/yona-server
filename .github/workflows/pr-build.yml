@@ -50,7 +50,7 @@ jobs:
       - name: Publish Gradle dependencies
         uses: gradle/actions/dependency-submission@v3
       - name: Review dependencies
-        uses: actions/dependency-review-action@v4.1.3
+        uses: actions/dependency-review-action@v4.2.4
         with:
           comment-summary-in-pr: on-failure
           allow-ghsas: GHSA-4265-ccf5-phj5 # Apache Commons Compress: OutOfMemoryError unpacking broken Pack200 file
