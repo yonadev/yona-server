@@ -250,7 +250,7 @@ jobs:
           exit 1
       - name: Notify regular build success through Slack
         if: ${{ success() && !inputs.is-pr-build }}
-        uses: slackapi/slack-github-action@v1.25.0
+        uses: slackapi/slack-github-action@v1.26.0
         with:
           channel-id: '#devops'
           slack-message: "Build ${{ inputs.build-id }} completed successfully"
@@ -258,7 +258,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify PR build success through Slack
         if: ${{ success() && inputs.is-pr-build }}
-        uses: slackapi/slack-github-action@v1.25.0
+        uses: slackapi/slack-github-action@v1.26.0
         with:
           channel-id: '#devops'
           slack-message: "Successfully built PR https://github.com/yonadev/yona-server/pull/${{ github.event.number }}"
@@ -266,7 +266,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify failure through Slack
         if: failure()
-        uses: slackapi/slack-github-action@v1.25.0
+        uses: slackapi/slack-github-action@v1.26.0
         with:
           channel-id: '#devops'
           slack-message: "Build ${{ inputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
