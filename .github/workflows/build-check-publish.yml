@@ -109,7 +109,7 @@ jobs:
           helm package -d ${PACKAGE_DIR} --version ${CHART_VERSION} ${CHART}
           popd
       - name: Set up Minikube
-        uses: manusa/actions-setup-minikube@v2.10.0
+        uses: manusa/actions-setup-minikube@v2.11.0
         with:
           minikube version: 'v1.25.2'
           kubernetes version: 'v1.24.0'
