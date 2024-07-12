@@ -111,8 +111,8 @@ jobs:
       - name: Set up Minikube
         uses: manusa/actions-setup-minikube@v2.11.0
         with:
-          minikube version: 'v1.25.2'
-          kubernetes version: 'v1.24.0'
+          minikube version: 'v1.33.1'
+          kubernetes version: 'v1.30.2'
       - name: Deploy Yona
         run: |
           kubectl create -f k8s/01_namespace.yaml
