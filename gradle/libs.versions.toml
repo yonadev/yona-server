@@ -40,7 +40,7 @@ spring-metrics                = { module = "org.springframework.metrics:spring-m
 micrometer-prometheus         = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.12.5" }
 spring-context-support        = { module = "org.springframework:spring-context-support" }
 evo-inflector                 = { module = "org.atteo:evo-inflector", version = "1.3" }
-commons-validator             = { module = "commons-validator:commons-validator", version = "1.8.0" }
+commons-validator             = { module = "commons-validator:commons-validator", version = "1.9.0" }
 commons-lang                  = { module = "commons-lang:commons-lang", version = "2.6" }
 jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", version = "2.0.3" }
 spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "3.2.4" }
