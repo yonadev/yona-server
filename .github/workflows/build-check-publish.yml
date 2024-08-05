@@ -59,15 +59,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: yona-server
-        run: ./gradlew \
-          check \
-          sonarqube \
-          --info
+        run: |
+          ./gradlew \
+            check \
+            sonarqube \
+            --info
       - name: Build Docker images
         working-directory: yona-server
-        run: ./gradlew \
-          -PdockerUrl=unix:///var/run/docker.sock \
-          buildDockerImage
+        run: |
+          ./gradlew \
+            -PdockerUrl=unix:///var/run/docker.sock \
+            buildDockerImage
       - name: Checkout Helm chart repo for PR
         if: ${{ inputs.is-pr-build }}
         uses: actions/checkout@v4
@@ -157,22 +159,24 @@ jobs:
           ./scripts/wait-for-services.sh
       - name: Run integration tests
         working-directory: yona-server
-        run: ./gradlew \
-          --no-daemon \
-          -Pyona_adminservice_url=http://localhost:31000 \
-          -Pyona_analysisservice_url=http://localhost:31001 \
-          -Pyona_appservice_url=http://localhost:31002 \
-          -Pyona_batchservice_url=http://localhost:31003 \
-          intTest
+        run: |
+          ./gradlew \
+            --no-daemon \
+            -Pyona_adminservice_url=http://localhost:31000 \
+            -Pyona_analysisservice_url=http://localhost:31001 \
+            -Pyona_appservice_url=http://localhost:31002 \
+            -Pyona_batchservice_url=http://localhost:31003 \
+            intTest
       - name: Run integration tests
         working-directory: yona-server
-        run: ./gradlew \
-          --no-daemon \
-          -Pyona_adminservice_url=http://localhost:31000 \
-          -Pyona_analysisservice_url=http://localhost:31001 \
-          -Pyona_appservice_url=http://localhost:31002 \
-          -Pyona_batchservice_url=http://localhost:31003 \
-          intTest
+        run: |
+          ./gradlew \
+            --no-daemon \
+            -Pyona_adminservice_url=http://localhost:31000 \
+            -Pyona_analysisservice_url=http://localhost:31001 \
+            -Pyona_appservice_url=http://localhost:31002 \
+            -Pyona_batchservice_url=http://localhost:31003 \
+            intTest
       - name: Gather logs
         if: always()
         run: |
@@ -202,7 +206,8 @@ jobs:
       - name: Publish Docker images
         if: ${{ !inputs.is-pr-build }}
         working-directory: yona-server
-        run: ./gradlew \
+        run: |
+          ./gradlew \
             -PdockerHubUserName=${{ secrets.DOCKER_HUB_USER_NAME }} \
             -PdockerHubPassword=${{ secrets.DOCKER_HUB_PASSWORD }} \
             -PdockerUrl=unix:///var/run/docker.sock \
