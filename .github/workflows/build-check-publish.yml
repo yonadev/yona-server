@@ -51,7 +51,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Build and analyze
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -63,7 +63,7 @@ jobs:
             sonarqube
             --info
       - name: Build Docker images
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           build-root-directory: yona-server
           add-job-summary-as-pr-comment: on-failure
@@ -158,7 +158,7 @@ jobs:
 
           ./scripts/wait-for-services.sh
       - name: Run integration tests
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           build-root-directory: yona-server
           add-job-summary-as-pr-comment: on-failure
@@ -197,7 +197,7 @@ jobs:
             **/build/test-results/intTest/*.xml
       - name: Publish Docker images
         if: ${{ !inputs.is-pr-build }}
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           build-root-directory: yona-server
           add-job-summary-as-pr-comment: on-failure
