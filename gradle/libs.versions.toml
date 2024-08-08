@@ -53,7 +53,7 @@ firebase-admin                = { module = "com.google.firebase:firebase-admin",
 # Libraries used in analysisservice
 
 # Libraries used in appservice
-commons-lang3    = { module = "org.apache.commons:commons-lang3", version = "3.15.0" }
+commons-lang3    = { module = "org.apache.commons:commons-lang3", version = "3.16.0" }
 
 # Libraries used in batchservice
 quartz    = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
