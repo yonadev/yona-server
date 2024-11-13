@@ -56,7 +56,7 @@ firebase-admin                = { module = "com.google.firebase:firebase-admin",
 commons-lang3    = { module = "org.apache.commons:commons-lang3", version = "3.17.0" }
 
 # Libraries used in batchservice
-quartz    = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
+quartz    = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 
 # Libraries used in dbinit
 liquibase-core       = { module = "org.liquibase:liquibase-core", version = "4.30.0" }
