@@ -100,10 +100,13 @@ jobs:
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
       - name: Notify failure through Slack
         if: failure()
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel-id: '#devops'
-          slack-message: "Load test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: '#devops'
+            text: "Load test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
@@ -137,18 +140,24 @@ jobs:
           helm-values-path: helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
       - name: Notify deployment status through Slack
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel-id: '#devops'
-          slack-message: "Build ${{ needs.determine-build-id.outputs.build-id }} ready to deploy to production"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: '#devops'
+            text: "Build ${{ needs.determine-build-id.outputs.build-id }} ready to deploy to production"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify failure through Slack
         if: failure()
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel-id: '#devops'
-          slack-message: "Beta test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: '#devops'
+            text: "Beta test deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
@@ -182,17 +191,23 @@ jobs:
           helm-values-path: helm/values.yaml
           gitlab-token: ${{ secrets.YONA_BUILD_GITLAB_TOKEN }}
       - name: Notify deployment success through Slack
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel-id: '#devops'
-          slack-message: "Build ${{ needs.determine-build-id.outputs.build-id }} successfully deployed to production"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: '#devops'
+            text: "Build ${{ needs.determine-build-id.outputs.build-id }} successfully deployed to production"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify failure through Slack
         if: failure()
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel-id: '#devops'
-          slack-message: "Production deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: '#devops'
+            text: "Production deployment for build ${{ needs.determine-build-id.outputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

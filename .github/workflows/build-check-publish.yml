@@ -256,25 +256,32 @@ jobs:
           exit 1
       - name: Notify regular build success through Slack
         if: ${{ success() && !inputs.is-pr-build }}
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel-id: '#devops'
-          slack-message: "Build ${{ inputs.build-id }} completed successfully"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: '#devops'
+            text: "Build ${{ inputs.build-id }} completed successfully"
       - name: Notify PR build success through Slack
         if: ${{ success() && inputs.is-pr-build }}
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel-id: '#devops'
-          slack-message: "Successfully built PR https://github.com/yonadev/yona-server/pull/${{ github.event.number }}"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: '#devops'
+            text: "Successfully built PR https://github.com/yonadev/yona-server/pull/${{ github.event.number }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify failure through Slack
         if: failure()
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
-          channel-id: '#devops'
-          slack-message: "Build ${{ inputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: '#devops'
+            text: "Build ${{ inputs.build-id }} failed. See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
