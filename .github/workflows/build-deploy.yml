@@ -71,7 +71,7 @@ jobs:
       - name: Checkout src repo
         uses: actions/checkout@v4
       - name: Wipe existing database
-        uses: appleboy/ssh-action@v1.1.0
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USERNAME }}
