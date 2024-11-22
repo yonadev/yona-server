@@ -14,7 +14,7 @@ hibernate                     = { module = "org.hibernate:hibernate-core", versi
 httpmime                      = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 jackson-datatype-jdk8         = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8" }
 jackson-datatype-jsr310       = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
-mariadb-client                = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.0" }
+mariadb-client                = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.1" }
 spring-batch-core             = { module = "org.springframework.batch:spring-batch-core", version = "5.2.0" }
 spring-security-config        = { module = "org.springframework.security:spring-security-config", version.ref = "spring-security" }
 spring-security-web           = { module = "org.springframework.security:spring-security-web", version.ref = "spring-security" }
