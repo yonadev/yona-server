@@ -9,7 +9,7 @@ mainClassName = "nu.yona.server.AdminServiceApplication"
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
-def dockerImageName = "${project.group}/${jar.baseName}"
+def dockerImageName = "${project.group}/${jar.archiveBaseName}"
 
 configurations {
 	providedRuntime
@@ -59,7 +59,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 		copy {
 			from bootJar
 			into inputDir
-			rename "${jar.baseName}-${jar.version}-${bootJar.classifier}", "${jar.baseName}"
+			rename "${jar.archiveBaseName}-${jar.version}-${bootJar.archiveClassifier}", "${jar.archiveBaseName}"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
@@ -97,8 +97,8 @@ task intTest(type: Test) {
 }
 
 bootJar {
-	baseName = "adminservice"
-	classifier = "full"
+	archiveBaseName = "adminservice"
+	archiveClassifier = "full"
 }
 
 eclipse {

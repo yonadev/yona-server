@@ -8,7 +8,7 @@ mainClassName = "nu.yona.server.AppServiceApplication"
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
-def dockerImageName = "${project.group}/${jar.baseName}"
+def dockerImageName = "${project.group}/${jar.archiveBaseName}"
 
 configurations {
 	providedRuntimeClasspath
@@ -65,7 +65,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 		copy {
 			from bootJar
 			into inputDir
-			rename "${jar.baseName}-${jar.version}-${bootJar.classifier}", "${jar.baseName}"
+			rename "${jar.archiveBaseName}-${jar.version}-${bootJar.archiveClassifier}", "${jar.archiveBaseName}"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
@@ -105,8 +105,8 @@ task intTest(type: Test) {
 }
 
 bootJar {
-	baseName = "appservice"
-	classifier = "full"
+	archiveBaseName = "appservice"
+	archiveClassifier = "full"
 }
 
 eclipse {

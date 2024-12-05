@@ -57,7 +57,7 @@ task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 
 task pathingJar(type: Jar) {
 	dependsOn configurations.runtimeClasspath
-	appendix = 'pathing'
+	archiveAppendix = 'pathing'
 	doFirst {
 		manifest {
 			attributes "Class-Path": configurations.runtimeClasspath.files.collect {
@@ -76,7 +76,7 @@ bootRun {
 }
 
 bootJar {
-	classifier = "full"
+	archiveClassifier = "full"
 }
 
 liquibase {
