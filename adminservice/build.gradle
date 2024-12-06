@@ -59,7 +59,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 		copy {
 			from bootJar
 			into inputDir
-			rename "${jar.archiveBaseName}-${jar.version}-${bootJar.archiveClassifier}", "${jar.archiveBaseName}"
+			rename "${jar.archiveBaseName}-${jar.archiveVersion}-${bootJar.archiveClassifier}", "${jar.archiveBaseName}"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
