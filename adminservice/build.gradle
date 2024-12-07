@@ -10,6 +10,7 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 def dockerImageName = "${project.group}/${project.archivesBaseName}"
+def classifier = "full"
 
 configurations {
 	providedRuntime
@@ -59,7 +60,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 		copy {
 			from bootJar
 			into inputDir
-			rename "${jar.archiveBaseName}-${jar.archiveVersion}-${bootJar.archiveClassifier}", "${jar.archiveBaseName}"
+			rename "${jar.archiveBaseName.getOrNull()}-${jar.archiveVersion.getOrNull()}-${classifier}", "${jar.archiveBaseName.getOrNull()}"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
@@ -98,7 +99,7 @@ task intTest(type: Test) {
 
 bootJar {
 	archiveBaseName = "adminservice"
-	archiveClassifier = "full"
+	archiveClassifier = classifier
 }
 
 eclipse {
