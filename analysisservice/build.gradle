@@ -8,7 +8,8 @@ mainClassName = "nu.yona.server.AnalysisServiceApplication"
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
-def dockerImageName = "${project.group}/${jar.baseName}"
+def dockerImageName = "${project.group}/${project.archivesBaseName}"
+def classifier = "full"
 
 configurations {
 	providedRuntime
@@ -68,7 +69,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 		copy {
 			from bootJar
 			into inputDir
-			rename "${jar.baseName}-${jar.version}-${bootJar.classifier}", "${jar.baseName}"
+			rename "${jar.archiveBaseName.getOrNull()}-${jar.archiveVersion.getOrNull()}-${classifier}", "${jar.archiveBaseName.getOrNull()}"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
@@ -104,8 +105,8 @@ task intTest(type: Test) {
 }
 
 bootJar {
-	classifier = "full"
-	baseName = "analysisservice"
+	archiveBaseName = "analysisservice"
+	archiveClassifier = classifier
 }
 
 eclipse {

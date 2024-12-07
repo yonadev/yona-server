@@ -5,7 +5,7 @@ plugins {
 description = 'Core'
 
 jar {
-	baseName = 'Core'
+	archiveBaseName = 'Core'
 }
 
 configurations {
@@ -17,7 +17,7 @@ sourceSets {
 }
 
 task testUtilsJar(type: Jar) {
-	classifier "testUtils"
+	archiveClassifier = "testUtils"
 	from sourceSets.testUtils.output
 }
 
