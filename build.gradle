@@ -21,8 +21,8 @@ htmlDependencyReport {
 }
 
 subprojects {
-	sourceCompatibility = 17.0
-	targetCompatibility = 17.0
+	sourceCompatibility = 21.0
+	targetCompatibility = 21.0
 	apply plugin: "eclipse"
 	apply plugin: "groovy"
 	apply plugin: libs.plugins.spring.dependency.mgmt.get().pluginId
