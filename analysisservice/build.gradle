@@ -8,7 +8,7 @@ mainClassName = "nu.yona.server.AnalysisServiceApplication"
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
-def dockerImageName = "${project.group}/${jar.archiveBaseName}"
+def dockerImageName = "${project.group}/${project.archivesBaseName}"
 
 configurations {
 	providedRuntime
@@ -68,7 +68,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
 		copy {
 			from bootJar
 			into inputDir
-			rename "${jar.archiveBaseName}-${jar.archiveVersion}-${bootJar.archiveClassifier}", "${jar.archiveBaseName}"
+			rename "${project.archivesBaseName}-${jar.archiveVersion}-${bootJar.archiveClassifier}", "${project.archivesBaseName}"
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
