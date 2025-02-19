@@ -60,7 +60,7 @@ quartz    = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 
 # Libraries used in dbinit
 liquibase-core       = { module = "org.liquibase:liquibase-core", version = "4.31.1" }
-liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version = "4.31.0" }
+liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version = "4.31.1" }
 picocli              = { module = "info.picocli:picocli", version = "4.7.6" }
 
 [plugins]
