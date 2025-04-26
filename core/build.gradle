@@ -42,6 +42,7 @@ dependencies {
 	implementation libs.commons.validator
 	implementation libs.commons.lang
 	api libs.jakarta.mail
+	api libs.jakarta.annotation
 	api libs.thymeleaf
 	implementation libs.spring.ldap.core
 	implementation libs.spring.security.web

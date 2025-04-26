@@ -47,6 +47,7 @@ spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap
 guava                         = { module = "com.google.guava:guava", version = "33.4.0-jre" }
 libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.4" }
 firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.4.3" }
+jakarta-annotation            = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }
 
 # Libraries used in adminservice
 
