@@ -45,7 +45,7 @@ commons-lang                  = { module = "commons-lang:commons-lang", version 
 jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", version = "2.0.3" }
 spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "3.2.12" }
 guava                         = { module = "com.google.guava:guava", version = "33.4.8-jre" }
-libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.4" }
+libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.5" }
 firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.4.3" }
 jakarta-annotation            = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }
 
