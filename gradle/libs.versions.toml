@@ -69,4 +69,4 @@ bmuschko-docker        = { id = "com.bmuschko.docker-remote-api", version = "9.4
 sonarqube              = { id = "org.sonarqube", version = "6.2.0.5505" }
 spring-boot            = { id = "org.springframework.boot", version = "3.5.0" }
 spring-dependency-mgmt = { id = "io.spring.dependency-management", version = "1.1.7" }
-liquibase              = { id = "org.liquibase.gradle", version = "2.2.2" }
+liquibase              = { id = "org.liquibase.gradle", version = "3.0.2" }
