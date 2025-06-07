@@ -43,14 +43,14 @@ jobs:
       - name: Checkout src repo
         uses: actions/checkout@v4
       - name: Set up JDK
-        uses: actions/setup-java@v4.7.0
+        uses: actions/setup-java@v4.7.1
         with:
           distribution: 'temurin'
           java-version: 17
       - name: Publish Gradle dependencies
         uses: gradle/actions/dependency-submission@v4
       - name: Review dependencies
-        uses: actions/dependency-review-action@v4.5.0
+        uses: actions/dependency-review-action@v4.7.1
         with:
           comment-summary-in-pr: on-failure
           allow-ghsas: GHSA-4265-ccf5-phj5 # Apache Commons Compress: OutOfMemoryError unpacking broken Pack200 file

@@ -1,8 +1,8 @@
 [versions]
 bouncycastle    = "1.70"
 hazelcast       = "5.5.0" # When updating, also update hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
-hibernate       = "6.6.11.Final"
-spring-security = "6.4.4"
+hibernate       = "6.6.15.Final"
+spring-security = "6.5.0"
 
 [libraries]
 # Libraries used in multiple projects
@@ -14,15 +14,15 @@ hibernate                     = { module = "org.hibernate:hibernate-core", versi
 httpmime                      = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 jackson-datatype-jdk8         = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8" }
 jackson-datatype-jsr310       = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
-mariadb-client                = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.2" }
+mariadb-client                = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.3" }
 spring-batch-core             = { module = "org.springframework.batch:spring-batch-core", version = "5.2.2" }
 spring-security-config        = { module = "org.springframework.security:spring-security-config", version.ref = "spring-security" }
 spring-security-web           = { module = "org.springframework.security:spring-security-web", version.ref = "spring-security" }
-test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifier", version = "3.19.2" }
-test-groovy                   = { module = "org.apache.groovy:groovy-all", version = "4.0.26" }
+test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.0" }
+test-groovy                   = { module = "org.apache.groovy:groovy-all", version = "4.0.27" }
 test-hamcrest-jdk8-time       = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
 test-jmockit                  = { module = "org.jmockit:jmockit", version = "1.49" }
-test-junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter", version = "5.12.1" }
+test-junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter", version = "5.13.0" }
 test-mockito-core             = { module = "org.mockito:mockito-core" }
 test-mockito-junit-jupiter    = { module = "org.mockito:mockito-junit-jupiter" }
 test-spock-core               = { module = "org.spockframework:spock-core", version = "2.3-groovy-4.0" }
@@ -37,16 +37,17 @@ spring-boot-starter-web       = { module = "org.springframework.boot:spring-boot
 spring-boot-starter-actuator  = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-cloud-starter-sleuth   = { module = "org.springframework.cloud:spring-cloud-starter-sleuth", version = "3.1.11" }
 spring-metrics                = { module = "org.springframework.metrics:spring-metrics", version = "0.5.1.RELEASE" }
-micrometer-prometheus         = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.14.5" }
+micrometer-prometheus         = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.15.0" }
 spring-context-support        = { module = "org.springframework:spring-context-support" }
 evo-inflector                 = { module = "org.atteo:evo-inflector", version = "1.3" }
 commons-validator             = { module = "commons-validator:commons-validator", version = "1.9.0" }
 commons-lang                  = { module = "commons-lang:commons-lang", version = "2.6" }
 jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", version = "2.0.3" }
-spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "3.2.11" }
-guava                         = { module = "com.google.guava:guava", version = "33.4.0-jre" }
-libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.1" }
-firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.4.3" }
+spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "3.3.0" }
+guava                         = { module = "com.google.guava:guava", version = "33.4.8-jre" }
+libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.7" }
+firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.5.0" }
+jakarta-annotation            = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }
 
 # Libraries used in adminservice
 
@@ -59,13 +60,13 @@ commons-lang3    = { module = "org.apache.commons:commons-lang3", version = "3.1
 quartz    = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 
 # Libraries used in dbinit
-liquibase-core       = { module = "org.liquibase:liquibase-core", version = "4.31.1" }
-liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version = "4.31.1" }
-picocli              = { module = "info.picocli:picocli", version = "4.7.6" }
+liquibase-core       = { module = "org.liquibase:liquibase-core", version = "4.32.0" }
+liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version = "4.32.0" }
+picocli              = { module = "info.picocli:picocli", version = "4.7.7" }
 
 [plugins]
 bmuschko-docker        = { id = "com.bmuschko.docker-remote-api", version = "9.4.0" }
-sonarqube              = { id = "org.sonarqube", version = "6.1.0.5360" }
-spring-boot            = { id = "org.springframework.boot", version = "3.4.4" }
+sonarqube              = { id = "org.sonarqube", version = "6.2.0.5505" }
+spring-boot            = { id = "org.springframework.boot", version = "3.5.0" }
 spring-dependency-mgmt = { id = "io.spring.dependency-management", version = "1.1.7" }
 liquibase              = { id = "org.liquibase.gradle", version = "3.0.2" }
