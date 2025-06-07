@@ -1,3 +1,13 @@
+buildscript {
+  dependencies {
+	classpath libs.liquibase.core
+  }
+}
+
+plugins {
+  alias(libs.plugins.liquibase)
+}
+
 description = "Database initializer"
 apply plugin: libs.plugins.liquibase.get().pluginId
 
