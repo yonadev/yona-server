@@ -68,12 +68,10 @@ docker {
 tasks.register("buildDockerImage", DockerBuildImage) {
 	dependsOn bootJar
 	def dockerBuildDir = file("$buildDir/docker")
-	inputDir = dockerBuildDir
+	inputDir = mkdir(dockerBuildDir)
 	images = ["${dockerImageName}:${project.ext.docker_tag}"]
 
 	doFirst {
-		dockerBuildDir.mkdirs()
-
 		copy {
 			from "data"
 			into "$inputDir.asFile.orNull/json"
