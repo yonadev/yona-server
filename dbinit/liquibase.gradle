@@ -26,12 +26,12 @@ String changeLogPath = liquibaseProps.getProperty("liquibase.changelog.path")
 
 task liquibasePathingJar(type: Jar) {
 	dependsOn configurations.liquibase
-	appendix = 'pathing'
+	appendix = "pathing"
 	doFirst {
 		manifest {
 			attributes "Class-Path": (configurations.productionRuntimeClasspath.files + configurations.liquibase.files).collect {
-				it.toURL().toString().replaceFirst(/file:\/+/, '/')
-			}.join(' ')
+				it.toURL().toString().replaceFirst(/file:\/+/, "/")
+			}.join(" ")
 		}
 	}
 }
