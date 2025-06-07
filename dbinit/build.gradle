@@ -9,7 +9,6 @@ plugins {
 }
 
 description = "Database initializer"
-apply plugin: libs.plugins.liquibase.get().pluginId
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
@@ -18,6 +17,10 @@ def dockerImageName = "${project.group}/yona-mariadb-liquibase-update"
 Properties applicationProps = new Properties()
 applicationProps.load(new FileInputStream("core/src/main/resources/application.properties"))
 
+configurations {
+	liquibaseRuntime.extendsFrom runtimeClasspath
+}
+
 dependencies {
 	implementation project(":core")
 	implementation libs.spring.batch.core
@@ -25,34 +28,63 @@ dependencies {
 	liquibaseRuntime libs.liquibase.core
 	liquibaseRuntime libs.liquibase.hibernate6
 	liquibaseRuntime libs.picocli
-	liquibaseRuntime libs.mariadb.client
 }
 
-configurations {
-	liquibaseRuntime.extendsFrom runtimeClasspath
+tasks.register("pathingJar", Jar) {
+	dependsOn configurations.runtimeClasspath
+	archiveAppendix = "pathing"
+	doFirst {
+		manifest {
+			attributes "Class-Path": configurations.runtimeClasspath.files.collect {
+				it.toURL().toString().replaceFirst(/file:\/+/, "/")
+			}.join(" ")
+		}
+	}
 }
 
+// ---- Boot Run Configuration ----
+bootRun {
+	enableAssertions = true
+	dependsOn tasks.named("pathingJar")
+	doFirst {
+		classpath = files(sourceSets.main.output.files, tasks.named("pathingJar").get().archiveFile)
+	}
+}
+
+// ---- Jar Packaging ----
+bootJar {
+	archiveClassifier = "full"
+}
+
+// ---- Docker Configuration ----
 docker {
 	registryCredentials {
-		username = project.hasProperty("dockerHubUserName") ? project.dockerHubUserName : null
-		password = project.hasProperty("dockerHubPassword") ? project.dockerHubPassword : null
+		username = project.findProperty("dockerHubUserName")
+		password = project.findProperty("dockerHubPassword")
 	}
-	url = project.hasProperty("dockerUrl") ? project.dockerUrl : "http://localhost:2375"
+	url = project.findProperty("dockerUrl") ?: "http://localhost:2375"
 }
 
-task buildDockerImage(type: DockerBuildImage) {
-	inputDir = mkdir("build/docker")
+tasks.register("buildDockerImage", DockerBuildImage) {
+	dependsOn bootJar
+	def dockerBuildDir = file("$buildDir/docker")
+	inputDir = dockerBuildDir
 	images = ["${dockerImageName}:${project.ext.docker_tag}"]
+
 	doFirst {
+		dockerBuildDir.mkdirs()
+
 		copy {
 			from "data"
 			into "$inputDir.asFile.orNull/json"
 		}
+
 		copy {
 			from "src/main/liquibase"
 			into "$inputDir.asFile.orNull/changelogs"
 			exclude "liquibase-task.properties"
 		}
+
 		copy {
 			from "src/main/docker/Dockerfile"
 			from "src/main/docker/update.sh"
@@ -61,33 +93,11 @@ task buildDockerImage(type: DockerBuildImage) {
 	}
 }
 
-task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
+tasks.register("pushDockerImage", DockerPushImage) {
+	dependsOn tasks.named("buildDockerImage")
 	images = ["${dockerImageName}:${project.ext.docker_tag}"]
 }
 
-task pathingJar(type: Jar) {
-	dependsOn configurations.runtimeClasspath
-	archiveAppendix = 'pathing'
-	doFirst {
-		manifest {
-			attributes "Class-Path": configurations.runtimeClasspath.files.collect {
-				it.toURL().toString().replaceFirst(/file:\/+/, '/')
-			}.join(' ')
-		}
-	}
-}
-
-bootRun {
-	dependsOn pathingJar
-	doFirst {
-		classpath = files(sourceSets.main.output.files, pathingJar.archivePath)
-	}
-	enableAssertions = true
-}
-
-bootJar {
-	archiveClassifier = "full"
-}
 
 liquibase {
 	activities {

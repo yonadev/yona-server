@@ -1,30 +1,34 @@
+plugins {
+	id "application"
+}
+
 description = "AppService"
 
-apply plugin: "application"
-
-mainClassName = "nu.yona.server.AppServiceApplication"
-
+application {
+	mainClass = "nu.yona.server.AppServiceApplication"
+}
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
-def dockerImageName = "${project.group}/${project.archivesBaseName}"
+def dockerImageName = "${project.group}/${base.archivesName}"
 def classifier = "full"
 
 configurations {
-	providedRuntimeClasspath
+	providedRuntime
 	intTestImplementation.extendsFrom testImplementation
-	intTestRuntimeClasspath.extendsFrom testRuntimeClasspath
+	intTestRuntime.extendsFrom testRuntime
 }
 
 dependencies {
 	implementation project(":core")
 	implementation libs.bcprov
 	implementation libs.bcpkix
-	runtimeClasspath libs.mariadb.client
-	runtimeClasspath libs.jackson.datatype.jsr310
-	runtimeClasspath libs.jackson.datatype.jdk8
-	providedRuntimeClasspath "org.springframework.boot:spring-boot-starter-tomcat"
+	runtimeOnly libs.mariadb.client
+	runtimeOnly libs.jackson.datatype.jsr310
+	runtimeOnly libs.jackson.datatype.jdk8
+
+	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
 	testImplementation project(path: ":core", configuration: "testUtils")
 	testImplementation libs.httpmime
@@ -35,50 +39,12 @@ dependencies {
 	intTestImplementation libs.commons.lang3
 }
 
+// ---- Test Configuration ----
 test {
 	enableAssertions = true
 }
 
-bootRun {
-	enableAssertions = true
-
-	if (project.hasProperty("appservice.debug") || project.hasProperty("debug.all"))
-	{
-		jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_appservice_debug_port + ",server=y,suspend=n"
-	}
-
-	systemProperties = ["server.port"    : System.getProperty("server.port", project.ext.yona_appservice_port),
-						"management.port": System.getProperty("management.port", project.ext.yona_appservice_mgmt_port)]
-}
-
-docker {
-	registryCredentials {
-		username = project.hasProperty("dockerHubUserName") ? project.dockerHubUserName : null
-		password = project.hasProperty("dockerHubPassword") ? project.dockerHubPassword : null
-	}
-	url = project.hasProperty("dockerUrl") ? project.dockerUrl : "http://localhost:2375"
-}
-
-task buildDockerImage(type: DockerBuildImage, dependsOn: bootJar) {
-	inputDir = mkdir("build/docker")
-	images = ["${dockerImageName}:${project.ext.docker_tag}"]
-	doFirst {
-		copy {
-			from bootJar
-			into inputDir
-			rename "${jar.archiveBaseName.getOrNull()}-${jar.archiveVersion.getOrNull()}-${classifier}", "${jar.archiveBaseName.getOrNull()}"
-		}
-		copy {
-			from "src/main/docker/Dockerfile"
-			into inputDir
-		}
-	}
-}
-
-task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	images = ["${dockerImageName}:${project.ext.docker_tag}"]
-}
-
+// ---- Integration Test Setup ----
 sourceSets {
 	intTest {
 		java {
@@ -88,31 +54,79 @@ sourceSets {
 	}
 }
 
-task intTest(type: Test) {
+tasks.register("intTest", Test) {
 	description = "Run integration tests (located in src/intTest/...)."
-	testClassesDirs = project.sourceSets.intTest.output.classesDirs
-	classpath = project.sourceSets.intTest.runtimeClasspath
+	group = "verification"
+	testClassesDirs = sourceSets.intTest.output.classesDirs
+	classpath = sourceSets.intTest.runtimeClasspath
 	useJUnitPlatform()
 
-	systemProperties = System.getProperties()
-
-	systemProperties = ["java.util.logging.config.file"   : "../core/src/testUtils/logging.properties",
-						"yona.adminservice.url"           : project.ext.yona_adminservice_url,
-						"yona.analysisservice.url"        : project.ext.yona_analysisservice_url,
-						"yona.appservice.url"             : project.ext.yona_appservice_url,
-						"yona.batchservice.url"           : project.ext.yona_batchservice_url,
-						"yona.enableHibernateStatsAllowed": project.ext.yona_enableHibernateStatsAllowed,
-						"yona.testServer"                 : project.ext.yona_testServer]
+	systemProperties = System.getProperties() + [
+		"java.util.logging.config.file": "../core/src/testUtils/logging.properties",
+		"yona.adminservice.url"			  : project.ext.yona_adminservice_url,
+		"yona.analysisservice.url"		  : project.ext.yona_analysisservice_url,
+		"yona.appservice.url"			  : project.ext.yona_appservice_url,
+		"yona.batchservice.url"			  : project.ext.yona_batchservice_url,
+		"yona.enableHibernateStatsAllowed": project.ext.yona_enableHibernateStatsAllowed,
+		"yona.testServer"				  : project.ext.yona_testServer
+	]
 }
 
+// ---- Boot Run Configuration ----
+bootRun {
+	enableAssertions = true
+
+	if (project.hasProperty("appservice.debug") || project.hasProperty("debug.all")) {
+		jvmArgs = [
+			"-Xdebug",
+			"-Xrunjdwp:transport=dt_socket,address=${project.ext.yona_appservice_debug_port},server=y,suspend=n"
+		]
+	}
+
+	systemProperties = [
+		"server.port"	 : System.getProperty("server.port", project.ext.yona_appservice_port),
+		"management.port": System.getProperty("management.port", project.ext.yona_appservice_mgmt_port)
+	]
+}
+
+// ---- Jar Packaging ----
 bootJar {
 	archiveBaseName = "appservice"
-	archiveClassifier = classifier
+	archiveClassifier.set(classifier)
 }
 
-eclipse {
-	classpath {
-		plusConfigurations += [configurations.intTestImplementation]
+// ---- Docker Configuration ----
+docker {
+	registryCredentials {
+		username = project.findProperty("dockerHubUserName")
+		password = project.findProperty("dockerHubPassword")
+	}
+	url = project.findProperty("dockerUrl") ?: "http://localhost:2375"
+}
+
+tasks.register("buildDockerImage", DockerBuildImage) {
+	dependsOn bootJar
+	def dockerBuildDir = file("$buildDir/docker")
+	inputDir = dockerBuildDir
+	images = ["${dockerImageName}:${project.ext.docker_tag}"]
+
+	doFirst {
+		dockerBuildDir.mkdirs()
+
+		copy {
+			from bootJar
+			into dockerBuildDir
+			rename("${jar.archiveBaseName.get()}-${jar.archiveVersion.get()}-${classifier}", jar.archiveBaseName.get())
+		}
+
+		copy {
+			from "src/main/docker/Dockerfile"
+			into dockerBuildDir
+		}
 	}
 }
 
+tasks.register("pushDockerImage", DockerPushImage) {
+	dependsOn tasks.named("buildDockerImage")
+	images = ["${dockerImageName}:${project.ext.docker_tag}"]
+}

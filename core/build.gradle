@@ -1,31 +1,55 @@
 plugins {
-	id 'java-library'
+	id "java-library"
 }
 
-description = 'Core'
+description = "Core"
 
+// =====================
+// JAR Configuration
+// =====================
 jar {
-	archiveBaseName = 'Core'
+	archiveBaseName = "Core"
+	enabled = true
 }
 
-configurations {
-	testUtils.extendsFrom testRuntime
+bootJar {
+	enabled = false
 }
 
+// =====================
+// Source Sets
+// =====================
 sourceSets {
 	testUtils
 }
 
-task testUtilsJar(type: Jar) {
-	archiveClassifier = "testUtils"
+// =====================
+// Configurations
+// =====================
+configurations {
+	testUtils.extendsFrom(testRuntimeClasspath)
+}
+
+// =====================
+// Tasks
+// =====================
+tasks.register("testUtilsJar", Jar) {
+	archiveClassifier.set("testUtils")
 	from sourceSets.testUtils.output
 }
 
+// =====================
+// Artifacts
+// =====================
 artifacts {
-	testUtils testUtilsJar
+	testUtils(tasks.named("testUtilsJar"))
 }
 
+// =====================
+// Dependencies
+// =====================
 dependencies {
+	// Main
 	implementation libs.hazelcast
 	implementation libs.hazelcast.spring
 	implementation libs.hazelcast.kubernetes
@@ -51,6 +75,7 @@ dependencies {
 	implementation libs.libphonenumber
 	implementation libs.firebase.admin
 
+	// Test
 	testImplementation libs.test.spring.boot.starter.test
 	testImplementation libs.test.mockito.junit.jupiter
 	testImplementation libs.test.jmockit
@@ -58,29 +83,17 @@ dependencies {
 	testImplementation libs.test.hamcrest.jdk8.time
 	testImplementation libs.test.equalsverifier
 
+	// Test Utils
 	testUtilsImplementation libs.test.groovy
 	testUtilsImplementation libs.httpmime
-
-	// mandatory dependencies for using Spock
-	testUtilsImplementation libs.test.spock.core
+	testUtilsImplementation libs.test.spock.core // Spock dependencies
 }
 
+// =====================
+// Test Configuration
+// =====================
 test {
 	enableAssertions = true
-	jvmArgs "-javaagent:${classpath.find { it.name.contains('jmockit') }.absolutePath}"
+	jvmArgs "-javaagent:${classpath.find { it.name.contains("jmockit") }?.absolutePath}"
 	useJUnitPlatform()
-}
-
-bootJar {
-	enabled = false
-}
-
-jar {
-	enabled = true
-}
-
-eclipse {
-	classpath {
-		plusConfigurations += [configurations.testUtilsImplementation]
-	}
 }
