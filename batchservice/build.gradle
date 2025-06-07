@@ -11,7 +11,7 @@ application {
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
-def dockerImageName = "${project.group}/${base.archivesName}"
+def dockerImageName = "${project.group}/${base.archivesName.get()}"
 def classifier = "full"
 
 configurations {
