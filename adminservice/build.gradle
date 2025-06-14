@@ -34,6 +34,10 @@ dependencies {
 // ---- Test Configuration ----
 test {
 	enableAssertions = true
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = true
+	}
 }
 
 // ---- Integration Test Setup ----
@@ -52,6 +56,11 @@ tasks.register("intTest", Test) {
 	testClassesDirs = sourceSets.intTest.output.classesDirs
 	classpath = sourceSets.intTest.runtimeClasspath
 	useJUnitPlatform()
+
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = true
+	}
 
 	systemProperties = System.getProperties() + [
 		"java.util.logging.config.file": "../core/src/testUtils/logging.properties",
