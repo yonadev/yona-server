@@ -31,6 +31,10 @@ dependencies {
 
 test {
 	enableAssertions = true
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = true
+	}
 }
 
 bootRun {
@@ -88,6 +92,10 @@ task intTest(type: Test) {
 	classpath = project.sourceSets.intTest.runtimeClasspath
 	useJUnitPlatform()
 
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = true
+	}
 	systemProperties = System.getProperties()
 
 	systemProperties = ["java.util.logging.config.file": "../core/src/testUtils/logging.properties",
