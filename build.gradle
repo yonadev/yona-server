@@ -1,12 +1,10 @@
 plugins {
 	id "java"
-	id "eclipse"
-	id "groovy"
 	alias(libs.plugins.spring.dependency.mgmt)
 	alias(libs.plugins.spring.boot).apply(false)
 	alias(libs.plugins.bmuschko.docker).apply(false)
-	id "project-report"
 	alias(libs.plugins.sonarqube)
+	id "project-report"
 }
 
 description = "Yona server"
@@ -20,9 +18,12 @@ htmlDependencyReport {
 }
 
 subprojects {
-	sourceCompatibility = 21.0
-	targetCompatibility = 21.0
-	apply plugin: "eclipse"
+	java {
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(21)
+		}
+	}
+
 	apply plugin: "groovy"
 	apply plugin: libs.plugins.spring.dependency.mgmt.get().pluginId
 	apply plugin: libs.plugins.spring.boot.get().pluginId
@@ -31,37 +32,31 @@ subprojects {
 	ext["hibernate.version"] = libs.versions.hibernate.get()
 	ext["thymeleaf.version"] = libs.thymeleaf.get().versionConstraint
 
+	// Build metadata and service config
 	project.ext {
-		build_id = System.getenv().BUILD_ID ?: "local"
+		build_id = System.getenv("BUILD_ID") ?: "local"
 		docker_tag = "build-${build_id}"
 
-		runList = project.properties["runList"] ?: []
-		yona_adminservice_scheme = project.properties["yona_adminservice_scheme"] ?: "http"
-		yona_adminservice_host = project.properties["yona_adminservice_host"] ?: "localhost"
-		yona_adminservice_port = project.properties["yona_adminservice_port"] ?: "8180"
-		yona_adminservice_mgmt_port = project.properties["yona_adminservice_mgmt_port"] ?: "9080"
-		yona_adminservice_debug_port = project.properties["yona_adminservice_debug_port"] ?: "8840"
-		yona_adminservice_url = project.properties["yona_adminservice_url"] ?: "${yona_adminservice_scheme}://${yona_adminservice_host}:${yona_adminservice_port}"
-		yona_analysisservice_scheme = project.properties["yona_analysisservice_scheme"] ?: "http"
-		yona_analysisservice_host = project.properties["yona_analysisservice_host"] ?: "localhost"
-		yona_analysisservice_port = project.properties["yona_analysisservice_port"] ?: "8181"
-		yona_analysisservice_mgmt_port = project.properties["yona_analysisservice_mgmt_port"] ?: "9081"
-		yona_analysisservice_debug_port = project.properties["yona_analysisservice_debug_port"] ?: "8841"
-		yona_analysisservice_url = project.properties["yona_analysisservice_url"] ?: "${yona_analysisservice_scheme}://${yona_analysisservice_host}:${yona_analysisservice_port}"
-		yona_appservice_scheme = project.properties["yona_appservice_scheme"] ?: "http"
-		yona_appservice_host = project.properties["yona_appservice_host"] ?: "localhost"
-		yona_appservice_port = project.properties["yona_appservice_port"] ?: "8182"
-		yona_appservice_mgmt_port = project.properties["yona_appservice_mgmt_port"] ?: "9082"
-		yona_appservice_debug_port = project.properties["yona_appservice_debug_port"] ?: "8842"
-		yona_appservice_url = project.properties["yona_appservice_url"] ?: "${yona_appservice_scheme}://${yona_appservice_host}:${yona_appservice_port}"
-		yona_batchservice_scheme = project.properties["yona_batchservice_scheme"] ?: "http"
-		yona_batchservice_host = project.properties["yona_batchservice_host"] ?: "localhost"
-		yona_batchservice_port = project.properties["yona_batchservice_port"] ?: "8183"
-		yona_batchservice_mgmt_port = project.properties["yona_batchservice_mgmt_port"] ?: "9083"
-		yona_batchservice_debug_port = project.properties["yona_batchservice_debug_port"] ?: "8843"
-		yona_batchservice_url = project.properties["yona_batchservice_url"] ?: "${yona_batchservice_scheme}://${yona_batchservice_host}:${yona_batchservice_port}"
-		yona_enableHibernateStatsAllowed = project.properties["yona_enableHibernateStatsAllowed"] ?: "false"
-		yona_testServer = project.properties["yona_testServer"] ?: "false"
+		runList = project.findProperty("runList") ?: []
+
+		// Dynamically define service properties for different services
+		def defineServiceProps = { name, defaultPort, mgmtPort, debugPort ->
+			def prefix = "yona_${name}service"
+			ext["${prefix}_scheme"] = project.findProperty("${prefix}_scheme") ?: "http"
+			ext["${prefix}_host"] = project.findProperty("${prefix}_host") ?: "localhost"
+			ext["${prefix}_port"] = project.findProperty("${prefix}_port") ?: defaultPort
+			ext["${prefix}_mgmt_port"] = project.findProperty("${prefix}_mgmt_port") ?: mgmtPort
+			ext["${prefix}_debug_port"] = project.findProperty("${prefix}_debug_port") ?: debugPort
+			ext["${prefix}_url"] = project.findProperty("${prefix}_url") ?: ext["${prefix}_scheme"] + "://" + ext["${prefix}_host"] + ":" + ext["${prefix}_port"]
+		}
+
+		defineServiceProps("admin", "8180", "9080", "8840")
+		defineServiceProps("analysis", "8181", "9081", "8841")
+		defineServiceProps("app", "8182", "9082", "8842")
+		defineServiceProps("batch", "8183", "9083", "8843")
+
+		yona_enableHibernateStatsAllowed = project.findProperty("yona_enableHibernateStatsAllowed") ?: "false"
+		yona_testServer = project.findProperty("yona_testServer") ?: "false"
 	}
 
 	repositories {
@@ -78,8 +73,8 @@ subprojects {
 		}
 	}
 
-	tasks.withType(JavaCompile) {
-		options.compilerArgs << '-Xlint:all,-try'
+	tasks.withType(JavaCompile).configureEach {
+		options.compilerArgs << "-Xlint:all,-try"
 		options.deprecation = true
 	}
 
@@ -96,21 +91,12 @@ subprojects {
 	}
 }
 
-eclipse {
-	classpath {
-		containers.remove("org.eclipse.jdt.launching.JRE_CONTAINER")
-		containers "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"
-	}
-}
-
-wrapper {
-	gradleVersion = "6.1"
-}
-
 sonarqube {
 	properties {
 		property "sonar.projectKey", "yonadev_yona-server"
 		property "sonar.organization", "yonadev"
 		property "sonar.host.url", "https://sonarcloud.io"
+		property "sonar.modules", subprojects.collect { it.name }.join(",")
+		property "sonar.exclusions", "**/generated/**,**/test/**"
 	}
 }
