@@ -21,7 +21,6 @@ abstract class Service
 	protected Service(String urlPropertyName, String defaultUrl)
 	{
 		this.url = getProperty(urlPropertyName, defaultUrl)
-		println("URL for " + this.getClass().getName() + ": " + url)
 		this.yonaServer = new YonaServer(url)
 	}
 

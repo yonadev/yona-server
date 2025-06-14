@@ -37,17 +37,17 @@ subprojects {
 		build_id = System.getenv("BUILD_ID") ?: "local"
 		docker_tag = "build-${build_id}"
 
-		runList = findProperty("runList") ?: []
+		runList = project.findProperty("runList") ?: []
 
 		// Dynamically define service properties for different services
 		def defineServiceProps = { name, defaultPort, mgmtPort, debugPort ->
 			def prefix = "yona_${name}service"
-			ext["${prefix}_scheme"] = findProperty("${prefix}_scheme") ?: "http"
-			ext["${prefix}_host"] = findProperty("${prefix}_host") ?: "localhost"
-			ext["${prefix}_port"] = findProperty("${prefix}_port") ?: defaultPort
-			ext["${prefix}_mgmt_port"] = findProperty("${prefix}_mgmt_port") ?: mgmtPort
-			ext["${prefix}_debug_port"] = findProperty("${prefix}_debug_port") ?: debugPort
-			ext["${prefix}_url"] = "${ext["${prefix}_scheme"]}://${ext["${prefix}_host"]}:${ext["${prefix}_port"]}"
+			ext["${prefix}_scheme"] = project.findProperty("${prefix}_scheme") ?: "http"
+			ext["${prefix}_host"] = project.findProperty("${prefix}_host") ?: "localhost"
+			ext["${prefix}_port"] = project.findProperty("${prefix}_port") ?: defaultPort
+			ext["${prefix}_mgmt_port"] = project.findProperty("${prefix}_mgmt_port") ?: mgmtPort
+			ext["${prefix}_debug_port"] = project.findProperty("${prefix}_debug_port") ?: debugPort
+			ext["${prefix}_url"] = project.findProperty("${prefix}_url") ?: ext["${prefix}_scheme"] + "://" + ext["${prefix}_host"] + ":" + ext["${prefix}_port"]
 		}
 
 		defineServiceProps("admin", "8180", "9080", "8840")
@@ -55,8 +55,8 @@ subprojects {
 		defineServiceProps("app", "8182", "9082", "8842")
 		defineServiceProps("batch", "8183", "9083", "8843")
 
-		yona_enableHibernateStatsAllowed = findProperty("yona_enableHibernateStatsAllowed") ?: "false"
-		yona_testServer = findProperty("yona_testServer") ?: "false"
+		yona_enableHibernateStatsAllowed = project.findProperty("yona_enableHibernateStatsAllowed") ?: "false"
+		yona_testServer = project.findProperty("yona_testServer") ?: "false"
 	}
 
 	repositories {
