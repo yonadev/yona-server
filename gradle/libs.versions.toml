@@ -21,7 +21,7 @@ spring-security-web           = { module = "org.springframework.security:spring-
 test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.0.2" }
 test-groovy                   = { module = "org.apache.groovy:groovy-all", version = "4.0.27" }
 test-hamcrest-jdk8-time       = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
-test-jmockit                  = { module = "org.jmockit:jmockit", version = "1.49" }
+test-jmockit                  = { module = "org.jmockit:jmockit", version = "1.50" }
 test-junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter", version = "5.13.1" }
 test-mockito-core             = { module = "org.mockito:mockito-core" }
 test-mockito-junit-jupiter    = { module = "org.mockito:mockito-junit-jupiter" }
