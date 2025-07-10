@@ -256,7 +256,7 @@ jobs:
           exit 1
       - name: Notify regular build success through Slack
         if: ${{ success() && !inputs.is-pr-build }}
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -265,7 +265,7 @@ jobs:
             text: "Build ${{ inputs.build-id }} completed successfully"
       - name: Notify PR build success through Slack
         if: ${{ success() && inputs.is-pr-build }}
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -276,7 +276,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - name: Notify failure through Slack
         if: failure()
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
