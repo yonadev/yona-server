@@ -1,6 +1,6 @@
 FROM yonadev/mariadb-liquibase-update:4.3.5
 
-RUN apt-get update && apt-get install -y \
+RUN apk update && apk add --no-cache \
     ldap-utils --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 COPY changelogs /changelogs
