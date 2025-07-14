@@ -1,7 +1,7 @@
 FROM yonadev/mariadb-liquibase-update:4.3.5
 
-RUN apk update && apk add --no-cache \
-    ldap-utils --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache openldap-clients && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY changelogs /changelogs
 
