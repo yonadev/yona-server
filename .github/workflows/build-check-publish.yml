@@ -35,7 +35,7 @@ jobs:
       BUILD_ID: ${{ inputs.build-id }} # Used in Gradle and wait-for-services
     steps:
       - name: Checkout src repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of SonarQube analysis
           path: 'yona-server'
@@ -72,13 +72,13 @@ jobs:
             buildDockerImage
       - name: Checkout Helm chart repo for PR
         if: ${{ inputs.is-pr-build }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: yonadev/${{ env.HELM_REPO }}
           path: '${{ env.HELM_REPO }}'
       - name: Checkout Helm chart repo for normal build
         if: ${{ !inputs.is-pr-build }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: yonadev/${{ env.HELM_REPO }}
           path: '${{ env.HELM_REPO }}'
