@@ -46,7 +46,7 @@ jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", ver
 spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "3.3.3" }
 guava                         = { module = "com.google.guava:guava", version = "33.4.8-jre" }
 libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.13" }
-firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.5.0" }
+firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.6.0" }
 jakarta-annotation            = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }
 
 # Libraries used in adminservice
