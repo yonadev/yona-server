@@ -60,8 +60,8 @@ commons-lang3    = { module = "org.apache.commons:commons-lang3", version = "3.1
 quartz    = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 
 # Libraries used in dbinit
-liquibase-core       = { module = "org.liquibase:liquibase-core", version = "4.33.0" }
-liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version = "4.33.0" }
+liquibase-core       = { module = "org.liquibase:liquibase-core", version = "5.0.0" }
+liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version = "5.0.0" }
 picocli              = { module = "info.picocli:picocli", version = "4.7.7" }
 
 [plugins]
