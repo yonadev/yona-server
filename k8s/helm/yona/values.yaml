@@ -185,6 +185,9 @@ apple:
   ca_certificate_file: apple/AppleWWDRCA.cer
 
 mariadb:
+  image:
+    repository: mariadb
+    tag: 11.0.2
   architecture: standalone
   auth:
     rootPassword: develop
