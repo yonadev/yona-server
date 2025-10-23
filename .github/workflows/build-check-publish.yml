@@ -181,6 +181,7 @@ jobs:
         if: always()
         run: |
           mkdir /tmp/yona-logs
+          kubectl get svc > /tmp/yona-logs/k8s-get-svc.log
           i=0
           for f in $(find /tmp/hostpath-provisioner -name liquibase-update.log); do
             cp ${f} /tmp/yona-logs/liquibase-update-${i}.log
