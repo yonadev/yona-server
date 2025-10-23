@@ -202,8 +202,8 @@ mariadb:
       enabled: false
     containerSecurityContext:
       enabled: false
-  url_override: "jdbc:mariadb://yona-mariadb/yona"
-  hostname_override: yona-mariadb
+  url_override: "jdbc:mariadb://yona-mariadb.yona.svc.cluster.local/yona"
+  hostname_override: yona-mariadb.yona.svc.cluster.local
 
 hazelcast:
   ReplicationController:
