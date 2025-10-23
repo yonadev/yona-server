@@ -197,8 +197,16 @@ mariadb:
   primary:
     persistence:
       enabled: false
-  volumePermissions:
-    enabled: false
+    podSecurityContext:
+      # Explicitly set the filesystem group to match the container's user/group ID (typically 1001 for Bitnami)
+      enabled: true
+      fsGroup: 1001
+    containerSecurityContext:
+      # Ensure the container runs as the non-root user (1001)
+      enabled: true
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
   #hostname_override: yona-mariadb.yona.svc.cluster.local
 
