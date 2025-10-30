@@ -187,6 +187,7 @@ jobs:
             ((i+=1))
           done
           kubectl config set-context --current --namespace=yona
+          kubectl get svc > /tmp/yona-logs/k8s-get-svc.log
           for p in $(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'); do
             kubectl logs ${p} > /tmp/yona-logs/${p}.log || true # Ignore errors
           done

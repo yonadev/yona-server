@@ -1,7 +1,7 @@
 dependencies:
   - name: mariadb
-    version: 13.0.2
-    repository:  "https://charts.bitnami.com/bitnami"
+    version: 0.6.0
+    repository:  "oci://registry-1.docker.io/cloudpirates"
     condition: support_infrastructure.enabled
   - name: ldap
     version: 0.1.2
