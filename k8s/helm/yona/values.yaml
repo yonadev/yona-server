@@ -185,25 +185,13 @@ apple:
   ca_certificate_file: apple/AppleWWDRCA.cer
 
 mariadb:
-  image:
-    repository: mariadb
-    tag: 11.0.2
-  architecture: standalone
   auth:
     rootPassword: develop
     database: yona
     username: develop
     password: develop
-  primary:
-    persistence:
-      enabled: false
-    # DISABLE security contexts to stop Kubernetes from overriding the emptyDir permissions
-    podSecurityContext:
-      enabled: false
-    containerSecurityContext:
-      enabled: false
-  url_override: "jdbc:mariadb://yona-mariadb.yona.svc.cluster.local/yona"
-  hostname_override: yona-mariadb.yona.svc.cluster.local
+  persistence:
+    enabled: false
 
 hazelcast:
   ReplicationController:
