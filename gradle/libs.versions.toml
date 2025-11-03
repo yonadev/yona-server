@@ -22,7 +22,7 @@ test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifie
 test-groovy                   = { module = "org.apache.groovy:groovy-all", version = "5.0.1" }
 test-hamcrest-jdk8-time       = { module = "com.spencerwi:hamcrest-jdk8-time", version = "0.7.1" }
 test-jmockit                  = { module = "org.jmockit:jmockit", version = "1.50" }
-test-junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter", version = "6.0.0" }
+test-junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter", version = "6.0.1" }
 test-mockito-core             = { module = "org.mockito:mockito-core" }
 test-mockito-junit-jupiter    = { module = "org.mockito:mockito-junit-jupiter" }
 test-spock-core               = { module = "org.spockframework:spock-core", version = "2.3-groovy-4.0" }
