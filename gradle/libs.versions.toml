@@ -57,7 +57,7 @@ jakarta-annotation            = { module = "jakarta.annotation:jakarta.annotatio
 commons-lang3    = { module = "org.apache.commons:commons-lang3", version = "3.19.0" }
 
 # Libraries used in batchservice
-quartz    = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
+quartz    = { module = "org.quartz-scheduler:quartz", version = "2.5.1" }
 
 # Libraries used in dbinit
 liquibase-core       = { module = "org.liquibase:liquibase-core", version = "5.0.1" }
