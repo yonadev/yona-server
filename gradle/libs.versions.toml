@@ -43,7 +43,7 @@ evo-inflector                 = { module = "org.atteo:evo-inflector", version = 
 commons-validator             = { module = "commons-validator:commons-validator", version = "1.10.1" }
 commons-lang                  = { module = "commons-lang:commons-lang", version = "2.6" }
 jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", version = "2.0.5" }
-spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "4.0.0" }
+spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "4.0.1" }
 guava                         = { module = "com.google.guava:guava", version = "33.5.0-jre" }
 libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.20" }
 firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.7.0" }
