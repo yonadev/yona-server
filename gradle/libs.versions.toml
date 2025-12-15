@@ -66,7 +66,7 @@ picocli              = { module = "info.picocli:picocli", version = "4.7.7" }
 
 [plugins]
 bmuschko-docker        = { id = "com.bmuschko.docker-remote-api", version = "10.0.0" }
-sonarqube              = { id = "org.sonarqube", version = "7.2.0.6526" }
+sonarqube              = { id = "org.sonarqube", version = "7.2.1.6560" }
 spring-boot            = { id = "org.springframework.boot", version = "3.5.7" }
 spring-dependency-mgmt = { id = "io.spring.dependency-management", version = "1.1.7" }
 liquibase              = { id = "org.liquibase.gradle", version = "3.1.0" }
