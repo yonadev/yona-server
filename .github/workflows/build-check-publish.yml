@@ -119,11 +119,11 @@ jobs:
           kubectl create -f k8s/02_storage.yaml
           helm repo add yona https://yonadev.github.io/helm-charts
           helm repo update
-          minikube image load yonadev/adminservice:build-${{ inputs.build-id }}
-          minikube image load yonadev/analysisservice:build-${{ inputs.build-id }}
-          minikube image load yonadev/appservice:build-${{ inputs.build-id }}
-          minikube image load yonadev/batchservice:build-${{ inputs.build-id }}
-          minikube image load yonadev/yona-mariadb-liquibase-update:build-${{ inputs.build-id }}
+          minikube image load yonadev/adminservice:build-${{ inputs.build-id }} --daemon
+          minikube image load yonadev/analysisservice:build-${{ inputs.build-id }} --daemon
+          minikube image load yonadev/appservice:build-${{ inputs.build-id }} --daemon
+          minikube image load yonadev/batchservice:build-${{ inputs.build-id }} --daemon
+          minikube image load yonadev/yona-mariadb-liquibase-update:build-${{ inputs.build-id }} --daemon
           cat > values.yml << EOF
           seed_max_tries: 30
           support_infrastructure:
