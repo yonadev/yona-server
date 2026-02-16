@@ -113,17 +113,18 @@ jobs:
         with:
           minikube version: 'v1.37.0'
           kubernetes version: 'v1.30.2'
+          driver: 'docker'
       - name: Deploy Yona
         run: |
           kubectl create -f k8s/01_namespace.yaml
           kubectl create -f k8s/02_storage.yaml
           helm repo add yona https://yonadev.github.io/helm-charts
           helm repo update
-          minikube image load yonadev/adminservice:build-${{ inputs.build-id }} --daemon
-          minikube image load yonadev/analysisservice:build-${{ inputs.build-id }} --daemon
-          minikube image load yonadev/appservice:build-${{ inputs.build-id }} --daemon
-          minikube image load yonadev/batchservice:build-${{ inputs.build-id }} --daemon
-          minikube image load yonadev/yona-mariadb-liquibase-update:build-${{ inputs.build-id }} --daemon
+          minikube image load yonadev/adminservice:build-${{ inputs.build-id }}
+          minikube image load yonadev/analysisservice:build-${{ inputs.build-id }}
+          minikube image load yonadev/appservice:build-${{ inputs.build-id }}
+          minikube image load yonadev/batchservice:build-${{ inputs.build-id }}
+          minikube image load yonadev/yona-mariadb-liquibase-update:build-${{ inputs.build-id }}
           cat > values.yml << EOF
           seed_max_tries: 30
           support_infrastructure:
