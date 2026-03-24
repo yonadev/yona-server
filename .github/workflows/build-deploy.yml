@@ -54,7 +54,7 @@ jobs:
           distribution: 'temurin'
           java-version: 21
       - name: Publish Gradle dependencies
-        uses: gradle/actions/dependency-submission@v5
+        uses: gradle/actions/dependency-submission@v6
 
 
   deploy-load-test-server:
