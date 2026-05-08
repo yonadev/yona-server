@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21.0.10_7-jre-alpine
+FROM eclipse-temurin:21.0.11_10-jre-alpine
 
 WORKDIR /opt/app
 
