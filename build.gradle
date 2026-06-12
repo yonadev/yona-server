@@ -29,7 +29,6 @@ subprojects {
 	apply plugin: libs.plugins.spring.boot.get().pluginId
 	apply plugin: libs.plugins.bmuschko.docker.get().pluginId
 
-	ext["hibernate.version"] = libs.versions.hibernate.get()
 	ext["thymeleaf.version"] = libs.thymeleaf.get().versionConstraint
 
 	// Build metadata and service config

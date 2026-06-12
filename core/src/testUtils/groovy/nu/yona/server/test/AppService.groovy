@@ -232,7 +232,8 @@ class AppService extends Service
 		assert response.json._embedded
 
 		def buddyConnectResponseMessages = response.json._embedded?."yona:messages"?.findAll { it."@type" == "BuddyConnectResponseMessage" }
-		assert buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		assert buddyConnectResponseMessages[0]._links."yona:process" == null
+		// Processing happens automatically these days
 		def selfUrl = buddyConnectResponseMessages[0]?._links?.self?.href
 		def message = buddyConnectResponseMessages[0]?.message ?: null
 		def status = buddyConnectResponseMessages[0]?.status ?: null
@@ -477,8 +478,7 @@ class AppService extends Service
 
 	def postMessageActionWithPassword(String path, Map<String, String> properties, String password)
 	{
-		def json = [:]
-		json.properties = properties
+		def json = [properties: properties]
 		postMessageAction(path, json, [:], ["Yona-Password": password])
 	}
 

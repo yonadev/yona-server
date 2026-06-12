@@ -144,7 +144,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		response.json.properties.status == "done"
+		response.json.get('properties').status == "done"
 		response.json._embedded."yona:affectedMessages".size() == 1
 		response.json._embedded."yona:affectedMessages"[0]._links.self.href == connectRequestMessage.selfUrl
 		response.json._embedded."yona:affectedMessages"[0].status == "ACCEPTED"

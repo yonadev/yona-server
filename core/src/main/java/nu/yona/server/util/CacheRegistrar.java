@@ -7,7 +7,7 @@
 package nu.yona.server.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.metrics.cache.CacheMetricsRegistrar;
+import org.springframework.boot.cache.metrics.CacheMetricsRegistrar;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
@@ -29,5 +29,4 @@ public class CacheRegistrar
 		Tag t = Tag.of("cacheManager", "cacheManager");
 		this.cacheMetricsRegistrar.bindCacheToRegistry(cache, t);
 	}
-
 }

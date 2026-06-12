@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.util.StringUtil;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonRootName("activityCategory")
 public class ActivityCategoryDto implements Serializable
@@ -61,8 +61,8 @@ public class ActivityCategoryDto implements Serializable
 				mapToLocaleMap(localizableDescription));
 	}
 
-	public ActivityCategoryDto(UUID id, Map<Locale, String> localizableName, boolean mandatory, Set<String> smoothwallCategories,
-			Set<String> applications, Map<Locale, String> localizableDescription)
+	public ActivityCategoryDto(UUID id, Map<Locale, String> localizableName, boolean mandatory,
+			Set<String> smoothwallCategories, Set<String> applications, Map<Locale, String> localizableDescription)
 	{
 		assertValidStrings("localizableName", localizableName);
 		assertValidStrings("localizableDescription", localizableDescription);
@@ -76,7 +76,8 @@ public class ActivityCategoryDto implements Serializable
 
 	private void assertValidStrings(String id, Map<Locale, String> values)
 	{
-		values.entrySet().forEach(e -> StringUtil.assertPlainTextCharacters(e.getValue(), id + ", locale " + e.getKey()));
+		values.entrySet()
+				.forEach(e -> StringUtil.assertPlainTextCharacters(e.getValue(), id + ", locale " + e.getKey()));
 	}
 
 	private static Map<Locale, String> mapToLocaleMap(Map<String, String> localeStringMap)
@@ -87,7 +88,8 @@ public class ActivityCategoryDto implements Serializable
 
 	private static Map<String, String> mapToStringMap(Map<Locale, String> localeMap)
 	{
-		return localeMap.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toLanguageTag(), Map.Entry::getValue));
+		return localeMap.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getKey().toLanguageTag(), Map.Entry::getValue));
 	}
 
 	@JsonIgnore

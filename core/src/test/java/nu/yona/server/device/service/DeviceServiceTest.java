@@ -46,7 +46,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +53,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.CoreConfiguration;
@@ -133,7 +133,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 {
 	private static final String SOME_APP_VERSION = "9.9.9";
 	private static final int SUPPORTED_APP_VERSION_CODE = 999;
-	private static final Field appLastOpenedDateField = JUnitUtil.getAccessibleField(UserDevice.class, "appLastOpenedDate");
+	private static final Field appLastOpenedDateField = JUnitUtil.getAccessibleField(UserDevice.class,
+			"appLastOpenedDate");
 
 	@Autowired
 	private UserDeviceRepository userDeviceRepository;
@@ -150,16 +151,16 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Mock
 	private GoalRepository mockGoalRepository;
 
-	@MockBean
+	@MockitoBean
 	private MessageService mockMessageService;
 
-	@MockBean
+	@MockitoBean
 	private LDAPUserService mockLdapUserService;
 
-	@MockBean
+	@MockitoBean
 	private LockPool<UUID> mockUserSynchronizer;
 
-	@MockBean
+	@MockitoBean
 	private HibernateHelperService hibernateHelperService;
 
 	@Captor
@@ -204,7 +205,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
+		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard, deviceDto);
 
 		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
@@ -229,7 +231,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
@@ -255,7 +258,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 	void addDeviceToUser_tryAddDuplicateName_exception()
 	{
 		String deviceName = "First";
-		richard.addDevice(createDevice(0, deviceName, OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
+		richard.addDevice(
+				createDevice(0, deviceName, OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName, OperatingSystem.IOS, SOME_APP_VERSION,
 				SUPPORTED_APP_VERSION_CODE);
@@ -269,7 +273,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 	{
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String deviceName = "First";
-		UserDevice device1 = createDevice(0, deviceName, OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
+		UserDevice device1 = createDevice(0, deviceName, OperatingSystem.ANDROID, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device1);
 
 		String deviceName2 = "Second";
@@ -310,7 +315,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		String deviceName3 = "Third";
 		OperatingSystem operatingSystem3 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto3 = new UserDeviceDto(deviceName3, operatingSystem3, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
+		UserDeviceDto deviceDto3 = new UserDeviceDto(deviceName3, operatingSystem3, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard, deviceDto3);
 
 		Set<UserDevice> devices = richard.getDevices();
@@ -333,7 +339,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
+		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		service.addDeviceToUser(richard.getId(), deviceDto);
 
 		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
@@ -350,7 +357,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 	void deleteDevice_tryDeleteOneAndOnlyDevice_exception() throws Exception
 	{
 
-		richard.addDevice(createDevice(0, "Testing", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
+		richard.addDevice(
+				createDevice(0, "Testing", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 
 		assertThat(richard.getDevices().size(), equalTo(1));
 
@@ -364,7 +372,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	void deleteDevice_tryDeleteNonExistingDevice_exception() throws Exception
 	{
-		richard.addDevice(createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
+		richard.addDevice(
+				createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE));
 		UserDevice notAddedDevice = createDevice(1, "NotAddedDevice", OperatingSystem.IOS, SOME_APP_VERSION,
 				SUPPORTED_APP_VERSION_CODE);
 
@@ -393,7 +402,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	void getDefaultDeviceId_oneDevice_deviceReturned()
 	{
-		UserDevice device = createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
+		UserDevice device = createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device);
 
 		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
@@ -481,9 +491,11 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	void getDefaultDeviceId_twoDevices_firstDeviceReturned()
 	{
-		UserDevice device1 = createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
+		UserDevice device1 = createDevice(0, "First", OperatingSystem.ANDROID, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device1);
-		UserDevice device2 = createDevice(1, "Second", OperatingSystem.IOS, SOME_APP_VERSION, SUPPORTED_APP_VERSION_CODE);
+		UserDevice device2 = createDevice(1, "Second", OperatingSystem.IOS, SOME_APP_VERSION,
+				SUPPORTED_APP_VERSION_CODE);
 		richard.addDevice(device2);
 
 		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
@@ -616,7 +628,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Get the anonymized device for the first ID
-		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), deviceAnonymizedId1);
+		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(),
+				deviceAnonymizedId1);
 
 		// Assert success
 		assertThat(deviceAnonymized.getId(),
@@ -642,7 +655,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Get the anonymized device for the second ID
-		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), deviceAnonymizedId2);
+		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(),
+				deviceAnonymizedId2);
 
 		// Assert success
 		assertThat(deviceAnonymized.getId(),
@@ -693,7 +707,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), device1.getId());
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getReferenceById(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId,
+				equalTo(userDeviceRepository.getReferenceById(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -717,7 +732,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), device2.getId());
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getReferenceById(device2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId,
+				equalTo(userDeviceRepository.getReferenceById(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -802,8 +818,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 		setAppLastOpenedDateField(device, originalDate);
 
 		DeviceServiceException exception = assertThrows(DeviceServiceException.class,
-				() -> service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem), Optional.of("1.0"),
-						-1));
+				() -> service.postOpenAppEvent(richard.getId(), device.getId(), Optional.of(operatingSystem),
+						Optional.of("1.0"), -1));
 		assertEquals("error.device.invalid.version.code", exception.getMessageId());
 	}
 
@@ -863,12 +879,14 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
-		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()), containsInAnyOrder(deviceName1));
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1));
 
 		service.removeDuplicateDefaultDevices(createRichardUserDto(), device1.getId());
 
 		// Assert success
-		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()), containsInAnyOrder(deviceName1));
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1));
 	}
 
 	@Test
@@ -906,7 +924,8 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 		ArgumentCaptor<String> vpnPassword = ArgumentCaptor.forClass(String.class);
 		verify(mockLdapUserService).createVpnAccount(vpnLoginId.capture(), vpnPassword.capture());
 		assertThat(vpnLoginId.getValue(),
-				equalTo(richard.getAnonymized().getId().toString() + "$" + device.getDeviceAnonymized().getDeviceIndex()));
+				equalTo(richard.getAnonymized().getId().toString() + "$" + device.getDeviceAnonymized()
+						.getDeviceIndex()));
 		assertThat(vpnPassword.getValue(), is(not(emptyString())));
 	}
 
@@ -948,11 +967,12 @@ class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	private Set<Activity> addActivities(UserDevice deviceEntity, LocalDateTime startTime, ActivityData... activityData)
 	{
-		return Arrays.stream(activityData).map(ad -> makeActivity(startTime, ad, deviceEntity)).collect(Collectors.toSet());
+		return Arrays.stream(activityData).map(ad -> makeActivity(startTime, ad, deviceEntity))
+				.collect(Collectors.toSet());
 	}
 
-	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion,
-			int appVersionCode)
+	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem,
+			String appVersion, int appVersionCode)
 	{
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion,
 				appVersionCode, Optional.empty(), Translator.EN_US_LOCALE);

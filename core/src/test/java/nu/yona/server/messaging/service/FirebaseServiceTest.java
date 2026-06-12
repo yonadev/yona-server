@@ -25,12 +25,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.google.firebase.ErrorCode;
@@ -68,16 +68,16 @@ class FirebaseServiceTest extends BaseSpringIntegrationTest
 			MessagingErrorCode.class);
 	private static final Field messageIdField = JUnitUtil.getAccessibleField(EntityWithId.class, "id");
 
-	@MockBean
+	@MockitoBean
 	private Translator mockTranslator;
 
-	@MockBean
+	@MockitoBean
 	private AsyncExecutor mockAsyncExecutor;
 
-	@MockBean
+	@MockitoBean
 	private DeviceService mockDeviceService;
 
-	@MockBean
+	@MockitoBean
 	private FirebaseMessaging mockFirebaseMessaging;
 
 	@Autowired

@@ -17,13 +17,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.google.common.collect.Sets;
@@ -46,10 +45,10 @@ class UserAssertionServiceTestConfiguration extends UserRepositoriesConfiguratio
 @ContextConfiguration(classes = { UserAssertionServiceTestConfiguration.class })
 class UserAssertionServiceTest
 {
-	@MockBean
+	@MockitoBean
 	private YonaProperties yonaProperties;
 
-	@Mock
+	@MockitoBean
 	private Translator translator;
 
 	@Autowired

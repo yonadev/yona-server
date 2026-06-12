@@ -599,7 +599,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 	{
 		def responseReplyFromBob = appService.postMessageActionWithPassword(messageToReply._links."yona:reply".href, ["message": messageToSend], senderUser.password)
 		assertResponseStatusOk(responseReplyFromBob)
-		assert responseReplyFromBob.json.properties["status"] == "done"
+		assert responseReplyFromBob.json.get('properties')['status'] == "done"
 		assert responseReplyFromBob.json._embedded?."yona:affectedMessages"?.size() == 1
 		def replyMessage = responseReplyFromBob.json._embedded."yona:affectedMessages"[0]
 		assertCommentMessageDetails(replyMessage, senderUser, isWeek, senderUser, responseGetActivityDetails.json._links.self.href, messageToSend, threadHeadMessage, messageToReply)

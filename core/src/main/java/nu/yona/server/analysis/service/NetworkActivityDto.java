@@ -14,9 +14,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import nu.yona.server.Constants;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /*
  * Online activity detected by Smoothwall.

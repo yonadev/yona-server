@@ -8,10 +8,10 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.XmlClientConfigBuilder;
@@ -24,16 +24,16 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 
 @Configuration
-public class CacheConfiguration implements CachingConfigurer
+public class CacheConfiguration
 {
 	@Autowired
 	private YonaProperties yonaProperties;
 
-	@Override
 	@Bean
-	public CacheManager cacheManager()
+	@Primary
+	public CacheManager cacheManager(HazelcastInstance hazelcastInstance)
 	{
-		return new HazelcastCacheManager(hazelcastInstance());
+		return new HazelcastCacheManager(hazelcastInstance);
 	}
 
 	@Bean
@@ -43,7 +43,20 @@ public class CacheConfiguration implements CachingConfigurer
 		if (hazelcastConfigFilePath == null)
 		{
 			Config config = new Config();
-			config.getNetworkConfig().getJoin().getMulticastConfig().setMulticastPort(61234);
+
+			// 1. Configure the server port mapping
+			config.getNetworkConfig().setPort(5701);
+			config.getNetworkConfig().setPortAutoIncrement(true);
+
+			// 2. Turn OFF Multicast discovery
+			var joinConfig = config.getNetworkConfig().getJoin();
+			joinConfig.getMulticastConfig().setEnabled(false);
+
+			// 3. Turn ON TCP-IP discovery targeting the local host loopback range
+			var tcpIpConfig = joinConfig.getTcpIpConfig();
+			tcpIpConfig.setEnabled(true);
+			tcpIpConfig.addMember("127.0.0.1");
+
 			return Hazelcast.newHazelcastInstance(config);
 		}
 		return getHazelcastClientInstance(hazelcastConfigFilePath);

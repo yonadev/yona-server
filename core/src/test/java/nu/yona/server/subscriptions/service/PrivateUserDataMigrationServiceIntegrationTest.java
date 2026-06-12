@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
@@ -29,6 +28,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.repository.Repository;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -84,28 +84,28 @@ class MockMigrationStep2 implements MigrationStep
 @ContextConfiguration(classes = { PrivateUserDataMigrationServiceIntegrationTestConfiguration.class })
 class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIntegrationTest
 {
-	@MockBean
+	@MockitoBean
 	private BuddyService buddyService;
 
-	@MockBean
+	@MockitoBean
 	private MessageService messageService;
 
-	@MockBean
+	@MockitoBean
 	private GoalRepository mockGoalRepository;
 
-	@MockBean
+	@MockitoBean
 	private MessageSourceRepository mockMessageSourceRepository;
 
-	@MockBean
+	@MockitoBean
 	private UserAnonymizedService mockUserAnonymizedService;
 
-	@MockBean
+	@MockitoBean
 	private LockPool<UUID> mockUserSynchronizer;
 
 	@Autowired
 	private PrivateUserDataMigrationService service;
 
-	@MockBean
+	@MockitoBean
 	private HibernateHelperService hibernateHelperService;
 
 	@Autowired

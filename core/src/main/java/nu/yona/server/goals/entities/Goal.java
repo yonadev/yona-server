@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -53,7 +53,7 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "goal_id", referencedColumnName = "id")
-	@Where(clause = "dtype='WeekActivity'")
+	@SQLRestriction("dtype='WeekActivity'")
 	private final List<WeekActivity> weekActivities = new ArrayList<>();
 
 	// Default constructor is required for JPA

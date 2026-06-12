@@ -9,8 +9,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.listener.JobExecutionListener;
 
 import nu.yona.server.Constants;
 
@@ -31,8 +31,8 @@ class ErrorLoggingListener implements JobExecutionListener
 		{
 			List<Throwable> failureExceptions = jobExecution.getAllFailureExceptions();
 			String jobName = jobExecution.getJobInstance().getJobName();
-			logger.error(Constants.ALERT_MARKER, "Fatal error: Batch job '{}' failed with {} failure exceptions", jobName,
-					failureExceptions.size());
+			logger.error(Constants.ALERT_MARKER, "Fatal error: Batch job '{}' failed with {} failure exceptions",
+					jobName, failureExceptions.size());
 			failureExceptions.forEach(e -> logger.error("Batch job '{}' failed with exception", jobName, e));
 		}
 	}

@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -45,7 +44,7 @@ import nu.yona.server.rest.JsonRootLinkRelationProvider;
 @EnableSpringDataWebSupport
 @EnableAsync
 @Configuration
-@EnableAutoConfiguration(exclude = { LdapAutoConfiguration.class })
+@EnableAutoConfiguration
 public class CoreConfiguration
 {
 	private static final Logger logger = LoggerFactory.getLogger(CoreConfiguration.class);
@@ -103,7 +102,8 @@ public class CoreConfiguration
 		logger.info("Reading the Firebase service account info from {}", fileName);
 		try (InputStream serviceAccount = new FileInputStream(fileName))
 		{
-			FirebaseOptions options = FirebaseOptions.builder().setCredentials(GoogleCredentials.fromStream(serviceAccount))
+			FirebaseOptions options = FirebaseOptions.builder()
+					.setCredentials(GoogleCredentials.fromStream(serviceAccount))
 					.setDatabaseUrl(yonaProperties.getFirebase().getDatabaseUrl()).build();
 
 			FirebaseApp.initializeApp(options);

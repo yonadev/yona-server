@@ -13,18 +13,20 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.job.parameters.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemReader;
+import org.springframework.batch.infrastructure.item.database.JdbcPagingItemReader;
+import org.springframework.batch.infrastructure.item.database.JpaItemWriter;
+import org.springframework.batch.infrastructure.item.database.builder.JdbcPagingItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.database.builder.JpaItemWriterBuilder;
+import org.springframework.batch.infrastructure.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -82,21 +84,22 @@ public class ActivityAggregationBatchJob
 	public Job activityAggregationBatchJob()
 	{
 		return new JobBuilder("activityAggregationBatchJob", jobRepository).listener(new ErrorLoggingListener())
-				.incrementer(new RunIdIncrementer()).flow(aggregateDayActivities()).next(aggregateWeekActivities()).end().build();
+				.incrementer(new RunIdIncrementer()).flow(aggregateDayActivities()).next(aggregateWeekActivities())
+				.end().build();
 	}
 
 	private Step aggregateDayActivities()
 	{
-		return new StepBuilder("aggregateDayActivities", jobRepository).<Long, DayActivity>chunk(DAY_ACTIVITY_CHUNK_SIZE,
-						transactionManager).reader(dayActivityReader).processor(dayActivityProcessor()).writer(dayActivityWriter())
-				.build();
+		return new StepBuilder("aggregateDayActivities", jobRepository).<Long, DayActivity>chunk(
+						DAY_ACTIVITY_CHUNK_SIZE, transactionManager).reader(dayActivityReader).processor(dayActivityProcessor())
+				.writer(dayActivityWriter()).build();
 	}
 
 	private Step aggregateWeekActivities()
 	{
-		return new StepBuilder("aggregateWeekActivities", jobRepository).<Long, WeekActivity>chunk(WEEK_ACTIVITY_CHUNK_SIZE,
-						transactionManager).reader(weekActivityReader).processor(weekActivityProcessor()).writer(weekActivityWriter())
-				.build();
+		return new StepBuilder("aggregateWeekActivities", jobRepository).<Long, WeekActivity>chunk(
+						WEEK_ACTIVITY_CHUNK_SIZE, transactionManager).reader(weekActivityReader)
+				.processor(weekActivityProcessor()).writer(weekActivityWriter()).build();
 	}
 
 	@Bean(name = "activityAggregationJobDayActivityReader", destroyMethod = "")
@@ -104,8 +107,8 @@ public class ActivityAggregationBatchJob
 	public ItemReader<Long> dayActivityReader()
 	{
 		return intervalActivityIdReader(Date.valueOf(
-						TimeUtil.getStartOfDay(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusDays(1).toLocalDate()),
-				DayActivity.class, DAY_ACTIVITY_CHUNK_SIZE);
+				TimeUtil.getStartOfDay(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusDays(1)
+						.toLocalDate()), DayActivity.class, DAY_ACTIVITY_CHUNK_SIZE);
 	}
 
 	private ItemProcessor<Long, DayActivity> dayActivityProcessor()
@@ -127,10 +130,8 @@ public class ActivityAggregationBatchJob
 
 	private JpaItemWriter<DayActivity> dayActivityWriter()
 	{
-		JpaItemWriter<DayActivity> writer = new JpaItemWriter<>();
-		writer.setEntityManagerFactory(entityManager.getEntityManagerFactory());
-
-		return writer;
+		return new JpaItemWriterBuilder<DayActivity>().entityManagerFactory(entityManager.getEntityManagerFactory())
+				.build();
 	}
 
 	@Bean(name = "activityAggregationJobWeekActivityReader", destroyMethod = "")
@@ -138,8 +139,8 @@ public class ActivityAggregationBatchJob
 	public ItemReader<Long> weekActivityReader()
 	{
 		return intervalActivityIdReader(Date.valueOf(
-						TimeUtil.getStartOfWeek(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusWeeks(1).toLocalDate()),
-				WeekActivity.class, WEEK_ACTIVITY_CHUNK_SIZE);
+				TimeUtil.getStartOfWeek(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusWeeks(1)
+						.toLocalDate()), WeekActivity.class, WEEK_ACTIVITY_CHUNK_SIZE);
 	}
 
 	private ItemProcessor<Long, WeekActivity> weekActivityProcessor()
@@ -161,18 +162,16 @@ public class ActivityAggregationBatchJob
 
 	private JpaItemWriter<WeekActivity> weekActivityWriter()
 	{
-		JpaItemWriter<WeekActivity> writer = new JpaItemWriter<>();
-		writer.setEntityManagerFactory(entityManager.getEntityManagerFactory());
-
-		return writer;
+		return new JpaItemWriterBuilder<WeekActivity>().entityManagerFactory(entityManager.getEntityManagerFactory())
+				.build();
 	}
 
 	private ItemReader<Long> intervalActivityIdReader(Date cutOffDate, Class<?> activityClass, int chunkSize)
 	{
 		SqlPagingQueryProviderFactoryBean queryProviderFactory = createQueryProviderFactory(activityClass);
 		JdbcPagingItemReader<Long> reader = createReader(cutOffDate, chunkSize, queryProviderFactory);
-		logger.info("Reading nonaggregated {} entities with startDate <= {} in chunks of {}", activityClass.getSimpleName(),
-				cutOffDate, chunkSize);
+		logger.info("Reading nonaggregated {} entities with startDate <= {} in chunks of {}",
+				activityClass.getSimpleName(), cutOffDate, chunkSize);
 		return reader;
 	}
 
@@ -193,15 +192,10 @@ public class ActivityAggregationBatchJob
 	{
 		try
 		{
-			JdbcPagingItemReader<Long> reader = new JdbcPagingItemReader<>();
-			reader.setQueryProvider(sqlPagingQueryProviderFactoryBean.getObject());
-			reader.setDataSource(dataSource);
-			reader.setPageSize(chunkSize);
-			reader.setRowMapper(SingleColumnRowMapper.newInstance(Long.class));
-			reader.setParameterValues(Collections.singletonMap("cutOffDate", cutOffDate));
-			reader.afterPropertiesSet();
-			reader.setSaveState(true);
-			return reader;
+			return new JdbcPagingItemReaderBuilder<Long>().name("deleteOldDataPagingReader")
+					.queryProvider(sqlPagingQueryProviderFactoryBean.getObject()).dataSource(dataSource)
+					.pageSize(chunkSize).rowMapper(SingleColumnRowMapper.newInstance(Long.class))
+					.parameterValues(Collections.singletonMap("cutOffDate", cutOffDate)).saveState(true).build();
 		}
 		catch (Exception e)
 		{

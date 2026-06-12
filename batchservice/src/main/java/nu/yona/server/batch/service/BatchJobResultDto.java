@@ -7,8 +7,8 @@ package nu.yona.server.batch.service;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.step.StepExecution;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
