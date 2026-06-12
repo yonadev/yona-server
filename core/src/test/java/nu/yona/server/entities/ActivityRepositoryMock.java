@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;

@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.data.repository.CrudRepository;
 
 public class MockCrudRepositoryEntityWithUuid<T extends EntityWithUuid> implements CrudRepository<T, UUID>
