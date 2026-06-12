@@ -114,7 +114,7 @@ liquibase {
 			logLevel "info"
 			referenceUrl "hibernate:spring:nu.yona.server" \
 				+ "?dialect=" + applicationProps.getProperty("spring.jpa.database-platform") \
-				+ "&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy"
+				+ "&spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy"
 			referenceDriver "liquibase.ext.hibernate.database.connection.HibernateDriver"
 			referenceDefaultCatalogName "yona"
 			referenceDefaultSchemaName "yona"

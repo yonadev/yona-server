@@ -6,19 +6,20 @@ package nu.yona.server.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Optional;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import nu.yona.server.exceptions.UpstreamException;
 import nu.yona.server.exceptions.YonaException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This handler just logs any REST client errors that occur. When this handler is configured on a REST template, callers are
@@ -36,7 +37,7 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 	}
 
 	@Override
-	public void handleError(ClientHttpResponse response) throws IOException
+	public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException
 	{
 		logger.error("Response error: {} {}", getStatusCode(response), response.getStatusText());
 		String responseBody = convertStreamToString(response.getBody());
@@ -67,16 +68,9 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 
 	private Optional<ErrorResponseDto> getYonaErrorResponse(ClientHttpResponse response, String responseBody)
 	{
-		try
+		if (getStatusCode(response).is4xxClientError())
 		{
-			if (getStatusCode(response).is4xxClientError())
-			{
-				return Optional.ofNullable(objectMapper.readValue(responseBody, ErrorResponseDto.class));
-			}
-		}
-		catch (IOException e)
-		{
-			// Ignore and just return empty
+			return Optional.ofNullable(objectMapper.readValue(responseBody, ErrorResponseDto.class));
 		}
 		return Optional.empty();
 	}

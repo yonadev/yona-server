@@ -12,18 +12,19 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.job.parameters.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemReader;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.database.JdbcPagingItemReader;
+import org.springframework.batch.infrastructure.item.database.builder.JdbcPagingItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -87,8 +88,9 @@ public class SendSystemMessageBatchJob
 
 	private Step sendSystemMessages()
 	{
-		return new StepBuilder("sendSystemMessages", jobRepository).<UUID, Void>chunk(USERS_CHUNK_SIZE, transactionManager)
-				.reader(userAnonymizedReader).processor(userAnonymizedProcessor).writer(noopItemWriter).build();
+		return new StepBuilder("sendSystemMessages", jobRepository).<UUID, Void>chunk(USERS_CHUNK_SIZE,
+						transactionManager).reader(userAnonymizedReader).processor(userAnonymizedProcessor)
+				.writer(noopItemWriter).build();
 	}
 
 	@Bean(name = "sendSystemMessageJobUserAnonymizedReader", destroyMethod = "")
@@ -143,14 +145,9 @@ public class SendSystemMessageBatchJob
 	{
 		try
 		{
-			JdbcPagingItemReader<UUID> reader = new JdbcPagingItemReader<>();
-			reader.setQueryProvider(sqlPagingQueryProviderFactoryBean.getObject());
-			reader.setDataSource(dataSource);
-			reader.setPageSize(USERS_CHUNK_SIZE);
-			reader.setRowMapper(singleUUIDColumnRowMapper());
-			reader.afterPropertiesSet();
-			reader.setSaveState(true);
-			return reader;
+			return new JdbcPagingItemReaderBuilder<UUID>().name("sendSystemMessageReader")
+					.queryProvider(sqlPagingQueryProviderFactoryBean.getObject()).dataSource(dataSource)
+					.pageSize(USERS_CHUNK_SIZE).rowMapper(singleUUIDColumnRowMapper()).saveState(true).build();
 		}
 		catch (Exception e)
 		{

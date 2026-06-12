@@ -32,11 +32,11 @@ import org.mockito.Captor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
@@ -140,16 +140,16 @@ class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	@Autowired
 	private MigrationStep migrationStep;
 
-	@MockBean
+	@MockitoBean
 	private MessageService mockMessageService;
 
-	@MockBean
+	@MockitoBean
 	private UserService mockUserService;
 
-	@MockBean
+	@MockitoBean
 	private UserAnonymizedService mockUserAnonymizedService;
 
-	@MockBean
+	@MockitoBean
 	private LDAPUserService mockLdapUserService;
 
 	@Autowired

@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +31,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.Translator;
@@ -94,28 +94,28 @@ class MessageServiceTest extends BaseSpringIntegrationTest
 	@Autowired
 	private DeviceAnonymizedRepository deviceAnonymizedRepository;
 
-	@MockBean
+	@MockitoBean
 	private UserService mockUserService;
 
-	@MockBean
+	@MockitoBean
 	private UserAnonymizedService mockUserAnonymizedService;
 
-	@MockBean
+	@MockitoBean
 	private GoalRepository mockGoalRepository;
 
-	@MockBean
+	@MockitoBean
 	private MessageSourceRepository mockMessageSourceRepository;
 
-	@MockBean
+	@MockitoBean
 	private MessageDestinationRepository mockMessageDestinationRepository;
 
-	@MockBean
+	@MockitoBean
 	private MessageRepository mockMessageRepository;
 
-	@MockBean
+	@MockitoBean
 	private FirebaseService mockFirebaseService;
 
-	@MockBean
+	@MockitoBean
 	private SmsService mockSmsService;
 
 	@Autowired

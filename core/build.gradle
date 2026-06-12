@@ -57,11 +57,11 @@ dependencies {
 	api libs.spring.boot.starter.data.jpa
 	api libs.spring.boot.starter.web
 	implementation libs.spring.boot.starter.actuator
+	implementation libs.spring.boot.starter.cache
 	implementation libs.spring.cloud.starter.sleuth
 	implementation libs.spring.metrics
 	implementation libs.micrometer.prometheus
 	api libs.spring.context.support
-	implementation libs.hibernate
 	implementation libs.evo.inflector
 	implementation libs.commons.validator
 	implementation libs.commons.lang

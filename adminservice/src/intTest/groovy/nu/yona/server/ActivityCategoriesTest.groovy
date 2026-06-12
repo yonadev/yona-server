@@ -50,13 +50,13 @@ class ActivityCategoriesTest extends Specification
 
 		then:
 		def getAllResponse = appService.getAllActivityCategoriesWithLanguage("en-US")
-		def programmingCategory = appServicefindActivityCategoryByName(getAllResponse, "Programming")
+		def programmingCategory = appServiceFindActivityCategoryByName(getAllResponse, "Programming")
 		programmingCategory == null
-		def chessCategory = appServicefindActivityCategoryByName(getAllResponse, "Chess")
+		def chessCategory = appServiceFindActivityCategoryByName(getAllResponse, "Chess")
 		chessCategory != null
-		def gardeningCategory = appServicefindActivityCategoryByName(getAllResponse, "Gardening")
+		def gardeningCategory = appServiceFindActivityCategoryByName(getAllResponse, "Gardening")
 		gardeningCategory != null
-		def cookingCategory = appServicefindActivityCategoryByName(getAllResponse, "Cooking")
+		def cookingCategory = appServiceFindActivityCategoryByName(getAllResponse, "Cooking")
 		cookingCategory == null
 
 		cleanup:
@@ -283,9 +283,9 @@ class ActivityCategoriesTest extends Specification
 		getAllResponse.json._embedded."yona:activityCategories".find { it.localizableName["en-US"] == englishName }
 	}
 
-	private static appServicefindActivityCategoryByName(getAllResponse, englishName)
+	private static appServiceFindActivityCategoryByName(getAllResponse, englishName)
 	{
-		getAllResponse.json._embedded."yona:activityCategories".find { it.name == englishName }
+		getAllResponse.json._embedded?."yona:activityCategories"?.find { it.name == englishName }
 	}
 
 	private void waitForCachePropagation(englishName, englishDescription)
@@ -294,12 +294,13 @@ class ActivityCategoriesTest extends Specification
 		{
 			def response = appService.getAllActivityCategoriesWithLanguage("en-US")
 			assertResponseStatusOk(response)
-			def category = appServicefindActivityCategoryByName(response, englishName)
+			def category = appServiceFindActivityCategoryByName(response, englishName)
 			if (category != null && category.description == englishDescription)
 			{
 				return
 			}
 			sleep(1000)
 		}
+		assert false: "waitForCachePropagation timed out after ${cachePropagationTimeoutSeconds} seconds"
 	}
 }

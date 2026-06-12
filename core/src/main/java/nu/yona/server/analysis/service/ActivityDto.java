@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,14 +11,14 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import nu.yona.server.Constants;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.device.entities.DeviceAnonymized;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 @JsonRootName("activity")
 public class ActivityDto
@@ -29,7 +28,8 @@ public class ActivityDto
 	private final ZonedDateTime endTime;
 	private final Optional<String> app;
 
-	private ActivityDto(Optional<UUID> deviceAnonymizedId, ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> app)
+	private ActivityDto(Optional<UUID> deviceAnonymizedId, ZonedDateTime startTime, ZonedDateTime endTime,
+			Optional<String> app)
 	{
 		this.deviceAnonymizedId = deviceAnonymizedId;
 		this.startTime = startTime;
@@ -67,14 +67,13 @@ public class ActivityDto
 		return app;
 	}
 
-	public static class EmptyOptionalAsEmptyStringSerializer extends JsonSerializer<Optional<String>>
+	public static class EmptyOptionalAsEmptyStringSerializer extends ValueSerializer<Optional<String>>
 	{
 
 		@Override
-		public void serialize(Optional<String> app, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
-				throws IOException
+		public void serialize(Optional<String> value, JsonGenerator gen, SerializationContext context)
 		{
-			jsonGenerator.writeObject(app.orElse(""));
+			gen.writePOJO(value.orElse(""));
 		}
 	}
 }

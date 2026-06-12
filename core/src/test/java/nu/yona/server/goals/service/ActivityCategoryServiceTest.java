@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.cache.support.SimpleCacheManager;
@@ -38,6 +37,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.Translator;
@@ -65,7 +65,7 @@ class ActivityCategoryServiceTestConfiguration
 @ContextConfiguration(classes = { ActivityCategoryServiceTestConfiguration.class })
 class ActivityCategoryServiceTest
 {
-	@MockBean
+	@MockitoBean
 	private ActivityCategoryRepository mockRepository;
 
 	private List<ActivityCategory> mockRepositoryFindAllResult;

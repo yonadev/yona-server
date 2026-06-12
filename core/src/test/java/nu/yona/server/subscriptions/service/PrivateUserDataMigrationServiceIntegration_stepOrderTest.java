@@ -15,12 +15,12 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.device.service.DeviceService;
@@ -57,10 +57,10 @@ class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends BaseSprin
 	private final Field migrationStepsField = JUnitUtil.getAccessibleField(PrivateUserDataMigrationService.class,
 			"migrationSteps");
 
-	@MockBean
+	@MockitoBean
 	private DeviceService mockDeviceService;
 
-	@MockBean
+	@MockitoBean
 	private BuddyService mockBuddyService;
 
 	@Autowired

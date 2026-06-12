@@ -65,7 +65,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
-		response.json.properties.status == "done"
+		response.json.get('properties')['status'] == "done"
 		response.json._embedded."yona:affectedMessages".size() == 1
 		response.json._embedded."yona:affectedMessages"[0]._links.self.href == goalConflictMessage._links.self.href
 		response.json._embedded."yona:affectedMessages"[0].status == "DISCLOSURE_REQUESTED"

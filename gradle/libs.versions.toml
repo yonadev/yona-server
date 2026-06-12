@@ -1,8 +1,7 @@
 [versions]
 bouncycastle    = "1.70"
 hazelcast       = "5.6.0" # When updating, also update hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
-hibernate       = "6.6.15.Final"
-spring-security = "6.5.6"
+spring-security = "7.1.0"
 
 [libraries]
 # Libraries used in multiple projects
@@ -10,12 +9,11 @@ bcpkix                        = { module = "org.bouncycastle:bcpkix-jdk15on", ve
 bcprov                        = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
 hazelcast-spring              = { module = "com.hazelcast:hazelcast-spring", version.ref = "hazelcast" }
 hazelcast                     = { module = "com.hazelcast:hazelcast", version.ref = "hazelcast" }
-hibernate                     = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }
 httpmime                      = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 jackson-datatype-jdk8         = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8" }
 jackson-datatype-jsr310       = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
 mariadb-client                = { module = "org.mariadb.jdbc:mariadb-java-client", version = "3.5.6" }
-spring-batch-core             = { module = "org.springframework.batch:spring-batch-core", version = "5.2.4" }
+spring-batch-core             = { module = "org.springframework.batch:spring-batch-core", version = "6.0.4" }
 spring-security-config        = { module = "org.springframework.security:spring-security-config", version.ref = "spring-security" }
 spring-security-web           = { module = "org.springframework.security:spring-security-web", version.ref = "spring-security" }
 test-equalsverifier           = { module = "nl.jqno.equalsverifier:equalsverifier", version = "4.2.5" }
@@ -25,7 +23,7 @@ test-jmockit                  = { module = "org.jmockit:jmockit", version = "1.5
 test-junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter", version = "6.0.1" }
 test-mockito-core             = { module = "org.mockito:mockito-core" }
 test-mockito-junit-jupiter    = { module = "org.mockito:mockito-junit-jupiter" }
-test-spock-core               = { module = "org.spockframework:spock-core", version = "2.3-groovy-4.0" }
+test-spock-core               = { module = "org.spockframework:spock-core", version = "2.4-groovy-5.0" }
 test-spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 thymeleaf                     = { module = "org.thymeleaf:thymeleaf-spring5", version = "3.1.4.RELEASE" }
 
@@ -35,6 +33,7 @@ spring-boot-starter-hateoas   = { module = "org.springframework.boot:spring-boot
 spring-boot-starter-data-jpa  = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring-boot-starter-web       = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-actuator  = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-cache     = { module = "org.springframework.boot:spring-boot-starter-cache" }
 spring-cloud-starter-sleuth   = { module = "org.springframework.cloud:spring-cloud-starter-sleuth", version = "3.1.11" }
 spring-metrics                = { module = "org.springframework.metrics:spring-metrics", version = "0.5.1.RELEASE" }
 micrometer-prometheus         = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.16.1" }
@@ -67,6 +66,6 @@ picocli              = { module = "info.picocli:picocli", version = "4.7.7" }
 [plugins]
 bmuschko-docker        = { id = "com.bmuschko.docker-remote-api", version = "10.0.0" }
 sonarqube              = { id = "org.sonarqube", version = "7.2.1.6560" }
-spring-boot            = { id = "org.springframework.boot", version = "3.5.7" }
+spring-boot            = { id = "org.springframework.boot", version = "4.0.6" }
 spring-dependency-mgmt = { id = "io.spring.dependency-management", version = "1.1.7" }
 liquibase              = { id = "org.liquibase.gradle", version = "3.1.0" }

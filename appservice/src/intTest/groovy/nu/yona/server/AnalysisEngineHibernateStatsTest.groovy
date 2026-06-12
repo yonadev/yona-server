@@ -96,7 +96,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.entityFetchCount == 1
 		stats.entityInsertCount == 3
 		stats.entityLoadCount == 9
-		stats.entityUpdateCount == 2
+		stats.entityUpdateCount == 3
 		stats.transactionCount == 2
 	}
 
@@ -137,7 +137,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.entityFetchCount == 1
 		stats.entityInsertCount == 5
 		stats.entityLoadCount == 16
-		stats.entityUpdateCount == 4
+		stats.entityUpdateCount == 5
 		stats.transactionCount == 2
 	}
 

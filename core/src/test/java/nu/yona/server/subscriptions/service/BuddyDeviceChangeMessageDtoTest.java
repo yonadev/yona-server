@@ -18,13 +18,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import nu.yona.server.Translator;
@@ -113,31 +113,31 @@ class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 	@Autowired
 	private BuddyDeviceChangeMessageDto.Manager manager;
 
-	@MockBean
+	@MockitoBean
 	private UserAnonymizedService mockUserAnonymizedService;
 
-	@MockBean
+	@MockitoBean
 	private BuddyConnectResponseMessageDto.Manager mockBuddyConnectResponseMessageDto_Manager;
 
-	@MockBean
+	@MockitoBean
 	private TransactionHelper mockTransactionHelper;
 
-	@MockBean
+	@MockitoBean
 	private EmailService mockEmailService;
 
-	@MockBean
+	@MockitoBean
 	private SmsService mockSmsService;
 
-	@MockBean
+	@MockitoBean
 	private Translator mockTranslator;
 
-	@MockBean
+	@MockitoBean
 	private TheDtoManager mockTheDtoManager;
 
-	@MockBean
+	@MockitoBean
 	private MessageService mockMessageService;
 
-	@MockBean
+	@MockitoBean
 	private LockPool<UUID> mockUserSynchronizer;
 
 	@BeforeEach

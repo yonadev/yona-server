@@ -31,14 +31,12 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.SmsException;
 import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.util.ThymeleafUtil;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class PlivoSmsService implements SmsService
@@ -141,19 +139,12 @@ public class PlivoSmsService implements SmsService
 
 	private String createRequestJson(String phoneNumber, String message)
 	{
-		try
-		{
-			Map<String, Object> requestMessage = new HashMap<>();
-			requestMessage.put("src", determineSender(phoneNumber));
-			requestMessage.put("dst", phoneNumber.replace("+", ""));
-			requestMessage.put("text", message);
+		Map<String, Object> requestMessage = new HashMap<>();
+		requestMessage.put("src", determineSender(phoneNumber));
+		requestMessage.put("dst", phoneNumber.replace("+", ""));
+		requestMessage.put("text", message);
 
-			return new ObjectMapper().writeValueAsString(requestMessage);
-		}
-		catch (JsonProcessingException e)
-		{
-			throw SmsException.smsSendingFailed(e);
-		}
+		return new ObjectMapper().writeValueAsString(requestMessage);
 	}
 
 	String determineSender(String targetPhoneNumber)

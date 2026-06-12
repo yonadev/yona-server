@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -40,7 +40,8 @@ public class UserAnonymized extends EntityWithUuid
 	private MessageDestination anonymousDestination;
 
 	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
-	@Where(clause = "end_time is null") // The history items have the user anonymized ID set, so they would appear in this
+	@SQLRestriction("end_time is null")
+	// The history items have the user anonymized ID set, so they would appear in this
 	// collection if not explicitly excluded
 	@BatchSize(size = 20)
 	private Set<Goal> goals;
