@@ -1,12 +1,12 @@
 [versions]
-bouncycastle    = "1.70"
+bouncycastle    = "1.84"
 hazelcast       = "5.7.0" # When updating, also update hazelcast.ReplicationController.image_version in k8s/helm/yona/values.yaml
 spring-security = "7.1.0"
 
 [libraries]
 # Libraries used in multiple projects
-bcpkix                        = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bouncycastle" }
-bcprov                        = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
+bcpkix                        = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
+bcprov                        = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 hazelcast-spring              = { module = "com.hazelcast:hazelcast-spring", version.ref = "hazelcast" }
 hazelcast                     = { module = "com.hazelcast:hazelcast", version.ref = "hazelcast" }
 httpmime                      = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
