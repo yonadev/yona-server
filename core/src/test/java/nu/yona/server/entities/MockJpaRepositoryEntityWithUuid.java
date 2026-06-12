@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

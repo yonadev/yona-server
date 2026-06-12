@@ -63,7 +63,7 @@ dependencies {
 	api libs.spring.context.support
 	implementation libs.evo.inflector
 	implementation libs.commons.validator
-	implementation libs.commons.lang
+	implementation libs.commons.lang3
 	api libs.jakarta.mail
 	api libs.jakarta.annotation
 	api libs.thymeleaf
