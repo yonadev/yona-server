@@ -12,9 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
 import nu.yona.server.properties.PropertyInitializer;
 
@@ -29,12 +27,6 @@ public class BatchServiceApplication
 		PropertyInitializer.initializePropertiesFromEnvironment();
 		ConfigurableApplicationContext context = SpringApplication.run(BatchServiceApplication.class, args);
 		ApplicationStatusLogger.addLoggerForContextClosedEvent(context);
-	}
-
-	@Bean
-	public TaskScheduler taskScheduler()
-	{
-		return new ConcurrentTaskScheduler(); // single threaded by default
 	}
 
 	@Bean(name = "noopItemWriter")

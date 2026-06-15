@@ -88,8 +88,8 @@ public class SendSystemMessageBatchJob
 
 	private Step sendSystemMessages()
 	{
-		return new StepBuilder("sendSystemMessages", jobRepository).<UUID, Void>chunk(USERS_CHUNK_SIZE,
-						transactionManager).reader(userAnonymizedReader).processor(userAnonymizedProcessor)
+		return new StepBuilder("sendSystemMessages", jobRepository).<UUID, Void>chunk(USERS_CHUNK_SIZE)
+				.transactionManager(transactionManager).reader(userAnonymizedReader).processor(userAnonymizedProcessor)
 				.writer(noopItemWriter).build();
 	}
 

@@ -50,7 +50,7 @@ public class JobDto
 		return group;
 	}
 
-	public void setGroup(String group)
+	public final void setGroup(String group)
 	{
 		this.group = group;
 	}
