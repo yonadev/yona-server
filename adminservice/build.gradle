@@ -14,32 +14,6 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 def dockerImageName = "${project.group}/${base.archivesName.get()}"
 def classifier = "full"
 
-configurations {
-	providedRuntime
-	intTestImplementation.extendsFrom testImplementation
-	intTestRuntime.extendsFrom testRuntime
-}
-
-dependencies {
-	implementation project(":core")
-	runtimeOnly libs.mariadb.client
-	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
-
-	testImplementation project(path: ":core", configuration: "testUtils")
-
-	intTestImplementation libs.test.groovy
-	intTestImplementation libs.test.spock.core
-}
-
-// ---- Test Configuration ----
-test {
-	enableAssertions = true
-	testLogging {
-		events "passed", "skipped", "failed"
-		showStandardStreams = true
-	}
-}
-
 // ---- Integration Test Setup ----
 sourceSets {
 	intTest {
@@ -69,6 +43,32 @@ tasks.register("intTest", Test) {
 		"yona.appservice.url"		   : project.ext.yona_appservice_url,
 		"yona.batchservice.url"		   : project.ext.yona_batchservice_url
 	]
+}
+
+configurations {
+	providedRuntime
+	intTestImplementation.extendsFrom testImplementation
+	intTestRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+	implementation project(":core")
+	runtimeOnly libs.mariadb.client
+	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
+
+	testImplementation project(path: ":core", configuration: "testUtils")
+
+	intTestImplementation libs.test.groovy
+	intTestImplementation libs.test.spock.core
+}
+
+// ---- Test Configuration ----
+test {
+	enableAssertions = true
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = true
+	}
 }
 
 // ---- Boot Run Configuration ----

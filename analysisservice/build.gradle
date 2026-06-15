@@ -14,39 +14,6 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 def dockerImageName = "${project.group}/${base.archivesName.get()}"
 def classifier = "full"
 
-configurations {
-	providedRuntime
-	intTestImplementation.extendsFrom testImplementation
-	intTestRuntime.extendsFrom testRuntime
-}
-
-dependencies {
-	implementation project(":core")
-
-	runtimeOnly libs.mariadb.client
-	runtimeOnly libs.jackson.datatype.jsr310
-	runtimeOnly libs.jackson.datatype.jdk8
-
-	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
-
-	testImplementation project(path: ":core", configuration: "testUtils")
-	testImplementation project(":core").sourceSets.test.output
-	testImplementation "org.mockito:mockito-core"
-	testImplementation libs.test.spring.boot.starter.test
-	testImplementation libs.test.mockito.junit.jupiter
-	testImplementation libs.test.jmockit
-
-	intTestImplementation libs.test.groovy
-	intTestImplementation libs.test.spock.core
-}
-
-// ---- Test Configuration ----
-test {
-	enableAssertions = true
-	useJUnitPlatform()
-	jvmArgs "-javaagent:${classpath.find { it.name.contains("jmockit") }.absolutePath}"
-}
-
 // ---- Integration Test Setup ----
 sourceSets {
 	intTest {
@@ -71,6 +38,39 @@ tasks.register("intTest", Test) {
 		"yona.appservice.url"		   : project.ext.yona_appservice_url,
 		"yona.batchservice.url"		   : project.ext.yona_batchservice_url
 	]
+}
+
+configurations {
+	providedRuntime
+	intTestImplementation.extendsFrom testImplementation
+	intTestRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+	implementation project(":core")
+
+	runtimeOnly libs.mariadb.client
+	runtimeOnly libs.jackson.datatype.jsr310
+	runtimeOnly libs.jackson.datatype.jdk8
+
+	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
+
+	testImplementation project(path: ":core", configuration: "testUtils")
+	testImplementation project(path: ":core", configuration: "testArtifacts")
+	testImplementation "org.mockito:mockito-core"
+	testImplementation libs.test.spring.boot.starter.test
+	testImplementation libs.test.mockito.junit.jupiter
+	testImplementation libs.test.jmockit
+
+	intTestImplementation libs.test.groovy
+	intTestImplementation libs.test.spock.core
+}
+
+// ---- Test Configuration ----
+test {
+	enableAssertions = true
+	useJUnitPlatform()
+	jvmArgs "-javaagent:${classpath.find { it.name.contains("jmockit") }.absolutePath}"
 }
 
 // ---- Boot Run Configuration ----

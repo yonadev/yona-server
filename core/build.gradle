@@ -28,6 +28,7 @@ sourceSets {
 // =====================
 configurations {
 	testUtils.extendsFrom(testRuntimeClasspath)
+    testArtifacts
 }
 
 // =====================
@@ -37,12 +38,17 @@ tasks.register("testUtilsJar", Jar) {
 	archiveClassifier.set("testUtils")
 	from sourceSets.testUtils.output
 }
+tasks.register("testJar", Jar) {
+	archiveClassifier.set("tests")
+	from sourceSets.test.output
+}
 
 // =====================
 // Artifacts
 // =====================
 artifacts {
 	testUtils(tasks.named("testUtilsJar"))
+    testArtifacts(tasks.named("testJar"))
 }
 
 // =====================
