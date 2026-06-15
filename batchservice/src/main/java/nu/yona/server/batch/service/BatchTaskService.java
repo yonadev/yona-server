@@ -36,8 +36,8 @@ import nu.yona.server.util.TimeUtil;
 @Service
 public class BatchTaskService
 {
-	private static final String PIN_RESET_CONFIRMMATION_CODE_JOB_NAME = "PinResetConfirmationCode";
-	private static final String PIN_RESET_CONFIRMMATION_CODE_TRIGGER_NAME = PIN_RESET_CONFIRMMATION_CODE_JOB_NAME;
+	private static final String PIN_RESET_CONFIRMATION_CODE_JOB_NAME = "PinResetConfirmationCode";
+	private static final String PIN_RESET_CONFIRMATION_CODE_TRIGGER_NAME = PIN_RESET_CONFIRMATION_CODE_JOB_NAME;
 
 	private static final Logger logger = LoggerFactory.getLogger(BatchTaskService.class);
 
@@ -73,8 +73,8 @@ public class BatchTaskService
 	{
 		logger.info("Received request to generate PIN reset confirmation code for user with ID {} at {}",
 				request.getUserId(), request.getExecutionTime());
-		schedulingService.schedule(ScheduleGroup.OTHER, PIN_RESET_CONFIRMMATION_CODE_JOB_NAME,
-				PIN_RESET_CONFIRMMATION_CODE_TRIGGER_NAME + " " + request.getUserId(),
+		schedulingService.schedule(ScheduleGroup.OTHER, PIN_RESET_CONFIRMATION_CODE_JOB_NAME,
+				PIN_RESET_CONFIRMATION_CODE_TRIGGER_NAME + " " + request.getUserId(),
 				PinResetConfirmationCodeSenderQuartzJob.buildParameterMap(request.getUserId(),
 						request.getLocaleString()), TimeUtil.toDate(request.getExecutionTime()));
 	}
@@ -109,7 +109,7 @@ public class BatchTaskService
 			return launcher.run(job, jobParameters);
 		}
 		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
-			   InvalidJobParametersException e)
+		       InvalidJobParametersException e)
 		{
 			logger.error("Unexpected exception", e);
 			throw YonaException.unexpected(e);

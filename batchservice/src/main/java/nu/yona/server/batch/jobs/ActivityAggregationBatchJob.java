@@ -91,14 +91,14 @@ public class ActivityAggregationBatchJob
 	private Step aggregateDayActivities()
 	{
 		return new StepBuilder("aggregateDayActivities", jobRepository).<Long, DayActivity>chunk(
-						DAY_ACTIVITY_CHUNK_SIZE, transactionManager).reader(dayActivityReader).processor(dayActivityProcessor())
-				.writer(dayActivityWriter()).build();
+						DAY_ACTIVITY_CHUNK_SIZE).transactionManager(transactionManager).reader(dayActivityReader)
+				.processor(dayActivityProcessor()).writer(dayActivityWriter()).build();
 	}
 
 	private Step aggregateWeekActivities()
 	{
 		return new StepBuilder("aggregateWeekActivities", jobRepository).<Long, WeekActivity>chunk(
-						WEEK_ACTIVITY_CHUNK_SIZE, transactionManager).reader(weekActivityReader)
+						WEEK_ACTIVITY_CHUNK_SIZE).transactionManager(transactionManager).reader(weekActivityReader)
 				.processor(weekActivityProcessor()).writer(weekActivityWriter()).build();
 	}
 

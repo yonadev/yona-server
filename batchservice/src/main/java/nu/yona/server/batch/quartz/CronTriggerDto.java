@@ -38,8 +38,8 @@ public class CronTriggerDto
 		this(null, name, description, jobName, cronExpression, timeZone, null);
 	}
 
-	public CronTriggerDto(String group, String name, String description, String jobName, String cronExpression, String timeZone,
-			Date nextFireTime)
+	public CronTriggerDto(String group, String name, String description, String jobName, String cronExpression,
+			String timeZone, Date nextFireTime)
 	{
 		StringUtil.assertPlainTextCharacters(group, "group");
 		StringUtil.assertPlainTextCharacters(name, "name");
@@ -59,7 +59,7 @@ public class CronTriggerDto
 		return group;
 	}
 
-	public void setGroup(String group)
+	public final void setGroup(String group)
 	{
 		this.group = group;
 	}
