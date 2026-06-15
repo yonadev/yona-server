@@ -14,6 +14,24 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 def dockerImageName = "${project.group}/${base.archivesName.get()}"
 def classifier = "full"
 
+// ---- Integration Test Setup ----
+sourceSets {
+	intTest {
+		java {
+			compileClasspath += main.output
+			runtimeClasspath += main.output
+		}
+	}
+}
+
+tasks.register("intTest", Test) {
+	description = "Run integration tests (located in src/intTest/...)."
+	group = "verification"
+	testClassesDirs = sourceSets.intTest.output.classesDirs
+	classpath = sourceSets.intTest.runtimeClasspath
+	useJUnitPlatform()
+}
+
 configurations {
 	providedRuntime
 	intTestImplementation.extendsFrom testImplementation
@@ -32,24 +50,6 @@ dependencies {
 // ---- Test Configuration ----
 test {
 	enableAssertions = true
-}
-
-// ---- Integration Test Setup ----
-sourceSets {
-	intTest {
-		java {
-			compileClasspath += main.output
-			runtimeClasspath += main.output
-		}
-	}
-}
-
-tasks.register("intTest", Test) {
-	description = "Run integration tests (located in src/intTest/...)."
-	group = "verification"
-	testClassesDirs = sourceSets.intTest.output.classesDirs
-	classpath = sourceSets.intTest.runtimeClasspath
-	useJUnitPlatform()
 }
 
 // ---- Boot Run Configuration ----
