@@ -15,8 +15,8 @@ import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.JobRestartException;
-import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,6 +46,9 @@ public class BatchTaskService
 
 	@Autowired
 	private JobRepository jobRepository;
+
+	@Autowired
+	private JobOperator jobOperator;
 
 	@Autowired
 	@Qualifier("activityAggregationJob")
@@ -103,10 +106,7 @@ public class BatchTaskService
 	{
 		try
 		{
-			TaskExecutorJobLauncher launcher = new TaskExecutorJobLauncher();
-			launcher.setJobRepository(jobRepository);
-			launcher.setTaskExecutor(taskExecutor);
-			return launcher.run(job, jobParameters);
+			return jobOperator.run(job, jobParameters);
 		}
 		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
 		       InvalidJobParametersException e)
