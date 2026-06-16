@@ -35,7 +35,7 @@ spring-boot-starter-web       = { module = "org.springframework.boot:spring-boot
 spring-boot-starter-actuator  = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-cache     = { module = "org.springframework.boot:spring-boot-starter-cache" }
 spring-metrics                = { module = "org.springframework.metrics:spring-metrics", version = "0.5.1.RELEASE" }
-micrometer-prometheus         = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.16.1" }
+micrometer-prometheus         = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
 spring-context-support        = { module = "org.springframework:spring-context-support" }
 evo-inflector                 = { module = "org.atteo:evo-inflector", version = "2.0" }
 commons-validator             = { module = "commons-validator:commons-validator", version = "1.10.1" }
