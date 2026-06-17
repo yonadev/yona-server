@@ -5,7 +5,6 @@
 package nu.yona.server.exceptions;
 
 import java.io.Serializable;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatusCode;
 
@@ -15,24 +14,24 @@ import org.springframework.http.HttpStatusCode;
 public class UpstreamException extends YonaException
 {
 	private static final long serialVersionUID = 3472480838017894334L;
-	private final Optional<String> message;
+	private final String message;
 
 	private UpstreamException(HttpStatusCode statusCode, String messageId, String message)
 	{
 		super(statusCode, messageId);
-		this.message = Optional.of(message);
+		this.message = message;
 	}
 
 	private UpstreamException(HttpStatusCode statusCode, String messageId, Serializable... parameters)
 	{
 		super(statusCode, messageId, parameters);
-		message = Optional.empty();
+		this.message = null;
 	}
 
 	@Override
 	public String getLocalizedMessage()
 	{
-		return message.orElse(super.getLocalizedMessage());
+		return message == null ? super.getLocalizedMessage() : message;
 	}
 
 	public static UpstreamException yonaException(HttpStatusCode statusCode, String messageId, String message)

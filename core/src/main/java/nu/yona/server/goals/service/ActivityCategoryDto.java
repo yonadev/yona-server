@@ -43,10 +43,14 @@ public class ActivityCategoryDto implements Serializable
 	private static final long serialVersionUID = 2498926948887006481L;
 
 	private UUID id;
+	@SuppressWarnings("serial")
 	private final Map<Locale, String> localizableName;
 	private final boolean mandatoryNoGo;
+	@SuppressWarnings("serial")
 	private final Set<String> smoothwallCategories;
+	@SuppressWarnings("serial")
 	private final Set<String> applications;
+	@SuppressWarnings("serial")
 	private final Map<Locale, String> localizableDescription;
 
 	@JsonCreator
