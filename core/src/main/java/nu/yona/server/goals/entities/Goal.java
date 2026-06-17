@@ -73,7 +73,7 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 
 		this.activityCategory = activityCategory;
 
-		if (this.isMandatory())
+		if (this.activityCategory.isMandatoryNoGo())
 		{
 			this.creationTime = mandatoryGoalPresetCreationTime;
 		}
@@ -108,7 +108,7 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 		this.userAnonymized = userAnonymized;
 	}
 
-	public final ActivityCategory getActivityCategory()
+	public ActivityCategory getActivityCategory()
 	{
 		return activityCategory;
 	}
@@ -201,7 +201,7 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 
 	public abstract Goal cloneAsHistoryItem(LocalDateTime endTime);
 
-	public final boolean isMandatory()
+	public boolean isMandatory()
 	{
 		return getActivityCategory().isMandatoryNoGo();
 	}
