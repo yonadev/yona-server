@@ -113,6 +113,8 @@ jobs:
         with:
           minikube version: 'v1.38.1'
           kubernetes version: 'v1.35.1'
+      - name: Fix Kubeconfig Permissions
+        run: chmod 600 /home/runner/.kube/config
       - name: Deploy Yona
         run: |
           kubectl create -f k8s/01_namespace.yaml
