@@ -33,9 +33,12 @@ public class UserAnonymizedDto implements Serializable
 
 	private final LocalDate lastMonitoredActivityDate;
 	private final ZoneId timeZone;
+	@SuppressWarnings("serial")
 	private final Set<GoalDto> goalsIncludingHistoryItems;
 	private final MessageDestinationDto anonymousMessageDestination;
+	@SuppressWarnings("serial")
 	private final Set<BuddyAnonymizedDto> buddiesAnonymized;
+	@SuppressWarnings("serial")
 	private final Set<DeviceAnonymizedDto> devicesAnonymized;
 
 	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, ZoneId timeZone,
@@ -57,8 +60,10 @@ public class UserAnonymizedDto implements Serializable
 				getGoalsIncludingHistoryItems(entity), (entity.getAnonymousDestination() == null) ?
 				null :
 				MessageDestinationDto.createInstance(entity.getAnonymousDestination()),
-				entity.getBuddiesAnonymized().stream().map(BuddyAnonymizedDto::createInstance).collect(Collectors.toSet()),
-				entity.getDevicesAnonymized().stream().map(DeviceAnonymizedDto::createInstance).collect(Collectors.toSet()));
+				entity.getBuddiesAnonymized().stream().map(BuddyAnonymizedDto::createInstance)
+						.collect(Collectors.toSet()),
+				entity.getDevicesAnonymized().stream().map(DeviceAnonymizedDto::createInstance)
+						.collect(Collectors.toSet()));
 	}
 
 	public UUID getId()
@@ -78,8 +83,8 @@ public class UserAnonymizedDto implements Serializable
 
 	public Set<GoalDto> getGoalsForActivityCategory(ActivityCategory activityCategory)
 	{
-		return getGoalsIncludingHistoryItems().stream().filter(g -> g.getActivityCategoryId().equals(activityCategory.getId()))
-				.collect(Collectors.toSet());
+		return getGoalsIncludingHistoryItems().stream()
+				.filter(g -> g.getActivityCategoryId().equals(activityCategory.getId())).collect(Collectors.toSet());
 	}
 
 	public ZoneId getTimeZone()
@@ -99,8 +104,8 @@ public class UserAnonymizedDto implements Serializable
 
 	public Optional<BuddyAnonymizedDto> getBuddyAnonymizedByUserAnonymizedIdIfExisting(UUID fromUserAnonymizedId)
 	{
-		return buddiesAnonymized.stream().filter(ba -> ba.getUserAnonymizedId().equals(Optional.of(fromUserAnonymizedId)))
-				.findFirst();
+		return buddiesAnonymized.stream()
+				.filter(ba -> ba.getUserAnonymizedId().equals(Optional.of(fromUserAnonymizedId))).findFirst();
 	}
 
 	public BuddyAnonymizedDto getBuddyAnonymized(UUID buddyAnonymizedId)

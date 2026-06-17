@@ -32,7 +32,9 @@ public class TimeZoneGoalDto extends GoalDto implements ITimezoneGoal
 	private static final long serialVersionUID = 7479427103494945857L;
 
 	private static final Pattern zonePattern = Pattern.compile("[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]");
+	@SuppressWarnings("serial")
 	private final List<String> zones;
+	@SuppressWarnings("serial")
 	private final List<Integer> spreadCells;
 	private transient byte[] spreadCellBytes;
 

@@ -4,8 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.rest;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +33,8 @@ public class HeadersServerInterceptor implements HandlerInterceptor
 	}
 
 	@Override
-	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, @Nullable Exception ex)
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+			@Nullable Exception ex)
 	{
 		headersHolder.clear();
 	}

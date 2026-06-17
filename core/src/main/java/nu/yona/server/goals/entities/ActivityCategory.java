@@ -45,8 +45,8 @@ public class ActivityCategory extends EntityWithUuid
 		super(null);
 	}
 
-	public ActivityCategory(UUID id, Map<Locale, String> localizableName, boolean mandatoryNoGo, Set<String> smoothwallCategories,
-			Set<String> applications, Map<Locale, String> localizableDescription)
+	public ActivityCategory(UUID id, Map<Locale, String> localizableName, boolean mandatoryNoGo,
+			Set<String> smoothwallCategories, Set<String> applications, Map<Locale, String> localizableDescription)
 	{
 		super(id);
 		setLocalizableName(localizableName);
@@ -73,7 +73,7 @@ public class ActivityCategory extends EntityWithUuid
 		return new HashMap<>(localizableName);
 	}
 
-	public void setLocalizableName(Map<Locale, String> name)
+	public final void setLocalizableName(Map<Locale, String> name)
 	{
 		this.localizableName = new HashMap<>(name);
 	}
@@ -93,7 +93,7 @@ public class ActivityCategory extends EntityWithUuid
 		return Collections.unmodifiableSet(smoothwallCategories);
 	}
 
-	public void setSmoothwallCategories(Set<String> smoothwallCategories)
+	public final void setSmoothwallCategories(Set<String> smoothwallCategories)
 	{
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 	}
@@ -103,7 +103,7 @@ public class ActivityCategory extends EntityWithUuid
 		return Collections.unmodifiableSet(applications);
 	}
 
-	public void setApplications(Set<String> applications)
+	public final void setApplications(Set<String> applications)
 	{
 		this.applications = new HashSet<>(applications);
 	}
@@ -113,7 +113,7 @@ public class ActivityCategory extends EntityWithUuid
 		return new HashMap<>(localizableDescription);
 	}
 
-	public void setLocalizableDescription(Map<Locale, String> localizableDescription)
+	public final void setLocalizableDescription(Map<Locale, String> localizableDescription)
 	{
 		this.localizableDescription = new HashMap<>(localizableDescription);
 	}

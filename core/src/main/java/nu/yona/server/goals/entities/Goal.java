@@ -108,7 +108,7 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 		this.userAnonymized = userAnonymized;
 	}
 
-	public ActivityCategory getActivityCategory()
+	public final ActivityCategory getActivityCategory()
 	{
 		return activityCategory;
 	}
@@ -201,7 +201,7 @@ public abstract class Goal extends EntityWithUuid implements IGoal
 
 	public abstract Goal cloneAsHistoryItem(LocalDateTime endTime);
 
-	public boolean isMandatory()
+	public final boolean isMandatory()
 	{
 		return getActivityCategory().isMandatoryNoGo();
 	}

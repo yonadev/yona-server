@@ -66,7 +66,8 @@ public class GlobalExceptionMapping
 	{
 		logUnhandledException("completed with Yona exception", buildRequestInfo(request), exception);
 
-		ErrorResponseDto responseMessage = ErrorResponseDto.createInstance(exception.getMessageId(), exception.getMessage());
+		ErrorResponseDto responseMessage = ErrorResponseDto.createInstance(exception.getMessageId(),
+				exception.getMessage());
 
 		return new ResponseEntity<>(responseMessage, exception.getStatusCode());
 	}
@@ -112,8 +113,8 @@ public class GlobalExceptionMapping
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
 	@ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
 	@ResponseBody
-	public ErrorResponseDto handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException exception,
-			HttpServletRequest request)
+	public ErrorResponseDto handleHttpRequestMethodNotSupportedException(
+			HttpRequestMethodNotSupportedException exception, HttpServletRequest request)
 	{
 		return logUnhandledExceptionAndCreateErrorDto("attempts an unsupported method", exception, request);
 	}
@@ -140,7 +141,7 @@ public class GlobalExceptionMapping
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
-	@ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+	@ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
 	@ResponseBody
 	public ErrorResponseDto handleMaxUploadSizeExceededException(MaxUploadSizeExceededException exception,
 			HttpServletRequest request)
@@ -173,7 +174,9 @@ public class GlobalExceptionMapping
 	public static String buildRequestInfo(HttpServletRequest request)
 	{
 		String queryString = request.getQueryString();
-		String url = StringUtils.isBlank(queryString) ? request.getRequestURI() : request.getRequestURI() + "?" + queryString;
+		String url = StringUtils.isBlank(queryString) ?
+				request.getRequestURI() :
+				request.getRequestURI() + "?" + queryString;
 		return MessageFormat.format("{0} on URL {1}", request.getMethod(), url);
 	}
 }

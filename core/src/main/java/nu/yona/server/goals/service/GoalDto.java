@@ -48,8 +48,8 @@ public abstract class GoalDto extends PolymorphicDto implements IGoal, Serializa
 	private final boolean mandatory;
 	private final LocalDateTime endTime;
 
-	protected GoalDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime, UUID activityCategoryId,
-			boolean mandatory)
+	protected GoalDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime,
+			UUID activityCategoryId, boolean mandatory)
 	{
 		this.id = (id == null) ? new UUID(0, 0) : id;
 		this.setActivityCategoryId(activityCategoryId);
@@ -151,7 +151,7 @@ public abstract class GoalDto extends PolymorphicDto implements IGoal, Serializa
 	}
 
 	@JsonIgnore
-	public void setActivityCategoryId(UUID activityCategoryId)
+	public final void setActivityCategoryId(UUID activityCategoryId)
 	{
 		this.activityCategoryId = activityCategoryId;
 	}

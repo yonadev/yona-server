@@ -30,7 +30,7 @@ public class HibernateHelperService
 	public void clearSessionIfNotLockedYet(Class<?> clazz, Serializable id)
 	{
 		Session session = getSession();
-		Object entity = session.get(clazz, id);
+		Object entity = session.find(clazz, id);
 		if (entity != null && isLockedForUpdate(session, entity))
 		{
 			// Already acquired an update lock
