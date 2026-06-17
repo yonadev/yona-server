@@ -52,7 +52,7 @@ jobs:
         uses: actions/setup-java@v5.3.0
         with:
           distribution: 'temurin'
-          java-version: 21
+          java-version: 25
       - name: Publish Gradle dependencies
         uses: gradle/actions/dependency-submission@v6
 
