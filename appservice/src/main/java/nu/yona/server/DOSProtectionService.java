@@ -6,7 +6,6 @@ package nu.yona.server;
 
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -37,7 +36,7 @@ public class DOSProtectionService
 	private void initializeCache()
 	{
 		attemptsCache = CacheBuilder.newBuilder()
-				.expireAfterWrite(yonaProperties.getSecurity().getDosProtectionWindow().getSeconds(), TimeUnit.SECONDS)
+				.expireAfterWrite(yonaProperties.getSecurity().getDosProtectionWindow())
 				.build(new CacheLoader<String, Integer>()
 				{
 					@Override
