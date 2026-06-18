@@ -1,6 +1,6 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017, 2021 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- *******************************************************************************/
+ */
 package nu.yona.server.subscriptions.rest;
 
 import static nu.yona.server.rest.RestConstants.PASSWORD_HEADER;
