@@ -1,10 +1,10 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2016 Stichting Yona Foundation
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *******************************************************************************/
+ */
 package nu.yona.server.rest;
 
 import java.io.IOException;
@@ -26,14 +26,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import nu.yona.server.Translator;
 import nu.yona.server.properties.YonaProperties;
 
-@Component
 /**
  * This servlet filter ensures that it looks like any request always specifies a supported locale, and it adds the
- * Content-Language header to the responses. The request handling is is done by wrapping every request with a wrapper that
+ * Content-Language header to the responses. The request handling is done by wrapping every request with a wrapper that
  * intercepts the getLocale operation. If the locale of the request does not match a supported locale, the default locale is
- * returned. The Content-Language header simply added added to response headers before passing the request and response to the
+ * returned. The Content-Language header simply added to response headers before passing the request and response to the
  * next filter.
- */ public class LocalizationFilter implements Filter
+ */
+@Component
+public class LocalizationFilter implements Filter
 {
 	public static class LocalizationRequestWrapper extends HttpServletRequestWrapper
 	{
