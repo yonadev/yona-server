@@ -43,7 +43,7 @@ commons-lang3                 = { module = "org.apache.commons:commons-lang3", v
 jakarta-mail                  = { module = "org.eclipse.angus:jakarta.mail", version = "2.0.5" }
 spring-ldap-core              = { module = "org.springframework.ldap:spring-ldap-core", version = "4.1.0" }
 guava                         = { module = "com.google.guava:guava", version = "33.6.0-jre" }
-libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.34" }
+libphonenumber                = { module = "com.googlecode.libphonenumber:libphonenumber", version = "9.0.35" }
 firebase-admin                = { module = "com.google.firebase:firebase-admin", version = "9.10.0" }
 jakarta-annotation            = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }
 
