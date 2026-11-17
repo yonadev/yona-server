@@ -117,6 +117,7 @@ jobs:
         run: chmod 600 /home/runner/.kube/config
       - name: Deploy Yona
         run: |
+          set -x
           kubectl create -f k8s/01_namespace.yaml
           kubectl create -f k8s/02_storage.yaml
           helm repo add yona https://yonadev.github.io/helm-charts
