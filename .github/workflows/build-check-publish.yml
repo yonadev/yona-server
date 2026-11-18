@@ -64,12 +64,25 @@ jobs:
             check \
             sonarqube \
             --info
+      - name: Set up Minikube
+        uses: manusa/actions-setup-minikube@v2.19.0
+        with:
+          minikube version: 'v1.38.1'
+          kubernetes version: 'v1.35.1'
       - name: Build Docker images
         working-directory: yona-server
         run: |
           ./gradlew \
             -PdockerUrl=unix:///var/run/docker.sock \
             buildDockerImage
+      - name: Load Docker images into Minikube
+        working-directory: yona-server
+        run: |
+          set -o pipefail
+          for image in adminservice analysisservice appservice batchservice yona-mariadb-liquibase-update; do
+            docker save yonadev/${image}:build-${{ inputs.build-id }} | minikube image load -
+          done
+          minikube image ls
       - name: Checkout Helm chart repo for PR
         if: ${{ inputs.is-pr-build }}
         uses: actions/checkout@v7
@@ -108,25 +121,14 @@ jobs:
           helm dependency update ${CHART}
           helm package -d ${PACKAGE_DIR} --version ${CHART_VERSION} ${CHART}
           popd
-      - name: Set up Minikube
-        uses: manusa/actions-setup-minikube@v2.19.0
-        with:
-          minikube version: 'v1.38.1'
-          kubernetes version: 'v1.35.1'
       - name: Fix Kubeconfig Permissions
         run: chmod 600 /home/runner/.kube/config
       - name: Deploy Yona
         run: |
-          set -x
           kubectl create -f k8s/01_namespace.yaml
           kubectl create -f k8s/02_storage.yaml
           helm repo add yona https://yonadev.github.io/helm-charts
           helm repo update
-          set -o pipefail
-          for image in adminservice analysisservice appservice batchservice yona-mariadb-liquibase-update; do
-            docker save yonadev/${image}:build-${{ inputs.build-id }} | minikube image load -
-          done
-          minikube image ls
           cat > values.yml << EOF
           seed_max_tries: 30
           support_infrastructure:
